@@ -1,0 +1,1739 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>राजकीय औद्योगिक प्रशिक्षण संस्थान, कोटड़ी - मूल्यांकन पोर्टल</title>
+    
+    <!-- Google Fonts & Font Awesome -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Hind:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Firebase SDK (Compat Version - Realtime Database) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+
+    <style>
+        :root {
+            --primary: #1e3a8a;
+            --primary-accent: #2563eb;
+            --secondary: #0d9488;
+            --admin: #831843;
+            --bg-canvas: #f1f5f9;
+            --surface: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #cbd5e1;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --radius-lg: 14px;
+            --radius-md: 8px;
+            --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Hind', 'Plus Jakarta Sans', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-canvas);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+            color: #ffffff;
+            padding: 14px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .brand-box {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-logo-icon {
+            background: rgba(255, 255, 255, 0.15);
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            color: #60a5fa;
+            backdrop-filter: blur(8px);
+        }
+
+        .brand-text h1 {
+            font-size: 1.15rem;
+            font-weight: 700;
+            letter-spacing: -0.2px;
+        }
+
+        .brand-text p {
+            font-size: 0.75rem;
+            color: #93c5fd;
+            font-weight: 500;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-admin-portal {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fbcfe8;
+            border: 1px solid rgba(244, 114, 182, 0.3);
+            padding: 7px 14px;
+            border-radius: 30px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            transition: all 0.25s ease;
+        }
+
+        .btn-admin-portal:hover {
+            background: var(--admin);
+            color: #ffffff;
+            border-color: var(--admin);
+            transform: translateY(-1px);
+        }
+
+        .user-status-pill {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        .btn-logout {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 4px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.78rem;
+            font-weight: 600;
+        }
+
+        .main-container {
+            max-width: 1420px;
+            margin: 20px auto;
+            padding: 0 16px;
+            flex: 1;
+            width: 100%;
+        }
+
+        .login-wrapper {
+            max-width: 860px;
+            margin: 36px auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 24px;
+        }
+
+        .glass-card {
+            background: var(--surface);
+            border-radius: var(--radius-lg);
+            padding: 26px;
+            box-shadow: var(--shadow-xl);
+            border: 1px solid var(--border-color);
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s ease;
+        }
+
+        .glass-card:hover { transform: translateY(-3px); }
+        .glass-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 5px; }
+        .card-instructor::before { background: linear-gradient(90deg, #1e3a8a, #3b82f6); }
+        .card-student::before { background: linear-gradient(90deg, #0d9488, #10b981); }
+
+        .card-header-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 14px;
+        }
+
+        .card-instructor .card-header-icon { background: #eff6ff; color: #2563eb; }
+        .card-student .card-header-icon { background: #f0fdf4; color: #059669; }
+
+        .form-title { font-size: 1.25rem; font-weight: 700; margin-bottom: 4px; }
+        .form-subtitle { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 18px; }
+
+        .input-group { margin-bottom: 14px; }
+        .input-group label { display: block; margin-bottom: 5px; font-size: 0.85rem; font-weight: 600; color: #334155; }
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1.5px solid var(--border-color);
+            border-radius: var(--radius-md);
+            font-size: 0.9rem;
+            outline: none;
+            background: #f8fafc;
+            color: var(--text-main);
+        }
+        .input-group input:focus, .input-group select:focus {
+            border-color: var(--primary-accent);
+            background: #ffffff;
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 11px;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-inst-submit { background: var(--primary); color: white; }
+        .btn-stud-submit { background: var(--secondary); color: white; }
+
+        .controls-card {
+            background: var(--surface);
+            border-radius: var(--radius-lg);
+            padding: 14px 18px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .controls-left, .controls-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .badge-trade { background: #dbeafe; color: #1e40af; font-weight: 700; padding: 6px 12px; border-radius: 6px; font-size: 0.88rem; }
+
+        .app-btn {
+            padding: 8px 14px;
+            border-radius: var(--radius-md);
+            border: none;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+        .app-btn-primary { background: #2563eb; color: white; }
+        .app-btn-secondary { background: #475569; color: white; }
+        .app-btn-success { background: #10b981; color: white; }
+        .app-btn-warning { background: #f59e0b; color: white; }
+        .app-btn-dark { background: #1e293b; color: white; }
+
+        .table-shell {
+            background: var(--surface);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+            overflow-x: auto;
+            max-height: 70vh;
+        }
+
+        table { width: 100%; border-collapse: collapse; font-size: 0.8rem; white-space: nowrap; }
+        th, td { padding: 6px 5px; text-align: center; border: 1px solid var(--border-color); }
+        th { background: #f8fafc; color: #334155; font-weight: 600; position: sticky; top: 0; z-index: 5; }
+
+        .col-sticky-name {
+            position: sticky; left: 0; background: #ffffff; z-index: 6; text-align: left;
+            padding-left: 10px; font-weight: 600; min-width: 130px;
+        }
+        th.col-sticky-name { background: #f1f5f9; z-index: 7; }
+
+        .col-roll { position: sticky; left: 130px; background: #ffffff; z-index: 6; min-width: 60px; }
+        th.col-roll { background: #f1f5f9; z-index: 7; }
+
+        .day-sunday { background: #fee2e2 !important; color: #991b1b; font-weight: 700; }
+        .day-holiday { background: #f3e8ff !important; color: #6b21a8; font-weight: 700; }
+
+        .btn-status-toggle {
+            width: 24px; height: 24px; border-radius: 4px; border: none; font-weight: 700;
+            font-size: 0.75rem; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+        }
+
+        .st-P { background: #dcfce7; color: #166534; }
+        .st-A { background: #fee2e2; color: #991b1b; }
+        .st-L { background: #fef3c7; color: #92400e; }
+        .st-H { background: #f3e8ff; color: #6b21a8; cursor: not-allowed; }
+        .st-S { background: #fee2e2; color: #991b1b; cursor: not-allowed; }
+
+        .col-m-res { background: #eff6ff; font-weight: 600; color: #1e40af; }
+        .col-o-res { background: #f0fdf4; font-weight: 700; color: #166534; }
+
+        .pct-badge { padding: 3px 6px; border-radius: 4px; font-weight: 700; font-size: 0.78rem; }
+        .pct-high { background: #dcfce7; color: #166534; }
+        .pct-mid { background: #fef9c3; color: #854d0e; }
+        .pct-low { background: #fee2e2; color: #991b1b; }
+
+        .instructor-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .inst-tab-btn {
+            padding: 9px 18px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
+            background: #ffffff;
+            font-size: 0.88rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #475569;
+        }
+
+        .inst-tab-btn.active {
+            background: var(--primary);
+            color: #ffffff;
+            border-color: var(--primary);
+        }
+
+        .student-vertical-nav-column {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 22px;
+            width: 100%;
+        }
+
+        .stud-nav-btn {
+            width: 100%;
+            padding: 13px 18px;
+            border-radius: var(--radius-md);
+            border: 1.5px solid var(--border-color);
+            background: #ffffff;
+            color: #334155;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.2s ease;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .stud-nav-btn .btn-label {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .stud-nav-btn:hover {
+            border-color: var(--primary-accent);
+            background: #f8fafc;
+            transform: translateY(-1px);
+        }
+
+        .stud-nav-btn.active {
+            background: linear-gradient(135deg, var(--primary), #2563eb);
+            color: #ffffff;
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+        }
+
+        .stud-nav-btn.active i {
+            color: #ffffff !important;
+        }
+
+        .scorecard-box {
+            background: var(--surface);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-color);
+            max-width: 980px;
+            margin: 0 auto;
+        }
+
+        .scorecard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 14px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .section-bar-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            margin: 16px 0 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .stats-tri-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 14px;
+            margin-bottom: 18px;
+        }
+
+        .metric-card {
+            background: #f8fafc;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 14px;
+        }
+
+        .metric-card .title { font-size: 0.82rem; font-weight: 600; color: var(--text-muted); }
+        .metric-card .value { font-size: 1.75rem; font-weight: 800; margin: 4px 0; }
+        .metric-card .sub { font-size: 0.78rem; color: #475569; }
+
+        .progress-track {
+            height: 7px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+        .progress-bar-fill { height: 100%; transition: width 0.4s ease; }
+
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: var(--surface);
+            border-radius: var(--radius-lg);
+            padding: 22px;
+            width: 90%;
+            max-width: 520px;
+            box-shadow: var(--shadow-xl);
+            border: 1px solid var(--border-color);
+        }
+
+        footer {
+            background: #0f172a;
+            color: #94a3b8;
+            padding: 18px 24px;
+            text-align: center;
+            font-size: 0.85rem;
+            margin-top: 40px;
+            border-top: 1px solid #1e293b;
+        }
+        footer strong { color: #f8fafc; }
+
+        .hidden { display: none !important; }
+
+        .toast-bubble {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: #0f172a;
+            color: #ffffff;
+            padding: 12px 18px;
+            border-radius: 8px;
+            box-shadow: var(--shadow-xl);
+            font-size: 0.88rem;
+            font-weight: 500;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-left: 4px solid var(--primary-accent);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Top Navigation Header -->
+    <header>
+        <div class="brand-box">
+            <div class="brand-logo-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+            <div class="brand-text">
+                <h1>राजकीय औद्योगिक प्रशिक्षण संस्थान, कोटड़ी</h1>
+                <p>छात्र उपस्थिति, टेस्ट एवं प्रगति मूल्यांकन पोर्टल</p>
+            </div>
+        </div>
+
+        <div class="header-actions">
+            <button id="adminNavBtn" class="btn-admin-portal" onclick="openModal('adminLoginModal')">
+                <i class="fa-solid fa-shield-halved"></i> एडमिन पोर्टल
+            </button>
+            <div id="authStatusPill" class="user-status-pill hidden">
+                <span id="roleLabel"><i class="fa-solid fa-user"></i> लॉगिन</span>
+                <button class="btn-logout" onclick="logout()"><i class="fa-solid fa-power-off"></i> बाहर आएं</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="main-container">
+
+        <!-- 1. FRONT LOGIN -->
+        <section id="frontLoginSection">
+            <div class="login-wrapper">
+                
+                <!-- अनुदेशक लॉगिन -->
+                <div class="glass-card card-instructor">
+                    <div class="card-header-icon"><i class="fa-solid fa-chalkboard-user"></i></div>
+                    <h2 class="form-title">ट्रेड अनुदेशक लॉगिन</h2>
+                    <p class="form-subtitle">उपस्थिति, मासिक टेस्ट अंक, डायरी व रिकॉर्ड दर्ज करें</p>
+                    
+                    <form onsubmit="handleInstructorLogin(event)">
+                        <div class="input-group">
+                            <label><i class="fa-solid fa-layer-group"></i> ट्रेड का चयन करें</label>
+                            <select id="loginInstTrade" required></select>
+                        </div>
+                        <div class="input-group">
+                            <label><i class="fa-solid fa-id-badge"></i> अनुदेशक आईडी</label>
+                            <input type="text" id="instId" placeholder="प्रदत्त लॉगिन आईडी" required>
+                        </div>
+                        <div class="input-group">
+                            <label><i class="fa-solid fa-key"></i> पासवर्ड</label>
+                            <input type="password" id="instPass" placeholder="पासवर्ड दर्ज करें" required>
+                        </div>
+                        <button type="submit" class="btn-submit btn-inst-submit">
+                            <i class="fa-solid fa-arrow-right-to-bracket"></i> अनुदेशक प्रवेश
+                        </button>
+                    </form>
+                </div>
+
+                <!-- छात्र लॉगिन -->
+                <div class="glass-card card-student">
+                    <div class="card-header-icon"><i class="fa-solid fa-user-graduate"></i></div>
+                    <h2 class="form-title">प्रशिक्षु (Student) लॉगिन</h2>
+                    <p class="form-subtitle">उपस्थिति, टेस्ट अंक, डायरी निरीक्षण व स्कोरकार्ड देखें</p>
+                    
+                    <form onsubmit="handleStudentLogin(event)">
+                        <div class="input-group">
+                            <label><i class="fa-solid fa-layer-group"></i> अपनी ट्रेड चुनें</label>
+                            <select id="loginStudentTrade" required></select>
+                        </div>
+                        <div class="input-group">
+                            <label><i class="fa-solid fa-id-card"></i> छात्र लॉगिन आईडी</label>
+                            <input type="text" id="studentLoginId" placeholder="उदा. st101" required>
+                        </div>
+                        <div class="input-group">
+                            <label><i class="fa-solid fa-lock"></i> पासवर्ड</label>
+                            <input type="password" id="studentLoginPass" placeholder="पासवर्ड दर्ज करें" required>
+                        </div>
+                        <button type="submit" class="btn-submit btn-stud-submit">
+                            <i class="fa-solid fa-chart-pie"></i> स्कोरकार्ड देखें
+                        </button>
+                    </form>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- 2. ADMIN DASHBOARD -->
+        <section id="adminSection" class="hidden">
+            <div class="controls-card">
+                <div class="controls-left">
+                    <h2 style="font-size: 1.15rem; color: var(--admin);"><i class="fa-solid fa-sliders"></i> संस्थान एडमिन नियंत्रण कक्ष</h2>
+                </div>
+                <div class="controls-right">
+                    <button class="app-btn app-btn-primary" onclick="openModal('addTradeModal')"><i class="fa-solid fa-plus"></i> नई ट्रेड जोड़ें</button>
+                    <button class="app-btn app-btn-secondary" onclick="openModal('addInstructorModal')"><i class="fa-solid fa-user-shield"></i> नया अनुदेशक जोड़ें</button>
+                    <button class="app-btn app-btn-success" onclick="syncWithFirebase()"><i class="fa-solid fa-cloud-arrow-up"></i> Firebase सेव करें</button>
+                </div>
+            </div>
+
+            <div class="glass-card" style="padding: 20px;">
+                <h3 style="font-size: 1rem; margin-bottom: 14px; color: var(--primary);">
+                    <i class="fa-solid fa-id-card-clip"></i> पंजीकृत ट्रेड एवं अनुदेशक सूची
+                </h3>
+                <div class="table-shell">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ट्रेड</th>
+                                <th>अनुदेशक का नाम</th>
+                                <th>लॉगिन आईडी</th>
+                                <th>पासवर्ड</th>
+                                <th>कार्रवाई</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminInstructorTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. INSTRUCTOR DASHBOARD -->
+        <section id="instructorSection" class="hidden">
+            
+            <div class="instructor-tabs">
+                <button class="inst-tab-btn active" id="tabBtnAtt" onclick="switchInstructorTab('attendance')">
+                    <i class="fa-solid fa-calendar-check"></i> 1. दैनिक उपस्थिति रजिस्टर
+                </button>
+                <button class="inst-tab-btn" id="tabBtnEval" onclick="switchInstructorTab('evaluation')">
+                    <i class="fa-solid fa-pen-ruler"></i> 2. मासिक टेस्ट अंक, डायरी व रिकॉर्ड चेकिंग
+                </button>
+            </div>
+
+            <!-- Tab 1: Attendance -->
+            <div id="instTabAttendance">
+                <div class="controls-card">
+                    <div class="controls-left">
+                        <span id="activeTradeBadge" class="badge-trade">ट्रेड: -</span>
+                        <div>
+                            <input type="month" id="selectedMonth" onchange="renderRegister()" style="padding: 6px 10px; border-radius: 8px; border: 1px solid var(--border-color); font-weight: 600;">
+                        </div>
+                        <button class="app-btn app-btn-primary" onclick="openModal('addStudentModal')"><i class="fa-solid fa-user-plus"></i> नया छात्र जोड़ें</button>
+                        <button class="app-btn app-btn-secondary" onclick="openStudentCredentialsModal()"><i class="fa-solid fa-key"></i> पासवर्ड सूची</button>
+                        <button class="app-btn app-btn-warning" onclick="openHolidayPrompt()"><i class="fa-solid fa-umbrella-beach"></i> अवकाश जोड़ें</button>
+                    </div>
+                    <div class="controls-right">
+                        <button class="app-btn app-btn-success" onclick="markAllPresentToday()"><i class="fa-solid fa-check-double"></i> आज सबको P करें</button>
+                        <button class="app-btn app-btn-dark" onclick="syncWithFirebase()"><i class="fa-solid fa-cloud-arrow-up"></i> सेव करें</button>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; font-size: 0.85rem; background: #ffffff; padding: 10px 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+                    <span id="workingDaysSummary" style="font-weight: 700; color: var(--primary);"></span>
+                    <span style="color: var(--text-muted);"><i class="fa-solid fa-circle-info"></i> <strong>M:</strong> सुबह सत्र | <strong>E:</strong> शाम सत्र (क्लिक करके स्थिति बदलें)</span>
+                </div>
+
+                <div class="table-shell">
+                    <table id="attendanceTable">
+                        <thead id="attendanceHeader"></thead>
+                        <tbody id="attendanceBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Tab 2: Evaluations -->
+            <div id="instTabEvaluation" class="hidden">
+                <div class="controls-card">
+                    <div class="controls-left">
+                        <span class="badge-trade" id="evalTradeBadge">ट्रेड मूल्यांकन</span>
+                        <div>
+                            <input type="month" id="evalSelectedMonth" onchange="renderEvaluationTable()" style="padding: 6px 10px; border-radius: 8px; border: 1px solid var(--border-color); font-weight: 600;">
+                        </div>
+                    </div>
+                    <div class="controls-right">
+                        <button class="app-btn app-btn-success" onclick="saveAllEvaluations()"><i class="fa-solid fa-floppy-disk"></i> मूल्यांकन सुरक्षित करें</button>
+                        <button class="app-btn app-btn-dark" onclick="syncWithFirebase()"><i class="fa-solid fa-cloud-arrow-up"></i> Firebase सेव करें</button>
+                    </div>
+                </div>
+
+                <div class="table-shell">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th rowspan="2" class="col-sticky-name">छात्र का नाम</th>
+                                <th rowspan="2" class="col-roll">रोल</th>
+                                <th colspan="4" style="background:#e0f2fe; color:#0369a1;">मासिक टेस्ट अंक (पूर्णांक 20)</th>
+                                <th colspan="2" style="background:#fef3c7; color:#92400e;">रिकॉर्ड व नोटबुक</th>
+                                <th colspan="2" style="background:#dcfce7; color:#166534;">दैनिक डायरी</th>
+                                <th colspan="2" style="background:#f3e8ff; color:#6b21a8;">गतिविधियां व आचरण</th>
+                            </tr>
+                            <tr>
+                                <th style="background:#eff6ff;">ट्रेड थ्योरी (TT)</th>
+                                <th style="background:#eff6ff;">प्रैक्टिकल (TP)</th>
+                                <th style="background:#eff6ff;">Employability (ES)</th>
+                                <th style="background:#eff6ff;">WCS / ED</th>
+                                <th style="background:#fffbeb;">स्थिति</th>
+                                <th style="background:#fffbeb;">रिमार्क</th>
+                                <th style="background:#f0fdf4;">डायरी चेकिंग</th>
+                                <th style="background:#f0fdf4;">रिमार्क</th>
+                                <th style="background:#faf5ff;">अनुशासन</th>
+                                <th style="background:#faf5ff;">सक्रियता</th>
+                            </tr>
+                        </thead>
+                        <tbody id="evaluationTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- 4. STUDENT SCORECARD -->
+        <section id="studentSection" class="hidden">
+            <div class="scorecard-box">
+                
+                <div class="scorecard-header">
+                    <div>
+                        <h2 id="scStudentName" style="color: var(--primary); font-size: 1.35rem;">छात्र का नाम</h2>
+                        <p style="color: var(--text-muted); font-size: 0.85rem;" id="scRoll">ट्रेड: - | रोल: -</p>
+                    </div>
+                    <div>
+                        <label style="font-size: 0.82rem; font-weight: 600; margin-right: 6px;">महीना चयन:</label>
+                        <input type="month" id="studentMonthSelector" onchange="renderStudentDashboard()" style="padding: 6px 10px; border-radius: 8px; border: 1px solid var(--border-color); font-weight: 600;">
+                    </div>
+                </div>
+
+                <!-- 3 वर्टिकल कॉलम बटन -->
+                <div class="student-vertical-nav-column">
+                    <button class="stud-nav-btn active" id="btnNavStudAtt" onclick="switchStudentSection('attendance')">
+                        <span class="btn-label"><i class="fa-solid fa-calendar-check" style="color:#2563eb; font-size:1.1rem;"></i> 1. उपस्थिति रिपोर्ट (Attendance Report)</span>
+                        <i class="fa-solid fa-chevron-right" style="font-size:0.85rem;"></i>
+                    </button>
+                    <button class="stud-nav-btn" id="btnNavStudMarks" onclick="switchStudentSection('marks')">
+                        <span class="btn-label"><i class="fa-solid fa-file-signature" style="color:#d97706; font-size:1.1rem;"></i> 2. मासिक टेस्ट अंक (Monthly Test Marks)</span>
+                        <i class="fa-solid fa-chevron-right" style="font-size:0.85rem;"></i>
+                    </button>
+                    <button class="stud-nav-btn" id="btnNavStudRecords" onclick="switchStudentSection('records')">
+                        <span class="btn-label"><i class="fa-solid fa-book-bookmark" style="color:#059669; font-size:1.1rem;"></i> 3. रिकॉर्ड, दैनिक डायरी व अन्य गतिविधियां</span>
+                        <i class="fa-solid fa-chevron-right" style="font-size:0.85rem;"></i>
+                    </button>
+                </div>
+
+                <!-- 1. उपस्थिति सेक्शन -->
+                <div id="studSecAttendance">
+                    <div class="section-bar-title"><i class="fa-solid fa-clock-rotate-left"></i> पूर्व संचित विवरण (Past Record)</div>
+                    <div class="stats-tri-grid">
+                        <div class="metric-card">
+                            <div class="title">पूर्व उपस्थिति</div>
+                            <div class="value" id="scPastP" style="color: var(--success);">0</div>
+                            <div class="sub">पूर्व कार्यदिवस: <strong id="scPastW">0</strong> दिन</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="title">पूर्व अनुपस्थिति</div>
+                            <div class="value" id="scPastA" style="color: var(--danger);">0</div>
+                            <div class="sub">पिछले महीनों के कुल एब्सेंट दिन</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="title">पिछला प्रतिशत</div>
+                            <div class="value" id="scPastPct" style="color: var(--primary-accent);">0%</div>
+                            <div class="progress-track"><div class="progress-bar-fill" id="scPastBar" style="width: 0%; background: var(--primary-accent);"></div></div>
+                        </div>
+                    </div>
+
+                    <div class="section-bar-title"><i class="fa-solid fa-calendar-day"></i> इस माह का विवरण (Current Month)</div>
+                    <div class="stats-tri-grid">
+                        <div class="metric-card">
+                            <div class="title">इस माह उपस्थित</div>
+                            <div class="value" id="scCurrP" style="color: var(--success);">0</div>
+                            <div class="sub">इस माह कार्यदिवस: <strong id="scCurrW">0</strong> दिन</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="title">इस माह अनुपस्थित</div>
+                            <div class="value" id="scCurrA" style="color: var(--danger);">0</div>
+                            <div class="sub">इस माह के कुल एब्सेंट दिन</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="title">इस माह का प्रतिशत</div>
+                            <div class="value" id="scCurrPct" style="color: var(--warning);">0%</div>
+                            <div class="progress-track"><div class="progress-bar-fill" id="scCurrBar" style="width: 0%; background: var(--warning);"></div></div>
+                        </div>
+                    </div>
+
+                    <div class="section-bar-title"><i class="fa-solid fa-award"></i> कुल संचित विवरण (Overall Cumulative)</div>
+                    <div class="stats-tri-grid">
+                        <div class="metric-card" style="background: #f0fdf4; border-color: #bbf7d0;">
+                            <div class="title" style="color: #166534;">कुल संचित उपस्थिति</div>
+                            <div class="value" id="scTotalP" style="color: #16a34a;">0</div>
+                            <div class="sub">शुरुआत से कार्यदिवस: <strong id="scTotalW">0</strong> दिन</div>
+                        </div>
+                        <div class="metric-card" style="background: #fef2f2; border-color: #fecaca;">
+                            <div class="title" style="color: #991b1b;">कुल संचित अनुपस्थिति</div>
+                            <div class="value" id="scTotalA" style="color: #dc2626;">0</div>
+                            <div class="sub">कुल अनुपस्थित दिन</div>
+                        </div>
+                        <div class="metric-card" style="background: #eff6ff; border-color: #bfdbfe;">
+                            <div class="title" style="color: #1e40af;">कुल संचित प्रतिशत (Overall %)</div>
+                            <div class="value" id="scTotalPct" style="color: var(--primary);">0%</div>
+                            <div class="progress-track"><div class="progress-bar-fill" id="scTotalBar" style="width: 0%; background: var(--primary);"></div></div>
+                        </div>
+                    </div>
+
+                    <div style="background: #f8fafc; padding: 12px 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color); margin-top: 8px;">
+                        <p style="font-size: 0.92rem;"><strong>परीक्षा पात्रता स्थिति:</strong> <span id="scStatusRemarks">गणना जारी...</span></p>
+                    </div>
+
+                    <div class="section-bar-title" style="margin-top: 22px;"><i class="fa-solid fa-list-check"></i> दैनिक उपस्थिति सत्र लॉग</div>
+                    <div class="table-shell" style="max-height: 240px;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>तारीख</th>
+                                    <th>दिन</th>
+                                    <th>सुबह (Morning)</th>
+                                    <th>शाम (Evening)</th>
+                                    <th>स्थिति</th>
+                                </tr>
+                            </thead>
+                            <tbody id="scDailyLogBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 2. टेस्ट अंक सेक्शन -->
+                <div id="studSecMarks" class="hidden">
+                    <div class="section-bar-title"><i class="fa-solid fa-pen-nib"></i> मासिक टेस्ट विषयवार अंक विवरण</div>
+                    <div class="stats-tri-grid">
+                        <div class="metric-card">
+                            <div class="title">Trade Theory (थ्योरी)</div>
+                            <div class="value" id="scMarkTT" style="color:#2563eb;">- / 20</div>
+                            <div class="sub">पूर्णांक: 20 अंक</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="title">Trade Practical (प्रैक्टिकल)</div>
+                            <div class="value" id="scMarkTP" style="color:#059669;">- / 20</div>
+                            <div class="sub">पूर्णांक: 20 अंक</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="title">Employability Skills (ES)</div>
+                            <div class="value" id="scMarkES" style="color:#d97706;">- / 20</div>
+                            <div class="sub">पूर्णांक: 20 अंक</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="title">WCS / Engg. Drawing</div>
+                            <div class="value" id="scMarkWCS" style="color:#7c3aed;">- / 20</div>
+                            <div class="sub">पूर्णांक: 20 अंक</div>
+                        </div>
+                        <div class="metric-card" style="background:#f0fdf4; border-color:#86efac;">
+                            <div class="title" style="color:#166534;">कुल प्राप्तांक (Total Marks)</div>
+                            <div class="value" id="scMarkTotal" style="color:#15803d;">- / 80</div>
+                            <div class="sub">कुल प्रतिशत: <strong id="scMarkPct">0%</strong></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. रिकॉर्ड व डायरी सेक्शन -->
+                <div id="studSecRecords" class="hidden">
+                    <div class="section-bar-title"><i class="fa-solid fa-clipboard-check"></i> प्रैक्टिकल रिकॉर्ड, नोटबुक व दैनिक डायरी स्थिति</div>
+                    <div class="stats-tri-grid">
+                        <div class="metric-card">
+                            <div class="title">प्रैक्टिकल रिकॉर्ड / नोटबुक</div>
+                            <div class="value" id="scRecordStatus" style="font-size:1.3rem; color:#2563eb;">-</div>
+                            <div class="sub">रिमार्क: <strong id="scRecordRemark">-</strong></div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="title">दैनिक डायरी निरीक्षण</div>
+                            <div class="value" id="scDiaryStatus" style="font-size:1.3rem; color:#059669;">-</div>
+                            <div class="sub">रिमार्क: <strong id="scDiaryRemark">-</strong></div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="title">अनुशासन व वर्कशॉप आचरण</div>
+                            <div class="value" id="scDiscipline" style="font-size:1.3rem; color:#7c3aed;">-</div>
+                            <div class="sub">गतिविधि भागीदारी: <strong id="scActivity">-</strong></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <!-- MODALS -->
+    <div id="adminLoginModal" class="modal-backdrop hidden">
+        <div class="modal-content">
+            <h3 style="color: var(--admin); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                <i class="fa-solid fa-shield-halved"></i> संस्थान एडमिन लॉगिन
+            </h3>
+            <form onsubmit="handleAdminLogin(event)">
+                <div class="input-group">
+                    <label>एडमिन आईडी</label>
+                    <input type="text" id="adminId" placeholder="डिफ़ॉल्ट: superadmin" required>
+                </div>
+                <div class="input-group">
+                    <label>पासवर्ड</label>
+                    <input type="password" id="adminPass" placeholder="डिफ़ॉल्ट: admin@123" required>
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 14px;">
+                    <button type="submit" class="app-btn app-btn-primary" style="flex: 1; padding: 10px;"><i class="fa-solid fa-lock-open"></i> लॉगिन</button>
+                    <button type="button" class="app-btn app-btn-secondary" onclick="closeModal('adminLoginModal')">रद्द करें</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="addTradeModal" class="modal-backdrop hidden">
+        <div class="modal-content">
+            <h3 style="color: var(--primary); margin-bottom: 12px;"><i class="fa-solid fa-folder-plus"></i> नई ट्रेड जोड़ें</h3>
+            <div class="input-group">
+                <label>ट्रेड का नाम (उदा. COPA, Electrician, Fitter):</label>
+                <input type="text" id="newTradeName" placeholder="ट्रेड का नाम दर्ज करें">
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button type="button" class="app-btn app-btn-primary" onclick="saveNewTrade()">सुरक्षित करें</button>
+                <button type="button" class="app-btn app-btn-secondary" onclick="closeModal('addTradeModal')">रद्द करें</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="addInstructorModal" class="modal-backdrop hidden">
+        <div class="modal-content">
+            <h3 style="color: var(--primary); margin-bottom: 12px;"><i class="fa-solid fa-user-shield"></i> नया अनुदेशक जोड़ें</h3>
+            <div class="input-group">
+                <label>ट्रेड चुनें:</label>
+                <select id="instAssignTrade"></select>
+            </div>
+            <div class="input-group">
+                <label>अनुदेशक का पूरा नाम:</label>
+                <input type="text" id="newInstName" placeholder="उदा. संजय जाजुन्दा">
+            </div>
+            <div class="input-group">
+                <label>अनुदेशक लॉगिन आईडी:</label>
+                <input type="text" id="newInstId" placeholder="उदा. copa_sir">
+            </div>
+            <div class="input-group">
+                <label>पासवर्ड:</label>
+                <input type="text" id="newInstPass" placeholder="पासवर्ड बनाएं">
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button type="button" class="app-btn app-btn-primary" onclick="saveNewInstructor()">सुरक्षित करें</button>
+                <button type="button" class="app-btn app-btn-secondary" onclick="closeModal('addInstructorModal')">रद्द करें</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="addStudentModal" class="modal-backdrop hidden">
+        <div class="modal-content">
+            <h3 style="color: var(--primary); margin-bottom: 12px;"><i class="fa-solid fa-user-plus"></i> नया छात्र जोड़ें</h3>
+            <form onsubmit="saveNewStudent(event)">
+                <div class="input-group">
+                    <label>रोल नंबर:</label>
+                    <input type="text" id="newRoll" required placeholder="उदा. 101">
+                </div>
+                <div class="input-group">
+                    <label>छात्र का पूरा नाम:</label>
+                    <input type="text" id="newName" required placeholder="छात्र का नाम">
+                </div>
+                <div class="input-group">
+                    <label>छात्र लॉगिन आईडी (Student ID):</label>
+                    <input type="text" id="newStudentId" required placeholder="उदा. st101">
+                </div>
+                <div class="input-group">
+                    <label>पासवर्ड:</label>
+                    <input type="text" id="newStudentPass" required placeholder="पासवर्ड">
+                </div>
+                <div class="input-group">
+                    <label>पूर्व संचित कार्यदिवस (Past Cumulative Working Days):</label>
+                    <input type="number" id="newPastWorking" value="0" min="0">
+                </div>
+                <div class="input-group">
+                    <label>पूर्व संचित उपस्थिति (Past Cumulative Present Days):</label>
+                    <input type="number" id="newPastPresent" value="0" min="0">
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button type="submit" class="app-btn app-btn-primary">सुरक्षित करें</button>
+                    <button type="button" class="app-btn app-btn-secondary" onclick="closeModal('addStudentModal')">रद्द करें</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="studentCredModal" class="modal-backdrop hidden">
+        <div class="modal-content" style="max-width: 600px;">
+            <h3 style="color: var(--primary); margin-bottom: 12px;"><i class="fa-solid fa-key"></i> छात्र लॉगिन क्रेडेंशियल</h3>
+            <div class="table-shell" style="max-height: 320px;">
+                <table>
+                    <thead>
+                        <tr><th>रोल</th><th>नाम</th><th>आईडी</th><th>पासवर्ड</th></tr>
+                    </thead>
+                    <tbody id="studentCredBody"></tbody>
+                </table>
+            </div>
+            <div style="margin-top: 14px; text-align: right;">
+                <button type="button" class="app-btn app-btn-secondary" onclick="closeModal('studentCredModal')">बंद करें</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast-bubble hidden"><i class="fa-solid fa-bell"></i> <span id="toastMsg">सूचना</span></div>
+
+    <footer>
+        <p><strong>राजकीय औद्योगिक प्रशिक्षण संस्थान, कोटड़ी (भीलवाड़ा)</strong> | समग्र छात्र मूल्यांकन प्रणाली</p>
+        <p style="margin-top: 4px; font-size: 0.8rem; color: #94a3b8;">
+            <i class="fa-solid fa-code"></i> डेवलपर: <strong>संजय जाजुन्दा</strong> (COPA इंस्ट्रक्टर)
+        </p>
+    </footer>
+
+    <!-- FIREBASE INITIALIZATION & APP LOGIC -->
+    <script>
+        // आपके स्क्रीनशॉट से ली गई कॉन्फ़िगरेशन
+        const firebaseConfig = {
+            apiKey: "AIzaSyATDGOfhzQkOF56Q7f-bS7hVWnTeBl5cLU",
+            authDomain: "iti-kotri.firebaseapp.com",
+            databaseURL: "https://iti-kotri-default-rtdb.firebaseio.com",
+            projectId: "iti-kotri",
+            storageBucket: "iti-kotri.firebasestorage.app",
+            messagingSenderId: "45191032219",
+            appId: "1:45191032219:web:c06866b8e05021886b053e",
+            measurementId: "G-EKQGGRV69Y"
+        };
+
+        // Firebase Realtime Database इनिशियलाइज़ेशन
+        firebase.initializeApp(firebaseConfig);
+        const rtdb = firebase.database();
+
+        let appData = {
+            trades: ["COPA", "Electrician", "Fitter"],
+            instructors: [
+                { id: "copa_inst", name: "संजय जाजुन्दा", pass: "copa123", trade: "COPA" },
+                { id: "elec_inst", name: "दिनेश सर", pass: "elec123", trade: "Electrician" }
+            ],
+            students: {
+                "COPA": [
+                    { roll: "101", name: "राहुल शर्मा", studentId: "st101", password: "123", pastWorkingDays: 45, pastPresentDays: 41 },
+                    { roll: "102", name: "पूजा वर्मा", studentId: "st102", password: "123", pastWorkingDays: 45, pastPresentDays: 32 }
+                ],
+                "Electrician": [
+                    { roll: "201", name: "सुरेश गुर्जर", studentId: "el201", password: "123", pastWorkingDays: 45, pastPresentDays: 40 }
+                ]
+            },
+            records: {},
+            holidays: {},
+            evaluations: {}
+        };
+
+        let currentRole = null;
+        let currentTrade = null;
+        let loggedInStudent = null;
+
+        window.onload = function() {
+            loadLocalCache();
+            listenToCloudData(); // क्लाउड से लाइव सिंक चालू
+            populateTradeDropdowns();
+
+            const today = new Date();
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const defaultMonth = `${yyyy}-${mm}`;
+
+            document.getElementById('selectedMonth').value = defaultMonth;
+            document.getElementById('evalSelectedMonth').value = defaultMonth;
+            document.getElementById('studentMonthSelector').value = defaultMonth;
+        };
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMsg').innerText = msg;
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 3000);
+        }
+
+        function populateTradeDropdowns() {
+            const selects = ['loginInstTrade', 'loginStudentTrade', 'instAssignTrade'];
+            selects.forEach(id => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.innerHTML = '';
+                appData.trades.forEach(t => {
+                    el.innerHTML += `<option value="${t}">${t}</option>`;
+                });
+            });
+        }
+
+        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+        // --- AUTHENTICATION ---
+        function handleAdminLogin(e) {
+            e.preventDefault();
+            const id = document.getElementById('adminId').value.trim();
+            const pass = document.getElementById('adminPass').value.trim();
+
+            if (id === "superadmin" && pass === "admin@123") {
+                currentRole = 'admin';
+                closeModal('adminLoginModal');
+                setupUIRoute();
+                renderAdminView();
+                showToast("सुपर एडमिन लॉगिन सफल!");
+            } else {
+                alert("गलत एडमिन आईडी या पासवर्ड! (डिफ़ॉल्ट ID: superadmin, Pass: admin@123)");
+            }
+        }
+
+        function handleInstructorLogin(e) {
+            e.preventDefault();
+            const trade = document.getElementById('loginInstTrade').value;
+            const id = document.getElementById('instId').value.trim();
+            const pass = document.getElementById('instPass').value.trim();
+
+            const inst = appData.instructors.find(i => i.trade === trade && i.id === id && i.pass === pass);
+            if (inst) {
+                currentRole = 'instructor';
+                currentTrade = trade;
+                setupUIRoute();
+                renderRegister();
+                showToast(`${trade} अनुदेशक लॉगिन सफल!`);
+            } else {
+                alert("अमान्य अनुदेशक आईडी, पासवर्ड या ट्रेड चयन!");
+            }
+        }
+
+        function handleStudentLogin(e) {
+            e.preventDefault();
+            const trade = document.getElementById('loginStudentTrade').value;
+            const sId = document.getElementById('studentLoginId').value.trim();
+            const pass = document.getElementById('studentLoginPass').value.trim();
+
+            const list = appData.students[trade] || [];
+            const st = list.find(s => s.studentId === sId && s.password === pass);
+
+            if (st) {
+                currentRole = 'student';
+                currentTrade = trade;
+                loggedInStudent = st;
+                setupUIRoute();
+                renderStudentDashboard();
+                showToast(`स्वागतम्, ${st.name}!`);
+            } else {
+                alert("अमान्य छात्र आईडी या पासवर्ड!");
+            }
+        }
+
+        function setupUIRoute() {
+            document.getElementById('frontLoginSection').classList.add('hidden');
+            document.getElementById('adminNavBtn').classList.add('hidden');
+            document.getElementById('authStatusPill').classList.remove('hidden');
+
+            document.getElementById('adminSection').classList.add('hidden');
+            document.getElementById('instructorSection').classList.add('hidden');
+            document.getElementById('studentSection').classList.add('hidden');
+
+            if (currentRole === 'admin') {
+                document.getElementById('adminSection').classList.remove('hidden');
+                document.getElementById('roleLabel').innerHTML = `<i class="fa-solid fa-shield-halved"></i> एडमिन`;
+            } else if (currentRole === 'instructor') {
+                document.getElementById('instructorSection').classList.remove('hidden');
+                document.getElementById('activeTradeBadge').innerText = `ट्रेड: ${currentTrade}`;
+                document.getElementById('evalTradeBadge').innerText = `${currentTrade} मूल्यांकन`;
+                document.getElementById('roleLabel').innerHTML = `<i class="fa-solid fa-chalkboard-user"></i> ${currentTrade} अनुदेशक`;
+                switchInstructorTab('attendance');
+            } else {
+                document.getElementById('studentSection').classList.remove('hidden');
+                document.getElementById('roleLabel').innerHTML = `<i class="fa-solid fa-user-graduate"></i> छात्र: ${loggedInStudent.name}`;
+                switchStudentSection('attendance');
+            }
+        }
+
+        function logout() {
+            currentRole = null;
+            currentTrade = null;
+            loggedInStudent = null;
+            document.getElementById('frontLoginSection').classList.remove('hidden');
+            document.getElementById('adminNavBtn').classList.remove('hidden');
+            document.getElementById('authStatusPill').classList.add('hidden');
+            document.getElementById('adminSection').classList.add('hidden');
+            document.getElementById('instructorSection').classList.add('hidden');
+            document.getElementById('studentSection').classList.add('hidden');
+            showToast("लॉगआउट संपन्न!");
+        }
+
+        function switchInstructorTab(tab) {
+            const btnAtt = document.getElementById('tabBtnAtt');
+            const btnEval = document.getElementById('tabBtnEval');
+            const secAtt = document.getElementById('instTabAttendance');
+            const secEval = document.getElementById('instTabEvaluation');
+
+            if (tab === 'attendance') {
+                btnAtt.classList.add('active');
+                btnEval.classList.remove('active');
+                secAtt.classList.remove('hidden');
+                secEval.classList.add('hidden');
+                renderRegister();
+            } else {
+                btnEval.classList.add('active');
+                btnAtt.classList.remove('active');
+                secEval.classList.remove('hidden');
+                secAtt.classList.add('hidden');
+                renderEvaluationTable();
+            }
+        }
+
+        function switchStudentSection(sec) {
+            const btnAtt = document.getElementById('btnNavStudAtt');
+            const btnMarks = document.getElementById('btnNavStudMarks');
+            const btnRec = document.getElementById('btnNavStudRecords');
+
+            const viewAtt = document.getElementById('studSecAttendance');
+            const viewMarks = document.getElementById('studSecMarks');
+            const viewRec = document.getElementById('studSecRecords');
+
+            btnAtt.classList.remove('active');
+            btnMarks.classList.remove('active');
+            btnRec.classList.remove('active');
+
+            viewAtt.classList.add('hidden');
+            viewMarks.classList.add('hidden');
+            viewRec.classList.add('hidden');
+
+            if (sec === 'attendance') {
+                btnAtt.classList.add('active');
+                viewAtt.classList.remove('hidden');
+            } else if (sec === 'marks') {
+                btnMarks.classList.add('active');
+                viewMarks.classList.remove('hidden');
+            } else if (sec === 'records') {
+                btnRec.classList.add('active');
+                viewRec.classList.remove('hidden');
+            }
+        }
+
+        // --- EVALUATION RENDERING ---
+        function renderEvaluationTable() {
+            const monthVal = document.getElementById('evalSelectedMonth').value;
+            if (!monthVal || !currentTrade) return;
+
+            if (!appData.evaluations[currentTrade]) appData.evaluations[currentTrade] = {};
+            if (!appData.evaluations[currentTrade][monthVal]) appData.evaluations[currentTrade][monthVal] = {};
+
+            const monthEval = appData.evaluations[currentTrade][monthVal];
+            const tStudents = appData.students[currentTrade] || [];
+            const tbody = document.getElementById('evaluationTableBody');
+            tbody.innerHTML = '';
+
+            tStudents.forEach(st => {
+                const ev = monthEval[st.roll] || {
+                    tt: '', tp: '', es: '', wcs: '',
+                    recStatus: 'A', recRem: '',
+                    diaryStatus: 'नियमित', diaryRem: '',
+                    disc: 'उत्कृष्ट', act: 'सक्रिय'
+                };
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="col-sticky-name">${st.name}</td>
+                        <td class="col-roll">${st.roll}</td>
+                        <td><input type="number" id="tt_${st.roll}" min="0" max="20" value="${ev.tt}" style="width:50px; text-align:center; padding:3px;"></td>
+                        <td><input type="number" id="tp_${st.roll}" min="0" max="20" value="${ev.tp}" style="width:50px; text-align:center; padding:3px;"></td>
+                        <td><input type="number" id="es_${st.roll}" min="0" max="20" value="${ev.es}" style="width:50px; text-align:center; padding:3px;"></td>
+                        <td><input type="number" id="wcs_${st.roll}" min="0" max="20" value="${ev.wcs}" style="width:50px; text-align:center; padding:3px;"></td>
+                        <td>
+                            <select id="recSt_${st.roll}" style="padding:2px;">
+                                <option value="A+" ${ev.recStatus==='A+'?'selected':''}>A+ (उत्कृष्ट)</option>
+                                <option value="A" ${ev.recStatus==='A'?'selected':''}>A (पूर्ण)</option>
+                                <option value="B" ${ev.recStatus==='B'?'selected':''}>B (सुधार अपेक्षित)</option>
+                                <option value="C" ${ev.recStatus==='C'?'selected':''}>C (अपूर्ण)</option>
+                            </select>
+                        </td>
+                        <td><input type="text" id="recRem_${st.roll}" value="${ev.recRem || ''}" placeholder="टिप्पणी" style="width:90px; padding:3px;"></td>
+                        <td>
+                            <select id="diarySt_${st.roll}" style="padding:2px;">
+                                <option value="नियमित" ${ev.diaryStatus==='नियमित'?'selected':''}>नियमित चेक</option>
+                                <option value="अनियमित" ${ev.diaryStatus==='अनियमित'?'selected':''}>अनियमित</option>
+                                <option value="लंबित" ${ev.diaryStatus==='लंबित'?'selected':''}>जांच लंबित</option>
+                            </select>
+                        </td>
+                        <td><input type="text" id="diaryRem_${st.roll}" value="${ev.diaryRem || ''}" placeholder="टिप्पणी" style="width:90px; padding:3px;"></td>
+                        <td>
+                            <select id="disc_${st.roll}" style="padding:2px;">
+                                <option value="उत्कृष्ट" ${ev.disc==='उत्कृष्ट'?'selected':''}>उत्कृष्ट</option>
+                                <option value="संतोषजनक" ${ev.disc==='संतोषजनक'?'selected':''}>संतोषजनक</option>
+                                <option value="सुधार जरूरी" ${ev.disc==='सुधार जरूरी'?'selected':''}>सुधार जरूरी</option>
+                            </select>
+                        </td>
+                        <td>
+                            <select id="act_${st.roll}" style="padding:2px;">
+                                <option value="सक्रिय" ${ev.act==='सक्रिय'?'selected':''}>सक्रिय</option>
+                                <option value="सामान्य" ${ev.act==='सामान्य'?'selected':''}>सामान्य</option>
+                                <option value="उदासीन" ${ev.act==='उदासीन'?'selected':''}>उदासीन</option>
+                            </select>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function saveAllEvaluations() {
+            const monthVal = document.getElementById('evalSelectedMonth').value;
+            if (!monthVal || !currentTrade) return;
+
+            if (!appData.evaluations[currentTrade]) appData.evaluations[currentTrade] = {};
+            if (!appData.evaluations[currentTrade][monthVal]) appData.evaluations[currentTrade][monthVal] = {};
+
+            const tStudents = appData.students[currentTrade] || [];
+            tStudents.forEach(st => {
+                appData.evaluations[currentTrade][monthVal][st.roll] = {
+                    tt: document.getElementById(`tt_${st.roll}`).value,
+                    tp: document.getElementById(`tp_${st.roll}`).value,
+                    es: document.getElementById(`es_${st.roll}`).value,
+                    wcs: document.getElementById(`wcs_${st.roll}`).value,
+                    recStatus: document.getElementById(`recSt_${st.roll}`).value,
+                    recRem: document.getElementById(`recRem_${st.roll}`).value,
+                    diaryStatus: document.getElementById(`diarySt_${st.roll}`).value,
+                    diaryRem: document.getElementById(`diaryRem_${st.roll}`).value,
+                    disc: document.getElementById(`disc_${st.roll}`).value,
+                    act: document.getElementById(`act_${st.roll}`).value
+                };
+            });
+
+            syncWithFirebase();
+            showToast("मासिक टेस्ट अंक व डायरी रिकॉर्ड क्लाउड पर सुरक्षित हो गए!");
+        }
+
+        // --- STUDENT DASHBOARD RENDERING ---
+        function renderStudentDashboard() {
+            if (!loggedInStudent || !currentTrade) return;
+
+            const monthVal = document.getElementById('studentMonthSelector').value;
+            const [yearStr, monthStr] = monthVal.split('-');
+            const year = parseInt(yearStr);
+            const monthIndex = parseInt(monthStr) - 1;
+            const totalDays = new Date(year, monthIndex + 1, 0).getDate();
+
+            const cMonthHolidays = (appData.holidays[currentTrade] && appData.holidays[currentTrade][monthVal]) ? appData.holidays[currentTrade][monthVal] : [];
+
+            let sundays = 0, holidays = 0;
+            for (let d = 1; d <= totalDays; d++) {
+                if (new Date(year, monthIndex, d).getDay() === 0) sundays++;
+                else if (cMonthHolidays.includes(d)) holidays++;
+            }
+
+            const currWorkingDays = totalDays - (sundays + holidays);
+            const sData = (appData.records[currentTrade] && appData.records[currentTrade][monthVal] && appData.records[currentTrade][monthVal][loggedInStudent.roll]) ? appData.records[currentTrade][monthVal][loggedInStudent.roll] : {};
+
+            let currEvePresent = 0;
+            let currEveAbsent = 0;
+            const logTableBody = document.getElementById('scDailyLogBody');
+            logTableBody.innerHTML = '';
+            const dayNames = ['रवि', 'सोम', 'मंगल', 'बुध', 'गुरु', 'शुक्र', 'शनि'];
+
+            for (let d = 1; d <= totalDays; d++) {
+                const dateObj = new Date(year, monthIndex, d);
+                const dayName = dayNames[dateObj.getDay()];
+                const isSun = (dateObj.getDay() === 0);
+                const isHol = cMonthHolidays.includes(d);
+
+                let mVal = '-', eVal = '-', statusLabel = '';
+
+                if (isSun) {
+                    mVal = 'रवि'; eVal = 'रवि';
+                    statusLabel = '<span style="color:#b91c1c; font-weight:700;">रविवार</span>';
+                } else if (isHol) {
+                    mVal = 'अवकाश'; eVal = 'अवकाश';
+                    statusLabel = '<span style="color:#7e22ce; font-weight:700;">अवकाश</span>';
+                } else {
+                    mVal = sData[`${d}_m`] || 'P';
+                    eVal = sData[`${d}_e`] || 'P';
+
+                    if (eVal === 'P') currEvePresent++;
+                    if (eVal === 'A') currEveAbsent++;
+
+                    mVal = `<span class="btn-status-toggle st-${mVal}">${mVal}</span>`;
+                    eVal = `<span class="btn-status-toggle st-${eVal}">${eVal}</span>`;
+
+                    if (sData[`${d}_e`] === 'A') statusLabel = '<span style="color:var(--danger); font-weight:700;">अनुपस्थित</span>';
+                    else if (sData[`${d}_e`] === 'L') statusLabel = '<span style="color:var(--warning); font-weight:700;">अवकाश</span>';
+                    else statusLabel = '<span style="color:var(--success); font-weight:700;">उपस्थित</span>';
+                }
+
+                logTableBody.innerHTML += `
+                    <tr>
+                        <td><strong>${d}/${monthStr}/${year}</strong></td>
+                        <td>${dayName}</td>
+                        <td>${mVal}</td>
+                        <td>${eVal}</td>
+                        <td>${statusLabel}</td>
+                    </tr>
+                `;
+            }
+
+            const pastW = loggedInStudent.pastWorkingDays || 0;
+            const pastP = loggedInStudent.pastPresentDays || 0;
+            const pastA = Math.max(0, pastW - pastP);
+            const pastPct = pastW > 0 ? ((pastP / pastW) * 100).toFixed(1) : 0;
+
+            const currPct = currWorkingDays > 0 ? ((currEvePresent / currWorkingDays) * 100).toFixed(1) : 0;
+            const totalW = pastW + currWorkingDays;
+            const totalP = pastP + currEvePresent;
+            const totalA = pastA + currEveAbsent;
+            const totalPct = totalW > 0 ? ((totalP / totalW) * 100).toFixed(1) : 0;
+
+            document.getElementById('scStudentName').innerText = loggedInStudent.name;
+            document.getElementById('scRoll').innerText = `ट्रेड: ${currentTrade} | रोल: ${loggedInStudent.roll} | आईडी: ${loggedInStudent.studentId}`;
+
+            document.getElementById('scPastP').innerText = pastP;
+            document.getElementById('scPastW').innerText = pastW;
+            document.getElementById('scPastA').innerText = pastA;
+            document.getElementById('scPastPct').innerText = `${pastPct}%`;
+            document.getElementById('scPastBar').style.width = `${Math.min(pastPct, 100)}%`;
+
+            document.getElementById('scCurrP').innerText = currEvePresent;
+            document.getElementById('scCurrW').innerText = currWorkingDays;
+            document.getElementById('scCurrA').innerText = currEveAbsent;
+            document.getElementById('scCurrPct').innerText = `${currPct}%`;
+            document.getElementById('scCurrBar').style.width = `${Math.min(currPct, 100)}%`;
+
+            document.getElementById('scTotalP').innerText = totalP;
+            document.getElementById('scTotalW').innerText = totalW;
+            document.getElementById('scTotalA').innerText = totalA;
+            document.getElementById('scTotalPct').innerText = `${totalPct}%`;
+            document.getElementById('scTotalBar').style.width = `${Math.min(totalPct, 100)}%`;
+
+            const remarkEl = document.getElementById('scStatusRemarks');
+            if (totalPct >= 75) {
+                remarkEl.innerHTML = `<span style="color:var(--success); font-weight:700;"><i class="fa-solid fa-circle-check"></i> ${totalPct}% उपस्थिति — परीक्षा हेतु पूर्णतः पात्र</span>`;
+            } else {
+                remarkEl.innerHTML = `<span style="color:var(--danger); font-weight:700;"><i class="fa-solid fa-triangle-exclamation"></i> ${totalPct}% उपस्थिति — 75% से कम (अपात्रता का जोखिम)</span>`;
+            }
+
+            const monthEval = (appData.evaluations[currentTrade] && appData.evaluations[currentTrade][monthVal]) ? appData.evaluations[currentTrade][monthVal][loggedInStudent.roll] : null;
+
+            if (monthEval) {
+                const tt = parseFloat(monthEval.tt) || 0;
+                const tp = parseFloat(monthEval.tp) || 0;
+                const es = parseFloat(monthEval.es) || 0;
+                const wcs = parseFloat(monthEval.wcs) || 0;
+                const totalMarks = tt + tp + es + wcs;
+                const pctMarks = ((totalMarks / 80) * 100).toFixed(1);
+
+                document.getElementById('scMarkTT').innerText = `${tt} / 20`;
+                document.getElementById('scMarkTP').innerText = `${tp} / 20`;
+                document.getElementById('scMarkES').innerText = `${es} / 20`;
+                document.getElementById('scMarkWCS').innerText = `${wcs} / 20`;
+                document.getElementById('scMarkTotal').innerText = `${totalMarks} / 80`;
+                document.getElementById('scMarkPct').innerText = `${pctMarks}%`;
+
+                document.getElementById('scRecordStatus').innerText = monthEval.recStatus || 'A';
+                document.getElementById('scRecordRemark').innerText = monthEval.recRem || 'जांच पूर्ण';
+                document.getElementById('scDiaryStatus').innerText = monthEval.diaryStatus || 'नियमित';
+                document.getElementById('scDiaryRemark').innerText = monthEval.diaryRem || 'हस्ताक्षरित';
+                document.getElementById('scDiscipline').innerText = monthEval.disc || 'उत्कृष्ट';
+                document.getElementById('scActivity').innerText = monthEval.act || 'सक्रिय';
+            } else {
+                document.getElementById('scMarkTT').innerText = `- / 20`;
+                document.getElementById('scMarkTP').innerText = `- / 20`;
+                document.getElementById('scMarkES').innerText = `- / 20`;
+                document.getElementById('scMarkWCS').innerText = `- / 20`;
+                document.getElementById('scMarkTotal').innerText = `- / 80`;
+                document.getElementById('scMarkPct').innerText = `0%`;
+
+                document.getElementById('scRecordStatus').innerText = 'प्रक्रियाधीन';
+                document.getElementById('scRecordRemark').innerText = 'रिकॉर्ड उपलब्ध नहीं';
+                document.getElementById('scDiaryStatus').innerText = 'लंबित';
+                document.getElementById('scDiaryRemark').innerText = '-';
+                document.getElementById('scDiscipline').innerText = 'सामान्य';
+                document.getElementById('scActivity').innerText = 'सामान्य';
+            }
+        }
+
+        // --- REGISTER TABLE LOGIC ---
+        function renderRegister() {
+            const monthVal = document.getElementById('selectedMonth').value;
+            if (!monthVal || !currentTrade) return;
+
+            const [yearStr, monthStr] = monthVal.split('-');
+            const year = parseInt(yearStr);
+            const monthIndex = parseInt(monthStr) - 1;
+            const totalDays = new Date(year, monthIndex + 1, 0).getDate();
+
+            if (!appData.records[currentTrade]) appData.records[currentTrade] = {};
+            if (!appData.records[currentTrade][monthVal]) appData.records[currentTrade][monthVal] = {};
+            if (!appData.holidays[currentTrade]) appData.holidays[currentTrade] = {};
+            const cMonthHolidays = appData.holidays[currentTrade][monthVal] || [];
+
+            const thead = document.getElementById('attendanceHeader');
+            let headerTop = `<tr><th rowspan="2" class="col-sticky-name">छात्र का नाम</th><th rowspan="2" class="col-roll">रोल</th>`;
+            let headerSub = `<tr>`;
+
+            let sundayCount = 0;
+            let holidayCount = 0;
+
+            for (let d = 1; d <= totalDays; d++) {
+                const sunday = (new Date(year, monthIndex, d).getDay() === 0);
+                const isCustomHol = cMonthHolidays.includes(d);
+
+                if (sunday) sundayCount++;
+                if (!sunday && isCustomHol) holidayCount++;
+
+                let cls = '';
+                let title = d;
+                if (sunday) { cls = 'day-sunday'; title = `${d} (रवि)`; }
+                else if (isCustomHol) { cls = 'day-holiday'; title = `${d} (अव)`; }
+
+                headerTop += `<th colspan="2" class="${cls}">${title}</th>`;
+                headerSub += `<th class="${cls}">M</th><th class="${cls}">E</th>`;
+            }
+
+            headerTop += `
+                <th colspan="3" class="col-m-res">मासिक योग</th>
+                <th colspan="2" class="col-o-res">संचित योग</th>
+                <th rowspan="2">हटाएं</th></tr>`;
+            headerSub += `
+                <th class="col-m-res">उपस्थित</th><th class="col-m-res">अनुपस्थित</th><th class="col-m-res">माह %</th>
+                <th class="col-o-res">कुल P / दिन</th><th class="col-o-res">कुल %</th></tr>`;
+            thead.innerHTML = headerTop + headerSub;
+
+            const workingDays = totalDays - (sundayCount + holidayCount);
+            document.getElementById('workingDaysSummary').innerHTML = 
+                `<i class="fa-solid fa-calendar-check"></i> कुल कार्यदिवस: <strong>${workingDays} दिन</strong> | रविवार: ${sundayCount} | अवकाश: ${holidayCount}`;
+
+            const tbody = document.getElementById('attendanceBody');
+            tbody.innerHTML = '';
+            const tStudents = appData.students[currentTrade] || [];
+
+            tStudents.forEach((student) => {
+                const sData = appData.records[currentTrade][monthVal][student.roll] || {};
+                let evePresentCount = 0;
+                let eveAbsentCount = 0;
+
+                let rowHTML = `<tr>
+                    <td class="col-sticky-name">${student.name}</td>
+                    <td class="col-roll">${student.roll}</td>`;
+
+                for (let d = 1; d <= totalDays; d++) {
+                    const sunday = (new Date(year, monthIndex, d).getDay() === 0);
+                    const isCustomHol = cMonthHolidays.includes(d);
+
+                    if (sunday) {
+                        rowHTML += `<td class="day-sunday"><span class="btn-status-toggle st-S">S</span></td>
+                                    <td class="day-sunday"><span class="btn-status-toggle st-S">S</span></td>`;
+                    } else if (isCustomHol) {
+                        rowHTML += `<td class="day-holiday"><span class="btn-status-toggle st-H">H</span></td>
+                                    <td class="day-holiday"><span class="btn-status-toggle st-H">H</span></td>`;
+                    } else {
+                        const mStatus = sData[`${d}_m`] || 'P';
+                        const eStatus = sData[`${d}_e`] || 'P';
+
+                        if (eStatus === 'P') evePresentCount++;
+                        if (eStatus === 'A') eveAbsentCount++;
+
+                        rowHTML += `<td>
+                            <button type="button" class="btn-status-toggle st-${mStatus}" onclick="toggleSession('${monthVal}', '${student.roll}', '${d}_m')">${mStatus}</button>
+                        </td>
+                        <td>
+                            <button type="button" class="btn-status-toggle st-${eStatus}" onclick="toggleSession('${monthVal}', '${student.roll}', '${d}_e')">${eStatus}</button>
+                        </td>`;
+                    }
+                }
+
+                const monthPct = workingDays > 0 ? ((evePresentCount / workingDays) * 100).toFixed(1) : 0;
+                const pastW = student.pastWorkingDays || 0;
+                const pastP = student.pastPresentDays || 0;
+                const overallW = pastW + workingDays;
+                const overallP = pastP + evePresentCount;
+                const overallPct = overallW > 0 ? ((overallP / overallW) * 100).toFixed(1) : 0;
+
+                const getBadge = (p) => p >= 75 ? 'pct-high' : (p >= 60 ? 'pct-mid' : 'pct-low');
+
+                rowHTML += `
+                    <td class="col-m-res">${evePresentCount} / ${workingDays}</td>
+                    <td class="col-m-res">${eveAbsentCount}</td>
+                    <td class="col-m-res"><span class="pct-badge ${getBadge(monthPct)}">${monthPct}%</span></td>
+                    <td class="col-o-res">${overallP} / ${overallW}</td>
+                    <td class="col-o-res"><span class="pct-badge ${getBadge(overallPct)}">${overallPct}%</span></td>
+                    <td><i class="fa-solid fa-trash" style="cursor:pointer; color:#ef4444;" onclick="removeStudent('${student.roll}')"></i></td>
+                </tr>`;
+
+                tbody.innerHTML += rowHTML;
+            });
+        }
+
+        function toggleSession(monthVal, roll, key) {
+            if (!appData.records[currentTrade][monthVal][roll]) appData.records[currentTrade][monthVal][roll] = {};
+            const curr = appData.records[currentTrade][monthVal][roll][key] || 'P';
+            const nextMap = { 'P': 'A', 'A': 'L', 'L': 'P' };
+            appData.records[currentTrade][monthVal][roll][key] = nextMap[curr];
+            renderRegister();
+        }
+
+        function markAllPresentToday() {
+            const monthVal = document.getElementById('selectedMonth').value;
+            const today = new Date();
+            const d = today.getDate();
+            const tStudents = appData.students[currentTrade] || [];
+
+            tStudents.forEach(st => {
+                if (!appData.records[currentTrade][monthVal][st.roll]) appData.records[currentTrade][monthVal][st.roll] = {};
+                appData.records[currentTrade][monthVal][st.roll][`${d}_m`] = 'P';
+                appData.records[currentTrade][monthVal][st.roll][`${d}_e`] = 'P';
+            });
+            renderRegister();
+            showToast(`आज तारीख ${d} को सभी छात्र P किए गए!`);
+        }
+
+        function openHolidayPrompt() {
+            const monthVal = document.getElementById('selectedMonth').value;
+            const curHols = (appData.holidays[currentTrade] && appData.holidays[currentTrade][monthVal]) ? appData.holidays[currentTrade][monthVal].join(', ') : 'कोई नहीं';
+            const input = prompt(`[${currentTrade}] माह (${monthVal}) में रविवार के अतिरिक्त अवकाश की तारीखें (उदा: 2, 15):\nवर्तमान अवकाश: ${curHols}`);
+            if (input !== null) {
+                const dates = input.split(',').map(x => parseInt(x.trim())).filter(x => !isNaN(x) && x >= 1 && x <= 31);
+                if (!appData.holidays[currentTrade]) appData.holidays[currentTrade] = {};
+                appData.holidays[currentTrade][monthVal] = dates;
+                syncWithFirebase();
+                renderRegister();
+                showToast("अवकाश सूची अपडेट कर दी गई!");
+            }
+        }
+
+        function saveNewStudent(e) {
+            e.preventDefault();
+            const roll = document.getElementById('newRoll').value.trim();
+            const name = document.getElementById('newName').value.trim();
+            const studentId = document.getElementById('newStudentId').value.trim();
+            const password = document.getElementById('newStudentPass').value.trim();
+            const pastW = parseInt(document.getElementById('newPastWorking').value) || 0;
+            const pastP = parseInt(document.getElementById('newPastPresent').value) || 0;
+
+            if (!appData.students[currentTrade]) appData.students[currentTrade] = [];
+            const list = appData.students[currentTrade];
+
+            if (list.some(s => s.roll === roll)) { alert("यह रोल नंबर पहले से मौजूद है!"); return; }
+            if (list.some(s => s.studentId === studentId)) { alert("यह स्टूडेंट आईडी पहले से मौजूद है!"); return; }
+
+            list.push({ roll, name, studentId, password, pastWorkingDays: pastW, pastPresentDays: pastP });
+            syncWithFirebase();
+            closeModal('addStudentModal');
+            renderRegister();
+            showToast("छात्र जोड़ा गया!");
+        }
+
+        function openStudentCredentialsModal() {
+            const tbody = document.getElementById('studentCredBody');
+            tbody.innerHTML = '';
+            (appData.students[currentTrade] || []).forEach(s => {
+                tbody.innerHTML += `<tr><td>${s.roll}</td><td>${s.name}</td><td><code>${s.studentId}</code></td><td><code>${s.password}</code></td></tr>`;
+            });
+            openModal('studentCredModal');
+        }
+
+        function removeStudent(roll) {
+            if (confirm(`छात्र (Roll: ${roll}) को हटाएं?`)) {
+                appData.students[currentTrade] = appData.students[currentTrade].filter(s => s.roll !== roll);
+                syncWithFirebase();
+                renderRegister();
+                showToast("छात्र हटाया गया!");
+            }
+        }
+
+        function renderAdminView() {
+            const tbody = document.getElementById('adminInstructorTableBody');
+            tbody.innerHTML = '';
+            appData.instructors.forEach((inst, idx) => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td><strong>${inst.trade}</strong></td>
+                        <td>${inst.name}</td>
+                        <td><code>${inst.id}</code></td>
+                        <td><code>${inst.pass}</code></td>
+                        <td><i class="fa-solid fa-trash" style="cursor:pointer; color:#ef4444;" onclick="removeInstructor(${idx})"></i></td>
+                    </tr>
+                `;
+            });
+        }
+
+        function saveNewTrade() {
+            const name = document.getElementById('newTradeName').value.trim();
+            if (!name) return;
+            if (appData.trades.includes(name)) { alert("यह ट्रेड पहले से मौजूद है!"); return; }
+            appData.trades.push(name);
+            if (!appData.students[name]) appData.students[name] = [];
+            populateTradeDropdowns();
+            syncWithFirebase();
+            closeModal('addTradeModal');
+            showToast(`ट्रेड ${name} जोड़ी गई!`);
+        }
+
+        function saveNewInstructor() {
+            const trade = document.getElementById('instAssignTrade').value;
+            const name = document.getElementById('newInstName').value.trim();
+            const id = document.getElementById('newInstId').value.trim();
+            const pass = document.getElementById('newInstPass').value.trim();
+
+            if (!name || !id || !pass) { alert("सभी विवरण भरें!"); return; }
+            if (appData.instructors.some(i => i.id === id)) { alert("यह आईडी पहले से उपयोग में है!"); return; }
+
+            appData.instructors.push({ trade, name, id, pass });
+            syncWithFirebase();
+            closeModal('addInstructorModal');
+            renderAdminView();
+            showToast("अनुदेशक जोड़ा गया!");
+        }
+
+        function removeInstructor(idx) {
+            if (confirm("क्या आप इस अनुदेशक को हटाना चाहते हैं?")) {
+                appData.instructors.splice(idx, 1);
+                syncWithFirebase();
+                renderAdminView();
+                showToast("अनुदेशक हटाया गया!");
+            }
+        }
+
+        // --- LOCAL STORAGE & FIREBASE REALTIME SYNC ENGINE ---
+        function saveLocalCache() {
+            localStorage.setItem('kotri_rtdb_cache', JSON.stringify(appData));
+        }
+
+        function loadLocalCache() {
+            const data = localStorage.getItem('kotri_rtdb_cache');
+            if (data) {
+                try { appData = JSON.parse(data); } catch(e) {}
+            }
+        }
+
+        // Realtime Database पर लाइव लिसनर
+        function listenToCloudData() {
+            rtdb.ref('portal_data').on('value', (snapshot) => {
+                const cloudVal = snapshot.val();
+                if (cloudVal) {
+                    appData = cloudVal;
+                    saveLocalCache();
+                    populateTradeDropdowns();
+                    if (currentRole === 'instructor') { renderRegister(); renderEvaluationTable(); }
+                    if (currentRole === 'admin') renderAdminView();
+                    if (currentRole === 'student') renderStudentDashboard();
+                }
+            });
+        }
+
+        // Realtime Database पर डेटा सुरक्षित करना
+        async function syncWithFirebase() {
+            saveLocalCache();
+            try {
+                await rtdb.ref('portal_data').set(appData);
+                showToast("Firebase Cloud पर डेटा सुरक्षित हो गया!");
+            } catch (e) {
+                console.error("Firebase error", e);
+                showToast("लोकल सुरक्षित हुआ, Firebase सिंक में त्रुटि!");
+            }
+        }
+    </script>
+</body>
+</html>
