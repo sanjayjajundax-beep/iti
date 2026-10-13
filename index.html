@@ -584,6 +584,8 @@
                 <div class="controls-right">
                     <button class="app-btn app-btn-primary" onclick="openModal('addTradeModal')"><i class="fa-solid fa-plus"></i> नई ट्रेड जोड़ें</button>
                     <button class="app-btn app-btn-secondary" onclick="openModal('addInstructorModal')"><i class="fa-solid fa-user-shield"></i> नया अनुदेशक जोड़ें</button>
+                    <!-- नया बटन: एडमिन क्रेडेंशियल बदलने के लिए -->
+                    <button class="app-btn app-btn-warning" onclick="openAdminCredModal()"><i class="fa-solid fa-key"></i> एडमिन आईडी/पासवर्ड बदलें</button>
                     <button class="app-btn app-btn-success" onclick="syncWithFirebase()"><i class="fa-solid fa-cloud-arrow-up"></i> Firebase सेव करें</button>
                 </div>
             </div>
@@ -869,6 +871,7 @@
     </main>
 
     <!-- MODALS -->
+    <!-- 1. Admin Login Modal -->
     <div id="adminLoginModal" class="modal-backdrop hidden">
         <div class="modal-content">
             <h3 style="color: var(--admin); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
@@ -877,11 +880,11 @@
             <form onsubmit="handleAdminLogin(event)">
                 <div class="input-group">
                     <label>एडमिन आईडी</label>
-                    <input type="text" id="adminId" placeholder="डिफ़ॉल्ट: superadmin" required>
+                    <input type="text" id="adminId" placeholder="एडमिन आईडी दर्ज करें" required>
                 </div>
                 <div class="input-group">
                     <label>पासवर्ड</label>
-                    <input type="password" id="adminPass" placeholder="डिफ़ॉल्ट: admin@123" required>
+                    <input type="password" id="adminPass" placeholder="पासवर्ड दर्ज करें" required>
                 </div>
                 <div style="display: flex; gap: 10px; margin-top: 14px;">
                     <button type="submit" class="app-btn app-btn-primary" style="flex: 1; padding: 10px;"><i class="fa-solid fa-lock-open"></i> लॉगिन</button>
@@ -891,6 +894,30 @@
         </div>
     </div>
 
+    <!-- 2. Admin Change Credentials Modal (नया मॉडल) -->
+    <div id="adminChangeCredModal" class="modal-backdrop hidden">
+        <div class="modal-content">
+            <h3 style="color: var(--admin); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                <i class="fa-solid fa-key"></i> एडमिन आईडी व पासवर्ड बदलें
+            </h3>
+            <form onsubmit="handleSaveAdminCreds(event)">
+                <div class="input-group">
+                    <label>नई एडमिन आईडी</label>
+                    <input type="text" id="newAdminIdInput" required>
+                </div>
+                <div class="input-group">
+                    <label>नया पासवर्ड</label>
+                    <input type="password" id="newAdminPassInput" required>
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 14px;">
+                    <button type="submit" class="app-btn app-btn-primary" style="flex: 1; padding: 10px;"><i class="fa-solid fa-check"></i> सुरक्षित करें</button>
+                    <button type="button" class="app-btn app-btn-secondary" onclick="closeModal('adminChangeCredModal')">रद्द करें</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 3. Add Trade Modal -->
     <div id="addTradeModal" class="modal-backdrop hidden">
         <div class="modal-content">
             <h3 style="color: var(--primary); margin-bottom: 12px;"><i class="fa-solid fa-folder-plus"></i> नई ट्रेड जोड़ें</h3>
@@ -905,6 +932,7 @@
         </div>
     </div>
 
+    <!-- 4. Add Instructor Modal -->
     <div id="addInstructorModal" class="modal-backdrop hidden">
         <div class="modal-content">
             <h3 style="color: var(--primary); margin-bottom: 12px;"><i class="fa-solid fa-user-shield"></i> नया अनुदेशक जोड़ें</h3>
@@ -931,6 +959,7 @@
         </div>
     </div>
 
+    <!-- 5. Add Student Modal -->
     <div id="addStudentModal" class="modal-backdrop hidden">
         <div class="modal-content">
             <h3 style="color: var(--primary); margin-bottom: 12px;"><i class="fa-solid fa-user-plus"></i> नया छात्र जोड़ें</h3>
@@ -967,6 +996,7 @@
         </div>
     </div>
 
+    <!-- 6. View Student Passwords Modal -->
     <div id="studentCredModal" class="modal-backdrop hidden">
         <div class="modal-content" style="max-width: 600px;">
             <h3 style="color: var(--primary); margin-bottom: 12px;"><i class="fa-solid fa-key"></i> छात्र लॉगिन क्रेडेंशियल</h3>
@@ -995,7 +1025,6 @@
 
     <!-- FIREBASE INITIALIZATION & APP LOGIC -->
     <script>
-        // आपके स्क्रीनशॉट से ली गई कॉन्फ़िगरेशन
         const firebaseConfig = {
             apiKey: "AIzaSyATDGOfhzQkOF56Q7f-bS7hVWnTeBl5cLU",
             authDomain: "iti-kotri.firebaseapp.com",
@@ -1007,11 +1036,14 @@
             measurementId: "G-EKQGGRV69Y"
         };
 
-        // Firebase Realtime Database इनिशियलाइज़ेशन
         firebase.initializeApp(firebaseConfig);
         const rtdb = firebase.database();
 
         let appData = {
+            adminCreds: {
+                id: "superadmin",
+                pass: "admin@123"
+            },
             trades: ["COPA", "Electrician", "Fitter"],
             instructors: [
                 { id: "copa_inst", name: "संजय जाजुन्दा", pass: "copa123", trade: "COPA" },
@@ -1037,7 +1069,7 @@
 
         window.onload = function() {
             loadLocalCache();
-            listenToCloudData(); // क्लाउड से लाइव सिंक चालू
+            listenToCloudData();
             populateTradeDropdowns();
 
             const today = new Date();
@@ -1078,15 +1110,46 @@
             const id = document.getElementById('adminId').value.trim();
             const pass = document.getElementById('adminPass').value.trim();
 
-            if (id === "superadmin" && pass === "admin@123") {
+            const currentAdminId = (appData.adminCreds && appData.adminCreds.id) ? appData.adminCreds.id : "superadmin";
+            const currentAdminPass = (appData.adminCreds && appData.adminCreds.pass) ? appData.adminCreds.pass : "admin@123";
+
+            if (id === currentAdminId && pass === currentAdminPass) {
                 currentRole = 'admin';
                 closeModal('adminLoginModal');
                 setupUIRoute();
                 renderAdminView();
                 showToast("सुपर एडमिन लॉगिन सफल!");
             } else {
-                alert("गलत एडमिन आईडी या पासवर्ड! (डिफ़ॉल्ट ID: superadmin, Pass: admin@123)");
+                alert("गलत एडमिन आईडी या पासवर्ड!");
             }
+        }
+
+        // एडमिन आईडी पासवर्ड बदलने का फंक्शन
+        function openAdminCredModal() {
+            const currentAdminId = (appData.adminCreds && appData.adminCreds.id) ? appData.adminCreds.id : "superadmin";
+            const currentAdminPass = (appData.adminCreds && appData.adminCreds.pass) ? appData.adminCreds.pass : "admin@123";
+            document.getElementById('newAdminIdInput').value = currentAdminId;
+            document.getElementById('newAdminPassInput').value = currentAdminPass;
+            openModal('adminChangeCredModal');
+        }
+
+        function handleSaveAdminCreds(e) {
+            e.preventDefault();
+            const newId = document.getElementById('newAdminIdInput').value.trim();
+            const newPass = document.getElementById('newAdminPassInput').value.trim();
+
+            if (!newId || !newPass) {
+                alert("आईडी और पासवर्ड खाली नहीं हो सकते!");
+                return;
+            }
+
+            if (!appData.adminCreds) appData.adminCreds = {};
+            appData.adminCreds.id = newId;
+            appData.adminCreds.pass = newPass;
+
+            syncWithFirebase();
+            closeModal('adminChangeCredModal');
+            showToast("एडमिन आईडी व पासवर्ड सफलतापूर्वक बदल दिए गए!");
         }
 
         function handleInstructorLogin(e) {
@@ -1708,7 +1771,6 @@
             }
         }
 
-        // Realtime Database पर लाइव लिसनर
         function listenToCloudData() {
             rtdb.ref('portal_data').on('value', (snapshot) => {
                 const cloudVal = snapshot.val();
@@ -1723,7 +1785,6 @@
             });
         }
 
-        // Realtime Database पर डेटा सुरक्षित करना
         async function syncWithFirebase() {
             saveLocalCache();
             try {
