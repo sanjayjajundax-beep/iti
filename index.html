@@ -9,6 +9,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Hind:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
+    <!-- SheetJS (xlsx) for Excel Export -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
     <!-- Firebase SDK (Compat Version - Realtime Database) -->
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
@@ -244,6 +247,7 @@
 
         .controls-left, .controls-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
         .badge-trade { background: #dbeafe; color: #1e40af; font-weight: 700; padding: 6px 12px; border-radius: 6px; font-size: 0.88rem; }
+        .badge-type { background: #fef3c7; color: #92400e; font-weight: 700; padding: 6px 10px; border-radius: 6px; font-size: 0.8rem; border: 1px solid #fde68a; }
 
         .app-btn {
             padding: 8px 14px;
@@ -261,7 +265,52 @@
         .app-btn-secondary { background: #475569; color: white; }
         .app-btn-success { background: #10b981; color: white; }
         .app-btn-warning { background: #f59e0b; color: white; }
+        .app-btn-excel { background: #166534; color: white; }
+        .app-btn-excel:hover { background: #14532d; }
+        .app-btn-danger { background: #ef4444; color: white; }
         .app-btn-dark { background: #1e293b; color: white; }
+
+        .max-marks-banner {
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-left: 5px solid #2563eb;
+            border-radius: var(--radius-md);
+            padding: 12px 16px;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .max-marks-inputs {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .mm-box {
+            display: flex;
+            align-items: center;
+            background: #f8fafc;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            padding: 4px 8px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .mm-box label { margin-right: 6px; color: #334155; }
+        .mm-box input {
+            width: 44px;
+            text-align: center;
+            padding: 3px;
+            border: 1px solid #94a3b8;
+            border-radius: 4px;
+            font-weight: 700;
+            color: #1e3a8a;
+        }
 
         .table-shell {
             background: var(--surface);
@@ -278,11 +327,11 @@
 
         .col-sticky-name {
             position: sticky; left: 0; background: #ffffff; z-index: 6; text-align: left;
-            padding-left: 10px; font-weight: 600; min-width: 130px;
+            padding-left: 10px; font-weight: 600; min-width: 140px;
         }
         th.col-sticky-name { background: #f1f5f9; z-index: 7; }
 
-        .col-roll { position: sticky; left: 130px; background: #ffffff; z-index: 6; min-width: 60px; }
+        .col-roll { position: sticky; left: 140px; background: #ffffff; z-index: 6; min-width: 60px; }
         th.col-roll { background: #f1f5f9; z-index: 7; }
 
         .day-sunday { background: #fee2e2 !important; color: #991b1b; font-weight: 700; }
@@ -306,6 +355,16 @@
         .pct-high { background: #dcfce7; color: #166534; }
         .pct-mid { background: #fef9c3; color: #854d0e; }
         .pct-low { background: #fee2e2; color: #991b1b; }
+
+        .action-icon {
+            cursor: pointer;
+            font-size: 0.95rem;
+            margin: 0 4px;
+            transition: transform 0.15s;
+        }
+        .action-icon:hover { transform: scale(1.2); }
+        .action-edit { color: #2563eb; }
+        .action-del { color: #ef4444; }
 
         .instructor-tabs {
             display: flex;
@@ -358,28 +417,15 @@
             box-shadow: var(--shadow-sm);
         }
 
-        .stud-nav-btn .btn-label {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .stud-nav-btn:hover {
-            border-color: var(--primary-accent);
-            background: #f8fafc;
-            transform: translateY(-1px);
-        }
-
+        .stud-nav-btn .btn-label { display: flex; align-items: center; gap: 12px; }
+        .stud-nav-btn:hover { border-color: var(--primary-accent); background: #f8fafc; transform: translateY(-1px); }
         .stud-nav-btn.active {
             background: linear-gradient(135deg, var(--primary), #2563eb);
             color: #ffffff;
             border-color: var(--primary);
             box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
         }
-
-        .stud-nav-btn.active i {
-            color: #ffffff !important;
-        }
+        .stud-nav-btn.active i { color: #ffffff !important; }
 
         .scorecard-box {
             background: var(--surface);
@@ -414,7 +460,7 @@
 
         .stats-tri-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
             gap: 14px;
             margin-bottom: 18px;
         }
@@ -494,7 +540,7 @@
 </head>
 <body>
 
-    <!-- Top Navigation Header -->
+    <!-- Header -->
     <header>
         <div class="brand-box">
             <div class="brand-logo-icon"><i class="fa-solid fa-graduation-cap"></i></div>
@@ -584,7 +630,6 @@
                 <div class="controls-right">
                     <button class="app-btn app-btn-primary" onclick="openModal('addTradeModal')"><i class="fa-solid fa-plus"></i> नई ट्रेड जोड़ें</button>
                     <button class="app-btn app-btn-secondary" onclick="openModal('addInstructorModal')"><i class="fa-solid fa-user-shield"></i> नया अनुदेशक जोड़ें</button>
-                    <!-- नया बटन: एडमिन क्रेडेंशियल बदलने के लिए -->
                     <button class="app-btn app-btn-warning" onclick="openAdminCredModal()"><i class="fa-solid fa-key"></i> एडमिन आईडी/पासवर्ड बदलें</button>
                     <button class="app-btn app-btn-success" onclick="syncWithFirebase()"><i class="fa-solid fa-cloud-arrow-up"></i> Firebase सेव करें</button>
                 </div>
@@ -598,7 +643,8 @@
                     <table>
                         <thead>
                             <tr>
-                                <th>ट्रेड</th>
+                                <th>ट्रेड का नाम</th>
+                                <th>प्रकार (Category)</th>
                                 <th>अनुदेशक का नाम</th>
                                 <th>लॉगिन आईडी</th>
                                 <th>पासवर्ड</th>
@@ -628,14 +674,16 @@
                 <div class="controls-card">
                     <div class="controls-left">
                         <span id="activeTradeBadge" class="badge-trade">ट्रेड: -</span>
+                        <span id="activeTradeTypeBadge" class="badge-type">इंजीनियरिंग</span>
                         <div>
                             <input type="month" id="selectedMonth" onchange="renderRegister()" style="padding: 6px 10px; border-radius: 8px; border: 1px solid var(--border-color); font-weight: 600;">
                         </div>
                         <button class="app-btn app-btn-primary" onclick="openModal('addStudentModal')"><i class="fa-solid fa-user-plus"></i> नया छात्र जोड़ें</button>
-                        <button class="app-btn app-btn-secondary" onclick="openStudentCredentialsModal()"><i class="fa-solid fa-key"></i> पासवर्ड सूची</button>
+                        <button class="app-btn app-btn-secondary" onclick="openStudentCredentialsModal()"><i class="fa-solid fa-id-card"></i> छात्र प्रबंधन / पासवर्ड</button>
                         <button class="app-btn app-btn-warning" onclick="openHolidayPrompt()"><i class="fa-solid fa-umbrella-beach"></i> अवकाश जोड़ें</button>
                     </div>
                     <div class="controls-right">
+                        <button class="app-btn app-btn-excel" onclick="exportAttendanceToExcel()"><i class="fa-solid fa-file-excel"></i> अटेंडेंस एक्सेल (.xlsx)</button>
                         <button class="app-btn app-btn-success" onclick="markAllPresentToday()"><i class="fa-solid fa-check-double"></i> आज सबको P करें</button>
                         <button class="app-btn app-btn-dark" onclick="syncWithFirebase()"><i class="fa-solid fa-cloud-arrow-up"></i> सेव करें</button>
                     </div>
@@ -659,40 +707,31 @@
                 <div class="controls-card">
                     <div class="controls-left">
                         <span class="badge-trade" id="evalTradeBadge">ट्रेड मूल्यांकन</span>
+                        <span class="badge-type" id="evalTradeTypeBadge">इंजीनियरिंग</span>
                         <div>
                             <input type="month" id="evalSelectedMonth" onchange="renderEvaluationTable()" style="padding: 6px 10px; border-radius: 8px; border: 1px solid var(--border-color); font-weight: 600;">
                         </div>
                     </div>
                     <div class="controls-right">
+                        <button class="app-btn app-btn-excel" onclick="exportEvaluationToExcel()"><i class="fa-solid fa-file-excel"></i> मूल्यांकन एक्सेल (.xlsx)</button>
                         <button class="app-btn app-btn-success" onclick="saveAllEvaluations()"><i class="fa-solid fa-floppy-disk"></i> मूल्यांकन सुरक्षित करें</button>
                         <button class="app-btn app-btn-dark" onclick="syncWithFirebase()"><i class="fa-solid fa-cloud-arrow-up"></i> Firebase सेव करें</button>
                     </div>
                 </div>
 
+                <!-- मासिक विषयवार पूर्णांक (Max Marks) कॉन्फ़िगरेशन बैनर -->
+                <div class="max-marks-banner">
+                    <div style="font-weight: 700; color: #1e3a8a; font-size: 0.88rem;">
+                        <i class="fa-solid fa-sliders"></i> इस माह के टेस्ट का विषयवार पूर्णांक (Max Marks) सेट करें:
+                    </div>
+                    <div class="max-marks-inputs" id="maxMarksInputsContainer">
+                        <!-- डायनामिक पूर्णांक इनपुट यहां लोड होंगे -->
+                    </div>
+                </div>
+
                 <div class="table-shell">
                     <table>
-                        <thead>
-                            <tr>
-                                <th rowspan="2" class="col-sticky-name">छात्र का नाम</th>
-                                <th rowspan="2" class="col-roll">रोल</th>
-                                <th colspan="4" style="background:#e0f2fe; color:#0369a1;">मासिक टेस्ट अंक (पूर्णांक 20)</th>
-                                <th colspan="2" style="background:#fef3c7; color:#92400e;">रिकॉर्ड व नोटबुक</th>
-                                <th colspan="2" style="background:#dcfce7; color:#166534;">दैनिक डायरी</th>
-                                <th colspan="2" style="background:#f3e8ff; color:#6b21a8;">गतिविधियां व आचरण</th>
-                            </tr>
-                            <tr>
-                                <th style="background:#eff6ff;">ट्रेड थ्योरी (TT)</th>
-                                <th style="background:#eff6ff;">प्रैक्टिकल (TP)</th>
-                                <th style="background:#eff6ff;">Employability (ES)</th>
-                                <th style="background:#eff6ff;">WCS / ED</th>
-                                <th style="background:#fffbeb;">स्थिति</th>
-                                <th style="background:#fffbeb;">रिमार्क</th>
-                                <th style="background:#f0fdf4;">डायरी चेकिंग</th>
-                                <th style="background:#f0fdf4;">रिमार्क</th>
-                                <th style="background:#faf5ff;">अनुशासन</th>
-                                <th style="background:#faf5ff;">सक्रियता</th>
-                            </tr>
-                        </thead>
+                        <thead id="evalTableHeader"></thead>
                         <tbody id="evaluationTableBody"></tbody>
                     </table>
                 </div>
@@ -715,7 +754,6 @@
                     </div>
                 </div>
 
-                <!-- 3 वर्टिकल कॉलम बटन -->
                 <div class="student-vertical-nav-column">
                     <button class="stud-nav-btn active" id="btnNavStudAtt" onclick="switchStudentSection('attendance')">
                         <span class="btn-label"><i class="fa-solid fa-calendar-check" style="color:#2563eb; font-size:1.1rem;"></i> 1. उपस्थिति रिपोर्ट (Attendance Report)</span>
@@ -813,33 +851,9 @@
 
                 <!-- 2. टेस्ट अंक सेक्शन -->
                 <div id="studSecMarks" class="hidden">
-                    <div class="section-bar-title"><i class="fa-solid fa-pen-nib"></i> मासिक टेस्ट विषयवार अंक विवरण</div>
-                    <div class="stats-tri-grid">
-                        <div class="metric-card">
-                            <div class="title">Trade Theory (थ्योरी)</div>
-                            <div class="value" id="scMarkTT" style="color:#2563eb;">- / 20</div>
-                            <div class="sub">पूर्णांक: 20 अंक</div>
-                        </div>
-                        <div class="metric-card">
-                            <div class="title">Trade Practical (प्रैक्टिकल)</div>
-                            <div class="value" id="scMarkTP" style="color:#059669;">- / 20</div>
-                            <div class="sub">पूर्णांक: 20 अंक</div>
-                        </div>
-                        <div class="metric-card">
-                            <div class="title">Employability Skills (ES)</div>
-                            <div class="value" id="scMarkES" style="color:#d97706;">- / 20</div>
-                            <div class="sub">पूर्णांक: 20 अंक</div>
-                        </div>
-                        <div class="metric-card">
-                            <div class="title">WCS / Engg. Drawing</div>
-                            <div class="value" id="scMarkWCS" style="color:#7c3aed;">- / 20</div>
-                            <div class="sub">पूर्णांक: 20 अंक</div>
-                        </div>
-                        <div class="metric-card" style="background:#f0fdf4; border-color:#86efac;">
-                            <div class="title" style="color:#166534;">कुल प्राप्तांक (Total Marks)</div>
-                            <div class="value" id="scMarkTotal" style="color:#15803d;">- / 80</div>
-                            <div class="sub">कुल प्रतिशत: <strong id="scMarkPct">0%</strong></div>
-                        </div>
+                    <div class="section-bar-title"><i class="fa-solid fa-pen-nib"></i> मासिक टेस्ट विषयवार प्राप्तांक एवं पूर्णांक</div>
+                    <div class="stats-tri-grid" id="scMarksCardsContainer">
+                        <!-- डायनामिक कार्ड्स यहाँ रेंडर होंगे -->
                     </div>
                 </div>
 
@@ -871,6 +885,7 @@
     </main>
 
     <!-- MODALS -->
+
     <!-- 1. Admin Login Modal -->
     <div id="adminLoginModal" class="modal-backdrop hidden">
         <div class="modal-content">
@@ -894,7 +909,7 @@
         </div>
     </div>
 
-    <!-- 2. Admin Change Credentials Modal (नया मॉडल) -->
+    <!-- 2. Admin Change Credentials Modal -->
     <div id="adminChangeCredModal" class="modal-backdrop hidden">
         <div class="modal-content">
             <h3 style="color: var(--admin); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
@@ -917,13 +932,20 @@
         </div>
     </div>
 
-    <!-- 3. Add Trade Modal -->
+    <!-- 3. Add Trade Modal (Engineering vs Non-Engineering Select Added) -->
     <div id="addTradeModal" class="modal-backdrop hidden">
         <div class="modal-content">
             <h3 style="color: var(--primary); margin-bottom: 12px;"><i class="fa-solid fa-folder-plus"></i> नई ट्रेड जोड़ें</h3>
             <div class="input-group">
                 <label>ट्रेड का नाम (उदा. COPA, Electrician, Fitter):</label>
-                <input type="text" id="newTradeName" placeholder="ट्रेड का नाम दर्ज करें">
+                <input type="text" id="newTradeName" placeholder="ट्रेड का नाम दर्ज करें" required>
+            </div>
+            <div class="input-group">
+                <label>ट्रेड का प्रकार (Category):</label>
+                <select id="newTradeType">
+                    <option value="engineering">इंजीनियरिंग ट्रेड (Engineering - TT, TP, WCS, ED, ES)</option>
+                    <option value="non_engineering">नॉन-इंजीनियरिंग ट्रेड (Non-Engineering - TT, TP, ES)</option>
+                </select>
             </div>
             <div style="display: flex; gap: 10px;">
                 <button type="button" class="app-btn app-btn-primary" onclick="saveNewTrade()">सुरक्षित करें</button>
@@ -996,14 +1018,66 @@
         </div>
     </div>
 
-    <!-- 6. View Student Passwords Modal -->
+    <!-- 6. EDIT STUDENT MODAL -->
+    <div id="editStudentModal" class="modal-backdrop hidden">
+        <div class="modal-content">
+            <h3 style="color: var(--primary); margin-bottom: 12px;"><i class="fa-solid fa-user-pen"></i> छात्र विवरण संशोधित करें (Edit)</h3>
+            <form onsubmit="handleUpdateStudent(event)">
+                <input type="hidden" id="editOriginalRoll">
+                <div class="input-group">
+                    <label>रोल नंबर:</label>
+                    <input type="text" id="editRoll" required>
+                </div>
+                <div class="input-group">
+                    <label>छात्र का पूरा नाम:</label>
+                    <input type="text" id="editName" required>
+                </div>
+                <div class="input-group">
+                    <label>छात्र लॉगिन आईडी:</label>
+                    <input type="text" id="editStudentId" required>
+                </div>
+                <div class="input-group">
+                    <label>पासवर्ड:</label>
+                    <input type="text" id="editStudentPass" required>
+                </div>
+                <div class="input-group">
+                    <label>पूर्व संचित कार्यदिवस:</label>
+                    <input type="number" id="editPastWorking" required min="0">
+                </div>
+                <div class="input-group">
+                    <label>पूर्व संचित उपस्थिति:</label>
+                    <input type="number" id="editPastPresent" required min="0">
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button type="submit" class="app-btn app-btn-primary" style="flex:1;"><i class="fa-solid fa-check"></i> अपडेट करें</button>
+                    <button type="button" class="app-btn app-btn-secondary" onclick="closeModal('editStudentModal')">रद्द करें</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 7. View & Manage Student Passwords Modal -->
     <div id="studentCredModal" class="modal-backdrop hidden">
-        <div class="modal-content" style="max-width: 600px;">
-            <h3 style="color: var(--primary); margin-bottom: 12px;"><i class="fa-solid fa-key"></i> छात्र लॉगिन क्रेडेंशियल</h3>
-            <div class="table-shell" style="max-height: 320px;">
+        <div class="modal-content" style="max-width: 680px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+                <h3 style="color: var(--primary);"><i class="fa-solid fa-key"></i> छात्र सूची व क्रेडेंशियल प्रबंधन</h3>
+                <div style="display: flex; gap: 8px;">
+                    <button class="app-btn app-btn-excel" onclick="exportStudentMasterListToExcel()"><i class="fa-solid fa-file-excel"></i> मास्टर लिस्ट एक्सेल</button>
+                    <button class="app-btn app-btn-primary" onclick="closeModal('studentCredModal'); openModal('addStudentModal');">
+                        <i class="fa-solid fa-plus"></i> नया छात्र
+                    </button>
+                </div>
+            </div>
+            <div class="table-shell" style="max-height: 340px;">
                 <table>
                     <thead>
-                        <tr><th>रोल</th><th>नाम</th><th>आईडी</th><th>पासवर्ड</th></tr>
+                        <tr>
+                            <th>रोल</th>
+                            <th>नाम</th>
+                            <th>आईडी</th>
+                            <th>पासवर्ड</th>
+                            <th>कार्रवाई</th>
+                        </tr>
                     </thead>
                     <tbody id="studentCredBody"></tbody>
                 </table>
@@ -1045,6 +1119,11 @@
                 pass: "admin@123"
             },
             trades: ["COPA", "Electrician", "Fitter"],
+            tradeTypes: {
+                "COPA": "non_engineering",
+                "Electrician": "engineering",
+                "Fitter": "engineering"
+            },
             instructors: [
                 { id: "copa_inst", name: "संजय जाजुन्दा", pass: "copa123", trade: "COPA" },
                 { id: "elec_inst", name: "दिनेश सर", pass: "elec123", trade: "Electrician" }
@@ -1060,7 +1139,8 @@
             },
             records: {},
             holidays: {},
-            evaluations: {}
+            evaluations: {},
+            maxMarksConfig: {} // ट्रेड और माहवार पूर्णांक कॉन्फ़िगरेशन
         };
 
         let currentRole = null;
@@ -1089,6 +1169,15 @@
             setTimeout(() => toast.classList.add('hidden'), 3000);
         }
 
+        function isEnggTrade(trade) {
+            if (!appData.tradeTypes) appData.tradeTypes = {};
+            if (appData.tradeTypes[trade]) {
+                return appData.tradeTypes[trade] === 'engineering';
+            }
+            // डिफॉल्ट अनुमान
+            return trade !== 'COPA';
+        }
+
         function populateTradeDropdowns() {
             const selects = ['loginInstTrade', 'loginStudentTrade', 'instAssignTrade'];
             selects.forEach(id => {
@@ -1096,7 +1185,8 @@
                 if (!el) return;
                 el.innerHTML = '';
                 appData.trades.forEach(t => {
-                    el.innerHTML += `<option value="${t}">${t}</option>`;
+                    const typeLabel = isEnggTrade(t) ? 'Engg' : 'Non-Engg';
+                    el.innerHTML += `<option value="${t}">${t} (${typeLabel})</option>`;
                 });
             });
         }
@@ -1124,7 +1214,6 @@
             }
         }
 
-        // एडमिन आईडी पासवर्ड बदलने का फंक्शन
         function openAdminCredModal() {
             const currentAdminId = (appData.adminCreds && appData.adminCreds.id) ? appData.adminCreds.id : "superadmin";
             const currentAdminPass = (appData.adminCreds && appData.adminCreds.pass) ? appData.adminCreds.pass : "admin@123";
@@ -1205,8 +1294,12 @@
                 document.getElementById('roleLabel').innerHTML = `<i class="fa-solid fa-shield-halved"></i> एडमिन`;
             } else if (currentRole === 'instructor') {
                 document.getElementById('instructorSection').classList.remove('hidden');
+                const isEngg = isEnggTrade(currentTrade);
+                const typeText = isEngg ? 'इंजीनियरिंग ट्रेड' : 'नॉन-इंजीनियरिंग ट्रेड';
                 document.getElementById('activeTradeBadge').innerText = `ट्रेड: ${currentTrade}`;
+                document.getElementById('activeTradeTypeBadge').innerText = typeText;
                 document.getElementById('evalTradeBadge').innerText = `${currentTrade} मूल्यांकन`;
+                document.getElementById('evalTradeTypeBadge').innerText = typeText;
                 document.getElementById('roleLabel').innerHTML = `<i class="fa-solid fa-chalkboard-user"></i> ${currentTrade} अनुदेशक`;
                 switchInstructorTab('attendance');
             } else {
@@ -1279,11 +1372,86 @@
             }
         }
 
-        // --- EVALUATION RENDERING ---
+        // --- MAX MARKS & EVALUATION LOGIC ---
+
+        function getMaxMarksConfig(trade, monthVal) {
+            if (!appData.maxMarksConfig) appData.maxMarksConfig = {};
+            if (!appData.maxMarksConfig[trade]) appData.maxMarksConfig[trade] = {};
+            
+            const isEngg = isEnggTrade(trade);
+            const defaultMM = isEngg 
+                ? { tt: 20, tp: 20, wcs: 20, ed: 20, es: 20 }
+                : { tt: 20, tp: 20, es: 20 };
+
+            return appData.maxMarksConfig[trade][monthVal] || defaultMM;
+        }
+
         function renderEvaluationTable() {
             const monthVal = document.getElementById('evalSelectedMonth').value;
             if (!monthVal || !currentTrade) return;
 
+            const isEngg = isEnggTrade(currentTrade);
+            const mmConfig = getMaxMarksConfig(currentTrade, monthVal);
+
+            // 1. Render Max Marks Inputs Banner
+            const mmContainer = document.getElementById('maxMarksInputsContainer');
+            let mmHTML = `
+                <div class="mm-box"><label>TT पूर्णांक:</label><input type="number" id="mm_tt" value="${mmConfig.tt || 20}" min="1" onchange="updateMaxMarksLive()"></div>
+                <div class="mm-box"><label>TP पूर्णांक:</label><input type="number" id="mm_tp" value="${mmConfig.tp || 20}" min="1" onchange="updateMaxMarksLive()"></div>
+            `;
+            if (isEngg) {
+                mmHTML += `
+                    <div class="mm-box"><label>WCS पूर्णांक:</label><input type="number" id="mm_wcs" value="${mmConfig.wcs || 20}" min="1" onchange="updateMaxMarksLive()"></div>
+                    <div class="mm-box"><label>ED पूर्णांक:</label><input type="number" id="mm_ed" value="${mmConfig.ed || 20}" min="1" onchange="updateMaxMarksLive()"></div>
+                `;
+            }
+            mmHTML += `
+                <div class="mm-box"><label>ES पूर्णांक:</label><input type="number" id="mm_es" value="${mmConfig.es || 20}" min="1" onchange="updateMaxMarksLive()"></div>
+                <div class="mm-box" style="background:#e0f2fe; border-color:#93c5fd;"><strong id="totalMMDisplay">कुल पूर्णांक: 0</strong></div>
+            `;
+            mmContainer.innerHTML = mmHTML;
+
+            // 2. Render Table Header
+            const thead = document.getElementById('evalTableHeader');
+            let subjectCols = isEngg 
+                ? `<th colspan="5" style="background:#e0f2fe; color:#0369a1;">मासिक टेस्ट अंक (पूर्णांक ऊपर सेट करें)</th>`
+                : `<th colspan="3" style="background:#e0f2fe; color:#0369a1;">मासिक टेस्ट अंक (पूर्णांक ऊपर सेट करें)</th>`;
+
+            let subHeaderCols = `
+                <th style="background:#eff6ff;">Trade Theory (TT)</th>
+                <th style="background:#eff6ff;">Trade Practical (TP)</th>
+            `;
+            if (isEngg) {
+                subHeaderCols += `
+                    <th style="background:#eff6ff;">WCS</th>
+                    <th style="background:#eff6ff;">Engg. Drawing (ED)</th>
+                `;
+            }
+            subHeaderCols += `<th style="background:#eff6ff;">Employability Skills (ES)</th>`;
+
+            thead.innerHTML = `
+                <tr>
+                    <th rowspan="2" class="col-sticky-name">छात्र का नाम</th>
+                    <th rowspan="2" class="col-roll">रोल</th>
+                    ${subjectCols}
+                    <th rowspan="2" style="background:#dbeafe; color:#1e40af;">कुल प्राप्तांक</th>
+                    <th rowspan="2" style="background:#dbeafe; color:#1e40af;">प्रतिशत (%)</th>
+                    <th colspan="2" style="background:#fef3c7; color:#92400e;">रिकॉर्ड व नोटबुक</th>
+                    <th colspan="2" style="background:#dcfce7; color:#166534;">दैनिक डायरी</th>
+                    <th colspan="2" style="background:#f3e8ff; color:#6b21a8;">गतिविधियां व आचरण</th>
+                </tr>
+                <tr>
+                    ${subHeaderCols}
+                    <th style="background:#fffbeb;">स्थिति</th>
+                    <th style="background:#fffbeb;">रिमार्क</th>
+                    <th style="background:#f0fdf4;">डायरी चेकिंग</th>
+                    <th style="background:#f0fdf4;">रिमार्क</th>
+                    <th style="background:#faf5ff;">अनुशासन</th>
+                    <th style="background:#faf5ff;">सक्रियता</th>
+                </tr>
+            `;
+
+            // 3. Render Table Body
             if (!appData.evaluations[currentTrade]) appData.evaluations[currentTrade] = {};
             if (!appData.evaluations[currentTrade][monthVal]) appData.evaluations[currentTrade][monthVal] = {};
 
@@ -1294,20 +1462,33 @@
 
             tStudents.forEach(st => {
                 const ev = monthEval[st.roll] || {
-                    tt: '', tp: '', es: '', wcs: '',
+                    tt: '', tp: '', wcs: '', ed: '', es: '',
                     recStatus: 'A', recRem: '',
                     diaryStatus: 'नियमित', diaryRem: '',
                     disc: 'उत्कृष्ट', act: 'सक्रिय'
                 };
 
+                let inputsHTML = `
+                    <td><input type="number" id="tt_${st.roll}" min="0" value="${ev.tt !== undefined ? ev.tt : ''}" oninput="calcStudentRowLive('${st.roll}')" style="width:52px; text-align:center; padding:3px;"></td>
+                    <td><input type="number" id="tp_${st.roll}" min="0" value="${ev.tp !== undefined ? ev.tp : ''}" oninput="calcStudentRowLive('${st.roll}')" style="width:52px; text-align:center; padding:3px;"></td>
+                `;
+                if (isEngg) {
+                    inputsHTML += `
+                        <td><input type="number" id="wcs_${st.roll}" min="0" value="${ev.wcs !== undefined ? ev.wcs : ''}" oninput="calcStudentRowLive('${st.roll}')" style="width:52px; text-align:center; padding:3px;"></td>
+                        <td><input type="number" id="ed_${st.roll}" min="0" value="${ev.ed !== undefined ? ev.ed : ''}" oninput="calcStudentRowLive('${st.roll}')" style="width:52px; text-align:center; padding:3px;"></td>
+                    `;
+                }
+                inputsHTML += `
+                    <td><input type="number" id="es_${st.roll}" min="0" value="${ev.es !== undefined ? ev.es : ''}" oninput="calcStudentRowLive('${st.roll}')" style="width:52px; text-align:center; padding:3px;"></td>
+                `;
+
                 tbody.innerHTML += `
                     <tr>
                         <td class="col-sticky-name">${st.name}</td>
                         <td class="col-roll">${st.roll}</td>
-                        <td><input type="number" id="tt_${st.roll}" min="0" max="20" value="${ev.tt}" style="width:50px; text-align:center; padding:3px;"></td>
-                        <td><input type="number" id="tp_${st.roll}" min="0" max="20" value="${ev.tp}" style="width:50px; text-align:center; padding:3px;"></td>
-                        <td><input type="number" id="es_${st.roll}" min="0" max="20" value="${ev.es}" style="width:50px; text-align:center; padding:3px;"></td>
-                        <td><input type="number" id="wcs_${st.roll}" min="0" max="20" value="${ev.wcs}" style="width:50px; text-align:center; padding:3px;"></td>
+                        ${inputsHTML}
+                        <td id="tot_${st.roll}" style="font-weight:700; color:#1e40af; background:#f8fafc;">0</td>
+                        <td id="pct_${st.roll}" style="font-weight:700; color:#15803d; background:#f8fafc;">0%</td>
                         <td>
                             <select id="recSt_${st.roll}" style="padding:2px;">
                                 <option value="A+" ${ev.recStatus==='A+'?'selected':''}>A+ (उत्कृष्ट)</option>
@@ -1316,7 +1497,7 @@
                                 <option value="C" ${ev.recStatus==='C'?'selected':''}>C (अपूर्ण)</option>
                             </select>
                         </td>
-                        <td><input type="text" id="recRem_${st.roll}" value="${ev.recRem || ''}" placeholder="टिप्पणी" style="width:90px; padding:3px;"></td>
+                        <td><input type="text" id="recRem_${st.roll}" value="${ev.recRem || ''}" placeholder="टिप्पणी" style="width:80px; padding:3px;"></td>
                         <td>
                             <select id="diarySt_${st.roll}" style="padding:2px;">
                                 <option value="नियमित" ${ev.diaryStatus==='नियमित'?'selected':''}>नियमित चेक</option>
@@ -1324,7 +1505,7 @@
                                 <option value="लंबित" ${ev.diaryStatus==='लंबित'?'selected':''}>जांच लंबित</option>
                             </select>
                         </td>
-                        <td><input type="text" id="diaryRem_${st.roll}" value="${ev.diaryRem || ''}" placeholder="टिप्पणी" style="width:90px; padding:3px;"></td>
+                        <td><input type="text" id="diaryRem_${st.roll}" value="${ev.diaryRem || ''}" placeholder="टिप्पणी" style="width:80px; padding:3px;"></td>
                         <td>
                             <select id="disc_${st.roll}" style="padding:2px;">
                                 <option value="उत्कृष्ट" ${ev.disc==='उत्कृष्ट'?'selected':''}>उत्कृष्ट</option>
@@ -1342,22 +1523,96 @@
                     </tr>
                 `;
             });
+
+            updateMaxMarksLive();
+            tStudents.forEach(st => calcStudentRowLive(st.roll));
+        }
+
+        function updateMaxMarksLive() {
+            const isEngg = isEnggTrade(currentTrade);
+            const tt = parseFloat(document.getElementById('mm_tt')?.value) || 0;
+            const tp = parseFloat(document.getElementById('mm_tp')?.value) || 0;
+            const es = parseFloat(document.getElementById('mm_es')?.value) || 0;
+            let total = tt + tp + es;
+
+            if (isEngg) {
+                const wcs = parseFloat(document.getElementById('mm_wcs')?.value) || 0;
+                const ed = parseFloat(document.getElementById('mm_ed')?.value) || 0;
+                total += (wcs + ed);
+            }
+
+            const disp = document.getElementById('totalMMDisplay');
+            if (disp) disp.innerText = `कुल पूर्णांक: ${total}`;
+
+            // रीकैलकुलेट ऑल रोज़
+            const tStudents = appData.students[currentTrade] || [];
+            tStudents.forEach(st => calcStudentRowLive(st.roll));
+        }
+
+        function calcStudentRowLive(roll) {
+            const isEngg = isEnggTrade(currentTrade);
+            const tt = parseFloat(document.getElementById(`tt_${roll}`)?.value) || 0;
+            const tp = parseFloat(document.getElementById(`tp_${roll}`)?.value) || 0;
+            const es = parseFloat(document.getElementById(`es_${roll}`)?.value) || 0;
+
+            let obtained = tt + tp + es;
+            const mmTT = parseFloat(document.getElementById('mm_tt')?.value) || 0;
+            const mmTP = parseFloat(document.getElementById('mm_tp')?.value) || 0;
+            const mmES = parseFloat(document.getElementById('mm_es')?.value) || 0;
+            let totalMM = mmTT + mmTP + mmES;
+
+            if (isEngg) {
+                const wcs = parseFloat(document.getElementById(`wcs_${roll}`)?.value) || 0;
+                const ed = parseFloat(document.getElementById(`ed_${roll}`)?.value) || 0;
+                obtained += (wcs + ed);
+
+                const mmWCS = parseFloat(document.getElementById('mm_wcs')?.value) || 0;
+                const mmED = parseFloat(document.getElementById('mm_ed')?.value) || 0;
+                totalMM += (mmWCS + mmED);
+            }
+
+            const pct = totalMM > 0 ? ((obtained / totalMM) * 100).toFixed(1) : 0;
+            
+            const elTot = document.getElementById(`tot_${roll}`);
+            const elPct = document.getElementById(`pct_${roll}`);
+            if (elTot) elTot.innerText = `${obtained} / ${totalMM}`;
+            if (elPct) elPct.innerText = `${pct}%`;
         }
 
         function saveAllEvaluations() {
             const monthVal = document.getElementById('evalSelectedMonth').value;
             if (!monthVal || !currentTrade) return;
 
+            const isEngg = isEnggTrade(currentTrade);
+
+            // 1. Save Max Marks Config
+            if (!appData.maxMarksConfig) appData.maxMarksConfig = {};
+            if (!appData.maxMarksConfig[currentTrade]) appData.maxMarksConfig[currentTrade] = {};
+
+            const mmConfig = {
+                tt: parseFloat(document.getElementById('mm_tt').value) || 20,
+                tp: parseFloat(document.getElementById('mm_tp').value) || 20,
+                es: parseFloat(document.getElementById('mm_es').value) || 20
+            };
+            if (isEngg) {
+                mmConfig.wcs = parseFloat(document.getElementById('mm_wcs').value) || 20;
+                mmConfig.ed = parseFloat(document.getElementById('mm_ed').value) || 20;
+            }
+            appData.maxMarksConfig[currentTrade][monthVal] = mmConfig;
+
+            // 2. Save Students Obtained Marks
             if (!appData.evaluations[currentTrade]) appData.evaluations[currentTrade] = {};
             if (!appData.evaluations[currentTrade][monthVal]) appData.evaluations[currentTrade][monthVal] = {};
 
             const tStudents = appData.students[currentTrade] || [];
             tStudents.forEach(st => {
-                appData.evaluations[currentTrade][monthVal][st.roll] = {
-                    tt: document.getElementById(`tt_${st.roll}`).value,
+                const elTT = document.getElementById(`tt_${st.roll}`);
+                if (!elTT) return;
+
+                const studentEval = {
+                    tt: elTT.value,
                     tp: document.getElementById(`tp_${st.roll}`).value,
                     es: document.getElementById(`es_${st.roll}`).value,
-                    wcs: document.getElementById(`wcs_${st.roll}`).value,
                     recStatus: document.getElementById(`recSt_${st.roll}`).value,
                     recRem: document.getElementById(`recRem_${st.roll}`).value,
                     diaryStatus: document.getElementById(`diarySt_${st.roll}`).value,
@@ -1365,10 +1620,17 @@
                     disc: document.getElementById(`disc_${st.roll}`).value,
                     act: document.getElementById(`act_${st.roll}`).value
                 };
+
+                if (isEngg) {
+                    studentEval.wcs = document.getElementById(`wcs_${st.roll}`)?.value || '';
+                    studentEval.ed = document.getElementById(`ed_${st.roll}`)?.value || '';
+                }
+
+                appData.evaluations[currentTrade][monthVal][st.roll] = studentEval;
             });
 
             syncWithFirebase();
-            showToast("मासिक टेस्ट अंक व डायरी रिकॉर्ड क्लाउड पर सुरक्षित हो गए!");
+            showToast("पूर्णांक एवं छात्र मासिक अंक सफलतापूर्वक सुरक्षित किए गए!");
         }
 
         // --- STUDENT DASHBOARD RENDERING ---
@@ -1449,8 +1711,11 @@
             const totalA = pastA + currEveAbsent;
             const totalPct = totalW > 0 ? ((totalP / totalW) * 100).toFixed(1) : 0;
 
+            const isEngg = isEnggTrade(currentTrade);
+            const tradeTypeTag = isEngg ? 'इंजीनियरिंग ट्रेड' : 'नॉन-इंजीनियरिंग ट्रेड';
+
             document.getElementById('scStudentName').innerText = loggedInStudent.name;
-            document.getElementById('scRoll').innerText = `ट्रेड: ${currentTrade} | रोल: ${loggedInStudent.roll} | आईडी: ${loggedInStudent.studentId}`;
+            document.getElementById('scRoll').innerText = `ट्रेड: ${currentTrade} (${tradeTypeTag}) | रोल: ${loggedInStudent.roll} | आईडी: ${loggedInStudent.studentId}`;
 
             document.getElementById('scPastP').innerText = pastP;
             document.getElementById('scPastW').innerText = pastW;
@@ -1477,23 +1742,62 @@
                 remarkEl.innerHTML = `<span style="color:var(--danger); font-weight:700;"><i class="fa-solid fa-triangle-exclamation"></i> ${totalPct}% उपस्थिति — 75% से कम (अपात्रता का जोखिम)</span>`;
             }
 
+            // Test Marks Section Rendering
+            const mmConfig = getMaxMarksConfig(currentTrade, monthVal);
             const monthEval = (appData.evaluations[currentTrade] && appData.evaluations[currentTrade][monthVal]) ? appData.evaluations[currentTrade][monthVal][loggedInStudent.roll] : null;
 
+            const cardsContainer = document.getElementById('scMarksCardsContainer');
+            cardsContainer.innerHTML = '';
+
+            let totalObt = 0;
+            let totalMM = 0;
+
+            const addCard = (title, obt, mm, color) => {
+                const valStr = (obt !== '' && obt !== null && obt !== undefined) ? `${obt} / ${mm}` : `- / ${mm}`;
+                const card = `
+                    <div class="metric-card">
+                        <div class="title">${title}</div>
+                        <div class="value" style="color:${color};">${valStr}</div>
+                        <div class="sub">पूर्णांक: <strong>${mm} अंक</strong></div>
+                    </div>
+                `;
+                cardsContainer.innerHTML += card;
+            };
+
+            const ttObt = monthEval ? monthEval.tt : '';
+            const tpObt = monthEval ? monthEval.tp : '';
+            const esObt = monthEval ? monthEval.es : '';
+
+            addCard("Trade Theory (थ्योरी)", ttObt, mmConfig.tt || 20, "#2563eb");
+            addCard("Trade Practical (प्रैक्टिकल)", tpObt, mmConfig.tp || 20, "#059669");
+
+            totalObt += (parseFloat(ttObt) || 0) + (parseFloat(tpObt) || 0) + (parseFloat(esObt) || 0);
+            totalMM += (parseFloat(mmConfig.tt) || 20) + (parseFloat(mmConfig.tp) || 20) + (parseFloat(mmConfig.es) || 20);
+
+            if (isEngg) {
+                const wcsObt = monthEval ? monthEval.wcs : '';
+                const edObt = monthEval ? monthEval.ed : '';
+                addCard("WCS", wcsObt, mmConfig.wcs || 20, "#7c3aed");
+                addCard("Engg. Drawing (ED)", edObt, mmConfig.ed || 20, "#0284c7");
+                totalObt += (parseFloat(wcsObt) || 0) + (parseFloat(edObt) || 0);
+                totalMM += (parseFloat(mmConfig.wcs) || 20) + (parseFloat(mmConfig.ed) || 20);
+            }
+
+            addCard("Employability Skills (ES)", esObt, mmConfig.es || 20, "#d97706");
+
+            const pctMarks = totalMM > 0 ? ((totalObt / totalMM) * 100).toFixed(1) : 0;
+            const totalValStr = monthEval ? `${totalObt} / ${totalMM}` : `- / ${totalMM}`;
+
+            cardsContainer.innerHTML += `
+                <div class="metric-card" style="background:#f0fdf4; border-color:#86efac;">
+                    <div class="title" style="color:#166534;">कुल प्राप्तांक (Total Marks)</div>
+                    <div class="value" style="color:#15803d;">${totalValStr}</div>
+                    <div class="sub">कुल प्रतिशत: <strong>${pctMarks}%</strong></div>
+                </div>
+            `;
+
+            // Records & Diary Tab
             if (monthEval) {
-                const tt = parseFloat(monthEval.tt) || 0;
-                const tp = parseFloat(monthEval.tp) || 0;
-                const es = parseFloat(monthEval.es) || 0;
-                const wcs = parseFloat(monthEval.wcs) || 0;
-                const totalMarks = tt + tp + es + wcs;
-                const pctMarks = ((totalMarks / 80) * 100).toFixed(1);
-
-                document.getElementById('scMarkTT').innerText = `${tt} / 20`;
-                document.getElementById('scMarkTP').innerText = `${tp} / 20`;
-                document.getElementById('scMarkES').innerText = `${es} / 20`;
-                document.getElementById('scMarkWCS').innerText = `${wcs} / 20`;
-                document.getElementById('scMarkTotal').innerText = `${totalMarks} / 80`;
-                document.getElementById('scMarkPct').innerText = `${pctMarks}%`;
-
                 document.getElementById('scRecordStatus').innerText = monthEval.recStatus || 'A';
                 document.getElementById('scRecordRemark').innerText = monthEval.recRem || 'जांच पूर्ण';
                 document.getElementById('scDiaryStatus').innerText = monthEval.diaryStatus || 'नियमित';
@@ -1501,13 +1805,6 @@
                 document.getElementById('scDiscipline').innerText = monthEval.disc || 'उत्कृष्ट';
                 document.getElementById('scActivity').innerText = monthEval.act || 'सक्रिय';
             } else {
-                document.getElementById('scMarkTT').innerText = `- / 20`;
-                document.getElementById('scMarkTP').innerText = `- / 20`;
-                document.getElementById('scMarkES').innerText = `- / 20`;
-                document.getElementById('scMarkWCS').innerText = `- / 20`;
-                document.getElementById('scMarkTotal').innerText = `- / 80`;
-                document.getElementById('scMarkPct').innerText = `0%`;
-
                 document.getElementById('scRecordStatus').innerText = 'प्रक्रियाधीन';
                 document.getElementById('scRecordRemark').innerText = 'रिकॉर्ड उपलब्ध नहीं';
                 document.getElementById('scDiaryStatus').innerText = 'लंबित';
@@ -1558,7 +1855,7 @@
             headerTop += `
                 <th colspan="3" class="col-m-res">मासिक योग</th>
                 <th colspan="2" class="col-o-res">संचित योग</th>
-                <th rowspan="2">हटाएं</th></tr>`;
+                <th rowspan="2">कार्रवाई</th></tr>`;
             headerSub += `
                 <th class="col-m-res">उपस्थित</th><th class="col-m-res">अनुपस्थित</th><th class="col-m-res">माह %</th>
                 <th class="col-o-res">कुल P / दिन</th><th class="col-o-res">कुल %</th></tr>`;
@@ -1622,7 +1919,10 @@
                     <td class="col-m-res"><span class="pct-badge ${getBadge(monthPct)}">${monthPct}%</span></td>
                     <td class="col-o-res">${overallP} / ${overallW}</td>
                     <td class="col-o-res"><span class="pct-badge ${getBadge(overallPct)}">${overallPct}%</span></td>
-                    <td><i class="fa-solid fa-trash" style="cursor:pointer; color:#ef4444;" onclick="removeStudent('${student.roll}')"></i></td>
+                    <td>
+                        <i class="fa-solid fa-pen-to-square action-icon action-edit" title="छात्र संपादित करें" onclick="openEditStudentModal('${student.roll}')"></i>
+                        <i class="fa-solid fa-trash action-icon action-del" title="छात्र हटाएं" onclick="removeStudent('${student.roll}')"></i>
+                    </td>
                 </tr>`;
 
                 tbody.innerHTML += rowHTML;
@@ -1666,6 +1966,183 @@
             }
         }
 
+        // --- EXCEL EXPORT FUNCTIONS ---
+
+        function exportAttendanceToExcel() {
+            if (!currentTrade) { alert("कृपया पहले ट्रेड का चयन करें!"); return; }
+            const monthVal = document.getElementById('selectedMonth').value;
+            if (!monthVal) return;
+
+            const [yearStr, monthStr] = monthVal.split('-');
+            const year = parseInt(yearStr);
+            const monthIndex = parseInt(monthStr) - 1;
+            const totalDays = new Date(year, monthIndex + 1, 0).getDate();
+
+            const cMonthHolidays = (appData.holidays[currentTrade] && appData.holidays[currentTrade][monthVal]) ? appData.holidays[currentTrade][monthVal] : [];
+            let sundayCount = 0, holidayCount = 0;
+            for (let d = 1; d <= totalDays; d++) {
+                if (new Date(year, monthIndex, d).getDay() === 0) sundayCount++;
+                else if (cMonthHolidays.includes(d)) holidayCount++;
+            }
+            const workingDays = totalDays - (sundayCount + holidayCount);
+
+            const tStudents = appData.students[currentTrade] || [];
+            if (tStudents.length === 0) {
+                alert("इस ट्रेड में कोई छात्र पंजीकृत नहीं है!");
+                return;
+            }
+
+            const headerRow = ["रोल नंबर", "छात्र का नाम"];
+            for (let d = 1; d <= totalDays; d++) {
+                const isSun = (new Date(year, monthIndex, d).getDay() === 0);
+                const isHol = cMonthHolidays.includes(d);
+                let tag = "";
+                if (isSun) tag = " (रवि)";
+                else if (isHol) tag = " (अव)";
+                headerRow.push(`${d}${tag} - M`);
+                headerRow.push(`${d}${tag} - E`);
+            }
+            headerRow.push("माह उपस्थित", "माह कार्यदिवस", "माह अनुपस्थित", "माह उपस्थिति %", "पूर्व उपस्थित", "पूर्व कार्यदिवस", "कुल उपस्थित", "कुल कार्यदिवस", "कुल उपस्थिति %");
+
+            const excelRows = [headerRow];
+
+            tStudents.forEach(st => {
+                const sData = (appData.records[currentTrade] && appData.records[currentTrade][monthVal] && appData.records[currentTrade][monthVal][st.roll]) ? appData.records[currentTrade][monthVal][st.roll] : {};
+                let evePresent = 0;
+                let eveAbsent = 0;
+
+                const rowData = [st.roll, st.name];
+
+                for (let d = 1; d <= totalDays; d++) {
+                    const isSun = (new Date(year, monthIndex, d).getDay() === 0);
+                    const isHol = cMonthHolidays.includes(d);
+
+                    if (isSun) {
+                        rowData.push("रवि", "रवि");
+                    } else if (isHol) {
+                        rowData.push("अवकाश", "अवकाश");
+                    } else {
+                        const mVal = sData[`${d}_m`] || 'P';
+                        const eVal = sData[`${d}_e`] || 'P';
+                        if (eVal === 'P') evePresent++;
+                        if (eVal === 'A') eveAbsent++;
+                        rowData.push(mVal, eVal);
+                    }
+                }
+
+                const monthPct = workingDays > 0 ? parseFloat(((evePresent / workingDays) * 100).toFixed(1)) : 0;
+                const pastW = st.pastWorkingDays || 0;
+                const pastP = st.pastPresentDays || 0;
+                const overallW = pastW + workingDays;
+                const overallP = pastP + evePresent;
+                const overallPct = overallW > 0 ? parseFloat(((overallP / overallW) * 100).toFixed(1)) : 0;
+
+                rowData.push(evePresent, workingDays, eveAbsent, `${monthPct}%`, pastP, pastW, overallP, overallW, `${overallPct}%`);
+                excelRows.push(rowData);
+            });
+
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(excelRows);
+            XLSX.utils.book_append_sheet(wb, ws, "Attendance");
+            XLSX.writeFile(wb, `ITI_Kotri_${currentTrade}_Attendance_${monthVal}.xlsx`);
+            showToast("उपस्थिति रजिस्टर एक्सेल शीट डाउनलोड हो गई!");
+        }
+
+        function exportEvaluationToExcel() {
+            if (!currentTrade) { alert("कृपया पहले ट्रेड का चयन करें!"); return; }
+            const monthVal = document.getElementById('evalSelectedMonth').value;
+            if (!monthVal) return;
+
+            const isEngg = isEnggTrade(currentTrade);
+            const mmConfig = getMaxMarksConfig(currentTrade, monthVal);
+
+            const tStudents = appData.students[currentTrade] || [];
+            if (tStudents.length === 0) {
+                alert("इस ट्रेड में कोई छात्र पंजीकृत नहीं है!");
+                return;
+            }
+
+            const monthEval = (appData.evaluations[currentTrade] && appData.evaluations[currentTrade][monthVal]) ? appData.evaluations[currentTrade][monthVal] : {};
+
+            const headers = ["रोल नंबर", "छात्र का नाम", `Trade Theory (TT / ${mmConfig.tt || 20})`, `Trade Practical (TP / ${mmConfig.tp || 20})`];
+            if (isEngg) {
+                headers.push(`WCS (/ ${mmConfig.wcs || 20})`);
+                headers.push(`Engg. Drawing (ED / ${mmConfig.ed || 20})`);
+            }
+            headers.push(`Employability Skills (ES / ${mmConfig.es || 20})`);
+
+            let totalMM = (parseFloat(mmConfig.tt) || 20) + (parseFloat(mmConfig.tp) || 20) + (parseFloat(mmConfig.es) || 20);
+            if (isEngg) {
+                totalMM += (parseFloat(mmConfig.wcs) || 20) + (parseFloat(mmConfig.ed) || 20);
+            }
+
+            headers.push(`कुल प्राप्तांक (/ ${totalMM})`, "प्रतिशत (%)", "प्रैक्टिकल रिकॉर्ड स्थिति", "रिकॉर्ड रिमार्क", "दैनिक डायरी चेकिंग", "डायरी रिमार्क", "अनुशासन", "सक्रियता");
+
+            const excelRows = [headers];
+
+            tStudents.forEach(st => {
+                const ev = monthEval[st.roll] || {};
+                const tt = parseFloat(ev.tt) || 0;
+                const tp = parseFloat(ev.tp) || 0;
+                const es = parseFloat(ev.es) || 0;
+                let total = tt + tp + es;
+
+                const row = [st.roll, st.name, ev.tt !== undefined ? ev.tt : '', ev.tp !== undefined ? ev.tp : ''];
+                if (isEngg) {
+                    const wcs = parseFloat(ev.wcs) || 0;
+                    const ed = parseFloat(ev.ed) || 0;
+                    total += (wcs + ed);
+                    row.push(ev.wcs !== undefined ? ev.wcs : '');
+                    row.push(ev.ed !== undefined ? ev.ed : '');
+                }
+                row.push(ev.es !== undefined ? ev.es : '');
+
+                const pct = totalMM > 0 ? ((total / totalMM) * 100).toFixed(1) : 0;
+                row.push(total, `${pct}%`, ev.recStatus || 'A', ev.recRem || '', ev.diaryStatus || 'नियमित', ev.diaryRem || '', ev.disc || 'उत्कृष्ट', ev.act || 'सक्रिय');
+                excelRows.push(row);
+            });
+
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(excelRows);
+            XLSX.utils.book_append_sheet(wb, ws, "Evaluations");
+            XLSX.writeFile(wb, `ITI_Kotri_${currentTrade}_Evaluations_${monthVal}.xlsx`);
+            showToast("मासिक मूल्यांकन एक्सेल शीट डाउनलोड हो गई!");
+        }
+
+        function exportStudentMasterListToExcel() {
+            if (!currentTrade) return;
+            const tStudents = appData.students[currentTrade] || [];
+            if (tStudents.length === 0) {
+                alert("कोई छात्र उपलब्ध नहीं है!");
+                return;
+            }
+
+            const headers = ["ट्रेड", "ट्रेड प्रकार", "रोल नंबर", "छात्र का नाम", "लॉगिन आईडी (Student ID)", "पासवर्ड", "पूर्व संचित कार्यदिवस", "पूर्व संचित उपस्थिति दिन"];
+            const excelRows = [headers];
+            const typeStr = isEnggTrade(currentTrade) ? "इंजीनियरिंग" : "नॉन-इंजीनियरिंग";
+
+            tStudents.forEach(st => {
+                excelRows.push([
+                    currentTrade,
+                    typeStr,
+                    st.roll,
+                    st.name,
+                    st.studentId,
+                    st.password,
+                    st.pastWorkingDays || 0,
+                    st.pastPresentDays || 0
+                ]);
+            });
+
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(excelRows);
+            XLSX.utils.book_append_sheet(wb, ws, "Students_Master");
+            XLSX.writeFile(wb, `ITI_Kotri_${currentTrade}_Students_Master.xlsx`);
+            showToast("छात्र मास्टर लिस्ट एक्सेल शीट डाउनलोड हो गई!");
+        }
+
+        // --- STUDENT CRUD FUNCTIONS ---
+
         function saveNewStudent(e) {
             e.preventDefault();
             const roll = document.getElementById('newRoll').value.trim();
@@ -1685,34 +2162,158 @@
             syncWithFirebase();
             closeModal('addStudentModal');
             renderRegister();
-            showToast("छात्र जोड़ा गया!");
+            renderEvaluationTable();
+            showToast("छात्र सफलतापूर्वक जोड़ा गया!");
+            
+            document.getElementById('newRoll').value = '';
+            document.getElementById('newName').value = '';
+            document.getElementById('newStudentId').value = '';
+            document.getElementById('newStudentPass').value = '';
+            document.getElementById('newPastWorking').value = '0';
+            document.getElementById('newPastPresent').value = '0';
         }
 
-        function openStudentCredentialsModal() {
-            const tbody = document.getElementById('studentCredBody');
-            tbody.innerHTML = '';
-            (appData.students[currentTrade] || []).forEach(s => {
-                tbody.innerHTML += `<tr><td>${s.roll}</td><td>${s.name}</td><td><code>${s.studentId}</code></td><td><code>${s.password}</code></td></tr>`;
-            });
-            openModal('studentCredModal');
+        function openEditStudentModal(roll) {
+            const list = appData.students[currentTrade] || [];
+            const st = list.find(s => s.roll === roll);
+            if (!st) return;
+
+            document.getElementById('editOriginalRoll').value = st.roll;
+            document.getElementById('editRoll').value = st.roll;
+            document.getElementById('editName').value = st.name;
+            document.getElementById('editStudentId').value = st.studentId;
+            document.getElementById('editStudentPass').value = st.password;
+            document.getElementById('editPastWorking').value = st.pastWorkingDays || 0;
+            document.getElementById('editPastPresent').value = st.pastPresentDays || 0;
+
+            openModal('editStudentModal');
+        }
+
+        function handleUpdateStudent(e) {
+            e.preventDefault();
+            const origRoll = document.getElementById('editOriginalRoll').value;
+            const newRoll = document.getElementById('editRoll').value.trim();
+            const newName = document.getElementById('editName').value.trim();
+            const newStudentId = document.getElementById('editStudentId').value.trim();
+            const newPassword = document.getElementById('editStudentPass').value.trim();
+            const newPastW = parseInt(document.getElementById('editPastWorking').value) || 0;
+            const newPastP = parseInt(document.getElementById('editPastPresent').value) || 0;
+
+            const list = appData.students[currentTrade] || [];
+            const index = list.findIndex(s => s.roll === origRoll);
+            if (index === -1) return;
+
+            if (origRoll !== newRoll && list.some(s => s.roll === newRoll)) {
+                alert("यह नया रोल नंबर पहले से किसी अन्य छात्र का है!");
+                return;
+            }
+            if (list.some((s, idx) => idx !== index && s.studentId === newStudentId)) {
+                alert("यह स्टूडेंट आईडी पहले से किसी अन्य छात्र के पास है!");
+                return;
+            }
+
+            if (origRoll !== newRoll) {
+                if (appData.records[currentTrade]) {
+                    Object.keys(appData.records[currentTrade]).forEach(month => {
+                        if (appData.records[currentTrade][month][origRoll]) {
+                            appData.records[currentTrade][month][newRoll] = appData.records[currentTrade][month][origRoll];
+                            delete appData.records[currentTrade][month][origRoll];
+                        }
+                    });
+                }
+                if (appData.evaluations[currentTrade]) {
+                    Object.keys(appData.evaluations[currentTrade]).forEach(month => {
+                        if (appData.evaluations[currentTrade][month][origRoll]) {
+                            appData.evaluations[currentTrade][month][newRoll] = appData.evaluations[currentTrade][month][origRoll];
+                            delete appData.evaluations[currentTrade][month][origRoll];
+                        }
+                    });
+                }
+            }
+
+            list[index] = {
+                roll: newRoll,
+                name: newName,
+                studentId: newStudentId,
+                password: newPassword,
+                pastWorkingDays: newPastW,
+                pastPresentDays: newPastP
+            };
+
+            closeModal('editStudentModal');
+            syncWithFirebase();
+            renderRegister();
+            renderEvaluationTable();
+            renderStudentCredentialsModalTable();
+            showToast("छात्र विवरण सफलतापूर्वक अपडेट हुआ!");
         }
 
         function removeStudent(roll) {
-            if (confirm(`छात्र (Roll: ${roll}) को हटाएं?`)) {
-                appData.students[currentTrade] = appData.students[currentTrade].filter(s => s.roll !== roll);
+            const list = appData.students[currentTrade] || [];
+            const student = list.find(s => s.roll === roll);
+            const studentName = student ? student.name : roll;
+
+            if (confirm(`क्या आप छात्र "${studentName}" (रोल: ${roll}) को हटाना चाहते हैं?\nयह कार्रवाई वापस नहीं ली जा सकेगी।`)) {
+                appData.students[currentTrade] = list.filter(s => s.roll !== roll);
+
+                if (appData.records[currentTrade]) {
+                    Object.keys(appData.records[currentTrade]).forEach(month => {
+                        if (appData.records[currentTrade][month][roll]) {
+                            delete appData.records[currentTrade][month][roll];
+                        }
+                    });
+                }
+                if (appData.evaluations[currentTrade]) {
+                    Object.keys(appData.evaluations[currentTrade]).forEach(month => {
+                        if (appData.evaluations[currentTrade][month][roll]) {
+                            delete appData.evaluations[currentTrade][month][roll];
+                        }
+                    });
+                }
+
                 syncWithFirebase();
                 renderRegister();
-                showToast("छात्र हटाया गया!");
+                renderEvaluationTable();
+                renderStudentCredentialsModalTable();
+                showToast(`छात्र "${studentName}" हटाया गया!`);
             }
         }
 
+        function renderStudentCredentialsModalTable() {
+            const tbody = document.getElementById('studentCredBody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+            (appData.students[currentTrade] || []).forEach(s => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td><strong>${s.roll}</strong></td>
+                        <td style="text-align:left; padding-left:10px;">${s.name}</td>
+                        <td><code>${s.studentId}</code></td>
+                        <td><code>${s.password}</code></td>
+                        <td>
+                            <i class="fa-solid fa-pen-to-square action-icon action-edit" title="एडिट करें" onclick="closeModal('studentCredModal'); openEditStudentModal('${s.roll}');"></i>
+                            <i class="fa-solid fa-trash action-icon action-del" title="हटाएं" onclick="removeStudent('${s.roll}')"></i>
+                        </td>
+                    </tr>`;
+            });
+        }
+
+        function openStudentCredentialsModal() {
+            renderStudentCredentialsModalTable();
+            openModal('studentCredModal');
+        }
+
+        // --- ADMIN FUNCTIONS ---
         function renderAdminView() {
             const tbody = document.getElementById('adminInstructorTableBody');
             tbody.innerHTML = '';
             appData.instructors.forEach((inst, idx) => {
+                const isEngg = isEnggTrade(inst.trade);
+                const typeText = isEngg ? '<span class="badge-type" style="background:#e0f2fe; color:#0369a1; border:none;">इंजीनियरिंग</span>' : '<span class="badge-type" style="background:#fef3c7; color:#92400e; border:none;">नॉन-इंजीनियरिंग</span>';
                 tbody.innerHTML += `
                     <tr>
                         <td><strong>${inst.trade}</strong></td>
+                        <td>${typeText}</td>
                         <td>${inst.name}</td>
                         <td><code>${inst.id}</code></td>
                         <td><code>${inst.pass}</code></td>
@@ -1724,14 +2325,20 @@
 
         function saveNewTrade() {
             const name = document.getElementById('newTradeName').value.trim();
+            const type = document.getElementById('newTradeType').value;
             if (!name) return;
             if (appData.trades.includes(name)) { alert("यह ट्रेड पहले से मौजूद है!"); return; }
+
             appData.trades.push(name);
+            if (!appData.tradeTypes) appData.tradeTypes = {};
+            appData.tradeTypes[name] = type;
+
             if (!appData.students[name]) appData.students[name] = [];
             populateTradeDropdowns();
             syncWithFirebase();
             closeModal('addTradeModal');
-            showToast(`ट्रेड ${name} जोड़ी गई!`);
+            showToast(`ट्रेड ${name} (${type === 'engineering' ? 'इंजीनियरिंग' : 'नॉन-इंजीनियरिंग'}) जोड़ी गई!`);
+            document.getElementById('newTradeName').value = '';
         }
 
         function saveNewInstructor() {
@@ -1748,6 +2355,9 @@
             closeModal('addInstructorModal');
             renderAdminView();
             showToast("अनुदेशक जोड़ा गया!");
+            document.getElementById('newInstName').value = '';
+            document.getElementById('newInstId').value = '';
+            document.getElementById('newInstPass').value = '';
         }
 
         function removeInstructor(idx) {
@@ -1776,9 +2386,20 @@
                 const cloudVal = snapshot.val();
                 if (cloudVal) {
                     appData = cloudVal;
+                    if (!appData.tradeTypes) {
+                        appData.tradeTypes = {
+                            "COPA": "non_engineering",
+                            "Electrician": "engineering",
+                            "Fitter": "engineering"
+                        };
+                    }
                     saveLocalCache();
                     populateTradeDropdowns();
-                    if (currentRole === 'instructor') { renderRegister(); renderEvaluationTable(); }
+                    if (currentRole === 'instructor') { 
+                        renderRegister(); 
+                        renderEvaluationTable(); 
+                        renderStudentCredentialsModalTable();
+                    }
                     if (currentRole === 'admin') renderAdminView();
                     if (currentRole === 'student') renderStudentDashboard();
                 }
