@@ -979,7 +979,7 @@
         </div>
     </div>
 
-    <!-- 5. Add Student Modal -->
+    <!-- 5. Add Student Modal (Safe Inputs & No-Autofill) -->
     <div id="addStudentModal" class="modal-backdrop hidden">
         <div class="modal-content">
             <h3 style="color: var(--primary); margin-bottom: 12px;"><i class="fa-solid fa-user-plus"></i> नया छात्र जोड़ें</h3>
@@ -1095,7 +1095,7 @@
         </p>
     </footer>
 
-    <!-- FIREBASE INITIALIZATION & APP LOGIC -->
+    <!-- FIREBASE INITIALIZATION & SECURE ROBUST APP LOGIC -->
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyATDGOfhzQkOF56Q7f-bS7hVWnTeBl5cLU",
@@ -1145,13 +1145,34 @@
         let currentTrade = null;
         let loggedInStudent = null;
 
-        // सेफ हेल्पर फंक्शन: छात्रों की लिस्ट हमेशा शुद्ध Array के रूप में मिले
+        // --- डेटा सुरक्षा हेल्पर फ़ंक्शन (Data Type Safety Helpers) ---
+        // Firebase जब Array को Object बना दे, तो ये फ़ंक्शंस उसे तुरंत Array में बदलते हैं
+        function getTradesList() {
+            if (!appData.trades) return [];
+            if (Array.isArray(appData.trades)) return appData.trades.filter(Boolean);
+            return Object.values(appData.trades).filter(Boolean);
+        }
+
+        function getInstructorsList() {
+            if (!appData.instructors) return [];
+            if (Array.isArray(appData.instructors)) return appData.instructors.filter(Boolean);
+            return Object.values(appData.instructors).filter(Boolean);
+        }
+
         function getStudentList(trade) {
-            if (!appData.students) appData.students = {};
+            if (!trade || !appData.students) return [];
             const raw = appData.students[trade];
             if (!raw) return [];
             if (Array.isArray(raw)) return raw.filter(Boolean);
             return Object.values(raw).filter(Boolean);
+        }
+
+        function isEnggTrade(trade) {
+            if (!appData.tradeTypes) appData.tradeTypes = {};
+            if (appData.tradeTypes[trade]) {
+                return appData.tradeTypes[trade] === 'engineering';
+            }
+            return trade !== 'COPA';
         }
 
         window.onload = function() {
@@ -1164,42 +1185,53 @@
             const mm = String(today.getMonth() + 1).padStart(2, '0');
             const defaultMonth = `${yyyy}-${mm}`;
 
-            document.getElementById('selectedMonth').value = defaultMonth;
-            document.getElementById('evalSelectedMonth').value = defaultMonth;
-            document.getElementById('studentMonthSelector').value = defaultMonth;
+            const elSelectedMonth = document.getElementById('selectedMonth');
+            const elEvalMonth = document.getElementById('evalSelectedMonth');
+            const elStudentMonth = document.getElementById('studentMonthSelector');
+
+            if (elSelectedMonth) elSelectedMonth.value = defaultMonth;
+            if (elEvalMonth) elEvalMonth.value = defaultMonth;
+            if (elStudentMonth) elStudentMonth.value = defaultMonth;
         };
 
         function showToast(msg) {
             const toast = document.getElementById('toast');
-            document.getElementById('toastMsg').innerText = msg;
+            const elMsg = document.getElementById('toastMsg');
+            if (!toast || !elMsg) return;
+            elMsg.innerText = msg;
             toast.classList.remove('hidden');
             setTimeout(() => toast.classList.add('hidden'), 3000);
         }
 
-        function isEnggTrade(trade) {
-            if (!appData.tradeTypes) appData.tradeTypes = {};
-            if (appData.tradeTypes[trade]) {
-                return appData.tradeTypes[trade] === 'engineering';
-            }
-            return trade !== 'COPA';
-        }
-
         function populateTradeDropdowns() {
             const selects = ['loginInstTrade', 'loginStudentTrade', 'instAssignTrade'];
+            const trades = getTradesList();
+
             selects.forEach(id => {
                 const el = document.getElementById(id);
                 if (!el) return;
                 el.innerHTML = '';
-                appData.trades.forEach(t => {
-                    const typeLabel = isEnggTrade(t) ? 'Engg' : 'Non-Engg';
-                    // value हमेशा शुद्ध ट्रेड नाम (उदा. COPA) रहेगी
-                    el.innerHTML += `<option value="${t}">${t} (${typeLabel})</option>`;
+                if (trades.length === 0) {
+                    el.innerHTML = '<option value="">कोई ट्रेड उपलब्ध नहीं</option>';
+                    return;
+                }
+                trades.forEach(t => {
+                    const cleanTrade = String(t).trim();
+                    const typeLabel = isEnggTrade(cleanTrade) ? 'Engg' : 'Non-Engg';
+                    // Value में केवल शुद्ध ट्रेड का नाम रखें
+                    el.innerHTML += `<option value="${cleanTrade}">${cleanTrade} (${typeLabel})</option>`;
                 });
             });
         }
 
-        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
-        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+        function openModal(id) { 
+            const el = document.getElementById(id);
+            if (el) el.classList.remove('hidden'); 
+        }
+        function closeModal(id) { 
+            const el = document.getElementById(id);
+            if (el) el.classList.add('hidden'); 
+        }
 
         // --- AUTHENTICATION ---
         function handleAdminLogin(e) {
@@ -1250,11 +1282,13 @@
 
         function handleInstructorLogin(e) {
             e.preventDefault();
-            const trade = document.getElementById('loginInstTrade').value;
+            const trade = document.getElementById('loginInstTrade').value.trim();
             const id = document.getElementById('instId').value.trim();
             const pass = document.getElementById('instPass').value.trim();
 
-            const inst = appData.instructors.find(i => i.trade === trade && i.id === id && i.pass === pass);
+            const instructors = getInstructorsList();
+            const inst = instructors.find(i => String(i.trade).trim() === trade && String(i.id).trim() === id && String(i.pass).trim() === pass);
+
             if (inst) {
                 currentRole = 'instructor';
                 currentTrade = trade;
@@ -1269,7 +1303,7 @@
 
         function handleStudentLogin(e) {
             e.preventDefault();
-            const trade = document.getElementById('loginStudentTrade').value;
+            const trade = document.getElementById('loginStudentTrade').value.trim();
             const sId = document.getElementById('studentLoginId').value.trim();
             const pass = document.getElementById('studentLoginPass').value.trim();
 
@@ -1314,7 +1348,7 @@
                 document.getElementById('studentSection').classList.remove('hidden');
                 document.getElementById('roleLabel').innerHTML = `<i class="fa-solid fa-user-graduate"></i> छात्र: ${loggedInStudent.name}`;
                 switchStudentSection('attendance');
-                renderStudentDashboard();
+                renderStudentDashboard(); // लॉगिन होते ही तुरंत छात्र का डेटा स्क्रीन पर रेंडर होगा
             }
         }
 
@@ -1465,6 +1499,12 @@
             const tStudents = getStudentList(currentTrade);
             const tbody = document.getElementById('evaluationTableBody');
             tbody.innerHTML = '';
+
+            if (tStudents.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="${isEngg ? 16 : 14}" style="padding: 20px; color: var(--text-muted);">कोई छात्र पंजीकृत नहीं है।</td></tr>`;
+                updateMaxMarksLive();
+                return;
+            }
 
             tStudents.forEach(st => {
                 const ev = monthEval[st.roll] || {
@@ -1636,7 +1676,7 @@
             showToast("पूर्णांक एवं छात्र मासिक अंक सुरक्षित किए गए!");
         }
 
-        // --- STUDENT DASHBOARD RENDERING (FIXED) ---
+        // --- STUDENT DASHBOARD RENDERING ---
         function renderStudentDashboard() {
             if (!loggedInStudent || !currentTrade) return;
 
@@ -1717,7 +1757,7 @@
             const isEngg = isEnggTrade(currentTrade);
             const tradeTypeTag = isEngg ? 'इंजीनियरिंग ट्रेड' : 'नॉन-इंजीनियरिंग ट्रेड';
 
-            // छात्र का नाम, ट्रेड और रोल नंबर कार्ड में प्रदर्शित करें
+            // छात्र का नाम और रोल नंबर हमेशा सही अपडेट होगा
             document.getElementById('scStudentName').innerText = loggedInStudent.name;
             document.getElementById('scRoll').innerText = `ट्रेड: ${currentTrade} (${tradeTypeTag}) | रोल: ${loggedInStudent.roll} | आईडी: ${loggedInStudent.studentId}`;
 
@@ -1816,7 +1856,7 @@
             }
         }
 
-        // --- REGISTER TABLE LOGIC (FIXED) ---
+        // --- REGISTER TABLE LOGIC ---
         function renderRegister() {
             const monthVal = document.getElementById('selectedMonth').value;
             if (!monthVal || !currentTrade) return;
@@ -1870,11 +1910,10 @@
             const tbody = document.getElementById('attendanceBody');
             tbody.innerHTML = '';
             
-            // getStudentList द्वारा सेफ Array प्राप्त करें
             const tStudents = getStudentList(currentTrade);
 
             if (tStudents.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="${totalDays * 2 + 8}" style="padding: 20px; color: var(--text-muted); font-size: 0.95rem;">इस ट्रेड में अभी तक कोई छात्र नहीं जोड़ा गया है। कृपया 'नया छात्र जोड़ें' बटन पर क्लिक करके छात्र जोड़ें।</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="${totalDays * 2 + 8}" style="padding: 24px; color: var(--text-muted); font-size: 0.95rem;">इस ट्रेड में अभी तक कोई छात्र नहीं जोड़ा गया है। कृपया 'नया छात्र जोड़ें' बटन पर क्लिक करके छात्र जोड़ें।</td></tr>`;
                 return;
             }
 
@@ -2150,7 +2189,7 @@
             showToast("छात्र मास्टर लिस्ट एक्सेल शीट डाउनलोड हो गई!");
         }
 
-        // --- STUDENT CRUD FUNCTIONS (ADD, EDIT, DELETE) ---
+        // --- STUDENT CRUD FUNCTIONS ---
 
         function saveNewStudent(e) {
             e.preventDefault();
@@ -2167,7 +2206,7 @@
             if (list.some(s => String(s.studentId).trim() === studentId)) { alert("यह स्टूडेंट आईडी पहले से मौजूद है!"); return; }
 
             list.push({ roll, name, studentId, password, pastWorkingDays: pastW, pastPresentDays: pastP });
-            appData.students[currentTrade] = list; // हमेशा Array के रूप में असाइन करें
+            appData.students[currentTrade] = list; // हमेशा शुद्ध Array के रूप में सेव होगा
 
             syncWithFirebase();
             closeModal('addStudentModal');
@@ -2318,10 +2357,16 @@
         // --- ADMIN FUNCTIONS ---
         function renderAdminView() {
             const tbody = document.getElementById('adminInstructorTableBody');
+            if (!tbody) return;
             tbody.innerHTML = '';
-            appData.instructors.forEach((inst, idx) => {
+            const instructors = getInstructorsList();
+
+            instructors.forEach((inst, idx) => {
                 const isEngg = isEnggTrade(inst.trade);
-                const typeText = isEngg ? '<span class="badge-type" style="background:#e0f2fe; color:#0369a1; border:none;">इंजीनियरिंग</span>' : '<span class="badge-type" style="background:#fef3c7; color:#92400e; border:none;">नॉन-इंजीनियरिंग</span>';
+                const typeText = isEngg 
+                    ? '<span class="badge-type" style="background:#e0f2fe; color:#0369a1; border:none;">इंजीनियरिंग</span>' 
+                    : '<span class="badge-type" style="background:#fef3c7; color:#92400e; border:none;">नॉन-इंजीनियरिंग</span>';
+                
                 tbody.innerHTML += `
                     <tr>
                         <td><strong>${inst.trade}</strong></td>
@@ -2339,30 +2384,40 @@
             const name = document.getElementById('newTradeName').value.trim();
             const type = document.getElementById('newTradeType').value;
             if (!name) return;
-            if (appData.trades.includes(name)) { alert("यह ट्रेड पहले से मौजूद है!"); return; }
 
-            appData.trades.push(name);
+            let trades = getTradesList();
+            if (trades.includes(name)) { alert("यह ट्रेड पहले से मौजूद है!"); return; }
+
+            trades.push(name);
+            appData.trades = trades;
+
             if (!appData.tradeTypes) appData.tradeTypes = {};
             appData.tradeTypes[name] = type;
 
+            if (!appData.students) appData.students = {};
             if (!appData.students[name]) appData.students[name] = [];
+
             populateTradeDropdowns();
             syncWithFirebase();
             closeModal('addTradeModal');
-            showToast(`ट्रेड ${name} (${type === 'engineering' ? 'इंजीनियरिंग' : 'नॉन-इंजीनियरिंग'}) जोड़ी गई!`);
+            showToast(`ट्रेड ${name} जोड़ी गई!`);
             document.getElementById('newTradeName').value = '';
         }
 
         function saveNewInstructor() {
-            const trade = document.getElementById('instAssignTrade').value;
+            const trade = document.getElementById('instAssignTrade').value.trim();
             const name = document.getElementById('newInstName').value.trim();
             const id = document.getElementById('newInstId').value.trim();
             const pass = document.getElementById('newInstPass').value.trim();
 
             if (!name || !id || !pass) { alert("सभी विवरण भरें!"); return; }
-            if (appData.instructors.some(i => i.id === id)) { alert("यह आईडी पहले से उपयोग में है!"); return; }
 
-            appData.instructors.push({ trade, name, id, pass });
+            let instructors = getInstructorsList();
+            if (instructors.some(i => i.id === id)) { alert("यह आईडी पहले से उपयोग में है!"); return; }
+
+            instructors.push({ trade, name, id, pass });
+            appData.instructors = instructors;
+
             syncWithFirebase();
             closeModal('addInstructorModal');
             renderAdminView();
@@ -2374,7 +2429,10 @@
 
         function removeInstructor(idx) {
             if (confirm("क्या आप इस अनुदेशक को हटाना चाहते हैं?")) {
-                appData.instructors.splice(idx, 1);
+                let instructors = getInstructorsList();
+                instructors.splice(idx, 1);
+                appData.instructors = instructors;
+
                 syncWithFirebase();
                 renderAdminView();
                 showToast("अनुदेशक हटाया गया!");
@@ -2389,7 +2447,9 @@
         function loadLocalCache() {
             const data = localStorage.getItem('kotri_rtdb_cache');
             if (data) {
-                try { appData = JSON.parse(data); } catch(e) {}
+                try { 
+                    appData = JSON.parse(data); 
+                } catch(e) {}
             }
         }
 
@@ -2398,6 +2458,11 @@
                 const cloudVal = snapshot.val();
                 if (cloudVal) {
                     appData = cloudVal;
+                    
+                    // डेटा को शुद्ध Array में मानकीकृत करें
+                    appData.trades = getTradesList();
+                    appData.instructors = getInstructorsList();
+
                     if (!appData.tradeTypes) {
                         appData.tradeTypes = {
                             "COPA": "non_engineering",
@@ -2407,6 +2472,7 @@
                     }
                     saveLocalCache();
                     populateTradeDropdowns();
+                    
                     if (currentRole === 'instructor') { 
                         renderRegister(); 
                         renderEvaluationTable(); 
