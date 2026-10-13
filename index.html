@@ -338,8 +338,9 @@
         .day-holiday { background: #f3e8ff !important; color: #6b21a8; font-weight: 700; }
 
         .btn-status-toggle {
-            width: 24px; height: 24px; border-radius: 4px; border: none; font-weight: 700;
-            font-size: 0.75rem; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+            width: 26px; height: 26px; border-radius: 5px; border: none; font-weight: 700;
+            font-size: 0.8rem; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+            user-select: none;
         }
 
         .st-P { background: #dcfce7; color: #166534; }
@@ -719,7 +720,6 @@
                     </div>
                 </div>
 
-                <!-- मासिक विषयवार पूर्णांक (Max Marks) कॉन्फ़िगरेशन बैनर -->
                 <div class="max-marks-banner">
                     <div style="font-weight: 700; color: #1e3a8a; font-size: 0.88rem;">
                         <i class="fa-solid fa-sliders"></i> इस माह के टेस्ट का विषयवार पूर्णांक (Max Marks) सेट करें:
@@ -743,6 +743,7 @@
                 
                 <div class="scorecard-header">
                     <div>
+                        <!-- छात्र का नाम और रोल नंबर यहाँ लाइव लोड होंगे -->
                         <h2 id="scStudentName" style="color: var(--primary); font-size: 1.35rem;">छात्र का नाम</h2>
                         <p style="color: var(--text-muted); font-size: 0.85rem;" id="scRoll">ट्रेड: - | रोल: -</p>
                     </div>
@@ -979,7 +980,7 @@
         </div>
     </div>
 
-    <!-- 5. Add Student Modal (Safe Inputs & No-Autofill) -->
+    <!-- 5. Add Student Modal -->
     <div id="addStudentModal" class="modal-backdrop hidden">
         <div class="modal-content">
             <h3 style="color: var(--primary); margin-bottom: 12px;"><i class="fa-solid fa-user-plus"></i> नया छात्र जोड़ें</h3>
@@ -1095,7 +1096,7 @@
         </p>
     </footer>
 
-    <!-- FIREBASE INITIALIZATION & SECURE ROBUST APP LOGIC -->
+    <!-- FIREBASE INITIALIZATION & ROBUST SCRIPT -->
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyATDGOfhzQkOF56Q7f-bS7hVWnTeBl5cLU",
@@ -1112,10 +1113,7 @@
         const rtdb = firebase.database();
 
         let appData = {
-            adminCreds: {
-                id: "superadmin",
-                pass: "admin@123"
-            },
+            adminCreds: { id: "superadmin", pass: "admin@123" },
             trades: ["COPA", "Electrician", "Fitter"],
             tradeTypes: {
                 "COPA": "non_engineering",
@@ -1145,22 +1143,21 @@
         let currentTrade = null;
         let loggedInStudent = null;
 
-        // --- डेटा सुरक्षा हेल्पर फ़ंक्शन (Data Type Safety Helpers) ---
-        // Firebase जब Array को Object बना दे, तो ये फ़ंक्शंस उसे तुरंत Array में बदलते हैं
+        // --- डेटा सुरक्षा हेल्पर फ़ंक्शंस ---
         function getTradesList() {
-            if (!appData.trades) return [];
+            if (!appData || !appData.trades) return [];
             if (Array.isArray(appData.trades)) return appData.trades.filter(Boolean);
             return Object.values(appData.trades).filter(Boolean);
         }
 
         function getInstructorsList() {
-            if (!appData.instructors) return [];
+            if (!appData || !appData.instructors) return [];
             if (Array.isArray(appData.instructors)) return appData.instructors.filter(Boolean);
             return Object.values(appData.instructors).filter(Boolean);
         }
 
         function getStudentList(trade) {
-            if (!trade || !appData.students) return [];
+            if (!trade || !appData || !appData.students) return [];
             const raw = appData.students[trade];
             if (!raw) return [];
             if (Array.isArray(raw)) return raw.filter(Boolean);
@@ -1168,6 +1165,7 @@
         }
 
         function isEnggTrade(trade) {
+            if (!trade) return true;
             if (!appData.tradeTypes) appData.tradeTypes = {};
             if (appData.tradeTypes[trade]) {
                 return appData.tradeTypes[trade] === 'engineering';
@@ -1218,7 +1216,6 @@
                 trades.forEach(t => {
                     const cleanTrade = String(t).trim();
                     const typeLabel = isEnggTrade(cleanTrade) ? 'Engg' : 'Non-Engg';
-                    // Value में केवल शुद्ध ट्रेड का नाम रखें
                     el.innerHTML += `<option value="${cleanTrade}">${cleanTrade} (${typeLabel})</option>`;
                 });
             });
@@ -1308,14 +1305,13 @@
             const pass = document.getElementById('studentLoginPass').value.trim();
 
             const list = getStudentList(trade);
-            const st = list.find(s => String(s.studentId).trim() === sId && String(s.password).trim() === pass);
+            const st = list.find(s => String(s.studentId).trim().toLowerCase() === sId.toLowerCase() && String(s.password).trim() === pass);
 
             if (st) {
                 currentRole = 'student';
                 currentTrade = trade;
                 loggedInStudent = st;
                 setupUIRoute();
-                renderStudentDashboard();
                 showToast(`स्वागतम्, ${st.name}!`);
             } else {
                 alert("अमान्य छात्र आईडी या पासवर्ड!");
@@ -1344,11 +1340,11 @@
                 document.getElementById('evalTradeTypeBadge').innerText = typeText;
                 document.getElementById('roleLabel').innerHTML = `<i class="fa-solid fa-chalkboard-user"></i> ${currentTrade} अनुदेशक`;
                 switchInstructorTab('attendance');
-            } else {
+            } else if (currentRole === 'student') {
                 document.getElementById('studentSection').classList.remove('hidden');
                 document.getElementById('roleLabel').innerHTML = `<i class="fa-solid fa-user-graduate"></i> छात्र: ${loggedInStudent.name}`;
                 switchStudentSection('attendance');
-                renderStudentDashboard(); // लॉगिन होते ही तुरंत छात्र का डेटा स्क्रीन पर रेंडर होगा
+                renderStudentDashboard(); // छात्र का पूरा विवरण यहाँ लाइव लोड होगा
             }
         }
 
@@ -1676,17 +1672,35 @@
             showToast("पूर्णांक एवं छात्र मासिक अंक सुरक्षित किए गए!");
         }
 
-        // --- STUDENT DASHBOARD RENDERING ---
+        // --- STUDENT SCORECARD RENDERING (BUG FIXED) ---
         function renderStudentDashboard() {
             if (!loggedInStudent || !currentTrade) return;
 
-            const monthVal = document.getElementById('studentMonthSelector').value;
+            const isEngg = isEnggTrade(currentTrade);
+            const tradeTypeTag = isEngg ? 'इंजीनियरिंग ट्रेड' : 'नॉन-इंजीनियरिंग ट्रेड';
+
+            // 1. नाम, ट्रेड और रोल नंबर सीधे DOM में सेट करें
+            const elName = document.getElementById('scStudentName');
+            const elRoll = document.getElementById('scRoll');
+            if (elName) elName.innerText = loggedInStudent.name;
+            if (elRoll) elRoll.innerText = `ट्रेड: ${currentTrade} (${tradeTypeTag}) | रोल: ${loggedInStudent.roll} | आईडी: ${loggedInStudent.studentId}`;
+
+            // 2. महीना पार्स करें
+            let monthVal = document.getElementById('studentMonthSelector').value;
+            if (!monthVal) {
+                const today = new Date();
+                monthVal = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+                document.getElementById('studentMonthSelector').value = monthVal;
+            }
+
             const [yearStr, monthStr] = monthVal.split('-');
             const year = parseInt(yearStr);
             const monthIndex = parseInt(monthStr) - 1;
             const totalDays = new Date(year, monthIndex + 1, 0).getDate();
 
-            const cMonthHolidays = (appData.holidays[currentTrade] && appData.holidays[currentTrade][monthVal]) ? appData.holidays[currentTrade][monthVal] : [];
+            const cMonthHolidays = (appData.holidays && appData.holidays[currentTrade] && appData.holidays[currentTrade][monthVal]) 
+                ? appData.holidays[currentTrade][monthVal] 
+                : [];
 
             let sundays = 0, holidays = 0;
             for (let d = 1; d <= totalDays; d++) {
@@ -1695,12 +1709,14 @@
             }
 
             const currWorkingDays = totalDays - (sundays + holidays);
-            const sData = (appData.records[currentTrade] && appData.records[currentTrade][monthVal] && appData.records[currentTrade][monthVal][loggedInStudent.roll]) ? appData.records[currentTrade][monthVal][loggedInStudent.roll] : {};
+            const sData = (appData.records && appData.records[currentTrade] && appData.records[currentTrade][monthVal] && appData.records[currentTrade][monthVal][loggedInStudent.roll]) 
+                ? appData.records[currentTrade][monthVal][loggedInStudent.roll] 
+                : {};
 
             let currEvePresent = 0;
             let currEveAbsent = 0;
             const logTableBody = document.getElementById('scDailyLogBody');
-            logTableBody.innerHTML = '';
+            if (logTableBody) logTableBody.innerHTML = '';
             const dayNames = ['रवि', 'सोम', 'मंगल', 'बुध', 'गुरु', 'शुक्र', 'शनि'];
 
             for (let d = 1; d <= totalDays; d++) {
@@ -1732,15 +1748,17 @@
                     else statusLabel = '<span style="color:var(--success); font-weight:700;">उपस्थित</span>';
                 }
 
-                logTableBody.innerHTML += `
-                    <tr>
-                        <td><strong>${d}/${monthStr}/${year}</strong></td>
-                        <td>${dayName}</td>
-                        <td>${mVal}</td>
-                        <td>${eVal}</td>
-                        <td>${statusLabel}</td>
-                    </tr>
-                `;
+                if (logTableBody) {
+                    logTableBody.innerHTML += `
+                        <tr>
+                            <td><strong>${d}/${monthStr}/${year}</strong></td>
+                            <td>${dayName}</td>
+                            <td>${mVal}</td>
+                            <td>${eVal}</td>
+                            <td>${statusLabel}</td>
+                        </tr>
+                    `;
+                }
             }
 
             const pastW = parseInt(loggedInStudent.pastWorkingDays) || 0;
@@ -1753,13 +1771,6 @@
             const totalP = pastP + currEvePresent;
             const totalA = pastA + currEveAbsent;
             const totalPct = totalW > 0 ? ((totalP / totalW) * 100).toFixed(1) : 0;
-
-            const isEngg = isEnggTrade(currentTrade);
-            const tradeTypeTag = isEngg ? 'इंजीनियरिंग ट्रेड' : 'नॉन-इंजीनियरिंग ट्रेड';
-
-            // छात्र का नाम और रोल नंबर हमेशा सही अपडेट होगा
-            document.getElementById('scStudentName').innerText = loggedInStudent.name;
-            document.getElementById('scRoll').innerText = `ट्रेड: ${currentTrade} (${tradeTypeTag}) | रोल: ${loggedInStudent.roll} | आईडी: ${loggedInStudent.studentId}`;
 
             document.getElementById('scPastP').innerText = pastP;
             document.getElementById('scPastW').innerText = pastW;
@@ -1786,58 +1797,63 @@
                 remarkEl.innerHTML = `<span style="color:var(--danger); font-weight:700;"><i class="fa-solid fa-triangle-exclamation"></i> ${totalPct}% उपस्थिति — 75% से कम (अपात्रता का जोखिम)</span>`;
             }
 
+            // 3. टेस्ट अंक लोड करें
             const mmConfig = getMaxMarksConfig(currentTrade, monthVal);
-            const monthEval = (appData.evaluations[currentTrade] && appData.evaluations[currentTrade][monthVal]) ? appData.evaluations[currentTrade][monthVal][loggedInStudent.roll] : null;
+            const monthEval = (appData.evaluations && appData.evaluations[currentTrade] && appData.evaluations[currentTrade][monthVal]) 
+                ? appData.evaluations[currentTrade][monthVal][loggedInStudent.roll] 
+                : null;
 
             const cardsContainer = document.getElementById('scMarksCardsContainer');
-            cardsContainer.innerHTML = '';
+            if (cardsContainer) {
+                cardsContainer.innerHTML = '';
 
-            let totalObt = 0;
-            let totalMM = 0;
+                let totalObt = 0;
+                let totalMM = 0;
 
-            const addCard = (title, obt, mm, color) => {
-                const valStr = (obt !== '' && obt !== null && obt !== undefined) ? `${obt} / ${mm}` : `- / ${mm}`;
-                const card = `
-                    <div class="metric-card">
-                        <div class="title">${title}</div>
-                        <div class="value" style="color:${color};">${valStr}</div>
-                        <div class="sub">पूर्णांक: <strong>${mm} अंक</strong></div>
+                const addCard = (title, obt, mm, color) => {
+                    const valStr = (obt !== '' && obt !== null && obt !== undefined) ? `${obt} / ${mm}` : `- / ${mm}`;
+                    const card = `
+                        <div class="metric-card">
+                            <div class="title">${title}</div>
+                            <div class="value" style="color:${color};">${valStr}</div>
+                            <div class="sub">पूर्णांक: <strong>${mm} अंक</strong></div>
+                        </div>
+                    `;
+                    cardsContainer.innerHTML += card;
+                };
+
+                const ttObt = monthEval ? monthEval.tt : '';
+                const tpObt = monthEval ? monthEval.tp : '';
+                const esObt = monthEval ? monthEval.es : '';
+
+                addCard("Trade Theory (थ्योरी)", ttObt, mmConfig.tt || 20, "#2563eb");
+                addCard("Trade Practical (प्रैक्टिकल)", tpObt, mmConfig.tp || 20, "#059669");
+
+                totalObt += (parseFloat(ttObt) || 0) + (parseFloat(tpObt) || 0) + (parseFloat(esObt) || 0);
+                totalMM += (parseFloat(mmConfig.tt) || 20) + (parseFloat(mmConfig.tp) || 20) + (parseFloat(mmConfig.es) || 20);
+
+                if (isEngg) {
+                    const wcsObt = monthEval ? monthEval.wcs : '';
+                    const edObt = monthEval ? monthEval.ed : '';
+                    addCard("WCS", wcsObt, mmConfig.wcs || 20, "#7c3aed");
+                    addCard("Engg. Drawing (ED)", edObt, mmConfig.ed || 20, "#0284c7");
+                    totalObt += (parseFloat(wcsObt) || 0) + (parseFloat(edObt) || 0);
+                    totalMM += (parseFloat(mmConfig.wcs) || 20) + (parseFloat(mmConfig.ed) || 20);
+                }
+
+                addCard("Employability Skills (ES)", esObt, mmConfig.es || 20, "#d97706");
+
+                const pctMarks = totalMM > 0 ? ((totalObt / totalMM) * 100).toFixed(1) : 0;
+                const totalValStr = monthEval ? `${totalObt} / ${totalMM}` : `- / ${totalMM}`;
+
+                cardsContainer.innerHTML += `
+                    <div class="metric-card" style="background:#f0fdf4; border-color:#86efac;">
+                        <div class="title" style="color:#166534;">कुल प्राप्तांक (Total Marks)</div>
+                        <div class="value" style="color:#15803d;">${totalValStr}</div>
+                        <div class="sub">कुल प्रतिशत: <strong>${pctMarks}%</strong></div>
                     </div>
                 `;
-                cardsContainer.innerHTML += card;
-            };
-
-            const ttObt = monthEval ? monthEval.tt : '';
-            const tpObt = monthEval ? monthEval.tp : '';
-            const esObt = monthEval ? monthEval.es : '';
-
-            addCard("Trade Theory (थ्योरी)", ttObt, mmConfig.tt || 20, "#2563eb");
-            addCard("Trade Practical (प्रैक्टिकल)", tpObt, mmConfig.tp || 20, "#059669");
-
-            totalObt += (parseFloat(ttObt) || 0) + (parseFloat(tpObt) || 0) + (parseFloat(esObt) || 0);
-            totalMM += (parseFloat(mmConfig.tt) || 20) + (parseFloat(mmConfig.tp) || 20) + (parseFloat(mmConfig.es) || 20);
-
-            if (isEngg) {
-                const wcsObt = monthEval ? monthEval.wcs : '';
-                const edObt = monthEval ? monthEval.ed : '';
-                addCard("WCS", wcsObt, mmConfig.wcs || 20, "#7c3aed");
-                addCard("Engg. Drawing (ED)", edObt, mmConfig.ed || 20, "#0284c7");
-                totalObt += (parseFloat(wcsObt) || 0) + (parseFloat(edObt) || 0);
-                totalMM += (parseFloat(mmConfig.wcs) || 20) + (parseFloat(mmConfig.ed) || 20);
             }
-
-            addCard("Employability Skills (ES)", esObt, mmConfig.es || 20, "#d97706");
-
-            const pctMarks = totalMM > 0 ? ((totalObt / totalMM) * 100).toFixed(1) : 0;
-            const totalValStr = monthEval ? `${totalObt} / ${totalMM}` : `- / ${totalMM}`;
-
-            cardsContainer.innerHTML += `
-                <div class="metric-card" style="background:#f0fdf4; border-color:#86efac;">
-                    <div class="title" style="color:#166534;">कुल प्राप्तांक (Total Marks)</div>
-                    <div class="value" style="color:#15803d;">${totalValStr}</div>
-                    <div class="sub">कुल प्रतिशत: <strong>${pctMarks}%</strong></div>
-                </div>
-            `;
 
             if (monthEval) {
                 document.getElementById('scRecordStatus').innerText = monthEval.recStatus || 'A';
@@ -1856,18 +1872,26 @@
             }
         }
 
-        // --- REGISTER TABLE LOGIC ---
+        // --- REGISTER TABLE LOGIC (ATTENDANCE & MARK P BUG FIXED) ---
         function renderRegister() {
-            const monthVal = document.getElementById('selectedMonth').value;
-            if (!monthVal || !currentTrade) return;
+            if (!currentTrade) return;
+            let monthVal = document.getElementById('selectedMonth').value;
+            if (!monthVal) {
+                const today = new Date();
+                monthVal = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+                document.getElementById('selectedMonth').value = monthVal;
+            }
 
             const [yearStr, monthStr] = monthVal.split('-');
             const year = parseInt(yearStr);
             const monthIndex = parseInt(monthStr) - 1;
             const totalDays = new Date(year, monthIndex + 1, 0).getDate();
 
+            if (!appData.records) appData.records = {};
             if (!appData.records[currentTrade]) appData.records[currentTrade] = {};
             if (!appData.records[currentTrade][monthVal]) appData.records[currentTrade][monthVal] = {};
+
+            if (!appData.holidays) appData.holidays = {};
             if (!appData.holidays[currentTrade]) appData.holidays[currentTrade] = {};
             const cMonthHolidays = appData.holidays[currentTrade][monthVal] || [];
 
@@ -1918,7 +1942,8 @@
             }
 
             tStudents.forEach((student) => {
-                const sData = appData.records[currentTrade][monthVal][student.roll] || {};
+                const sRoll = String(student.roll).trim();
+                const sData = appData.records[currentTrade][monthVal][sRoll] || {};
                 let evePresentCount = 0;
                 let eveAbsentCount = 0;
 
@@ -1944,10 +1969,10 @@
                         if (eStatus === 'A') eveAbsentCount++;
 
                         rowHTML += `<td>
-                            <button type="button" class="btn-status-toggle st-${mStatus}" onclick="toggleSession('${monthVal}', '${student.roll}', '${d}_m')">${mStatus}</button>
+                            <button type="button" class="btn-status-toggle st-${mStatus}" onclick="toggleSession('${monthVal}', '${sRoll}', '${d}_m')">${mStatus}</button>
                         </td>
                         <td>
-                            <button type="button" class="btn-status-toggle st-${eStatus}" onclick="toggleSession('${monthVal}', '${student.roll}', '${d}_e')">${eStatus}</button>
+                            <button type="button" class="btn-status-toggle st-${eStatus}" onclick="toggleSession('${monthVal}', '${sRoll}', '${d}_e')">${eStatus}</button>
                         </td>`;
                     }
                 }
@@ -1968,8 +1993,8 @@
                     <td class="col-o-res">${overallP} / ${overallW}</td>
                     <td class="col-o-res"><span class="pct-badge ${getBadge(overallPct)}">${overallPct}%</span></td>
                     <td>
-                        <i class="fa-solid fa-pen-to-square action-icon action-edit" title="छात्र संपादित करें" onclick="openEditStudentModal('${student.roll}')"></i>
-                        <i class="fa-solid fa-trash action-icon action-del" title="छात्र हटाएं" onclick="removeStudent('${student.roll}')"></i>
+                        <i class="fa-solid fa-pen-to-square action-icon action-edit" title="छात्र संपादित करें" onclick="openEditStudentModal('${sRoll}')"></i>
+                        <i class="fa-solid fa-trash action-icon action-del" title="छात्र हटाएं" onclick="removeStudent('${sRoll}')"></i>
                     </td>
                 </tr>`;
 
@@ -1977,35 +2002,63 @@
             });
         }
 
+        // अटेंडेंस बटन क्लिक पर टॉगल होना
         function toggleSession(monthVal, roll, key) {
+            if (!appData.records) appData.records = {};
+            if (!appData.records[currentTrade]) appData.records[currentTrade] = {};
+            if (!appData.records[currentTrade][monthVal]) appData.records[currentTrade][monthVal] = {};
             if (!appData.records[currentTrade][monthVal][roll]) appData.records[currentTrade][monthVal][roll] = {};
+
             const curr = appData.records[currentTrade][monthVal][roll][key] || 'P';
             const nextMap = { 'P': 'A', 'A': 'L', 'L': 'P' };
             appData.records[currentTrade][monthVal][roll][key] = nextMap[curr];
             renderRegister();
         }
 
+        // आज सबको P करने का सुरक्षित फ़ंक्शन (Crash-Proof)
         function markAllPresentToday() {
-            const monthVal = document.getElementById('selectedMonth').value;
+            if (!currentTrade) return;
+            let monthVal = document.getElementById('selectedMonth').value;
+            if (!monthVal) {
+                const today = new Date();
+                monthVal = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+            }
+
             const today = new Date();
             const d = today.getDate();
             const tStudents = getStudentList(currentTrade);
 
+            if (tStudents.length === 0) {
+                alert("इस ट्रेड में कोई छात्र मौजूद नहीं है!");
+                return;
+            }
+
+            if (!appData.records) appData.records = {};
+            if (!appData.records[currentTrade]) appData.records[currentTrade] = {};
+            if (!appData.records[currentTrade][monthVal]) appData.records[currentTrade][monthVal] = {};
+
             tStudents.forEach(st => {
-                if (!appData.records[currentTrade][monthVal][st.roll]) appData.records[currentTrade][monthVal][st.roll] = {};
-                appData.records[currentTrade][monthVal][st.roll][`${d}_m`] = 'P';
-                appData.records[currentTrade][monthVal][st.roll][`${d}_e`] = 'P';
+                const sRoll = String(st.roll).trim();
+                if (!appData.records[currentTrade][monthVal][sRoll]) {
+                    appData.records[currentTrade][monthVal][sRoll] = {};
+                }
+                appData.records[currentTrade][monthVal][sRoll][`${d}_m`] = 'P';
+                appData.records[currentTrade][monthVal][sRoll][`${d}_e`] = 'P';
             });
+
             renderRegister();
-            showToast(`आज तारीख ${d} को सभी छात्र P किए गए!`);
+            showToast(`आज तारीख ${d} को सभी छात्र P (उपस्थित) कर दिए गए!`);
         }
 
         function openHolidayPrompt() {
             const monthVal = document.getElementById('selectedMonth').value;
-            const curHols = (appData.holidays[currentTrade] && appData.holidays[currentTrade][monthVal]) ? appData.holidays[currentTrade][monthVal].join(', ') : 'कोई नहीं';
+            const curHols = (appData.holidays && appData.holidays[currentTrade] && appData.holidays[currentTrade][monthVal]) 
+                ? appData.holidays[currentTrade][monthVal].join(', ') 
+                : 'कोई नहीं';
             const input = prompt(`[${currentTrade}] माह (${monthVal}) में रविवार के अतिरिक्त अवकाश की तारीखें (उदा: 2, 15):\nवर्तमान अवकाश: ${curHols}`);
             if (input !== null) {
                 const dates = input.split(',').map(x => parseInt(x.trim())).filter(x => !isNaN(x) && x >= 1 && x <= 31);
+                if (!appData.holidays) appData.holidays = {};
                 if (!appData.holidays[currentTrade]) appData.holidays[currentTrade] = {};
                 appData.holidays[currentTrade][monthVal] = dates;
                 syncWithFirebase();
@@ -2026,7 +2079,7 @@
             const monthIndex = parseInt(monthStr) - 1;
             const totalDays = new Date(year, monthIndex + 1, 0).getDate();
 
-            const cMonthHolidays = (appData.holidays[currentTrade] && appData.holidays[currentTrade][monthVal]) ? appData.holidays[currentTrade][monthVal] : [];
+            const cMonthHolidays = (appData.holidays && appData.holidays[currentTrade] && appData.holidays[currentTrade][monthVal]) ? appData.holidays[currentTrade][monthVal] : [];
             let sundayCount = 0, holidayCount = 0;
             for (let d = 1; d <= totalDays; d++) {
                 if (new Date(year, monthIndex, d).getDay() === 0) sundayCount++;
@@ -2055,7 +2108,8 @@
             const excelRows = [headerRow];
 
             tStudents.forEach(st => {
-                const sData = (appData.records[currentTrade] && appData.records[currentTrade][monthVal] && appData.records[currentTrade][monthVal][st.roll]) ? appData.records[currentTrade][monthVal][st.roll] : {};
+                const sRoll = String(st.roll).trim();
+                const sData = (appData.records && appData.records[currentTrade] && appData.records[currentTrade][monthVal] && appData.records[currentTrade][monthVal][sRoll]) ? appData.records[currentTrade][monthVal][sRoll] : {};
                 let evePresent = 0;
                 let eveAbsent = 0;
 
@@ -2110,7 +2164,7 @@
                 return;
             }
 
-            const monthEval = (appData.evaluations[currentTrade] && appData.evaluations[currentTrade][monthVal]) ? appData.evaluations[currentTrade][monthVal] : {};
+            const monthEval = (appData.evaluations && appData.evaluations[currentTrade] && appData.evaluations[currentTrade][monthVal]) ? appData.evaluations[currentTrade][monthVal] : {};
 
             const headers = ["रोल नंबर", "छात्र का नाम", `Trade Theory (TT / ${mmConfig.tt || 20})`, `Trade Practical (TP / ${mmConfig.tp || 20})`];
             if (isEngg) {
@@ -2129,7 +2183,8 @@
             const excelRows = [headers];
 
             tStudents.forEach(st => {
-                const ev = monthEval[st.roll] || {};
+                const sRoll = String(st.roll).trim();
+                const ev = monthEval[sRoll] || {};
                 const tt = parseFloat(ev.tt) || 0;
                 const tp = parseFloat(ev.tp) || 0;
                 const es = parseFloat(ev.es) || 0;
@@ -2203,10 +2258,10 @@
             const list = getStudentList(currentTrade);
 
             if (list.some(s => String(s.roll).trim() === roll)) { alert("यह रोल नंबर पहले से मौजूद है!"); return; }
-            if (list.some(s => String(s.studentId).trim() === studentId)) { alert("यह स्टूडेंट आईडी पहले से मौजूद है!"); return; }
+            if (list.some(s => String(s.studentId).trim().toLowerCase() === studentId.toLowerCase())) { alert("यह स्टूडेंट आईडी पहले से मौजूद है!"); return; }
 
             list.push({ roll, name, studentId, password, pastWorkingDays: pastW, pastPresentDays: pastP });
-            appData.students[currentTrade] = list; // हमेशा शुद्ध Array के रूप में सेव होगा
+            appData.students[currentTrade] = list;
 
             syncWithFirebase();
             closeModal('addStudentModal');
@@ -2241,7 +2296,7 @@
 
         function handleUpdateStudent(e) {
             e.preventDefault();
-            const origRoll = document.getElementById('editOriginalRoll').value;
+            const origRoll = document.getElementById('editOriginalRoll').value.trim();
             const newRoll = document.getElementById('editRoll').value.trim();
             const newName = document.getElementById('editName').value.trim();
             const newStudentId = document.getElementById('editStudentId').value.trim();
@@ -2250,20 +2305,20 @@
             const newPastP = parseInt(document.getElementById('editPastPresent').value) || 0;
 
             const list = getStudentList(currentTrade);
-            const index = list.findIndex(s => String(s.roll).trim() === String(origRoll).trim());
+            const index = list.findIndex(s => String(s.roll).trim() === origRoll);
             if (index === -1) return;
 
             if (origRoll !== newRoll && list.some(s => String(s.roll).trim() === newRoll)) {
                 alert("यह नया रोल नंबर पहले से किसी अन्य छात्र का है!");
                 return;
             }
-            if (list.some((s, idx) => idx !== index && String(s.studentId).trim() === newStudentId)) {
+            if (list.some((s, idx) => idx !== index && String(s.studentId).trim().toLowerCase() === newStudentId.toLowerCase())) {
                 alert("यह स्टूडेंट आईडी पहले से किसी अन्य छात्र के पास है!");
                 return;
             }
 
             if (origRoll !== newRoll) {
-                if (appData.records[currentTrade]) {
+                if (appData.records && appData.records[currentTrade]) {
                     Object.keys(appData.records[currentTrade]).forEach(month => {
                         if (appData.records[currentTrade][month][origRoll]) {
                             appData.records[currentTrade][month][newRoll] = appData.records[currentTrade][month][origRoll];
@@ -2271,7 +2326,7 @@
                         }
                     });
                 }
-                if (appData.evaluations[currentTrade]) {
+                if (appData.evaluations && appData.evaluations[currentTrade]) {
                     Object.keys(appData.evaluations[currentTrade]).forEach(month => {
                         if (appData.evaluations[currentTrade][month][origRoll]) {
                             appData.evaluations[currentTrade][month][newRoll] = appData.evaluations[currentTrade][month][origRoll];
@@ -2301,23 +2356,24 @@
 
         function removeStudent(roll) {
             const list = getStudentList(currentTrade);
-            const student = list.find(s => String(s.roll).trim() === String(roll).trim());
-            const studentName = student ? student.name : roll;
+            const sRoll = String(roll).trim();
+            const student = list.find(s => String(s.roll).trim() === sRoll);
+            const studentName = student ? student.name : sRoll;
 
-            if (confirm(`क्या आप छात्र "${studentName}" (रोल: ${roll}) को हटाना चाहते हैं?\nयह कार्रवाई वापस नहीं ली जा सकेगी।`)) {
-                appData.students[currentTrade] = list.filter(s => String(s.roll).trim() !== String(roll).trim());
+            if (confirm(`क्या आप छात्र "${studentName}" (रोल: ${sRoll}) को हटाना चाहते हैं?\nयह कार्रवाई वापस नहीं ली जा सकेगी।`)) {
+                appData.students[currentTrade] = list.filter(s => String(s.roll).trim() !== sRoll);
 
-                if (appData.records[currentTrade]) {
+                if (appData.records && appData.records[currentTrade]) {
                     Object.keys(appData.records[currentTrade]).forEach(month => {
-                        if (appData.records[currentTrade][month][roll]) {
-                            delete appData.records[currentTrade][month][roll];
+                        if (appData.records[currentTrade][month][sRoll]) {
+                            delete appData.records[currentTrade][month][sRoll];
                         }
                     });
                 }
-                if (appData.evaluations[currentTrade]) {
+                if (appData.evaluations && appData.evaluations[currentTrade]) {
                     Object.keys(appData.evaluations[currentTrade]).forEach(month => {
-                        if (appData.evaluations[currentTrade][month][roll]) {
-                            delete appData.evaluations[currentTrade][month][roll];
+                        if (appData.evaluations[currentTrade][month][sRoll]) {
+                            delete appData.evaluations[currentTrade][month][sRoll];
                         }
                     });
                 }
@@ -2439,16 +2495,21 @@
             }
         }
 
-        // --- LOCAL STORAGE & FIREBASE REALTIME SYNC ENGINE ---
+        // --- LOCAL STORAGE & FIREBASE ENGINE ---
         function saveLocalCache() {
-            localStorage.setItem('kotri_rtdb_cache', JSON.stringify(appData));
+            try {
+                localStorage.setItem('kotri_rtdb_cache', JSON.stringify(appData));
+            } catch(e) {}
         }
 
         function loadLocalCache() {
             const data = localStorage.getItem('kotri_rtdb_cache');
             if (data) {
                 try { 
-                    appData = JSON.parse(data); 
+                    const parsed = JSON.parse(data);
+                    if (parsed && typeof parsed === 'object') {
+                        appData = parsed;
+                    }
                 } catch(e) {}
             }
         }
@@ -2459,7 +2520,6 @@
                 if (cloudVal) {
                     appData = cloudVal;
                     
-                    // डेटा को शुद्ध Array में मानकीकृत करें
                     appData.trades = getTradesList();
                     appData.instructors = getInstructorsList();
 
