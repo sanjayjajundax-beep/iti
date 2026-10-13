@@ -303,7 +303,7 @@
         }
         .mm-box label { margin-right: 6px; color: #334155; }
         .mm-box input {
-            width: 44px;
+            width: 48px;
             text-align: center;
             padding: 3px;
             border: 1px solid #94a3b8;
@@ -684,8 +684,9 @@
                         <button class="app-btn app-btn-warning" onclick="openHolidayPrompt()"><i class="fa-solid fa-umbrella-beach"></i> अवकाश जोड़ें</button>
                     </div>
                     <div class="controls-right">
+                        <!-- त्वरित हाजिरी (रोल-कॉल) बटन -->
+                        <button class="app-btn app-btn-success" onclick="openTodayRollCallModal()"><i class="fa-solid fa-clipboard-user"></i> आज की हाजिरी (Roll Call)</button>
                         <button class="app-btn app-btn-excel" onclick="exportAttendanceToExcel()"><i class="fa-solid fa-file-excel"></i> अटेंडेंस एक्सेल (.xlsx)</button>
-                        <button class="app-btn app-btn-success" onclick="markAllPresentToday()"><i class="fa-solid fa-check-double"></i> आज सबको P करें</button>
                         <button class="app-btn app-btn-dark" onclick="syncWithFirebase()"><i class="fa-solid fa-cloud-arrow-up"></i> सेव करें</button>
                     </div>
                 </div>
@@ -743,7 +744,6 @@
                 
                 <div class="scorecard-header">
                     <div>
-                        <!-- छात्र का नाम और रोल नंबर यहाँ लाइव लोड होंगे -->
                         <h2 id="scStudentName" style="color: var(--primary); font-size: 1.35rem;">छात्र का नाम</h2>
                         <p style="color: var(--text-muted); font-size: 0.85rem;" id="scRoll">ट्रेड: - | रोल: -</p>
                     </div>
@@ -1087,6 +1087,40 @@
         </div>
     </div>
 
+    <!-- 8. Daily Roll-Call Modal (नया त्वरित हाजिरी मॉडल) -->
+    <div id="todayRollCallModal" class="modal-backdrop hidden">
+        <div class="modal-content" style="max-width: 640px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1.5px solid var(--border-color); padding-bottom: 8px;">
+                <h3 style="color: var(--primary); font-size: 1.15rem;">
+                    <i class="fa-solid fa-clipboard-user"></i> आज की हाजिरी (Roll Call)
+                </h3>
+                <span id="rcModalDateLabel" style="font-weight: 700; color: #2563eb; font-size: 0.9rem;"></span>
+            </div>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px;">
+                अनुपस्थित छात्र पर <strong>A</strong> तथा उपस्थित पर <strong>P</strong> रखें (टैप करके टॉगल करें):
+            </p>
+            <div class="table-shell" style="max-height: 380px;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 50px;">रोल</th>
+                            <th style="text-align: left; padding-left: 10px;">छात्र का नाम</th>
+                            <th style="width: 80px;">सुबह (M)</th>
+                            <th style="width: 80px;">शाम (E)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="todayRollCallBody"></tbody>
+                </table>
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 16px;">
+                <button type="button" class="app-btn app-btn-primary" style="flex: 1; padding: 10px;" onclick="closeModal('todayRollCallModal'); syncWithFirebase(); showToast('दैनिक हाजिरी सुरक्षित कर दी गई!');">
+                    <i class="fa-solid fa-check"></i> सुरक्षित करें
+                </button>
+                <button type="button" class="app-btn app-btn-secondary" onclick="closeModal('todayRollCallModal')">बंद करें</button>
+            </div>
+        </div>
+    </div>
+
     <div id="toast" class="toast-bubble hidden"><i class="fa-solid fa-bell"></i> <span id="toastMsg">सूचना</span></div>
 
     <footer>
@@ -1096,7 +1130,7 @@
         </p>
     </footer>
 
-    <!-- FIREBASE INITIALIZATION & ROBUST SCRIPT -->
+    <!-- FIREBASE INITIALIZATION & BULLETPROOF LOGIC -->
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyATDGOfhzQkOF56Q7f-bS7hVWnTeBl5cLU",
@@ -1143,7 +1177,7 @@
         let currentTrade = null;
         let loggedInStudent = null;
 
-        // --- डेटा सुरक्षा हेल्पर फ़ंक्शंस ---
+        // डेटा सुरक्षा हेल्पर फ़ंक्शंस
         function getTradesList() {
             if (!appData || !appData.trades) return [];
             if (Array.isArray(appData.trades)) return appData.trades.filter(Boolean);
@@ -1344,7 +1378,7 @@
                 document.getElementById('studentSection').classList.remove('hidden');
                 document.getElementById('roleLabel').innerHTML = `<i class="fa-solid fa-user-graduate"></i> छात्र: ${loggedInStudent.name}`;
                 switchStudentSection('attendance');
-                renderStudentDashboard(); // छात्र का पूरा विवरण यहाँ लाइव लोड होगा
+                renderStudentDashboard();
             }
         }
 
@@ -1411,7 +1445,7 @@
             }
         }
 
-        // --- MAX MARKS & EVALUATION LOGIC ---
+        // --- EVALUATION & MAX MARKS LOGIC ---
 
         function getMaxMarksConfig(trade, monthVal) {
             if (!appData.maxMarksConfig) appData.maxMarksConfig = {};
@@ -1425,152 +1459,7 @@
             return appData.maxMarksConfig[trade][monthVal] || defaultMM;
         }
 
-        function renderEvaluationTable() {
-            const monthVal = document.getElementById('evalSelectedMonth').value;
-            if (!monthVal || !currentTrade) return;
-
-            const isEngg = isEnggTrade(currentTrade);
-            const mmConfig = getMaxMarksConfig(currentTrade, monthVal);
-
-            const mmContainer = document.getElementById('maxMarksInputsContainer');
-            let mmHTML = `
-                <div class="mm-box"><label>TT पूर्णांक:</label><input type="number" id="mm_tt" value="${mmConfig.tt || 20}" min="1" onchange="updateMaxMarksLive()" autocomplete="off"></div>
-                <div class="mm-box"><label>TP पूर्णांक:</label><input type="number" id="mm_tp" value="${mmConfig.tp || 20}" min="1" onchange="updateMaxMarksLive()" autocomplete="off"></div>
-            `;
-            if (isEngg) {
-                mmHTML += `
-                    <div class="mm-box"><label>WCS पूर्णांक:</label><input type="number" id="mm_wcs" value="${mmConfig.wcs || 20}" min="1" onchange="updateMaxMarksLive()" autocomplete="off"></div>
-                    <div class="mm-box"><label>ED पूर्णांक:</label><input type="number" id="mm_ed" value="${mmConfig.ed || 20}" min="1" onchange="updateMaxMarksLive()" autocomplete="off"></div>
-                `;
-            }
-            mmHTML += `
-                <div class="mm-box"><label>ES पूर्णांक:</label><input type="number" id="mm_es" value="${mmConfig.es || 20}" min="1" onchange="updateMaxMarksLive()" autocomplete="off"></div>
-                <div class="mm-box" style="background:#e0f2fe; border-color:#93c5fd;"><strong id="totalMMDisplay">कुल पूर्णांक: 0</strong></div>
-            `;
-            mmContainer.innerHTML = mmHTML;
-
-            const thead = document.getElementById('evalTableHeader');
-            let subjectCols = isEngg 
-                ? `<th colspan="5" style="background:#e0f2fe; color:#0369a1;">मासिक टेस्ट अंक (पूर्णांक ऊपर सेट करें)</th>`
-                : `<th colspan="3" style="background:#e0f2fe; color:#0369a1;">मासिक टेस्ट अंक (पूर्णांक ऊपर सेट करें)</th>`;
-
-            let subHeaderCols = `
-                <th style="background:#eff6ff;">Trade Theory (TT)</th>
-                <th style="background:#eff6ff;">Trade Practical (TP)</th>
-            `;
-            if (isEngg) {
-                subHeaderCols += `
-                    <th style="background:#eff6ff;">WCS</th>
-                    <th style="background:#eff6ff;">Engg. Drawing (ED)</th>
-                `;
-            }
-            subHeaderCols += `<th style="background:#eff6ff;">Employability Skills (ES)</th>`;
-
-            thead.innerHTML = `
-                <tr>
-                    <th rowspan="2" class="col-sticky-name">छात्र का नाम</th>
-                    <th rowspan="2" class="col-roll">रोल</th>
-                    ${subjectCols}
-                    <th rowspan="2" style="background:#dbeafe; color:#1e40af;">कुल प्राप्तांक</th>
-                    <th rowspan="2" style="background:#dbeafe; color:#1e40af;">प्रतिशत (%)</th>
-                    <th colspan="2" style="background:#fef3c7; color:#92400e;">रिकॉर्ड व नोटबुक</th>
-                    <th colspan="2" style="background:#dcfce7; color:#166534;">दैनिक डायरी</th>
-                    <th colspan="2" style="background:#f3e8ff; color:#6b21a8;">गतिविधियां व आचरण</th>
-                </tr>
-                <tr>
-                    ${subHeaderCols}
-                    <th style="background:#fffbeb;">स्थिति</th>
-                    <th style="background:#fffbeb;">रिमार्क</th>
-                    <th style="background:#f0fdf4;">डायरी चेकिंग</th>
-                    <th style="background:#f0fdf4;">रिमार्क</th>
-                    <th style="background:#faf5ff;">अनुशासन</th>
-                    <th style="background:#faf5ff;">सक्रियता</th>
-                </tr>
-            `;
-
-            if (!appData.evaluations[currentTrade]) appData.evaluations[currentTrade] = {};
-            if (!appData.evaluations[currentTrade][monthVal]) appData.evaluations[currentTrade][monthVal] = {};
-
-            const monthEval = appData.evaluations[currentTrade][monthVal];
-            const tStudents = getStudentList(currentTrade);
-            const tbody = document.getElementById('evaluationTableBody');
-            tbody.innerHTML = '';
-
-            if (tStudents.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="${isEngg ? 16 : 14}" style="padding: 20px; color: var(--text-muted);">कोई छात्र पंजीकृत नहीं है।</td></tr>`;
-                updateMaxMarksLive();
-                return;
-            }
-
-            tStudents.forEach(st => {
-                const ev = monthEval[st.roll] || {
-                    tt: '', tp: '', wcs: '', ed: '', es: '',
-                    recStatus: 'A', recRem: '',
-                    diaryStatus: 'नियमित', diaryRem: '',
-                    disc: 'उत्कृष्ट', act: 'सक्रिय'
-                };
-
-                let inputsHTML = `
-                    <td><input type="number" id="tt_${st.roll}" min="0" value="${ev.tt !== undefined ? ev.tt : ''}" oninput="calcStudentRowLive('${st.roll}')" style="width:52px; text-align:center; padding:3px;" autocomplete="off"></td>
-                    <td><input type="number" id="tp_${st.roll}" min="0" value="${ev.tp !== undefined ? ev.tp : ''}" oninput="calcStudentRowLive('${st.roll}')" style="width:52px; text-align:center; padding:3px;" autocomplete="off"></td>
-                `;
-                if (isEngg) {
-                    inputsHTML += `
-                        <td><input type="number" id="wcs_${st.roll}" min="0" value="${ev.wcs !== undefined ? ev.wcs : ''}" oninput="calcStudentRowLive('${st.roll}')" style="width:52px; text-align:center; padding:3px;" autocomplete="off"></td>
-                        <td><input type="number" id="ed_${st.roll}" min="0" value="${ev.ed !== undefined ? ev.ed : ''}" oninput="calcStudentRowLive('${st.roll}')" style="width:52px; text-align:center; padding:3px;" autocomplete="off"></td>
-                    `;
-                }
-                inputsHTML += `
-                    <td><input type="number" id="es_${st.roll}" min="0" value="${ev.es !== undefined ? ev.es : ''}" oninput="calcStudentRowLive('${st.roll}')" style="width:52px; text-align:center; padding:3px;" autocomplete="off"></td>
-                `;
-
-                tbody.innerHTML += `
-                    <tr>
-                        <td class="col-sticky-name">${st.name}</td>
-                        <td class="col-roll">${st.roll}</td>
-                        ${inputsHTML}
-                        <td id="tot_${st.roll}" style="font-weight:700; color:#1e40af; background:#f8fafc;">0</td>
-                        <td id="pct_${st.roll}" style="font-weight:700; color:#15803d; background:#f8fafc;">0%</td>
-                        <td>
-                            <select id="recSt_${st.roll}" style="padding:2px;">
-                                <option value="A+" ${ev.recStatus==='A+'?'selected':''}>A+ (उत्कृष्ट)</option>
-                                <option value="A" ${ev.recStatus==='A'?'selected':''}>A (पूर्ण)</option>
-                                <option value="B" ${ev.recStatus==='B'?'selected':''}>B (सुधार अपेक्षित)</option>
-                                <option value="C" ${ev.recStatus==='C'?'selected':''}>C (अपूर्ण)</option>
-                            </select>
-                        </td>
-                        <td><input type="text" id="recRem_${st.roll}" value="${ev.recRem || ''}" placeholder="टिप्पणी" style="width:80px; padding:3px;" autocomplete="off"></td>
-                        <td>
-                            <select id="diarySt_${st.roll}" style="padding:2px;">
-                                <option value="नियमित" ${ev.diaryStatus==='नियमित'?'selected':''}>नियमित चेक</option>
-                                <option value="अनियमित" ${ev.diaryStatus==='अनियमित'?'selected':''}>अनियमित</option>
-                                <option value="लंबित" ${ev.diaryStatus==='लंबित'?'selected':''}>जांच लंबित</option>
-                            </select>
-                        </td>
-                        <td><input type="text" id="diaryRem_${st.roll}" value="${ev.diaryRem || ''}" placeholder="टिप्पणी" style="width:80px; padding:3px;" autocomplete="off"></td>
-                        <td>
-                            <select id="disc_${st.roll}" style="padding:2px;">
-                                <option value="उत्कृष्ट" ${ev.disc==='उत्कृष्ट'?'selected':''}>उत्कृष्ट</option>
-                                <option value="संतोषजनक" ${ev.disc==='संतोषजनक'?'selected':''}>संतोषजनक</option>
-                                <option value="सुधार जरूरी" ${ev.disc==='सुधार जरूरी'?'selected':''}>सुधार जरूरी</option>
-                            </select>
-                        </td>
-                        <td>
-                            <select id="act_${st.roll}" style="padding:2px;">
-                                <option value="सक्रिय" ${ev.act==='सक्रिय'?'selected':''}>सक्रिय</option>
-                                <option value="सामान्य" ${ev.act==='सामान्य'?'selected':''}>सामान्य</option>
-                                <option value="उदासीन" ${ev.act==='उदासीन'?'selected':''}>उदासीन</option>
-                            </select>
-                        </td>
-                    </tr>
-                `;
-            });
-
-            updateMaxMarksLive();
-            tStudents.forEach(st => calcStudentRowLive(st.roll));
-        }
-
-        function updateMaxMarksLive() {
+        function refreshTotalMMDisplayOnly() {
             const isEngg = isEnggTrade(currentTrade);
             const tt = parseFloat(document.getElementById('mm_tt')?.value) || 0;
             const tp = parseFloat(document.getElementById('mm_tp')?.value) || 0;
@@ -1585,9 +1474,12 @@
 
             const disp = document.getElementById('totalMMDisplay');
             if (disp) disp.innerText = `कुल पूर्णांक: ${total}`;
+        }
 
+        function updateMaxMarksLive() {
+            refreshTotalMMDisplayOnly();
             const tStudents = getStudentList(currentTrade);
-            tStudents.forEach(st => calcStudentRowLive(st.roll));
+            tStudents.forEach(st => calcStudentRowLive(String(st.roll).trim()));
         }
 
         function calcStudentRowLive(roll) {
@@ -1595,8 +1487,8 @@
             const tt = parseFloat(document.getElementById(`tt_${roll}`)?.value) || 0;
             const tp = parseFloat(document.getElementById(`tp_${roll}`)?.value) || 0;
             const es = parseFloat(document.getElementById(`es_${roll}`)?.value) || 0;
-
             let obtained = tt + tp + es;
+
             const mmTT = parseFloat(document.getElementById('mm_tt')?.value) || 0;
             const mmTP = parseFloat(document.getElementById('mm_tp')?.value) || 0;
             const mmES = parseFloat(document.getElementById('mm_es')?.value) || 0;
@@ -1613,11 +1505,166 @@
             }
 
             const pct = totalMM > 0 ? ((obtained / totalMM) * 100).toFixed(1) : 0;
-            
             const elTot = document.getElementById(`tot_${roll}`);
             const elPct = document.getElementById(`pct_${roll}`);
             if (elTot) elTot.innerText = `${obtained} / ${totalMM}`;
             if (elPct) elPct.innerText = `${pct}%`;
+        }
+
+        function renderEvaluationTable() {
+            if (!currentTrade) return;
+            let monthVal = document.getElementById('evalSelectedMonth')?.value;
+            if (!monthVal) {
+                const today = new Date();
+                monthVal = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+                const el = document.getElementById('evalSelectedMonth');
+                if (el) el.value = monthVal;
+            }
+
+            const isEngg = isEnggTrade(currentTrade);
+            const mmConfig = getMaxMarksConfig(currentTrade, monthVal);
+
+            const mmContainer = document.getElementById('maxMarksInputsContainer');
+            if (mmContainer) {
+                let mmHTML = `
+                    <div class="mm-box"><label>TT पूर्णांक:</label><input type="number" id="mm_tt" value="${mmConfig.tt || 20}" min="1" oninput="updateMaxMarksLive()"></div>
+                    <div class="mm-box"><label>TP पूर्णांक:</label><input type="number" id="mm_tp" value="${mmConfig.tp || 20}" min="1" oninput="updateMaxMarksLive()"></div>
+                `;
+                if (isEngg) {
+                    mmHTML += `
+                        <div class="mm-box"><label>WCS पूर्णांक:</label><input type="number" id="mm_wcs" value="${mmConfig.wcs || 20}" min="1" oninput="updateMaxMarksLive()"></div>
+                        <div class="mm-box"><label>ED पूर्णांक:</label><input type="number" id="mm_ed" value="${mmConfig.ed || 20}" min="1" oninput="updateMaxMarksLive()"></div>
+                    `;
+                }
+                mmHTML += `
+                    <div class="mm-box"><label>ES पूर्णांक:</label><input type="number" id="mm_es" value="${mmConfig.es || 20}" min="1" oninput="updateMaxMarksLive()"></div>
+                    <div class="mm-box" style="background:#e0f2fe; border-color:#93c5fd;"><strong id="totalMMDisplay">कुल पूर्णांक: 0</strong></div>
+                `;
+                mmContainer.innerHTML = mmHTML;
+            }
+
+            const thead = document.getElementById('evalTableHeader');
+            if (thead) {
+                const testColSpan = isEngg ? 5 : 3;
+                let subCols = `
+                    <th style="background:#eff6ff;">Trade Theory (TT)</th>
+                    <th style="background:#eff6ff;">Trade Practical (TP)</th>
+                `;
+                if (isEngg) {
+                    subCols += `
+                        <th style="background:#eff6ff;">WCS</th>
+                        <th style="background:#eff6ff;">Engg. Drawing (ED)</th>
+                    `;
+                }
+                subCols += `<th style="background:#eff6ff;">Employability Skills (ES)</th>`;
+
+                thead.innerHTML = `
+                    <tr>
+                        <th rowspan="2" class="col-sticky-name">छात्र का नाम</th>
+                        <th rowspan="2" class="col-roll">रोल</th>
+                        <th colspan="${testColSpan}" style="background:#e0f2fe; color:#0369a1;">मासिक टेस्ट अंक</th>
+                        <th rowspan="2" style="background:#dbeafe; color:#1e40af;">कुल प्राप्तांक</th>
+                        <th rowspan="2" style="background:#dbeafe; color:#1e40af;">प्रतिशत (%)</th>
+                        <th colspan="2" style="background:#fef3c7; color:#92400e;">रिकॉर्ड व नोटबुक</th>
+                        <th colspan="2" style="background:#dcfce7; color:#166534;">दैनिक डायरी</th>
+                        <th colspan="2" style="background:#f3e8ff; color:#6b21a8;">गतिविधियां व आचरण</th>
+                    </tr>
+                    <tr>
+                        ${subCols}
+                        <th style="background:#fffbeb;">स्थिति</th>
+                        <th style="background:#fffbeb;">रिमार्क</th>
+                        <th style="background:#f0fdf4;">डायरी चेकिंग</th>
+                        <th style="background:#f0fdf4;">रिमार्क</th>
+                        <th style="background:#faf5ff;">अनुशासन</th>
+                        <th style="background:#faf5ff;">सक्रियता</th>
+                    </tr>
+                `;
+            }
+
+            if (!appData.evaluations) appData.evaluations = {};
+            if (!appData.evaluations[currentTrade]) appData.evaluations[currentTrade] = {};
+            if (!appData.evaluations[currentTrade][monthVal]) appData.evaluations[currentTrade][monthVal] = {};
+
+            const monthEval = appData.evaluations[currentTrade][monthVal];
+            const tStudents = getStudentList(currentTrade);
+            const tbody = document.getElementById('evaluationTableBody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            if (tStudents.length === 0) {
+                const totalColCount = isEngg ? 15 : 13;
+                tbody.innerHTML = `<tr><td colspan="${totalColCount}" style="padding: 24px; color: var(--text-muted); font-size: 0.95rem;">इस ट्रेड में कोई छात्र पंजीकृत नहीं है। 'दैनिक उपस्थिति रजिस्टर' टैब में जाकर पहले छात्र जोड़ें।</td></tr>`;
+                refreshTotalMMDisplayOnly();
+                return;
+            }
+
+            tStudents.forEach(st => {
+                const sRoll = String(st.roll).trim();
+                const ev = monthEval[sRoll] || {
+                    tt: '', tp: '', wcs: '', ed: '', es: '',
+                    recStatus: 'A', recRem: '',
+                    diaryStatus: 'नियमित', diaryRem: '',
+                    disc: 'उत्कृष्ट', act: 'सक्रिय'
+                };
+
+                let inputsHTML = `
+                    <td><input type="number" id="tt_${sRoll}" min="0" value="${ev.tt !== undefined ? ev.tt : ''}" oninput="calcStudentRowLive('${sRoll}')" style="width:52px; text-align:center; padding:3px;"></td>
+                    <td><input type="number" id="tp_${sRoll}" min="0" value="${ev.tp !== undefined ? ev.tp : ''}" oninput="calcStudentRowLive('${sRoll}')" style="width:52px; text-align:center; padding:3px;"></td>
+                `;
+                if (isEngg) {
+                    inputsHTML += `
+                        <td><input type="number" id="wcs_${sRoll}" min="0" value="${ev.wcs !== undefined ? ev.wcs : ''}" oninput="calcStudentRowLive('${sRoll}')" style="width:52px; text-align:center; padding:3px;"></td>
+                        <td><input type="number" id="ed_${sRoll}" min="0" value="${ev.ed !== undefined ? ev.ed : ''}" oninput="calcStudentRowLive('${sRoll}')" style="width:52px; text-align:center; padding:3px;"></td>
+                    `;
+                }
+                inputsHTML += `
+                    <td><input type="number" id="es_${sRoll}" min="0" value="${ev.es !== undefined ? ev.es : ''}" oninput="calcStudentRowLive('${sRoll}')" style="width:52px; text-align:center; padding:3px;"></td>
+                `;
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="col-sticky-name">${st.name}</td>
+                        <td class="col-roll">${sRoll}</td>
+                        ${inputsHTML}
+                        <td id="tot_${sRoll}" style="font-weight:700; color:#1e40af; background:#f8fafc;">0</td>
+                        <td id="pct_${sRoll}" style="font-weight:700; color:#15803d; background:#f8fafc;">0%</td>
+                        <td>
+                            <select id="recSt_${sRoll}" style="padding:2px;">
+                                <option value="A+" ${ev.recStatus==='A+'?'selected':''}>A+ (उत्कृष्ट)</option>
+                                <option value="A" ${ev.recStatus==='A'?'selected':''}>A (पूर्ण)</option>
+                                <option value="B" ${ev.recStatus==='B'?'selected':''}>B (सुधार अपेक्षित)</option>
+                                <option value="C" ${ev.recStatus==='C'?'selected':''}>C (अपूर्ण)</option>
+                            </select>
+                        </td>
+                        <td><input type="text" id="recRem_${sRoll}" value="${ev.recRem || ''}" placeholder="टिप्पणी" style="width:80px; padding:3px;"></td>
+                        <td>
+                            <select id="diarySt_${sRoll}" style="padding:2px;">
+                                <option value="नियमित" ${ev.diaryStatus==='नियमित'?'selected':''}>नियमित चेक</option>
+                                <option value="अनियमित" ${ev.diaryStatus==='अनियमित'?'selected':''}>अनियमित</option>
+                                <option value="लंबित" ${ev.diaryStatus==='लंबित'?'selected':''}>जांच लंबित</option>
+                            </select>
+                        </td>
+                        <td><input type="text" id="diaryRem_${sRoll}" value="${ev.diaryRem || ''}" placeholder="टिप्पणी" style="width:80px; padding:3px;"></td>
+                        <td>
+                            <select id="disc_${sRoll}" style="padding:2px;">
+                                <option value="उत्कृष्ट" ${ev.disc==='उत्कृष्ट'?'selected':''}>उत्कृष्ट</option>
+                                <option value="संतोषजनक" ${ev.disc==='संतोषजनक'?'selected':''}>संतोषजनक</option>
+                                <option value="सुधार जरूरी" ${ev.disc==='सुधार जरूरी'?'selected':''}>सुधार जरूरी</option>
+                            </select>
+                        </td>
+                        <td>
+                            <select id="act_${sRoll}" style="padding:2px;">
+                                <option value="सक्रिय" ${ev.act==='सक्रिय'?'selected':''}>सक्रिय</option>
+                                <option value="सामान्य" ${ev.act==='सामान्य'?'selected':''}>सामान्य</option>
+                                <option value="उदासीन" ${ev.act==='उदासीन'?'selected':''}>उदासीन</option>
+                            </select>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            refreshTotalMMDisplayOnly();
+            tStudents.forEach(st => calcStudentRowLive(String(st.roll).trim()));
         }
 
         function saveAllEvaluations() {
@@ -1645,47 +1692,46 @@
 
             const tStudents = getStudentList(currentTrade);
             tStudents.forEach(st => {
-                const elTT = document.getElementById(`tt_${st.roll}`);
+                const sRoll = String(st.roll).trim();
+                const elTT = document.getElementById(`tt_${sRoll}`);
                 if (!elTT) return;
 
                 const studentEval = {
                     tt: elTT.value,
-                    tp: document.getElementById(`tp_${st.roll}`).value,
-                    es: document.getElementById(`es_${st.roll}`).value,
-                    recStatus: document.getElementById(`recSt_${st.roll}`).value,
-                    recRem: document.getElementById(`recRem_${st.roll}`).value,
-                    diaryStatus: document.getElementById(`diarySt_${st.roll}`).value,
-                    diaryRem: document.getElementById(`diaryRem_${st.roll}`).value,
-                    disc: document.getElementById(`disc_${st.roll}`).value,
-                    act: document.getElementById(`act_${st.roll}`).value
+                    tp: document.getElementById(`tp_${sRoll}`).value,
+                    es: document.getElementById(`es_${sRoll}`).value,
+                    recStatus: document.getElementById(`recSt_${sRoll}`).value,
+                    recRem: document.getElementById(`recRem_${sRoll}`).value,
+                    diaryStatus: document.getElementById(`diarySt_${sRoll}`).value,
+                    diaryRem: document.getElementById(`diaryRem_${sRoll}`).value,
+                    disc: document.getElementById(`disc_${sRoll}`).value,
+                    act: document.getElementById(`act_${sRoll}`).value
                 };
 
                 if (isEngg) {
-                    studentEval.wcs = document.getElementById(`wcs_${st.roll}`)?.value || '';
-                    studentEval.ed = document.getElementById(`ed_${st.roll}`)?.value || '';
+                    studentEval.wcs = document.getElementById(`wcs_${sRoll}`)?.value || '';
+                    studentEval.ed = document.getElementById(`ed_${sRoll}`)?.value || '';
                 }
 
-                appData.evaluations[currentTrade][monthVal][st.roll] = studentEval;
+                appData.evaluations[currentTrade][monthVal][sRoll] = studentEval;
             });
 
             syncWithFirebase();
             showToast("पूर्णांक एवं छात्र मासिक अंक सुरक्षित किए गए!");
         }
 
-        // --- STUDENT SCORECARD RENDERING (BUG FIXED) ---
+        // --- STUDENT DASHBOARD RENDERING ---
         function renderStudentDashboard() {
             if (!loggedInStudent || !currentTrade) return;
 
             const isEngg = isEnggTrade(currentTrade);
             const tradeTypeTag = isEngg ? 'इंजीनियरिंग ट्रेड' : 'नॉन-इंजीनियरिंग ट्रेड';
 
-            // 1. नाम, ट्रेड और रोल नंबर सीधे DOM में सेट करें
             const elName = document.getElementById('scStudentName');
             const elRoll = document.getElementById('scRoll');
             if (elName) elName.innerText = loggedInStudent.name;
             if (elRoll) elRoll.innerText = `ट्रेड: ${currentTrade} (${tradeTypeTag}) | रोल: ${loggedInStudent.roll} | आईडी: ${loggedInStudent.studentId}`;
 
-            // 2. महीना पार्स करें
             let monthVal = document.getElementById('studentMonthSelector').value;
             if (!monthVal) {
                 const today = new Date();
@@ -1709,8 +1755,9 @@
             }
 
             const currWorkingDays = totalDays - (sundays + holidays);
-            const sData = (appData.records && appData.records[currentTrade] && appData.records[currentTrade][monthVal] && appData.records[currentTrade][monthVal][loggedInStudent.roll]) 
-                ? appData.records[currentTrade][monthVal][loggedInStudent.roll] 
+            const sRoll = String(loggedInStudent.roll).trim();
+            const sData = (appData.records && appData.records[currentTrade] && appData.records[currentTrade][monthVal] && appData.records[currentTrade][monthVal][sRoll]) 
+                ? appData.records[currentTrade][monthVal][sRoll] 
                 : {};
 
             let currEvePresent = 0;
@@ -1797,10 +1844,9 @@
                 remarkEl.innerHTML = `<span style="color:var(--danger); font-weight:700;"><i class="fa-solid fa-triangle-exclamation"></i> ${totalPct}% उपस्थिति — 75% से कम (अपात्रता का जोखिम)</span>`;
             }
 
-            // 3. टेस्ट अंक लोड करें
             const mmConfig = getMaxMarksConfig(currentTrade, monthVal);
             const monthEval = (appData.evaluations && appData.evaluations[currentTrade] && appData.evaluations[currentTrade][monthVal]) 
-                ? appData.evaluations[currentTrade][monthVal][loggedInStudent.roll] 
+                ? appData.evaluations[currentTrade][monthVal][sRoll] 
                 : null;
 
             const cardsContainer = document.getElementById('scMarksCardsContainer');
@@ -1872,7 +1918,7 @@
             }
         }
 
-        // --- REGISTER TABLE LOGIC (ATTENDANCE & MARK P BUG FIXED) ---
+        // --- REGISTER TABLE LOGIC ---
         function renderRegister() {
             if (!currentTrade) return;
             let monthVal = document.getElementById('selectedMonth').value;
@@ -2002,7 +2048,6 @@
             });
         }
 
-        // अटेंडेंस बटन क्लिक पर टॉगल होना
         function toggleSession(monthVal, roll, key) {
             if (!appData.records) appData.records = {};
             if (!appData.records[currentTrade]) appData.records[currentTrade] = {};
@@ -2015,21 +2060,22 @@
             renderRegister();
         }
 
-        // आज सबको P करने का सुरक्षित फ़ंक्शन (Crash-Proof)
-        function markAllPresentToday() {
-            if (!currentTrade) return;
+        // --- DAILY QUICK ROLL CALL (दैनिक त्वरित हाजिरी) ---
+        function openTodayRollCallModal() {
+            if (!currentTrade) {
+                alert("कृपया पहले ट्रेड चुनें!");
+                return;
+            }
+            const today = new Date();
+            const d = today.getDate();
             let monthVal = document.getElementById('selectedMonth').value;
             if (!monthVal) {
-                const today = new Date();
                 monthVal = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
             }
 
-            const today = new Date();
-            const d = today.getDate();
             const tStudents = getStudentList(currentTrade);
-
             if (tStudents.length === 0) {
-                alert("इस ट्रेड में कोई छात्र मौजूद नहीं है!");
+                alert("इस ट्रेड में कोई छात्र पंजीकृत नहीं है!");
                 return;
             }
 
@@ -2037,17 +2083,50 @@
             if (!appData.records[currentTrade]) appData.records[currentTrade] = {};
             if (!appData.records[currentTrade][monthVal]) appData.records[currentTrade][monthVal] = {};
 
+            document.getElementById('rcModalDateLabel').innerText = `तारीख: ${d} (${monthVal})`;
+            renderTodayRollCallList(monthVal, d);
+            openModal('todayRollCallModal');
+        }
+
+        function renderTodayRollCallList(monthVal, d) {
+            const tStudents = getStudentList(currentTrade);
+            const tbody = document.getElementById('todayRollCallBody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
             tStudents.forEach(st => {
                 const sRoll = String(st.roll).trim();
                 if (!appData.records[currentTrade][monthVal][sRoll]) {
                     appData.records[currentTrade][monthVal][sRoll] = {};
                 }
-                appData.records[currentTrade][monthVal][sRoll][`${d}_m`] = 'P';
-                appData.records[currentTrade][monthVal][sRoll][`${d}_e`] = 'P';
-            });
 
+                // डिफ़ॉल्ट 'A' (अनुपस्थित) ताकि केवल उपस्थित को P किया जाए
+                const mStatus = appData.records[currentTrade][monthVal][sRoll][`${d}_m`] || 'A';
+                const eStatus = appData.records[currentTrade][monthVal][sRoll][`${d}_e`] || 'A';
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td><strong>${sRoll}</strong></td>
+                        <td style="text-align: left; padding-left: 10px; font-weight: 600;">${st.name}</td>
+                        <td>
+                            <button type="button" class="btn-status-toggle st-${mStatus}" style="width: 38px; height: 30px; font-size: 0.85rem;" 
+                                onclick="toggleQuickStatus('${monthVal}', '${sRoll}', '${d}_m', ${d})">${mStatus}</button>
+                        </td>
+                        <td>
+                            <button type="button" class="btn-status-toggle st-${eStatus}" style="width: 38px; height: 30px; font-size: 0.85rem;" 
+                                onclick="toggleQuickStatus('${monthVal}', '${sRoll}', '${d}_e', ${d})">${eStatus}</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function toggleQuickStatus(monthVal, roll, key, d) {
+            const curr = appData.records[currentTrade][monthVal][roll][key] || 'A';
+            const nextMap = { 'A': 'P', 'P': 'L', 'L': 'A' };
+            appData.records[currentTrade][monthVal][roll][key] = nextMap[curr];
+            renderTodayRollCallList(monthVal, d);
             renderRegister();
-            showToast(`आज तारीख ${d} को सभी छात्र P (उपस्थित) कर दिए गए!`);
         }
 
         function openHolidayPrompt() {
