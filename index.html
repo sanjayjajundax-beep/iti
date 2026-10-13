@@ -538,6 +538,22 @@
             gap: 10px;
             border-left: 4px solid var(--primary-accent);
         }
+
+        @media print {
+            body * { visibility: hidden; }
+            #instSingleResultCardView, #instSingleResultCardView * { visibility: visible; }
+            #instSingleResultCardView {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                margin: 0;
+                padding: 15px;
+                box-shadow: none;
+                border: 1px solid #000;
+            }
+            .no-print { display: none !important; }
+        }
     </style>
 </head>
 <body>
@@ -669,6 +685,13 @@
                 <button class="inst-tab-btn" id="tabBtnEval" onclick="switchInstructorTab('evaluation')">
                     <i class="fa-solid fa-pen-ruler"></i> 2. मासिक टेस्ट अंक, डायरी व रिकॉर्ड चेकिंग
                 </button>
+                <!-- 3rd & 4th Buttons Fully Attached -->
+                <button class="inst-tab-btn" id="tabBtnFinal" onclick="switchInstructorTab('final')">
+                    <i class="fa-solid fa-award"></i> 3. वार्षिक / सत्रवार संचित फाइनल रिपोर्ट
+                </button>
+                <button class="inst-tab-btn" id="tabBtnSingleStudentResult" onclick="switchInstructorTab('studentResult')">
+                    <i class="fa-solid fa-id-card-clip"></i> 4. व्यक्तिगत छात्र रिजल्ट कार्ड
+                </button>
             </div>
 
             <!-- Tab 1: Attendance -->
@@ -736,9 +759,160 @@
                 </div>
             </div>
 
+            <!-- Tab 3: Cumulative Annual / Sessional Ledger -->
+            <div id="instTabFinalReport" class="hidden">
+                <div class="controls-card">
+                    <div class="controls-left">
+                        <span class="badge-trade" id="finalTradeBadge">ट्रेड वार्षिक लेजर</span>
+                        <span class="badge-type" id="finalTradeTypeBadge">इंजीनियरिंग</span>
+                        <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">
+                            <i class="fa-solid fa-circle-info"></i> शुरुआत से लेकर सभी दर्ज महीनों का संचित योग (NCVT 75% पात्रता एवं सेशनल प्राप्तांक)
+                        </span>
+                    </div>
+                    <div class="controls-right">
+                        <button class="app-btn app-btn-excel" onclick="exportConsolidatedToExcel()"><i class="fa-solid fa-file-excel"></i> वार्षिक मास्टर लेजर एक्सेल (.xlsx)</button>
+                        <button class="app-btn app-btn-dark" onclick="renderFinalConsolidatedReport()"><i class="fa-solid fa-rotate"></i> रीफ्रेश करें</button>
+                    </div>
+                </div>
+
+                <div class="table-shell">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th rowspan="2" class="col-sticky-name">छात्र का नाम</th>
+                                <th rowspan="2" class="col-roll">रोल</th>
+                                <th colspan="4" style="background: #e0f2fe; color: #0369a1;">सत्र कुल उपस्थिति विवरण</th>
+                                <th colspan="4" style="background: #fef3c7; color: #92400e;">मासिक टेस्टों का संचित योग</th>
+                                <th rowspan="2" style="background: #f0fdf4; color: #166534;">वार्षिक पात्रता स्थिति</th>
+                            </tr>
+                            <tr>
+                                <th style="background: #eff6ff;">कुल कार्यदिवस</th>
+                                <th style="background: #eff6ff;">कुल उपस्थिति (P)</th>
+                                <th style="background: #eff6ff;">कुल अनुपस्थिति (A)</th>
+                                <th style="background: #dbeafe; color: #1e40af;">उपस्थिति %</th>
+                                <th style="background: #fffbeb;">सत्र टेस्ट संख्या</th>
+                                <th style="background: #fffbeb;">कुल प्राप्तांक</th>
+                                <th style="background: #fffbeb;">कुल पूर्णांक</th>
+                                <th style="background: #fef08a; color: #854d0e;">टेस्ट %</th>
+                            </tr>
+                        </thead>
+                        <tbody id="finalReportTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Tab 4: Individual Student Annual Result Card -->
+            <div id="instTabStudentResult" class="hidden">
+                <div class="controls-card no-print">
+                    <div class="controls-left">
+                        <span class="badge-trade" id="resTradeBadge">ट्रेड: -</span>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <label style="font-size: 0.85rem; font-weight: 700; color: #334155;"><i class="fa-solid fa-magnifying-glass"></i> छात्र चुनें:</label>
+                            <select id="instSelectStudentForResult" onchange="loadStudentResultFromSelect()" style="padding: 7px 12px; border-radius: 8px; border: 1.5px solid var(--border-color); font-weight: 600; min-width: 220px;"></select>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            <input type="text" id="instSearchStudentIdInput" placeholder="आईडी या रोल दर्ज करें" style="padding: 7px 10px; border-radius: 8px; border: 1.5px solid var(--border-color); font-size: 0.85rem;">
+                            <button class="app-btn app-btn-primary" onclick="searchStudentResultById()"><i class="fa-solid fa-arrow-right"></i> खोजें</button>
+                        </div>
+                    </div>
+                    <div class="controls-right">
+                        <button class="app-btn app-btn-success" onclick="printStudentResultCard()"><i class="fa-solid fa-print"></i> प्रिंट / PDF सेव करें</button>
+                    </div>
+                </div>
+
+                <!-- Printable Card Box -->
+                <div id="instSingleResultCardView" class="scorecard-box" style="margin-top: 10px;">
+                    <div style="text-align: center; border-bottom: 2px solid var(--primary); padding-bottom: 12px; margin-bottom: 16px;">
+                        <h2 style="color: var(--primary); font-size: 1.35rem; font-weight: 800;">राजकीय औद्योगिक प्रशिक्षण संस्थान, कोटड़ी (भीलवाड़ा)</h2>
+                        <p style="font-size: 0.95rem; font-weight: 700; color: #334155; margin-top: 3px;">सत्र प्रगति एवं समग्र वार्षिक मूल्यांकन रिपोर्ट कार्ड</p>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; background: #f8fafc; padding: 12px 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color); margin-bottom: 18px;">
+                        <div><strong style="color:var(--text-muted); font-size:0.8rem;">प्रशिक्षु का नाम:</strong> <div id="resCardName" style="font-weight:800; font-size:1.1rem; color:var(--primary);">-</div></div>
+                        <div><strong style="color:var(--text-muted); font-size:0.8rem;">रोल नंबर:</strong> <div id="resCardRoll" style="font-weight:700; font-size:1rem;">-</div></div>
+                        <div><strong style="color:var(--text-muted); font-size:0.8rem;">छात्र आईडी:</strong> <div id="resCardId" style="font-weight:700; font-size:1rem; color:#475569;">-</div></div>
+                        <div><strong style="color:var(--text-muted); font-size:0.8rem;">ट्रेड / प्रकार:</strong> <div id="resCardTrade" style="font-weight:700; font-size:1rem;">-</div></div>
+                    </div>
+
+                    <div class="section-bar-title"><i class="fa-solid fa-calendar-check"></i> 1. सत्र कुल उपस्थिति एवं पात्रता सारांश (Annual Attendance)</div>
+                    <div class="stats-tri-grid">
+                        <div class="metric-card" style="background:#f0fdf4; border-color:#bbf7d0;">
+                            <div class="title" style="color:#166534;">सत्र में कुल उपस्थिति</div>
+                            <div class="value" id="resCardAttP" style="color:#16a34a;">0</div>
+                            <div class="sub">सत्र कुल कार्यदिवस: <strong id="resCardAttW">0</strong> दिन</div>
+                        </div>
+                        <div class="metric-card" style="background:#fef2f2; border-color:#fecaca;">
+                            <div class="title" style="color:#991b1b;">सत्र में कुल अनुपस्थिति</div>
+                            <div class="value" id="resCardAttA" style="color:#dc2626;">0</div>
+                            <div class="sub">कुल अनुपस्थित कार्यदिवस</div>
+                        </div>
+                        <div class="metric-card" style="background:#eff6ff; border-color:#bfdbfe;">
+                            <div class="title" style="color:#1e40af;">वार्षिक उपस्थिति प्रतिशत</div>
+                            <div class="value" id="resCardAttPct" style="color:var(--primary);">0%</div>
+                            <div class="progress-track"><div class="progress-bar-fill" id="resCardAttBar" style="width:0%; background:var(--primary);"></div></div>
+                        </div>
+                    </div>
+                    <div style="background: #ffffff; padding: 10px 14px; border-radius: var(--radius-md); border: 1.5px solid var(--border-color); margin-bottom: 20px;">
+                        <strong>NCVT परीक्षा पात्रता:</strong> <span id="resCardEligibility">-</span>
+                    </div>
+
+                    <div class="section-bar-title"><i class="fa-solid fa-pen-ruler"></i> 2. मासिक टेस्ट संचित सेशनल परिणाम (Consolidated Marks)</div>
+                    <div class="stats-tri-grid">
+                        <div class="metric-card">
+                            <div class="title">सत्र में दिए गए कुल टेस्ट</div>
+                            <div class="value" id="resCardTestCount" style="color:#2563eb;">0</div>
+                            <div class="sub">आयोजित मासिक टेस्ट संख्या</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="title">टेस्ट कुल प्राप्तांक</div>
+                            <div class="value" id="resCardTestMarks" style="color:#059669;">0 / 0</div>
+                            <div class="sub">सभी टेस्टों का कुल योग</div>
+                        </div>
+                        <div class="metric-card" style="background:#fefce8; border-color:#fef08a;">
+                            <div class="title" style="color:#854d0e;">वार्षिक टेस्ट प्रतिशत</div>
+                            <div class="value" id="resCardTestPct" style="color:#d97706;">0%</div>
+                            <div class="sub">ग्रेड: <strong id="resCardGrade">-</strong></div>
+                        </div>
+                    </div>
+
+                    <div class="section-bar-title"><i class="fa-solid fa-list-check"></i> 3. माह-दर-माह प्रगति विवरण (Month-Wise History)</div>
+                    <div class="table-shell">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>माह (Month)</th>
+                                    <th>कार्यदिवस</th>
+                                    <th>उपस्थित (P)</th>
+                                    <th>अनुपस्थित (A)</th>
+                                    <th>उपस्थिति %</th>
+                                    <th>टेस्ट प्राप्तांक / पूर्णांक</th>
+                                    <th>टेस्ट %</th>
+                                    <th>रिकॉर्ड</th>
+                                    <th>डायरी</th>
+                                    <th>आचरण</th>
+                                </tr>
+                            </thead>
+                            <tbody id="resCardMonthHistoryBody"></tbody>
+                        </table>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 40px; padding: 0 10px;">
+                        <div style="text-align: center; border-top: 1.5px solid #64748b; padding-top: 6px; min-width: 140px; font-size: 0.85rem; font-weight: 700;">
+                            हस्ताक्षर छात्र / अभिभावक
+                        </div>
+                        <div style="text-align: center; border-top: 1.5px solid #64748b; padding-top: 6px; min-width: 140px; font-size: 0.85rem; font-weight: 700;">
+                            हस्ताक्षर ट्रेड अनुदेशक
+                        </div>
+                        <div style="text-align: center; border-top: 1.5px solid #64748b; padding-top: 6px; min-width: 140px; font-size: 0.85rem; font-weight: 700;">
+                            हस्ताक्षर अधीक्षक / प्राचार्य
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </section>
 
-        <!-- 4. STUDENT SCORECARD -->
+        <!-- 5. STUDENT SCORECARD -->
         <section id="studentSection" class="hidden">
             <div class="scorecard-box">
                 
@@ -810,7 +984,7 @@
 
                     <div class="section-bar-title"><i class="fa-solid fa-award"></i> कुल संचित विवरण (Overall Cumulative)</div>
                     <div class="stats-tri-grid">
-                        <div class="metric-card" style="background: #f0fdf4; border-color: #bbf7d0;">
+                        <div class="metric-card" style="background: #f0fdf4; border-color:#bbf7d0;">
                             <div class="title" style="color: #166534;">कुल संचित उपस्थिति</div>
                             <div class="value" id="scTotalP" style="color: #16a34a;">0</div>
                             <div class="sub">शुरुआत से कार्यदिवस: <strong id="scTotalW">0</strong> दिन</div>
@@ -1345,7 +1519,6 @@
                 currentTrade = trade;
                 loggedInStudent = st;
                 setupUIRoute();
-                renderStudentDashboard();
                 showToast(`स्वागतम्, ${st.name}!`);
             } else {
                 alert("अमान्य छात्र आईडी या पासवर्ड!");
@@ -1372,13 +1545,22 @@
                 document.getElementById('activeTradeTypeBadge').innerText = typeText;
                 document.getElementById('evalTradeBadge').innerText = `${currentTrade} मूल्यांकन`;
                 document.getElementById('evalTradeTypeBadge').innerText = typeText;
+                
+                const fBadge = document.getElementById('finalTradeBadge');
+                if (fBadge) fBadge.innerText = `${currentTrade} संचित लेजर`;
+                const fTBadge = document.getElementById('finalTradeTypeBadge');
+                if (fTBadge) fTBadge.innerText = typeText;
+                const rBadge = document.getElementById('resTradeBadge');
+                if (rBadge) rBadge.innerText = `ट्रेड: ${currentTrade} (${typeText})`;
+
                 document.getElementById('roleLabel').innerHTML = `<i class="fa-solid fa-chalkboard-user"></i> ${currentTrade} अनुदेशक`;
+                populateStudentResultDropdown();
                 switchInstructorTab('attendance');
             } else if (currentRole === 'student') {
                 document.getElementById('studentSection').classList.remove('hidden');
                 document.getElementById('roleLabel').innerHTML = `<i class="fa-solid fa-user-graduate"></i> छात्र: ${loggedInStudent.name}`;
                 switchStudentSection('attendance');
-                renderStudentDashboard();
+                setTimeout(() => { renderStudentDashboard(); }, 50);
             }
         }
 
@@ -1396,23 +1578,37 @@
         }
 
         function switchInstructorTab(tab) {
-            const btnAtt = document.getElementById('tabBtnAtt');
-            const btnEval = document.getElementById('tabBtnEval');
-            const secAtt = document.getElementById('instTabAttendance');
-            const secEval = document.getElementById('instTabEvaluation');
+            const tabs = [
+                { id: 'tabBtnAtt', sec: 'instTabAttendance' },
+                { id: 'tabBtnEval', sec: 'instTabEvaluation' },
+                { id: 'tabBtnFinal', sec: 'instTabFinalReport' },
+                { id: 'tabBtnSingleStudentResult', sec: 'instTabStudentResult' }
+            ];
+
+            tabs.forEach(t => {
+                const btn = document.getElementById(t.id);
+                const sec = document.getElementById(t.sec);
+                if (btn) btn.classList.remove('active');
+                if (sec) sec.classList.add('hidden');
+            });
 
             if (tab === 'attendance') {
-                btnAtt.classList.add('active');
-                btnEval.classList.remove('active');
-                secAtt.classList.remove('hidden');
-                secEval.classList.add('hidden');
+                document.getElementById('tabBtnAtt')?.classList.add('active');
+                document.getElementById('instTabAttendance')?.classList.remove('hidden');
                 renderRegister();
             } else if (tab === 'evaluation') {
-                btnEval.classList.add('active');
-                btnAtt.classList.remove('active');
-                secEval.classList.remove('hidden');
-                secAtt.classList.add('hidden');
+                document.getElementById('tabBtnEval')?.classList.add('active');
+                document.getElementById('instTabEvaluation')?.classList.remove('hidden');
                 renderEvaluationTable();
+            } else if (tab === 'final') {
+                document.getElementById('tabBtnFinal')?.classList.add('active');
+                document.getElementById('instTabFinalReport')?.classList.remove('hidden');
+                renderFinalConsolidatedReport();
+            } else if (tab === 'studentResult') {
+                document.getElementById('tabBtnSingleStudentResult')?.classList.add('active');
+                document.getElementById('instTabStudentResult')?.classList.remove('hidden');
+                populateStudentResultDropdown();
+                loadStudentResultFromSelect();
             }
         }
 
@@ -1720,597 +1916,419 @@
             showToast("पूर्णांक एवं छात्र मासिक अंक सुरक्षित किए गए!");
         }
 
-        // --- STUDENT DASHBOARD RENDERING (FIXED) ---
-        function renderStudentDashboard() {
-            if (!loggedInStudent || !currentTrade) return;
-
-            const isEngg = isEnggTrade(currentTrade);
-            const tradeTypeTag = isEngg ? 'इंजीनियरिंग ट्रेड' : 'नॉन-इंजीनियरिंग ट्रेड';
-
-            // छात्र का नाम, ट्रेड और रोल नंबर सीधे DOM में सेट करें
-            const elName = document.getElementById('scStudentName');
-            const elRoll = document.getElementById('scRoll');
-            if (elName) elName.innerText = loggedInStudent.name;
-            if (elRoll) elRoll.innerText = `ट्रेड: ${currentTrade} (${tradeTypeTag}) | रोल: ${loggedInStudent.roll} | आईडी: ${loggedInStudent.studentId}`;
-
-            let monthVal = document.getElementById('studentMonthSelector')?.value;
-            if (!monthVal) {
-                const today = new Date();
-                monthVal = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
-                const el = document.getElementById('studentMonthSelector');
-                if (el) el.value = monthVal;
-            }
-
-            const [yearStr, monthStr] = monthVal.split('-');
-            const year = parseInt(yearStr);
-            const monthIndex = parseInt(monthStr) - 1;
-            const totalDays = new Date(year, monthIndex + 1, 0).getDate();
-
-            // अवकाश की सूची को सुरक्षित रूप से नंबर में बदलें
-            const rawHols = (appData.holidays && appData.holidays[currentTrade] && appData.holidays[currentTrade][monthVal]) 
-                ? appData.holidays[currentTrade][monthVal] 
-                : [];
-            const cMonthHolidays = rawHols.map(Number);
-
-            let sundays = 0, holidays = 0;
-            for (let d = 1; d <= totalDays; d++) {
-                if (new Date(year, monthIndex, d).getDay() === 0) sundays++;
-                else if (cMonthHolidays.includes(d)) holidays++;
-            }
-
-            const currWorkingDays = totalDays - (sundays + holidays);
-            const sRoll = String(loggedInStudent.roll).trim();
-            const sData = (appData.records && appData.records[currentTrade] && appData.records[currentTrade][monthVal] && appData.records[currentTrade][monthVal][sRoll]) 
-                ? appData.records[currentTrade][monthVal][sRoll] 
-                : {};
-
-            let currEvePresent = 0;
-            let currEveAbsent = 0;
-            const logTableBody = document.getElementById('scDailyLogBody');
-            if (logTableBody) logTableBody.innerHTML = '';
-            const dayNames = ['रवि', 'सोम', 'मंगल', 'बुध', 'गुरु', 'शुक्र', 'शनि'];
-
-            for (let d = 1; d <= totalDays; d++) {
-                const dateObj = new Date(year, monthIndex, d);
-                const dayName = dayNames[dateObj.getDay()];
-                const isSun = (dateObj.getDay() === 0);
-                const isHol = cMonthHolidays.includes(d);
-
-                let mVal = '-', eVal = '-', statusLabel = '';
-
-                if (isSun) {
-                    mVal = 'रवि'; eVal = 'रवि';
-                    statusLabel = '<span style="color:#b91c1c; font-weight:700;">रविवार</span>';
-                } else if (isHol) {
-                    mVal = 'अवकाश'; eVal = 'अवकाश';
-                    statusLabel = '<span style="color:#7e22ce; font-weight:700;">अवकाश</span>';
-                } else {
-                    mVal = sData[`${d}_m`] || 'P';
-                    eVal = sData[`${d}_e`] || 'P';
-
-                    if (eVal === 'P') currEvePresent++;
-                    if (eVal === 'A') currEveAbsent++;
-
-                    mVal = `<span class="btn-status-toggle st-${mVal}">${mVal}</span>`;
-                    eVal = `<span class="btn-status-toggle st-${eVal}">${eVal}</span>`;
-
-                    if (sData[`${d}_e`] === 'A') statusLabel = '<span style="color:var(--danger); font-weight:700;">अनुपस्थित</span>';
-                    else if (sData[`${d}_e`] === 'L') statusLabel = '<span style="color:var(--warning); font-weight:700;">अवकाश</span>';
-                    else statusLabel = '<span style="color:var(--success); font-weight:700;">उपस्थित</span>';
-                }
-
-                if (logTableBody) {
-                    logTableBody.innerHTML += `
-                        <tr>
-                            <td><strong>${d}/${monthStr}/${year}</strong></td>
-                            <td>${dayName}</td>
-                            <td>${mVal}</td>
-                            <td>${eVal}</td>
-                            <td>${statusLabel}</td>
-                        </tr>
-                    `;
-                }
-            }
-
-            const pastW = parseInt(loggedInStudent.pastWorkingDays) || 0;
-            const pastP = parseInt(loggedInStudent.pastPresentDays) || 0;
-            const pastA = Math.max(0, pastW - pastP);
-            const pastPct = pastW > 0 ? ((pastP / pastW) * 100).toFixed(1) : 0;
-
-            const currPct = currWorkingDays > 0 ? ((currEvePresent / currWorkingDays) * 100).toFixed(1) : 0;
-            const totalW = pastW + currWorkingDays;
-            const totalP = pastP + currEvePresent;
-            const totalA = pastA + currEveAbsent;
-            const totalPct = totalW > 0 ? ((totalP / totalW) * 100).toFixed(1) : 0;
-
-            document.getElementById('scPastP').innerText = pastP;
-            document.getElementById('scPastW').innerText = pastW;
-            document.getElementById('scPastA').innerText = pastA;
-            document.getElementById('scPastPct').innerText = `${pastPct}%`;
-            document.getElementById('scPastBar').style.width = `${Math.min(pastPct, 100)}%`;
-
-            document.getElementById('scCurrP').innerText = currEvePresent;
-            document.getElementById('scCurrW').innerText = currWorkingDays;
-            document.getElementById('scCurrA').innerText = currEveAbsent;
-            document.getElementById('scCurrPct').innerText = `${currPct}%`;
-            document.getElementById('scCurrBar').style.width = `${Math.min(currPct, 100)}%`;
-
-            document.getElementById('scTotalP').innerText = totalP;
-            document.getElementById('scTotalW').innerText = totalW;
-            document.getElementById('scTotalA').innerText = totalA;
-            document.getElementById('scTotalPct').innerText = `${totalPct}%`;
-            document.getElementById('scTotalBar').style.width = `${Math.min(totalPct, 100)}%`;
-
-            const remarkEl = document.getElementById('scStatusRemarks');
-            if (totalPct >= 75) {
-                remarkEl.innerHTML = `<span style="color:var(--success); font-weight:700;"><i class="fa-solid fa-circle-check"></i> ${totalPct}% उपस्थिति — परीक्षा हेतु पूर्णतः पात्र</span>`;
-            } else {
-                remarkEl.innerHTML = `<span style="color:var(--danger); font-weight:700;"><i class="fa-solid fa-triangle-exclamation"></i> ${totalPct}% उपस्थिति — 75% से कम (अपात्रता का जोखिम)</span>`;
-            }
-
-            const mmConfig = getMaxMarksConfig(currentTrade, monthVal);
-            const monthEval = (appData.evaluations && appData.evaluations[currentTrade] && appData.evaluations[currentTrade][monthVal]) 
-                ? appData.evaluations[currentTrade][monthVal][sRoll] 
-                : null;
-
-            const cardsContainer = document.getElementById('scMarksCardsContainer');
-            if (cardsContainer) {
-                cardsContainer.innerHTML = '';
-
-                let totalObt = 0;
-                let totalMM = 0;
-
-                const addCard = (title, obt, mm, color) => {
-                    const valStr = (obt !== '' && obt !== null && obt !== undefined) ? `${obt} / ${mm}` : `- / ${mm}`;
-                    const card = `
-                        <div class="metric-card">
-                            <div class="title">${title}</div>
-                            <div class="value" style="color:${color};">${valStr}</div>
-                            <div class="sub">पूर्णांक: <strong>${mm} अंक</strong></div>
-                        </div>
-                    `;
-                    cardsContainer.innerHTML += card;
-                };
-
-                const ttObt = monthEval ? monthEval.tt : '';
-                const tpObt = monthEval ? monthEval.tp : '';
-                const esObt = monthEval ? monthEval.es : '';
-
-                addCard("Trade Theory (थ्योरी)", ttObt, mmConfig.tt || 20, "#2563eb");
-                addCard("Trade Practical (प्रैक्टिकल)", tpObt, mmConfig.tp || 20, "#059669");
-
-                totalObt += (parseFloat(ttObt) || 0) + (parseFloat(tpObt) || 0) + (parseFloat(esObt) || 0);
-                totalMM += (parseFloat(mmConfig.tt) || 20) + (parseFloat(mmConfig.tp) || 20) + (parseFloat(mmConfig.es) || 20);
-
-                if (isEngg) {
-                    const wcsObt = monthEval ? monthEval.wcs : '';
-                    const edObt = monthEval ? monthEval.ed : '';
-                    addCard("WCS", wcsObt, mmConfig.wcs || 20, "#7c3aed");
-                    addCard("Engg. Drawing (ED)", edObt, mmConfig.ed || 20, "#0284c7");
-                    totalObt += (parseFloat(wcsObt) || 0) + (parseFloat(edObt) || 0);
-                    totalMM += (parseFloat(mmConfig.wcs) || 20) + (parseFloat(mmConfig.ed) || 20);
-                }
-
-                addCard("Employability Skills (ES)", esObt, mmConfig.es || 20, "#d97706");
-
-                const pctMarks = totalMM > 0 ? ((totalObt / totalMM) * 100).toFixed(1) : 0;
-                const totalValStr = monthEval ? `${totalObt} / ${totalMM}` : `- / ${totalMM}`;
-
-                cardsContainer.innerHTML += `
-                    <div class="metric-card" style="background:#f0fdf4; border-color:#86efac;">
-                        <div class="title" style="color:#166534;">कुल प्राप्तांक (Total Marks)</div>
-                        <div class="value" style="color:#15803d;">${totalValStr}</div>
-                        <div class="sub">कुल प्रतिशत: <strong>${pctMarks}%</strong></div>
-                    </div>
-                `;
-            }
-
-            if (monthEval) {
-                document.getElementById('scRecordStatus').innerText = monthEval.recStatus || 'A';
-                document.getElementById('scRecordRemark').innerText = monthEval.recRem || 'जांच पूर्ण';
-                document.getElementById('scDiaryStatus').innerText = monthEval.diaryStatus || 'नियमित';
-                document.getElementById('scDiaryRemark').innerText = monthEval.diaryRem || 'हस्ताक्षरित';
-                document.getElementById('scDiscipline').innerText = monthEval.disc || 'उत्कृष्ट';
-                document.getElementById('scActivity').innerText = monthEval.act || 'सक्रिय';
-            } else {
-                document.getElementById('scRecordStatus').innerText = 'प्रक्रियाधीन';
-                document.getElementById('scRecordRemark').innerText = 'रिकॉर्ड उपलब्ध नहीं';
-                document.getElementById('scDiaryStatus').innerText = 'लंबित';
-                document.getElementById('scDiaryRemark').innerText = '-';
-                document.getElementById('scDiscipline').innerText = 'सामान्य';
-                document.getElementById('scActivity').innerText = 'सामान्य';
-            }
-        }
-
-        // --- REGISTER TABLE LOGIC ---
-        function renderRegister() {
+        // --- CUMULATIVE ANNUAL / SESSIONAL FINAL REPORT ENGINE ---
+        function renderFinalConsolidatedReport() {
             if (!currentTrade) return;
-            let monthVal = document.getElementById('selectedMonth')?.value;
-            if (!monthVal) {
-                const today = new Date();
-                monthVal = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
-                const el = document.getElementById('selectedMonth');
-                if (el) el.value = monthVal;
-            }
-
-            const [yearStr, monthStr] = monthVal.split('-');
-            const year = parseInt(yearStr);
-            const monthIndex = parseInt(monthStr) - 1;
-            const totalDays = new Date(year, monthIndex + 1, 0).getDate();
-
-            if (!appData.records) appData.records = {};
-            if (!appData.records[currentTrade]) appData.records[currentTrade] = {};
-            if (!appData.records[currentTrade][monthVal]) appData.records[currentTrade][monthVal] = {};
-
-            if (!appData.holidays) appData.holidays = {};
-            if (!appData.holidays[currentTrade]) appData.holidays[currentTrade] = {};
-            const rawHols = appData.holidays[currentTrade][monthVal] || [];
-            const cMonthHolidays = rawHols.map(Number);
-
-            const thead = document.getElementById('attendanceHeader');
-            let headerTop = `<tr><th rowspan="2" class="col-sticky-name">छात्र का नाम</th><th rowspan="2" class="col-roll">रोल</th>`;
-            let headerSub = `<tr>`;
-
-            let sundayCount = 0;
-            let holidayCount = 0;
-
-            for (let d = 1; d <= totalDays; d++) {
-                const sunday = (new Date(year, monthIndex, d).getDay() === 0);
-                const isCustomHol = cMonthHolidays.includes(d);
-
-                if (sunday) sundayCount++;
-                if (!sunday && isCustomHol) holidayCount++;
-
-                let cls = '';
-                let title = d;
-                if (sunday) { cls = 'day-sunday'; title = `${d} (रवि)`; }
-                else if (isCustomHol) { cls = 'day-holiday'; title = `${d} (अव)`; }
-
-                headerTop += `<th colspan="2" class="${cls}">${title}</th>`;
-                headerSub += `<th class="${cls}">M</th><th class="${cls}">E</th>`;
-            }
-
-            headerTop += `
-                <th colspan="3" class="col-m-res">मासिक योग</th>
-                <th colspan="2" class="col-o-res">संचित योग</th>
-                <th rowspan="2">कार्रवाई</th></tr>`;
-            headerSub += `
-                <th class="col-m-res">उपस्थित</th><th class="col-m-res">अनुपस्थित</th><th class="col-m-res">माह %</th>
-                <th class="col-o-res">कुल P / दिन</th><th class="col-o-res">कुल %</th></tr>`;
-            thead.innerHTML = headerTop + headerSub;
-
-            const workingDays = totalDays - (sundayCount + holidayCount);
-            document.getElementById('workingDaysSummary').innerHTML = 
-                `<i class="fa-solid fa-calendar-check"></i> कुल कार्यदिवस: <strong>${workingDays} दिन</strong> | रविवार: ${sundayCount} | अवकाश: ${holidayCount}`;
-
-            const tbody = document.getElementById('attendanceBody');
-            tbody.innerHTML = '';
-            
             const tStudents = getStudentList(currentTrade);
-
-            if (tStudents.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="${totalDays * 2 + 8}" style="padding: 24px; color: var(--text-muted); font-size: 0.95rem;">इस ट्रेड में अभी तक कोई छात्र नहीं जोड़ा गया है। कृपया 'नया छात्र जोड़ें' बटन पर क्लिक करके छात्र जोड़ें।</td></tr>`;
-                return;
-            }
-
-            tStudents.forEach((student) => {
-                const sRoll = String(student.roll).trim();
-                const sData = appData.records[currentTrade][monthVal][sRoll] || {};
-                let evePresentCount = 0;
-                let eveAbsentCount = 0;
-
-                let rowHTML = `<tr>
-                    <td class="col-sticky-name">${student.name}</td>
-                    <td class="col-roll">${student.roll}</td>`;
-
-                for (let d = 1; d <= totalDays; d++) {
-                    const sunday = (new Date(year, monthIndex, d).getDay() === 0);
-                    const isCustomHol = cMonthHolidays.includes(d);
-
-                    if (sunday) {
-                        rowHTML += `<td class="day-sunday"><span class="btn-status-toggle st-S">S</span></td>
-                                    <td class="day-sunday"><span class="btn-status-toggle st-S">S</span></td>`;
-                    } else if (isCustomHol) {
-                        rowHTML += `<td class="day-holiday"><span class="btn-status-toggle st-H">H</span></td>
-                                    <td class="day-holiday"><span class="btn-status-toggle st-H">H</span></td>`;
-                    } else {
-                        const mStatus = sData[`${d}_m`] || 'P';
-                        const eStatus = sData[`${d}_e`] || 'P';
-
-                        if (eStatus === 'P') evePresentCount++;
-                        if (eStatus === 'A') eveAbsentCount++;
-
-                        rowHTML += `<td>
-                            <button type="button" class="btn-status-toggle st-${mStatus}" onclick="toggleSession('${monthVal}', '${sRoll}', '${d}_m')">${mStatus}</button>
-                        </td>
-                        <td>
-                            <button type="button" class="btn-status-toggle st-${eStatus}" onclick="toggleSession('${monthVal}', '${sRoll}', '${d}_e')">${eStatus}</button>
-                        </td>`;
-                    }
-                }
-
-                const monthPct = workingDays > 0 ? ((evePresentCount / workingDays) * 100).toFixed(1) : 0;
-                const pastW = parseInt(student.pastWorkingDays) || 0;
-                const pastP = parseInt(student.pastPresentDays) || 0;
-                const overallW = pastW + workingDays;
-                const overallP = pastP + evePresentCount;
-                const overallPct = overallW > 0 ? ((overallP / overallW) * 100).toFixed(1) : 0;
-
-                const getBadge = (p) => p >= 75 ? 'pct-high' : (p >= 60 ? 'pct-mid' : 'pct-low');
-
-                rowHTML += `
-                    <td class="col-m-res">${evePresentCount} / ${workingDays}</td>
-                    <td class="col-m-res">${eveAbsentCount}</td>
-                    <td class="col-m-res"><span class="pct-badge ${getBadge(monthPct)}">${monthPct}%</span></td>
-                    <td class="col-o-res">${overallP} / ${overallW}</td>
-                    <td class="col-o-res"><span class="pct-badge ${getBadge(overallPct)}">${overallPct}%</span></td>
-                    <td>
-                        <i class="fa-solid fa-pen-to-square action-icon action-edit" title="छात्र संपादित करें" onclick="openEditStudentModal('${sRoll}')"></i>
-                        <i class="fa-solid fa-trash action-icon action-del" title="छात्र हटाएं" onclick="removeStudent('${sRoll}')"></i>
-                    </td>
-                </tr>`;
-
-                tbody.innerHTML += rowHTML;
-            });
-        }
-
-        function toggleSession(monthVal, roll, key) {
-            if (!appData.records) appData.records = {};
-            if (!appData.records[currentTrade]) appData.records[currentTrade] = {};
-            if (!appData.records[currentTrade][monthVal]) appData.records[currentTrade][monthVal] = {};
-            if (!appData.records[currentTrade][monthVal][roll]) appData.records[currentTrade][monthVal][roll] = {};
-
-            const curr = appData.records[currentTrade][monthVal][roll][key] || 'P';
-            const nextMap = { 'P': 'A', 'A': 'L', 'L': 'P' };
-            appData.records[currentTrade][monthVal][roll][key] = nextMap[curr];
-            renderRegister();
-        }
-
-        // --- DAILY QUICK ROLL CALL ---
-        function openTodayRollCallModal() {
-            if (!currentTrade) { alert("कृपया पहले ट्रेड चुनें!"); return; }
-            const today = new Date();
-            const d = today.getDate();
-            let monthVal = document.getElementById('selectedMonth')?.value;
-            if (!monthVal) {
-                monthVal = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
-            }
-
-            const tStudents = getStudentList(currentTrade);
-            if (tStudents.length === 0) {
-                alert("इस ट्रेड में कोई छात्र पंजीकृत नहीं है!");
-                return;
-            }
-
-            if (!appData.records) appData.records = {};
-            if (!appData.records[currentTrade]) appData.records[currentTrade] = {};
-            if (!appData.records[currentTrade][monthVal]) appData.records[currentTrade][monthVal] = {};
-
-            document.getElementById('rcModalDateLabel').innerText = `तारीख: ${d} (${monthVal})`;
-            renderTodayRollCallList(monthVal, d);
-            openModal('todayRollCallModal');
-        }
-
-        function renderTodayRollCallList(monthVal, d) {
-            const tStudents = getStudentList(currentTrade);
-            const tbody = document.getElementById('todayRollCallBody');
+            const tbody = document.getElementById('finalReportTableBody');
             if (!tbody) return;
             tbody.innerHTML = '';
 
+            if (tStudents.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="11" style="padding: 24px; color: var(--text-muted);">इस ट्रेड में कोई छात्र उपलब्ध नहीं है।</td></tr>`;
+                return;
+            }
+
+            const allRecMonths = Object.keys((appData.records && appData.records[currentTrade]) || {});
+            const allEvalMonths = Object.keys((appData.evaluations && appData.evaluations[currentTrade]) || {});
+            const allMonths = Array.from(new Set([...allRecMonths, ...allEvalMonths])).sort();
+
+            const monthWorkingDaysMap = {};
+            allMonths.forEach(mStr => {
+                const [y, m] = mStr.split('-').map(Number);
+                const totalD = new Date(y, m, 0).getDate();
+                const hols = (appData.holidays && appData.holidays[currentTrade] && appData.holidays[currentTrade][mStr]) || [];
+                let suns = 0, chols = 0;
+                for (let d = 1; d <= totalD; d++) {
+                    if (new Date(y, m - 1, d).getDay() === 0) suns++;
+                    else if (hols.includes(d)) chols++;
+                }
+                monthWorkingDaysMap[mStr] = totalD - (suns + chols);
+            });
+
+            const isEngg = isEnggTrade(currentTrade);
+
             tStudents.forEach(st => {
                 const sRoll = String(st.roll).trim();
-                if (!appData.records[currentTrade][monthVal][sRoll]) {
-                    appData.records[currentTrade][monthVal][sRoll] = {};
-                }
+                let pastW = parseInt(st.pastWorkingDays) || 0;
+                let pastP = parseInt(st.pastPresentDays) || 0;
 
-                const mStatus = appData.records[currentTrade][monthVal][sRoll][`${d}_m`] || 'A';
-                const eStatus = appData.records[currentTrade][monthVal][sRoll][`${d}_e`] || 'A';
+                let recordedPresent = 0;
+                let recordedWorking = 0;
+                let recordedAbsent = 0;
+
+                allMonths.forEach(mStr => {
+                    const mWork = monthWorkingDaysMap[mStr] || 0;
+                    recordedWorking += mWork;
+
+                    const mData = (appData.records && appData.records[currentTrade] && appData.records[currentTrade][mStr] && appData.records[currentTrade][mStr][sRoll]) || {};
+                    const [y, m] = mStr.split('-').map(Number);
+                    const totalD = new Date(y, m, 0).getDate();
+                    const hols = (appData.holidays && appData.holidays[currentTrade] && appData.holidays[currentTrade][mStr]) || [];
+
+                    for (let d = 1; d <= totalD; d++) {
+                        const isSun = (new Date(y, m - 1, d).getDay() === 0);
+                        const isHol = hols.includes(d);
+                        if (!isSun && !isHol) {
+                            const eVal = mData[`${d}_e`] || 'P';
+                            if (eVal === 'P') recordedPresent++;
+                            else if (eVal === 'A') recordedAbsent++;
+                        }
+                    }
+                });
+
+                const totalW = pastW + recordedWorking;
+                const totalP = pastP + recordedPresent;
+                const totalA = Math.max(0, totalW - totalP);
+                const attPct = totalW > 0 ? ((totalP / totalW) * 100).toFixed(1) : 0;
+
+                let testCount = 0;
+                let totalObt = 0;
+                let totalMM = 0;
+
+                allMonths.forEach(mStr => {
+                    const ev = (appData.evaluations && appData.evaluations[currentTrade] && appData.evaluations[currentTrade][mStr] && appData.evaluations[currentTrade][mStr][sRoll]);
+                    const mm = getMaxMarksConfig(currentTrade, mStr);
+
+                    if (ev && (ev.tt !== '' || ev.tp !== '' || ev.es !== '')) {
+                        testCount++;
+                        let mObt = (parseFloat(ev.tt) || 0) + (parseFloat(ev.tp) || 0) + (parseFloat(ev.es) || 0);
+                        let mMM = (parseFloat(mm.tt) || 20) + (parseFloat(mm.tp) || 20) + (parseFloat(mm.es) || 20);
+
+                        if (isEngg) {
+                            mObt += (parseFloat(ev.wcs) || 0) + (parseFloat(ev.ed) || 0);
+                            mMM += (parseFloat(mm.wcs) || 20) + (parseFloat(mm.ed) || 20);
+                        }
+                        totalObt += mObt;
+                        totalMM += mMM;
+                    }
+                });
+
+                const testPct = totalMM > 0 ? ((totalObt / totalMM) * 100).toFixed(1) : 0;
+                const isEligible = parseFloat(attPct) >= 75;
+                const badgeCls = parseFloat(attPct) >= 75 ? 'pct-high' : 'pct-low';
 
                 tbody.innerHTML += `
                     <tr>
-                        <td><strong>${sRoll}</strong></td>
-                        <td style="text-align: left; padding-left: 10px; font-weight: 600;">${st.name}</td>
+                        <td class="col-sticky-name">${st.name}</td>
+                        <td class="col-roll">${sRoll}</td>
+                        <td>${totalW} दिन</td>
+                        <td style="color:#16a34a; font-weight:700;">${totalP}</td>
+                        <td style="color:#dc2626; font-weight:700;">${totalA}</td>
+                        <td><span class="pct-badge ${badgeCls}">${attPct}%</span></td>
+                        <td><strong>${testCount}</strong> टेस्ट</td>
+                        <td style="color:#1e40af; font-weight:700;">${totalObt}</td>
+                        <td>${totalMM}</td>
+                        <td><strong>${testPct}%</strong></td>
                         <td>
-                            <button type="button" class="btn-status-toggle st-${mStatus}" style="width: 38px; height: 30px; font-size: 0.85rem;" 
-                                onclick="toggleQuickStatus('${monthVal}', '${sRoll}', '${d}_m', ${d})">${mStatus}</button>
-                        </td>
-                        <td>
-                            <button type="button" class="btn-status-toggle st-${eStatus}" style="width: 38px; height: 30px; font-size: 0.85rem;" 
-                                onclick="toggleQuickStatus('${monthVal}', '${sRoll}', '${d}_e', ${d})">${eStatus}</button>
+                            ${isEligible 
+                                ? '<span style="color:#16a34a; font-weight:700;"><i class="fa-solid fa-circle-check"></i> परीक्षा हेतु पात्र (Eligible)</span>' 
+                                : '<span style="color:#dc2626; font-weight:700;"><i class="fa-solid fa-triangle-exclamation"></i> अपात्र (&lt; 75%)</span>'}
                         </td>
                     </tr>
                 `;
             });
         }
 
-        function toggleQuickStatus(monthVal, roll, key, d) {
-            const curr = appData.records[currentTrade][monthVal][roll][key] || 'A';
-            const nextMap = { 'A': 'P', 'P': 'L', 'L': 'A' };
-            appData.records[currentTrade][monthVal][roll][key] = nextMap[curr];
-            renderTodayRollCallList(monthVal, d);
-            renderRegister();
-        }
-
-        function openHolidayPrompt() {
-            const monthVal = document.getElementById('selectedMonth')?.value;
-            const curHols = (appData.holidays && appData.holidays[currentTrade] && appData.holidays[currentTrade][monthVal]) 
-                ? appData.holidays[currentTrade][monthVal].join(', ') 
-                : 'कोई नहीं';
-            const input = prompt(`[${currentTrade}] माह (${monthVal}) में रविवार के अतिरिक्त अवकाश की तारीखें (उदा: 2, 15):\nवर्तमान अवकाश: ${curHols}`);
-            if (input !== null) {
-                const dates = input.split(',')
-                    .map(x => parseInt(x.trim()))
-                    .filter(x => !isNaN(x) && x >= 1 && x <= 31);
-                
-                if (!appData.holidays) appData.holidays = {};
-                if (!appData.holidays[currentTrade]) appData.holidays[currentTrade] = {};
-                appData.holidays[currentTrade][monthVal] = dates;
-                syncWithFirebase();
-                renderRegister();
-                showToast("अवकाश सूची अपडेट कर दी गई!");
-            }
-        }
-
-        // --- EXCEL EXPORT FUNCTIONS ---
-        function exportAttendanceToExcel() {
-            if (!currentTrade) { alert("कृपया पहले ट्रेड का चयन करें!"); return; }
-            const monthVal = document.getElementById('selectedMonth').value;
-            if (!monthVal) return;
-
-            const [yearStr, monthStr] = monthVal.split('-');
-            const year = parseInt(yearStr);
-            const monthIndex = parseInt(monthStr) - 1;
-            const totalDays = new Date(year, monthIndex + 1, 0).getDate();
-
-            const rawHols = (appData.holidays && appData.holidays[currentTrade] && appData.holidays[currentTrade][monthVal]) ? appData.holidays[currentTrade][monthVal] : [];
-            const cMonthHolidays = rawHols.map(Number);
-            let sundayCount = 0, holidayCount = 0;
-            for (let d = 1; d <= totalDays; d++) {
-                if (new Date(year, monthIndex, d).getDay() === 0) sundayCount++;
-                else if (cMonthHolidays.includes(d)) holidayCount++;
-            }
-            const workingDays = totalDays - (sundayCount + holidayCount);
-
+        // --- TAB 4: INDIVIDUAL STUDENT ANNUAL RESULT CARD LOGIC ---
+        function populateStudentResultDropdown() {
+            const sel = document.getElementById('instSelectStudentForResult');
+            if (!sel || !currentTrade) return;
+            sel.innerHTML = '';
             const tStudents = getStudentList(currentTrade);
-            if (tStudents.length === 0) { alert("इस ट्रेड में कोई छात्र पंजीकृत नहीं है!"); return; }
 
-            const headerRow = ["रोल नंबर", "छात्र का नाम"];
-            for (let d = 1; d <= totalDays; d++) {
-                const isSun = (new Date(year, monthIndex, d).getDay() === 0);
-                const isHol = cMonthHolidays.includes(d);
-                let tag = "";
-                if (isSun) tag = " (रवि)";
-                else if (isHol) tag = " (अव)";
-                headerRow.push(`${d}${tag} - M`);
-                headerRow.push(`${d}${tag} - E`);
+            if (tStudents.length === 0) {
+                sel.innerHTML = '<option value="">कोई छात्र मौजूद नहीं</option>';
+                return;
             }
-            headerRow.push("माह उपस्थित", "माह कार्यदिवस", "माह अनुपस्थित", "माह उपस्थिति %", "पूर्व उपस्थित", "पूर्व कार्यदिवस", "कुल उपस्थित", "कुल कार्यदिवस", "कुल उपस्थिति %");
-
-            const excelRows = [headerRow];
 
             tStudents.forEach(st => {
-                const sRoll = String(st.roll).trim();
-                const sData = (appData.records && appData.records[currentTrade] && appData.records[currentTrade][monthVal] && appData.records[currentTrade][monthVal][sRoll]) ? appData.records[currentTrade][monthVal][sRoll] : {};
-                let evePresent = 0;
-                let eveAbsent = 0;
-
-                const rowData = [st.roll, st.name];
-
-                for (let d = 1; d <= totalDays; d++) {
-                    const isSun = (new Date(year, monthIndex, d).getDay() === 0);
-                    const isHol = cMonthHolidays.includes(d);
-
-                    if (isSun) {
-                        rowData.push("रवि", "रवि");
-                    } else if (isHol) {
-                        rowData.push("अवकाश", "अवकाश");
-                    } else {
-                        const mVal = sData[`${d}_m`] || 'P';
-                        const eVal = sData[`${d}_e`] || 'P';
-                        if (eVal === 'P') evePresent++;
-                        if (eVal === 'A') eveAbsent++;
-                        rowData.push(mVal, eVal);
-                    }
-                }
-
-                const monthPct = workingDays > 0 ? parseFloat(((evePresent / workingDays) * 100).toFixed(1)) : 0;
-                const pastW = parseInt(st.pastWorkingDays) || 0;
-                const pastP = parseInt(st.pastPresentDays) || 0;
-                const overallW = pastW + workingDays;
-                const overallP = pastP + evePresent;
-                const overallPct = overallW > 0 ? parseFloat(((overallP / overallW) * 100).toFixed(1)) : 0;
-
-                rowData.push(evePresent, workingDays, eveAbsent, `${monthPct}%`, pastP, pastW, overallP, overallW, `${overallPct}%`);
-                excelRows.push(rowData);
+                sel.innerHTML += `<option value="${st.studentId}">${st.name} (रोल: ${st.roll} | ID: ${st.studentId})</option>`;
             });
-
-            const wb = XLSX.utils.book_new();
-            const ws = XLSX.utils.aoa_to_sheet(excelRows);
-            XLSX.utils.book_append_sheet(wb, ws, "Attendance");
-            XLSX.writeFile(wb, `ITI_Kotri_${currentTrade}_Attendance_${monthVal}.xlsx`);
-            showToast("उपस्थिति रजिस्टर एक्सेल शीट डाउनलोड हो गई!");
         }
 
-        function exportEvaluationToExcel() {
-            if (!currentTrade) { alert("कृपया पहले ट्रेड का चयन करें!"); return; }
-            const monthVal = document.getElementById('evalSelectedMonth').value;
-            if (!monthVal) return;
-
-            const isEngg = isEnggTrade(currentTrade);
-            const mmConfig = getMaxMarksConfig(currentTrade, monthVal);
-
-            const tStudents = getStudentList(currentTrade);
-            if (tStudents.length === 0) { alert("इस ट्रेड में कोई छात्र पंजीकृत नहीं है!"); return; }
-
-            const monthEval = (appData.evaluations && appData.evaluations[currentTrade] && appData.evaluations[currentTrade][monthVal]) ? appData.evaluations[currentTrade][monthVal] : {};
-
-            const headers = ["रोल नंबर", "छात्र का नाम", `Trade Theory (TT / ${mmConfig.tt || 20})`, `Trade Practical (TP / ${mmConfig.tp || 20})`];
-            if (isEngg) {
-                headers.push(`WCS (/ ${mmConfig.wcs || 20})`);
-                headers.push(`Engg. Drawing (ED / ${mmConfig.ed || 20})`);
-            }
-            headers.push(`Employability Skills (ES / ${mmConfig.es || 20})`);
-
-            let totalMM = (parseFloat(mmConfig.tt) || 20) + (parseFloat(mmConfig.tp) || 20) + (parseFloat(mmConfig.es) || 20);
-            if (isEngg) {
-                totalMM += (parseFloat(mmConfig.wcs) || 20) + (parseFloat(mmConfig.ed) || 20);
-            }
-
-            headers.push(`कुल प्राप्तांक (/ ${totalMM})`, "प्रतिशत (%)", "प्रैक्टिकल रिकॉर्ड स्थिति", "रिकॉर्ड रिमार्क", "दैनिक डायरी चेकिंग", "डायरी रिमार्क", "अनुशासन", "सक्रियता");
-
-            const excelRows = [headers];
-
-            tStudents.forEach(st => {
-                const sRoll = String(st.roll).trim();
-                const ev = monthEval[sRoll] || {};
-                const tt = parseFloat(ev.tt) || 0;
-                const tp = parseFloat(ev.tp) || 0;
-                const es = parseFloat(ev.es) || 0;
-                let total = tt + tp + es;
-
-                const row = [st.roll, st.name, ev.tt !== undefined ? ev.tt : '', ev.tp !== undefined ? ev.tp : ''];
-                if (isEngg) {
-                    const wcs = parseFloat(ev.wcs) || 0;
-                    const ed = parseFloat(ev.ed) || 0;
-                    total += (wcs + ed);
-                    row.push(ev.wcs !== undefined ? ev.wcs : '');
-                    row.push(ev.ed !== undefined ? ev.ed : '');
-                }
-                row.push(ev.es !== undefined ? ev.es : '');
-
-                const pct = totalMM > 0 ? ((total / totalMM) * 100).toFixed(1) : 0;
-                row.push(total, `${pct}%`, ev.recStatus || 'A', ev.recRem || '', ev.diaryStatus || 'नियमित', ev.diaryRem || '', ev.disc || 'उत्कृष्ट', ev.act || 'सक्रिय');
-                excelRows.push(row);
-            });
-
-            const wb = XLSX.utils.book_new();
-            const ws = XLSX.utils.aoa_to_sheet(excelRows);
-            XLSX.utils.book_append_sheet(wb, ws, "Evaluations");
-            XLSX.writeFile(wb, `ITI_Kotri_${currentTrade}_Evaluations_${monthVal}.xlsx`);
-            showToast("मासिक मूल्यांकन एक्सेल शीट डाउनलोड हो गई!");
+        function loadStudentResultFromSelect() {
+            const sel = document.getElementById('instSelectStudentForResult');
+            if (!sel || !sel.value) return;
+            renderSingleStudentResultCard(sel.value);
         }
 
-        function exportStudentMasterListToExcel() {
+        function searchStudentResultById() {
+            const inputVal = document.getElementById('instSearchStudentIdInput').value.trim();
+            if (!inputVal) {
+                alert("कृपया छात्र की आईडी या रोल नंबर दर्ज करें!");
+                return;
+            }
+            renderSingleStudentResultCard(inputVal);
+        }
+
+        function renderSingleStudentResultCard(searchKey) {
             if (!currentTrade) return;
             const tStudents = getStudentList(currentTrade);
-            if (tStudents.length === 0) { alert("कोई छात्र उपलब्ध नहीं है!"); return; }
+            const targetStudent = tStudents.find(s => 
+                String(s.studentId).trim().toLowerCase() === searchKey.toLowerCase() ||
+                String(s.roll).trim() === searchKey
+            );
 
-            const headers = ["ट्रेड", "ट्रेड प्रकार", "रोल नंबर", "छात्र का नाम", "लॉगिन आईडी (Student ID)", "पासवर्ड", "पूर्व संचित कार्यदिवस", "पूर्व संचित उपस्थिति दिन"];
+            if (!targetStudent) {
+                alert(`ट्रेड [${currentTrade}] में आईडी या रोल नंबर '${searchKey}' वाला कोई छात्र नहीं मिला!`);
+                return;
+            }
+
+            const sel = document.getElementById('instSelectStudentForResult');
+            if (sel) sel.value = targetStudent.studentId;
+
+            const isEngg = isEnggTrade(currentTrade);
+            const typeStr = isEngg ? 'इंजीनियरिंग ट्रेड' : 'नॉन-इंजीनियरिंग ट्रेड';
+
+            document.getElementById('resCardName').innerText = targetStudent.name;
+            document.getElementById('resCardRoll').innerText = targetStudent.roll;
+            document.getElementById('resCardId').innerText = targetStudent.studentId;
+            document.getElementById('resCardTrade').innerText = `${currentTrade} (${typeStr})`;
+
+            const allRecMonths = Object.keys((appData.records && appData.records[currentTrade]) || {});
+            const allEvalMonths = Object.keys((appData.evaluations && appData.evaluations[currentTrade]) || {});
+            const allMonths = Array.from(new Set([...allRecMonths, ...allEvalMonths])).sort();
+
+            const monthWorkingDaysMap = {};
+            allMonths.forEach(mStr => {
+                const [y, m] = mStr.split('-').map(Number);
+                const totalD = new Date(y, m, 0).getDate();
+                const hols = (appData.holidays && appData.holidays[currentTrade] && appData.holidays[currentTrade][mStr]) || [];
+                let suns = 0, chols = 0;
+                for (let d = 1; d <= totalD; d++) {
+                    if (new Date(y, m - 1, d).getDay() === 0) suns++;
+                    else if (hols.includes(d)) chols++;
+                }
+                monthWorkingDaysMap[mStr] = totalD - (suns + chols);
+            });
+
+            const sRoll = String(targetStudent.roll).trim();
+            let pastW = parseInt(targetStudent.pastWorkingDays) || 0;
+            let pastP = parseInt(targetStudent.pastPresentDays) || 0;
+
+            let recordedPresent = 0;
+            let recordedWorking = 0;
+            let recordedAbsent = 0;
+
+            let testCount = 0;
+            let totalObt = 0;
+            let totalMM = 0;
+
+            const historyTbody = document.getElementById('resCardMonthHistoryBody');
+            if (historyTbody) historyTbody.innerHTML = '';
+
+            allMonths.forEach(mStr => {
+                const mWork = monthWorkingDaysMap[mStr] || 0;
+                recordedWorking += mWork;
+
+                const mData = (appData.records && appData.records[currentTrade] && appData.records[currentTrade][mStr] && appData.records[currentTrade][mStr][sRoll]) || {};
+                const [y, m] = mStr.split('-').map(Number);
+                const totalD = new Date(y, m, 0).getDate();
+                const hols = (appData.holidays && appData.holidays[currentTrade] && appData.holidays[currentTrade][mStr]) || [];
+
+                let mPresent = 0;
+                let mAbsent = 0;
+                for (let d = 1; d <= totalD; d++) {
+                    const isSun = (new Date(y, m - 1, d).getDay() === 0);
+                    const isHol = hols.includes(d);
+                    if (!isSun && !isHol) {
+                        const eVal = mData[`${d}_e`] || 'P';
+                        if (eVal === 'P') mPresent++;
+                        else if (eVal === 'A') mAbsent++;
+                    }
+                }
+                recordedPresent += mPresent;
+                recordedAbsent += mAbsent;
+
+                const mAttPct = mWork > 0 ? ((mPresent / mWork) * 100).toFixed(1) : 0;
+
+                const ev = (appData.evaluations && appData.evaluations[currentTrade] && appData.evaluations[currentTrade][mStr] && appData.evaluations[currentTrade][mStr][sRoll]);
+                const mm = getMaxMarksConfig(currentTrade, mStr);
+
+                let mTestStr = '-';
+                let mTestPct = '-';
+                let mRec = '-';
+                let mDiary = '-';
+                let mDisc = '-';
+
+                if (ev && (ev.tt !== '' || ev.tp !== '' || ev.es !== '')) {
+                    testCount++;
+                    let mObt = (parseFloat(ev.tt) || 0) + (parseFloat(ev.tp) || 0) + (parseFloat(ev.es) || 0);
+                    let mMax = (parseFloat(mm.tt) || 20) + (parseFloat(mm.tp) || 20) + (parseFloat(mm.es) || 20);
+
+                    if (isEngg) {
+                        mObt += (parseFloat(ev.wcs) || 0) + (parseFloat(ev.ed) || 0);
+                        mMax += (parseFloat(mm.wcs) || 20) + (parseFloat(mm.ed) || 20);
+                    }
+                    totalObt += mObt;
+                    totalMM += mMax;
+
+                    mTestStr = `${mObt} / ${mMax}`;
+                    mTestPct = `${((mObt / mMax) * 100).toFixed(1)}%`;
+                    mRec = `${ev.recStatus || 'A'} (${ev.recRem || '-'})`;
+                    mDiary = `${ev.diaryStatus || 'नियमित'}`;
+                    mDisc = `${ev.disc || 'उत्कृष्ट'}`;
+                }
+
+                if (historyTbody) {
+                    historyTbody.innerHTML += `
+                        <tr>
+                            <td><strong>${mStr}</strong></td>
+                            <td>${mWork}</td>
+                            <td style="color:#16a34a; font-weight:700;">${mPresent}</td>
+                            <td style="color:#dc2626; font-weight:700;">${mAbsent}</td>
+                            <td>${mAttPct}%</td>
+                            <td><strong>${mTestStr}</strong></td>
+                            <td>${mTestPct}</td>
+                            <td>${mRec}</td>
+                            <td>${mDiary}</td>
+                            <td>${mDisc}</td>
+                        </tr>
+                    `;
+                }
+            });
+
+            const totalW = pastW + recordedWorking;
+            const totalP = pastP + recordedPresent;
+            const totalA = Math.max(0, totalW - totalP);
+            const attPct = totalW > 0 ? ((totalP / totalW) * 100).toFixed(1) : 0;
+
+            const testPct = totalMM > 0 ? ((totalObt / totalMM) * 100).toFixed(1) : 0;
+            const isEligible = parseFloat(attPct) >= 75;
+
+            document.getElementById('resCardAttP').innerText = totalP;
+            document.getElementById('resCardAttW').innerText = totalW;
+            document.getElementById('resCardAttA').innerText = totalA;
+            document.getElementById('resCardAttPct').innerText = `${attPct}%`;
+            document.getElementById('resCardAttBar').style.width = `${Math.min(attPct, 100)}%`;
+
+            const elElig = document.getElementById('resCardEligibility');
+            if (isEligible) {
+                elElig.innerHTML = `<span style="color:#16a34a; font-weight:800;"><i class="fa-solid fa-circle-check"></i> परीक्षा हेतु पूर्णतः पात्र (उपस्थिति ${attPct}% ≥ 75%)</span>`;
+            } else {
+                elElig.innerHTML = `<span style="color:#dc2626; font-weight:800;"><i class="fa-solid fa-triangle-exclamation"></i> परीक्षा हेतु अपात्र (उपस्थिति ${attPct}% &lt; 75% NCVT मानदंड)</span>`;
+            }
+
+            document.getElementById('resCardTestCount').innerText = `${testCount} टेस्ट`;
+            document.getElementById('resCardTestMarks').innerText = `${totalObt} / ${totalMM}`;
+            document.getElementById('resCardTestPct').innerText = `${testPct}%`;
+
+            let grade = 'D';
+            if (testPct >= 80) grade = 'A+ (उत्कृष्ट)';
+            else if (testPct >= 70) grade = 'A (बहुत अच्छा)';
+            else if (testPct >= 60) grade = 'B (अच्छा)';
+            else if (testPct >= 50) grade = 'C (संतोषजनक)';
+            document.getElementById('resCardGrade').innerText = grade;
+        }
+
+        function printStudentResultCard() {
+            window.print();
+        }
+
+        function exportConsolidatedToExcel() {
+            if (!currentTrade) { alert("कृपया पहले ट्रेड चुनें!"); return; }
+            const tStudents = getStudentList(currentTrade);
+            if (tStudents.length === 0) { alert("कोई छात्र पंजीकृत नहीं है!"); return; }
+
+            const allRecMonths = Object.keys((appData.records && appData.records[currentTrade]) || {});
+            const allEvalMonths = Object.keys((appData.evaluations && appData.evaluations[currentTrade]) || {});
+            const allMonths = Array.from(new Set([...allRecMonths, ...allEvalMonths])).sort();
+
+            const monthWorkingDaysMap = {};
+            allMonths.forEach(mStr => {
+                const [y, m] = mStr.split('-').map(Number);
+                const totalD = new Date(y, m, 0).getDate();
+                const hols = (appData.holidays && appData.holidays[currentTrade] && appData.holidays[currentTrade][mStr]) || [];
+                let suns = 0, chols = 0;
+                for (let d = 1; d <= totalD; d++) {
+                    if (new Date(y, m - 1, d).getDay() === 0) suns++;
+                    else if (hols.includes(d)) chols++;
+                }
+                monthWorkingDaysMap[mStr] = totalD - (suns + chols);
+            });
+
+            const isEngg = isEnggTrade(currentTrade);
+            const headers = [
+                "ट्रेड", "रोल नंबर", "छात्र का नाम", "छात्र आईडी",
+                "पूर्व संचित कार्यदिवस", "पूर्व संचित उपस्थिति",
+                "सत्र में कुल कार्यदिवस", "सत्र में कुल उपस्थिति", "सत्र में कुल अनुपस्थिति", "वार्षिक उपस्थिति प्रतिशत",
+                "सत्र में दिए गए टेस्ट", "टेस्ट कुल प्राप्तांक", "टेस्ट कुल पूर्णांक", "टेस्ट कुल प्रतिशत",
+                "NCVT परीक्षा पात्रता स्थिति"
+            ];
+
             const excelRows = [headers];
-            const typeStr = isEnggTrade(currentTrade) ? "इंजीनियरिंग" : "नॉन-इंजीनियरिंग";
 
             tStudents.forEach(st => {
+                const sRoll = String(st.roll).trim();
+                let pastW = parseInt(st.pastWorkingDays) || 0;
+                let pastP = parseInt(st.pastPresentDays) || 0;
+
+                let recordedPresent = 0;
+                let recordedWorking = 0;
+
+                allMonths.forEach(mStr => {
+                    const mWork = monthWorkingDaysMap[mStr] || 0;
+                    recordedWorking += mWork;
+                    const mData = (appData.records && appData.records[currentTrade] && appData.records[currentTrade][mStr] && appData.records[currentTrade][mStr][sRoll]) || {};
+                    const [y, m] = mStr.split('-').map(Number);
+                    const totalD = new Date(y, m, 0).getDate();
+                    const hols = (appData.holidays && appData.holidays[currentTrade] && appData.holidays[currentTrade][mStr]) || [];
+
+                    for (let d = 1; d <= totalD; d++) {
+                        const isSun = (new Date(y, m - 1, d).getDay() === 0);
+                        const isHol = hols.includes(d);
+                        if (!isSun && !isHol) {
+                            const eVal = mData[`${d}_e`] || 'P';
+                            if (eVal === 'P') recordedPresent++;
+                        }
+                    }
+                });
+
+                const totalW = pastW + recordedWorking;
+                const totalP = pastP + recordedPresent;
+                const totalA = Math.max(0, totalW - totalP);
+                const attPct = totalW > 0 ? ((totalP / totalW) * 100).toFixed(1) : 0;
+
+                let testCount = 0;
+                let totalObt = 0;
+                let totalMM = 0;
+
+                allMonths.forEach(mStr => {
+                    const ev = (appData.evaluations && appData.evaluations[currentTrade] && appData.evaluations[currentTrade][mStr] && appData.evaluations[currentTrade][mStr][sRoll]);
+                    const mm = getMaxMarksConfig(currentTrade, mStr);
+
+                    if (ev && (ev.tt !== '' || ev.tp !== '' || ev.es !== '')) {
+                        testCount++;
+                        let mObt = (parseFloat(ev.tt) || 0) + (parseFloat(ev.tp) || 0) + (parseFloat(ev.es) || 0);
+                        let mMM = (parseFloat(mm.tt) || 20) + (parseFloat(mm.tp) || 20) + (parseFloat(mm.es) || 20);
+
+                        if (isEngg) {
+                            mObt += (parseFloat(ev.wcs) || 0) + (parseFloat(ev.ed) || 0);
+                            mMM += (parseFloat(mm.wcs) || 20) + (parseFloat(mm.ed) || 20);
+                        }
+                        totalObt += mObt;
+                        totalMM += mMM;
+                    }
+                });
+
+                const testPct = totalMM > 0 ? ((totalObt / totalMM) * 100).toFixed(1) : 0;
+                const eligibility = parseFloat(attPct) >= 75 ? "पात्र (Eligible)" : "अपात्र (Not Eligible)";
+
                 excelRows.push([
-                    currentTrade, typeStr, st.roll, st.name, st.studentId, st.password,
-                    st.pastWorkingDays || 0, st.pastPresentDays || 0
+                    currentTrade, sRoll, st.name, st.studentId,
+                    pastW, pastP,
+                    totalW, totalP, totalA, `${attPct}%`,
+                    testCount, totalObt, totalMM, `${testPct}%`,
+                    eligibility
                 ]);
             });
 
             const wb = XLSX.utils.book_new();
             const ws = XLSX.utils.aoa_to_sheet(excelRows);
-            XLSX.utils.book_append_sheet(wb, ws, "Students_Master");
-            XLSX.writeFile(wb, `ITI_Kotri_${currentTrade}_Students_Master.xlsx`);
-            showToast("छात्र मास्टर लिस्ट एक्सेल शीट डाउनलोड हो गई!");
+            XLSX.utils.book_append_sheet(wb, ws, "Consolidated_Ledger");
+            XLSX.writeFile(wb, `ITI_Kotri_${currentTrade}_Annual_Master_Ledger.xlsx`);
+            showToast("वार्षिक मास्टर लेजर एक्सेल शीट डाउनलोड हो गई!");
         }
 
         // --- STUDENT CRUD FUNCTIONS ---
@@ -2336,6 +2354,7 @@
             renderRegister();
             renderEvaluationTable();
             renderStudentCredentialsModalTable();
+            populateStudentResultDropdown();
             showToast("छात्र सफलतापूर्वक जोड़ा गया!");
             
             document.getElementById('newRoll').value = '';
@@ -2419,6 +2438,7 @@
             renderRegister();
             renderEvaluationTable();
             renderStudentCredentialsModalTable();
+            populateStudentResultDropdown();
             showToast("छात्र विवरण सफलतापूर्वक अपडेट हुआ!");
         }
 
@@ -2450,6 +2470,7 @@
                 renderRegister();
                 renderEvaluationTable();
                 renderStudentCredentialsModalTable();
+                populateStudentResultDropdown();
                 showToast(`छात्र "${studentName}" हटाया गया!`);
             }
         }
@@ -2605,6 +2626,7 @@
                         renderRegister(); 
                         renderEvaluationTable(); 
                         renderStudentCredentialsModalTable();
+                        populateStudentResultDropdown();
                     }
                     if (currentRole === 'admin') renderAdminView();
                     if (currentRole === 'student') renderStudentDashboard();
