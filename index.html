@@ -330,14 +330,17 @@
         th, td { padding: 6px 5px; text-align: center; border: 1px solid var(--border-color); }
         th { background: #f8fafc; color: #334155; font-weight: 600; position: sticky; top: 0; z-index: 5; }
 
+        /* रोल नंबर पहले और नाम बाद में फिक्स (Sticky) */
+        .col-sticky-roll {
+            position: sticky; left: 0; background: #ffffff; z-index: 6; font-weight: 700; min-width: 65px; text-align: center;
+        }
+        th.col-sticky-roll { background: #f1f5f9; z-index: 7; }
+
         .col-sticky-name {
-            position: sticky; left: 0; background: #ffffff; z-index: 6; text-align: left;
-            padding-left: 10px; font-weight: 600; min-width: 140px;
+            position: sticky; left: 65px; background: #ffffff; z-index: 6; text-align: left;
+            padding-left: 10px; font-weight: 600; min-width: 155px; border-right: 2px solid #cbd5e1;
         }
         th.col-sticky-name { background: #f1f5f9; z-index: 7; }
-
-        .col-roll { position: sticky; left: 140px; background: #ffffff; z-index: 6; min-width: 60px; }
-        th.col-roll { background: #f1f5f9; z-index: 7; }
 
         .day-sunday { background: #fee2e2 !important; color: #991b1b; font-weight: 700; }
         .day-holiday { background: #f3e8ff !important; color: #6b21a8; font-weight: 700; }
@@ -727,7 +730,7 @@
 
                 <div style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; font-size: 0.85rem; background: #ffffff; padding: 10px 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
                     <span id="workingDaysSummary" style="font-weight: 700; color: var(--primary);"></span>
-                    <span style="color: var(--text-muted);"><i class="fa-solid fa-circle-info"></i> <strong>M:</strong> सुबह सत्र | <strong>E:</strong> शाम सत्र (सत्र के बाहर के दिन अप्रभावी रहेंगे)</span>
+                    <span style="color: var(--text-muted);"><i class="fa-solid fa-circle-info"></i> <strong>M:</strong> सुबह सत्र | <strong>E:</strong> शाम सत्र (सत्र से बाहर के दिन अक्षम रहेंगे)</span>
                 </div>
 
                 <div class="table-shell">
@@ -991,7 +994,7 @@
                     <select id="reportCardTradeSelect" onchange="populateStudentSelectForReport()"></select>
                 </div>
                 <div class="input-group" style="margin-bottom: 0;">
-                    <label>छात्र चुनें (ID / Roll):</label>
+                    <label>छात्र चुनें (Roll / Name):</label>
                     <select id="reportCardStudentSelect"></select>
                 </div>
                 <button type="button" class="app-btn app-btn-primary" style="height: 42px;" onclick="generateAnnualReportPreview()">
@@ -1116,7 +1119,7 @@
             <form onsubmit="saveNewStudent(event)" autocomplete="off">
                 <div class="input-group">
                     <label>रोल नंबर:</label>
-                    <input type="text" id="newRoll" required placeholder="उदा. 101" autocomplete="off">
+                    <input type="number" id="newRoll" required placeholder="उदा. 1" min="1" autocomplete="off">
                 </div>
                 <div class="input-group">
                     <label>छात्र का पूरा नाम:</label>
@@ -1154,7 +1157,7 @@
                 <input type="hidden" id="editOriginalRoll">
                 <div class="input-group">
                     <label>रोल नंबर:</label>
-                    <input type="text" id="editRoll" required autocomplete="off">
+                    <input type="number" id="editRoll" required min="1" autocomplete="off">
                 </div>
                 <div class="input-group">
                     <label>छात्र का पूरा नाम:</label>
@@ -1216,7 +1219,7 @@
         </div>
     </div>
 
-    <!-- 8. Daily Roll-Call Modal -->
+    <!-- 8. Daily Roll-Call Modal (रोल नंबर पहले, फिर नाम) -->
     <div id="todayRollCallModal" class="modal-backdrop hidden">
         <div class="modal-content" style="max-width: 640px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1.5px solid var(--border-color); padding-bottom: 8px;">
@@ -1232,7 +1235,7 @@
                 <table>
                     <thead>
                         <tr>
-                            <th style="width: 50px;">रोल</th>
+                            <th style="width: 60px;">रोल</th>
                             <th style="text-align: left; padding-left: 10px;">छात्र का नाम</th>
                             <th style="width: 80px;">सुबह (M)</th>
                             <th style="width: 80px;">शाम (E)</th>
@@ -1293,11 +1296,11 @@
             ],
             students: {
                 "COPA": [
-                    { roll: "101", name: "राहुल शर्मा", studentId: "st101", password: "123", pastWorkingDays: 0, pastPresentDays: 0 },
-                    { roll: "102", name: "पूजा वर्मा", studentId: "st102", password: "123", pastWorkingDays: 0, pastPresentDays: 0 }
+                    { roll: "1", name: "राहुल शर्मा", studentId: "st101", password: "123", pastWorkingDays: 0, pastPresentDays: 0 },
+                    { roll: "2", name: "पूजा वर्मा", studentId: "st102", password: "123", pastWorkingDays: 0, pastPresentDays: 0 }
                 ],
                 "Electrician": [
-                    { roll: "201", name: "सुरेश गुर्जर", studentId: "el201", password: "123", pastWorkingDays: 0, pastPresentDays: 0 }
+                    { roll: "1", name: "सुरेश गुर्जर", studentId: "el201", password: "123", pastWorkingDays: 0, pastPresentDays: 0 }
                 ]
             },
             records: {},
@@ -1310,6 +1313,7 @@
         let currentTrade = null;
         let loggedInStudent = null;
 
+        // --- सत्र दिनांक हेल्पर फ़ंक्शन ---
         function getSessionConfig() {
             if (!appData.sessionConfig) {
                 appData.sessionConfig = { startDate: "2026-08-10", endDate: "2027-06-30" };
@@ -1357,6 +1361,7 @@
             syncWithFirebase();
             closeModal('sessionConfigModal');
             updateAdminSessionBadge();
+            renderRegister();
             showToast("प्रशिक्षण सत्र अवधि सुरक्षित कर दी गई!");
         }
 
@@ -1372,12 +1377,18 @@
             return Object.values(appData.instructors).filter(Boolean);
         }
 
+        // --- रोल नंबर के अनुसार 1, 2, 3... आरोही क्रम में सॉर्टेड सूची ---
         function getStudentList(trade) {
             if (!trade || !appData || !appData.students) return [];
             const raw = appData.students[trade];
             if (!raw) return [];
-            if (Array.isArray(raw)) return raw.filter(Boolean);
-            return Object.values(raw).filter(Boolean);
+            let list = Array.isArray(raw) ? raw.filter(Boolean) : Object.values(raw).filter(Boolean);
+            
+            return list.sort((a, b) => {
+                const rollA = parseInt(a.roll, 10) || 0;
+                const rollB = parseInt(b.roll, 10) || 0;
+                return rollA - rollB;
+            });
         }
 
         function isEnggTrade(trade) {
@@ -1751,8 +1762,8 @@
 
                 thead.innerHTML = `
                     <tr>
+                        <th rowspan="2" class="col-sticky-roll">रोल</th>
                         <th rowspan="2" class="col-sticky-name">छात्र का नाम</th>
-                        <th rowspan="2" class="col-roll">रोल</th>
                         <th colspan="${testColSpan}" style="background:#e0f2fe; color:#0369a1;">मासिक टेस्ट अंक</th>
                         <th rowspan="2" style="background:#dbeafe; color:#1e40af;">कुल प्राप्तांक</th>
                         <th rowspan="2" style="background:#dbeafe; color:#1e40af;">प्रतिशत (%)</th>
@@ -1777,7 +1788,7 @@
             if (!appData.evaluations[currentTrade][monthVal]) appData.evaluations[currentTrade][monthVal] = {};
 
             const monthEval = appData.evaluations[currentTrade][monthVal];
-            const tStudents = getStudentList(currentTrade);
+            const tStudents = getStudentList(currentTrade); // स्वतः 1, 2, 3... क्रम में सॉर्टेड
             const tbody = document.getElementById('evaluationTableBody');
             if (!tbody) return;
             tbody.innerHTML = '';
@@ -1814,8 +1825,8 @@
 
                 tbody.innerHTML += `
                     <tr>
+                        <td class="col-sticky-roll">${sRoll}</td>
                         <td class="col-sticky-name">${st.name}</td>
-                        <td class="col-roll">${sRoll}</td>
                         ${inputsHTML}
                         <td id="tot_${sRoll}" style="font-weight:700; color:#1e40af; background:#f8fafc;">0</td>
                         <td id="pct_${sRoll}" style="font-weight:700; color:#15803d; background:#f8fafc;">0%</td>
@@ -1922,7 +1933,7 @@
             const elName = document.getElementById('scStudentName');
             const elRoll = document.getElementById('scRoll');
             if (elName) elName.innerText = loggedInStudent.name;
-            if (elRoll) elRoll.innerText = `ट्रेड: ${currentTrade} (${tradeTypeTag}) | रोल: ${loggedInStudent.roll} | आईडी: ${loggedInStudent.studentId}`;
+            if (elRoll) elRoll.innerText = `रोल: ${loggedInStudent.roll} | छात्र: ${loggedInStudent.name} | ट्रेड: ${currentTrade} (${tradeTypeTag}) | आईडी: ${loggedInStudent.studentId}`;
 
             let monthVal = document.getElementById('studentMonthSelector')?.value;
             if (!monthVal) {
@@ -2112,7 +2123,7 @@
             }
         }
 
-        // --- REGISTER TABLE LOGIC (सत्र सीमा अनुसार) ---
+        // --- REGISTER TABLE LOGIC (रोल नंबर पहले, फिर नाम - 1,2,3... क्रम) ---
         function renderRegister() {
             if (!currentTrade) return;
             let monthVal = document.getElementById('selectedMonth')?.value;
@@ -2138,7 +2149,8 @@
             const cMonthHolidays = rawHols.map(Number);
 
             const thead = document.getElementById('attendanceHeader');
-            let headerTop = `<tr><th rowspan="2" class="col-sticky-name">छात्र का नाम</th><th rowspan="2" class="col-roll">रोल</th>`;
+            // रोल नंबर पहले और छात्र का नाम बाद में
+            let headerTop = `<tr><th rowspan="2" class="col-sticky-roll">रोल</th><th rowspan="2" class="col-sticky-name">छात्र का नाम</th>`;
             let headerSub = `<tr>`;
 
             let sundayCount = 0;
@@ -2189,7 +2201,7 @@
             const tbody = document.getElementById('attendanceBody');
             tbody.innerHTML = '';
             
-            const tStudents = getStudentList(currentTrade);
+            const tStudents = getStudentList(currentTrade); // 1, 2, 3... क्रम
 
             if (tStudents.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="${totalDays * 2 + 8}" style="padding: 24px; color: var(--text-muted); font-size: 0.95rem;">इस ट्रेड में अभी तक कोई छात्र नहीं जोड़ा गया है।</td></tr>`;
@@ -2202,9 +2214,10 @@
                 let evePresentCount = 0;
                 let eveAbsentCount = 0;
 
+                // रोल नंबर पहले और नाम बाद में
                 let rowHTML = `<tr>
-                    <td class="col-sticky-name">${student.name}</td>
-                    <td class="col-roll">${student.roll}</td>`;
+                    <td class="col-sticky-roll">${student.roll}</td>
+                    <td class="col-sticky-name">${student.name}</td>`;
 
                 for (let d = 1; d <= totalDays; d++) {
                     const dateObj = new Date(year, monthIndex, d);
@@ -2391,7 +2404,6 @@
                 Object.keys(appData.evaluations[trade]).forEach(m => recordedMonthsSet.add(m));
             }
             
-            // केवल सत्र की परिधि वाले महीनों को ही लें
             const allMonths = Array.from(recordedMonthsSet)
                 .filter(mVal => isMonthInSession(mVal))
                 .sort();
@@ -2531,8 +2543,8 @@
                 </div>
 
                 <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; font-size: 0.88rem; background: #f8fafc; padding: 12px; border-radius: 6px; border: 1px solid #cbd5e1; margin-bottom: 14px;">
-                    <div><strong>प्रशिक्षु का नाम:</strong> ${st.name}</div>
                     <div><strong>रोल नंबर:</strong> ${st.roll}</div>
+                    <div><strong>प्रशिक्षु का नाम:</strong> ${st.name}</div>
                     <div><strong>ट्रेड:</strong> ${trade} (${isEngg ? 'Engineering' : 'Non-Engineering'})</div>
                     <div><strong>छात्र आईडी (Student ID):</strong> ${st.studentId}</div>
                 </div>
@@ -2593,7 +2605,7 @@
             `;
         }
 
-        // --- NEW ADMIN POWER 1: TRADE-WISE OVERALL ANNUAL PERFORMANCE EXCEL EXPORT ---
+        // --- NEW ADMIN POWER 1: TRADE-WISE OVERALL ANNUAL PERFORMANCE EXCEL EXPORT (रोल नंबर पहले) ---
         function openAdminAnnualExcelModal() {
             populateTradeDropdowns();
             openModal('adminAnnualExcelModal');
