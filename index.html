@@ -344,6 +344,7 @@
         .day-sunday { background: #fee2e2 !important; color: #991b1b; font-weight: 700; }
         .day-holiday { background: #f3e8ff !important; color: #6b21a8; font-weight: 700; }
         .day-inactive { background: #f1f5f9 !important; color: #94a3b8; font-style: italic; }
+        .day-future { background: #fafafa !important; color: #94a3b8; }
 
         .btn-status-toggle {
             width: 26px; height: 26px; border-radius: 5px; border: none; font-weight: 700;
@@ -588,7 +589,6 @@
         <section id="frontLoginSection">
             <div class="login-wrapper">
                 
-                <!-- अनुदेशक लॉगिन -->
                 <div class="glass-card card-instructor">
                     <div class="card-header-icon"><i class="fa-solid fa-chalkboard-user"></i></div>
                     <h2 class="form-title">ट्रेड अनुदेशक लॉगिन</h2>
@@ -613,7 +613,6 @@
                     </form>
                 </div>
 
-                <!-- छात्र लॉगिन -->
                 <div class="glass-card card-student">
                     <div class="card-header-icon"><i class="fa-solid fa-user-graduate"></i></div>
                     <h2 class="form-title">प्रशिक्षु (Student) लॉगिन</h2>
@@ -669,7 +668,7 @@
                 <span style="font-weight: 700; color: #1e3a8a;">
                     <i class="fa-solid fa-calendar-check"></i> वर्तमान सक्रिय सत्र: <span id="adminSessionDisplayBadge" style="color: #2563eb;">2026-08-10 से 2027-06-30</span>
                 </span>
-                <span style="font-size: 0.8rem; color: #64748b;">(सभी उपस्थिति व कार्यदिवस इसी निर्धारित सत्र सीमा में ही गिने जाते हैं)</span>
+                <span style="font-size: 0.8rem; color: #64748b;">(सभी उपस्थिति व कार्यदिवस केवल इसी अवधि में आज तक के ही गिने जाते हैं)</span>
             </div>
 
             <div class="glass-card" style="padding: 20px;">
@@ -729,7 +728,7 @@
 
                 <div style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; font-size: 0.85rem; background: #ffffff; padding: 10px 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
                     <span id="workingDaysSummary" style="font-weight: 700; color: var(--primary);"></span>
-                    <span style="color: var(--text-muted);"><i class="fa-solid fa-circle-info"></i> <strong>M:</strong> सुबह सत्र | <strong>E:</strong> शाम सत्र (सत्र से बाहर के दिन अक्षम रहेंगे)</span>
+                    <span style="color: var(--text-muted);"><i class="fa-solid fa-circle-info"></i> <strong>M:</strong> सुबह सत्र | <strong>E:</strong> शाम सत्र (भविष्य की तारीखें निष्प्रभावी रहेंगी)</span>
                 </div>
 
                 <div class="table-shell">
@@ -829,7 +828,7 @@
                         </div>
                     </div>
 
-                    <div class="section-bar-title"><i class="fa-solid fa-calendar-day"></i> इस माह का विवरण (Current Month)</div>
+                    <div class="section-bar-title"><i class="fa-solid fa-calendar-day"></i> इस माह का विवरण (Current Month - आज तक)</div>
                     <div class="stats-tri-grid">
                         <div class="metric-card">
                             <div class="title">इस माह उपस्थित</div>
@@ -961,7 +960,7 @@
                 <i class="fa-solid fa-file-excel" style="color: #166534;"></i> वार्षिक ट्रेड-वाइज़ परफॉर्मेंस रिपोर्ट (Excel)
             </h3>
             <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 14px;">
-                ट्रेड का चयन करें। यह रिपोर्ट चुने गए ट्रेड के सभी छात्रों का वर्तमान सत्र अवधि में संचित उपस्थिति प्रतिशत और टेस्ट प्राप्तांक एक्सपोर्ट करेगी।
+                ट्रेड का चयन करें। यह रिपोर्ट चुने गए ट्रेड के सभी छात्रों का वर्तमान सत्र अवधि में आज तक संचित उपस्थिति प्रतिशत और टेस्ट प्राप्तांक एक्सपोर्ट करेगी।
             </p>
             <div class="input-group">
                 <label>ट्रेड चुनें:</label>
@@ -986,7 +985,6 @@
                 <button class="app-btn app-btn-secondary" style="padding: 4px 10px;" onclick="closeModal('adminAnnualReportModal')">✕</button>
             </div>
 
-            <!-- Filters -->
             <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 10px; margin-bottom: 16px; align-items: flex-end;">
                 <div class="input-group" style="margin-bottom: 0;">
                     <label>ट्रेड चुनें:</label>
@@ -1001,7 +999,6 @@
                 </button>
             </div>
 
-            <!-- Preview Card Container -->
             <div id="reportCardPreviewWrapper" class="hidden">
                 <div style="text-align: right; margin-bottom: 10px;" id="adminPdfDownloadBtnContainer">
                     <button type="button" class="app-btn app-btn-pdf" onclick="downloadReportCardAsPDF()">
@@ -1218,7 +1215,7 @@
         </div>
     </div>
 
-    <!-- 8. Daily Roll-Call Modal (रोल नंबर पहले, फिर नाम) -->
+    <!-- 8. Daily Roll-Call Modal -->
     <div id="todayRollCallModal" class="modal-backdrop hidden">
         <div class="modal-content" style="max-width: 640px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1.5px solid var(--border-color); padding-bottom: 8px;">
@@ -1312,7 +1309,6 @@
         let currentTrade = null;
         let loggedInStudent = null;
 
-        // --- सत्र दिनांक हेल्पर फ़ंक्शन ---
         function getSessionConfig() {
             if (!appData.sessionConfig) {
                 appData.sessionConfig = { startDate: "2026-08-10", endDate: "2027-06-30" };
@@ -1376,7 +1372,6 @@
             return Object.values(appData.instructors).filter(Boolean);
         }
 
-        // --- रोल नंबर के अनुसार 1, 2, 3... आरोही क्रम में सॉर्टेड सूची ---
         function getStudentList(trade) {
             if (!trade || !appData || !appData.students) return [];
             const raw = appData.students[trade];
@@ -1922,7 +1917,7 @@
             showToast("पूर्णांक एवं छात्र मासिक अंक सुरक्षित किए गए!");
         }
 
-        // --- STUDENT DASHBOARD RENDERING ---
+        // --- STUDENT DASHBOARD RENDERING (भविष्य की तारीखें अलग) ---
         function renderStudentDashboard() {
             if (!loggedInStudent || !currentTrade) return;
 
@@ -1957,6 +1952,9 @@
                 ? appData.records[currentTrade][monthVal][sRoll] 
                 : {};
 
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
             let currEvePresent = 0;
             let currEveAbsent = 0;
             let currWorkingDays = 0;
@@ -1971,12 +1969,16 @@
                 const isSun = (dateObj.getDay() === 0);
                 const isHol = cMonthHolidays.includes(d);
                 const inSession = isDateInSession(dateObj);
+                const isFuture = dateObj > today;
 
                 let mVal = '-', eVal = '-', statusLabel = '';
 
                 if (!inSession) {
                     mVal = 'N/A'; eVal = 'N/A';
                     statusLabel = '<span style="color:#64748b; font-style:italic;">सत्र अवधि से बाहर</span>';
+                } else if (isFuture) {
+                    mVal = '-'; eVal = '-';
+                    statusLabel = '<span style="color:#94a3b8; font-style:italic;">लंबित (आगामी तारीख)</span>';
                 } else if (isSun) {
                     mVal = 'रवि'; eVal = 'रवि';
                     statusLabel = '<span style="color:#b91c1c; font-weight:700;">रविवार</span>';
@@ -1985,18 +1987,19 @@
                     statusLabel = '<span style="color:#7e22ce; font-weight:700;">अवकाश</span>';
                 } else {
                     currWorkingDays++;
-                    mVal = sData[`${d}_m`] || 'P';
-                    eVal = sData[`${d}_e`] || 'P';
+                    mVal = sData[`${d}_m`] || '-';
+                    eVal = sData[`${d}_e`] || '-';
 
                     if (eVal === 'P') currEvePresent++;
                     if (eVal === 'A') currEveAbsent++;
 
-                    mVal = `<span class="btn-status-toggle st-${mVal}">${mVal}</span>`;
-                    eVal = `<span class="btn-status-toggle st-${eVal}">${eVal}</span>`;
+                    mVal = `<span class="btn-status-toggle st-${mStatus}">${mStatus}</span>`;
+                    eVal = `<span class="btn-status-toggle st-${eStatus}">${eStatus}</span>`;
 
-                    if (sData[`${d}_e`] === 'A') statusLabel = '<span style="color:var(--danger); font-weight:700;">अनुपस्थित</span>';
-                    else if (sData[`${d}_e`] === 'L') statusLabel = '<span style="color:var(--warning); font-weight:700;">अवकाश</span>';
-                    else statusLabel = '<span style="color:var(--success); font-weight:700;">उपस्थित</span>';
+                    if (eVal === 'A') statusLabel = '<span style="color:var(--danger); font-weight:700;">अनुपस्थित</span>';
+                    else if (eVal === 'L') statusLabel = '<span style="color:var(--warning); font-weight:700;">अवकाश</span>';
+                    else if (eVal === 'P') statusLabel = '<span style="color:var(--success); font-weight:700;">उपस्थित</span>';
+                    else statusLabel = '<span style="color:#64748b;">अदर्ज</span>';
                 }
 
                 if (logTableBody) {
@@ -2122,7 +2125,7 @@
             }
         }
 
-        // --- REGISTER TABLE LOGIC ---
+        // --- REGISTER TABLE LOGIC (भविष्य की तारीखें खाली, केवल आज तक की गिनती) ---
         function renderRegister() {
             if (!currentTrade) return;
             let monthVal = document.getElementById('selectedMonth')?.value;
@@ -2151,6 +2154,9 @@
             let headerTop = `<tr><th rowspan="2" class="col-sticky-roll">रोल</th><th rowspan="2" class="col-sticky-name">छात्र का नाम</th>`;
             let headerSub = `<tr>`;
 
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
             let sundayCount = 0;
             let holidayCount = 0;
             let workingDays = 0;
@@ -2160,6 +2166,7 @@
                 const sunday = (dateObj.getDay() === 0);
                 const isCustomHol = cMonthHolidays.includes(d);
                 const inSession = isDateInSession(dateObj);
+                const isFuture = dateObj > today;
 
                 let cls = '';
                 let title = d;
@@ -2167,6 +2174,9 @@
                 if (!inSession) {
                     cls = 'day-inactive';
                     title = `${d} (-)`;
+                } else if (isFuture) {
+                    cls = 'day-future';
+                    title = `${d}`;
                 } else if (sunday) { 
                     sundayCount++;
                     cls = 'day-sunday'; 
@@ -2176,7 +2186,7 @@
                     cls = 'day-holiday'; 
                     title = `${d} (अव)`; 
                 } else {
-                    workingDays++;
+                    workingDays++; // केवल आज तक के कार्यदिवस गिने जाएंगे
                 }
 
                 headerTop += `<th colspan="2" class="${cls}">${title}</th>`;
@@ -2194,7 +2204,7 @@
 
             const conf = getSessionConfig();
             document.getElementById('workingDaysSummary').innerHTML = 
-                `<i class="fa-solid fa-calendar-check"></i> सत्र कार्यदिवस: <strong>${workingDays} दिन</strong> | रविवार: ${sundayCount} | अवकाश: ${holidayCount} <span style="color:#64748b; font-size:0.75rem;">(सत्र: ${conf.startDate} से ${conf.endDate})</span>`;
+                `<i class="fa-solid fa-calendar-check"></i> सत्र कार्यदिवस (आज तक): <strong>${workingDays} दिन</strong> | रविवार: ${sundayCount} | अवकाश: ${holidayCount} <span style="color:#64748b; font-size:0.75rem;">(सत्र: ${conf.startDate} से ${conf.endDate})</span>`;
 
             const tbody = document.getElementById('attendanceBody');
             tbody.innerHTML = '';
@@ -2221,10 +2231,15 @@
                     const sunday = (dateObj.getDay() === 0);
                     const isCustomHol = cMonthHolidays.includes(d);
                     const inSession = isDateInSession(dateObj);
+                    const isFuture = dateObj > today;
 
                     if (!inSession) {
                         rowHTML += `<td class="day-inactive"><span class="btn-status-toggle st-NA">-</span></td>
                                     <td class="day-inactive"><span class="btn-status-toggle st-NA">-</span></td>`;
+                    } else if (isFuture) {
+                        // भविष्य की तारीखें पूरी तरह खाली (-)
+                        rowHTML += `<td style="background:#f8fafc; color:#cbd5e1; font-weight:600;">-</td>
+                                    <td style="background:#f8fafc; color:#cbd5e1; font-weight:600;">-</td>`;
                     } else if (sunday) {
                         rowHTML += `<td class="day-sunday"><span class="btn-status-toggle st-S">S</span></td>
                                     <td class="day-sunday"><span class="btn-status-toggle st-S">S</span></td>`;
@@ -2232,8 +2247,9 @@
                         rowHTML += `<td class="day-holiday"><span class="btn-status-toggle st-H">H</span></td>
                                     <td class="day-holiday"><span class="btn-status-toggle st-H">H</span></td>`;
                     } else {
-                        const mStatus = sData[`${d}_m`] || 'P';
-                        const eStatus = sData[`${d}_e`] || 'P';
+                        // आज तक की तारीखें: यदि भरी गई हैं तो वही दिखेंगी, अन्यथा खाली
+                        const mStatus = sData[`${d}_m`] || '-';
+                        const eStatus = sData[`${d}_e`] || '-';
 
                         if (eStatus === 'P') evePresentCount++;
                         if (eStatus === 'A') eveAbsentCount++;
@@ -2272,19 +2288,30 @@
             });
         }
 
+        // भविष्य की तारीखों पर हाजिरी टॉगल लॉक
         function toggleSession(monthVal, roll, key) {
-            if (!appData.records) appData.records = {};
-            if (!appData.records[currentTrade]) appData.records[currentTrade] = {};
-            if (!appData.records[currentTrade][monthVal]) appData.records[currentTrade][monthVal] = {};
-            if (!appData.records[currentTrade][monthVal][roll]) appData.records[currentTrade][monthVal][roll] = {};
+            const [y, m] = monthVal.split('-').map(Number);
+            const d = parseInt(key.split('_')[0], 10);
+            const targetDate = new Date(y, m - 1, d);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
 
-            const curr = appData.records[currentTrade][monthVal][roll][key] || 'P';
-            const nextMap = { 'P': 'A', 'A': 'L', 'L': 'P' };
-            appData.records[currentTrade][monthVal][roll][key] = nextMap[curr];
+            if (targetDate > today) {
+                showToast("आगामी (भविष्य की) तारीख की हाजिरी पहले से दर्ज नहीं की जा सकती!");
+                return;
+            }
+
+            if (!appData.records[currentTrade][monthVal][roll]) {
+                appData.records[currentTrade][monthVal][roll] = {};
+            }
+
+            const curr = appData.records[currentTrade][monthVal][roll][key] || '-';
+            const nextMap = { '-': 'P', 'P': 'A', 'A': 'L', 'L': 'P' };
+            appData.records[currentTrade][monthVal][roll][key] = nextMap[curr] || 'P';
             renderRegister();
         }
 
-        // --- दैनिक हाजिरी (Roll-Call) फ़ंक्शंस (पूर्णतः सही किया हुआ) ---
+        // --- दैनिक हाजिरी (Roll-Call) फ़ंक्शंस ---
         function openTodayRollCallModal() {
             if (!currentTrade) { alert("कृपया पहले ट्रेड चुनें!"); return; }
             const today = new Date();
@@ -2326,7 +2353,7 @@
                     appData.records[currentTrade][monthVal][sRoll] = {};
                 }
 
-                // जो पहले से उपस्थित है वो P रहेगा, अन्य स्थिति को भी सही लोड करें
+                // आज की हाजिरी खोलते समय पहले से दर्ज स्थिति या डिफ़ॉल्ट 'P'
                 const mStatus = appData.records[currentTrade][monthVal][sRoll][`${d}_m`] || 'P';
                 const eStatus = appData.records[currentTrade][monthVal][sRoll][`${d}_e`] || 'P';
 
@@ -2359,8 +2386,8 @@
 
         async function saveAndCloseRollCallModal() {
             closeModal('todayRollCallModal');
-            renderRegister(); // मुख्य रजिस्टर को तुरंत री-रेंडर करें
-            await syncWithFirebase(); // क्लाउड पर सेव करें
+            renderRegister();
+            await syncWithFirebase();
             showToast("दैनिक हाजिरी सफलतापूर्वक सुरक्षित कर दी गई!");
         }
 
@@ -2394,7 +2421,7 @@
             }
         }
 
-        // --- साझा रिपोर्ट कार्ड HTML जेनरेटर (उपस्थिति त्रुटि रहित) ---
+        // --- साझा रिपोर्ट कार्ड HTML जेनरेटर (सटीक उपस्थिति) ---
         function generateReportCardHTML(trade, st) {
             const isEngg = isEnggTrade(trade);
             const sRoll = String(st.roll).trim();
@@ -2422,6 +2449,8 @@
             let totalMax = 0;
 
             let monthsTableRows = '';
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
 
             allMonths.forEach(mVal => {
                 const [yStr, mStr] = mVal.split('-');
@@ -2439,15 +2468,15 @@
                     ? appData.records[trade][mVal][sRoll]
                     : {};
 
-                // उपस्थिति गणना: डिफ़ॉल्ट 'P' (उपस्थित) को शामिल किया गया है
+                // केवल आज तक की तारीखों की गणना (भविष्य के दिन नहीं)
                 for (let d = 1; d <= totD; d++) {
                     const dateObj = new Date(y, mi, d);
-                    if (isDateInSession(dateObj)) {
+                    if (isDateInSession(dateObj) && dateObj <= today) {
                         const isSun = (dateObj.getDay() === 0);
                         const isHol = hols.includes(d);
                         if (!isSun && !isHol) {
                             mWorking++;
-                            const eStatus = sRecord[`${d}_e`] || 'P';
+                            const eStatus = sRecord[`${d}_e`];
                             if (eStatus === 'P') {
                                 mPresent++;
                             }
@@ -2654,6 +2683,8 @@
             headers.push("वार्षिक ES प्राप्तांक", "कुल टेस्ट प्राप्तांक", "कुल टेस्ट पूर्णांक", "वार्षिक टेस्ट %", "परीक्षा पात्रता स्थिति");
 
             const excelRows = [headers];
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
 
             tStudents.forEach(st => {
                 const sRoll = String(st.roll).trim();
@@ -2681,12 +2712,12 @@
 
                     for (let d = 1; d <= totD; d++) {
                         const dateObj = new Date(y, mi, d);
-                        if (isDateInSession(dateObj)) {
+                        if (isDateInSession(dateObj) && dateObj <= today) {
                             const isSun = (dateObj.getDay() === 0);
                             const isHol = hols.includes(d);
                             if (!isSun && !isHol) {
                                 yearlyPortalW++;
-                                const eStatus = sRecord[`${d}_e`] || 'P';
+                                const eStatus = sRecord[`${d}_e`];
                                 if (eStatus === 'P') {
                                     yearlyPortalP++;
                                 }
@@ -2856,9 +2887,12 @@
             const rawHols = (appData.holidays && appData.holidays[currentTrade] && appData.holidays[currentTrade][monthVal]) ? appData.holidays[currentTrade][monthVal] : [];
             const cMonthHolidays = rawHols.map(Number);
             let sundayCount = 0, holidayCount = 0, workingDays = 0;
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
             for (let d = 1; d <= totalDays; d++) {
                 const dateObj = new Date(year, monthIndex, d);
-                if (isDateInSession(dateObj)) {
+                if (isDateInSession(dateObj) && dateObj <= today) {
                     if (dateObj.getDay() === 0) sundayCount++;
                     else if (cMonthHolidays.includes(d)) holidayCount++;
                     else workingDays++;
@@ -2898,16 +2932,17 @@
                     const inSession = isDateInSession(dateObj);
                     const isSun = (dateObj.getDay() === 0);
                     const isHol = cMonthHolidays.includes(d);
+                    const isFuture = dateObj > today;
 
-                    if (!inSession) {
+                    if (!inSession || isFuture) {
                         rowData.push("-", "-");
                     } else if (isSun) {
                         rowData.push("रवि", "रवि");
                     } else if (isHol) {
                         rowData.push("अवकाश", "अवकाश");
                     } else {
-                        const mVal = sData[`${d}_m`] || 'P';
-                        const eVal = sData[`${d}_e`] || 'P';
+                        const mVal = sData[`${d}_m`] || '-';
+                        const eVal = sData[`${d}_e`] || '-';
                         if (eVal === 'P') evePresent++;
                         if (eVal === 'A') eveAbsent++;
                         rowData.push(mVal, eVal);
