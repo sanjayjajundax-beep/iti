@@ -343,7 +343,7 @@
             border-bottom: 1px solid var(--border-color);
         }
 
-        /* पहली पंक्ति: तारीखें व समग्र शीर्ष */
+        /* पहली पंक्ति: तारीखें व शीर्ष (top: 0) */
         thead tr:first-child th {
             position: sticky;
             top: 0;
@@ -352,7 +352,7 @@
             height: 29px;
         }
 
-        /* दूसरी पंक्ति: M और E सत्र (पहली पंक्ति के ठीक नीचे) */
+        /* दूसरी पंक्ति: M और E सत्र (top: 29px) */
         thead tr:nth-child(2) th {
             position: sticky;
             top: 29px;
@@ -1400,7 +1400,7 @@
 
         function isDateAfterAdmission(dateObj, student) {
             const conf = getSessionConfig();
-            const admDateStr = student.admissionDate || conf.startDate;
+            const admDateStr = (student && student.admissionDate) ? student.admissionDate : conf.startDate;
             const admDate = new Date(admDateStr + "T00:00:00");
             return dateObj >= admDate;
         }
@@ -1447,6 +1447,7 @@
             return Object.values(appData.instructors).filter(Boolean);
         }
 
+        // रोल नंबर के अनुसार 1, 2, 3... आरोही क्रम में सॉर्टेड सूची
         function getStudentList(trade) {
             if (!trade || !appData || !appData.students) return [];
             const raw = appData.students[trade];
@@ -1996,13 +1997,14 @@
             showToast("पूर्णांक एवं छात्र मासिक अंक सुरक्षित किए गए!");
         }
 
-        // --- STUDENT DASHBOARD RENDERING (प्रवेश तिथि के अनुसार) ---
+        // --- STUDENT DASHBOARD RENDERING (सुधार सहित - डेटा सदैव सिंक रहेगा) ---
         function renderStudentDashboard() {
             if (!loggedInStudent || !currentTrade) return;
 
             const isEngg = isEnggTrade(currentTrade);
             const tradeTypeTag = isEngg ? 'इंजीनियरिंग ट्रेड' : 'नॉन-इंजीनियरिंग ट्रेड';
-            const admDate = loggedInStudent.admissionDate || getSessionConfig().startDate;
+            const conf = getSessionConfig();
+            const admDate = loggedInStudent.admissionDate || conf.startDate;
 
             const elName = document.getElementById('scStudentName');
             const elRoll = document.getElementById('scRoll');
@@ -2027,13 +2029,18 @@
                 : [];
             const cMonthHolidays = rawHols.map(Number);
 
-            const sRoll = String(loggedInStudent.roll).trim();
-            const sData = (appData.records && appData.records[currentTrade] && appData.records[currentTrade][monthVal] && appData.records[currentTrade][monthVal][sRoll]) 
-                ? appData.records[currentTrade][monthVal][sRoll] 
+            // रोल नंबर को स्ट्रिंग और नंबर दोनों रूप में जांचें
+            const sRollStr = String(loggedInStudent.roll).trim();
+            const sRollNum = parseInt(loggedInStudent.roll, 10);
+            
+            const tradeRecords = (appData.records && appData.records[currentTrade] && appData.records[currentTrade][monthVal]) 
+                ? appData.records[currentTrade][monthVal] 
                 : {};
+                
+            const sData = tradeRecords[sRollStr] || tradeRecords[sRollNum] || {};
 
             const today = new Date();
-            today.setHours(0, 0, 0, 0);
+            today.setHours(23, 59, 59, 999);
 
             let currEvePresent = 0;
             let currEveAbsent = 0;
@@ -2071,18 +2078,22 @@
                     statusLabel = '<span style="color:#7e22ce; font-weight:700;">अवकाश</span>';
                 } else {
                     currWorkingDays++;
-                    mVal = sData[`${d}_m`] || '-';
-                    eVal = sData[`${d}_e`] || '-';
 
-                    if (eVal === 'P') currEvePresent++;
-                    if (eVal === 'A') currEveAbsent++;
+                    const rawM = sData[`${d}_m`];
+                    const rawE = sData[`${d}_e`];
+
+                    const mStatus = rawM ? rawM : 'P';
+                    const eStatus = rawE ? rawE : 'P';
+
+                    if (eStatus === 'P') currEvePresent++;
+                    if (eStatus === 'A') currEveAbsent++;
 
                     mVal = `<span class="btn-status-toggle st-${mStatus}">${mStatus}</span>`;
                     eVal = `<span class="btn-status-toggle st-${eStatus}">${eStatus}</span>`;
 
-                    if (eVal === 'A') statusLabel = '<span style="color:var(--danger); font-weight:700;">अनुपस्थित</span>';
-                    else if (eVal === 'L') statusLabel = '<span style="color:var(--warning); font-weight:700;">अवकाश</span>';
-                    else if (eVal === 'P') statusLabel = '<span style="color:var(--success); font-weight:700;">उपस्थित</span>';
+                    if (eStatus === 'A') statusLabel = '<span style="color:var(--danger); font-weight:700;">अनुपस्थित</span>';
+                    else if (eStatus === 'L') statusLabel = '<span style="color:var(--warning); font-weight:700;">अवकाश</span>';
+                    else if (eStatus === 'P') statusLabel = '<span style="color:var(--success); font-weight:700;">उपस्थित</span>';
                     else statusLabel = '<span style="color:#64748b;">अदर्ज</span>';
                 }
 
@@ -2136,9 +2147,10 @@
             }
 
             const mmConfig = getMaxMarksConfig(currentTrade, monthVal);
-            const monthEval = (appData.evaluations && appData.evaluations[currentTrade] && appData.evaluations[currentTrade][monthVal]) 
-                ? appData.evaluations[currentTrade][monthVal][sRoll] 
-                : null;
+            const monthEvalObj = (appData.evaluations && appData.evaluations[currentTrade] && appData.evaluations[currentTrade][monthVal]) 
+                ? appData.evaluations[currentTrade][monthVal] 
+                : {};
+            const monthEval = monthEvalObj[sRollStr] || monthEvalObj[sRollNum] || null;
 
             const cardsContainer = document.getElementById('scMarksCardsContainer');
             if (cardsContainer) {
@@ -2209,7 +2221,7 @@
             }
         }
 
-        // --- REGISTER TABLE LOGIC (लेट एडमिशन व्यक्तिगत कार्यदिवस) ---
+        // --- REGISTER TABLE LOGIC ---
         function renderRegister() {
             if (!currentTrade) return;
             let monthVal = document.getElementById('selectedMonth')?.value;
@@ -2985,6 +2997,7 @@
 
             const rawHols = (appData.holidays && appData.holidays[currentTrade] && appData.holidays[currentTrade][monthVal]) ? appData.holidays[currentTrade][monthVal] : [];
             const cMonthHolidays = rawHols.map(Number);
+            let sundayCount = 0, holidayCount = 0, workingDays = 0;
             const today = new Date();
             today.setHours(0, 0, 0, 0);
 
