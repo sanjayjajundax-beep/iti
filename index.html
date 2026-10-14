@@ -341,6 +341,7 @@
 
         .day-sunday { background: #fee2e2 !important; color: #991b1b; font-weight: 700; }
         .day-holiday { background: #f3e8ff !important; color: #6b21a8; font-weight: 700; }
+        .day-inactive { background: #f1f5f9 !important; color: #94a3b8; font-style: italic; }
 
         .btn-status-toggle {
             width: 26px; height: 26px; border-radius: 5px; border: none; font-weight: 700;
@@ -353,6 +354,7 @@
         .st-L { background: #fef3c7; color: #92400e; }
         .st-H { background: #f3e8ff; color: #6b21a8; cursor: not-allowed; }
         .st-S { background: #fee2e2; color: #991b1b; cursor: not-allowed; }
+        .st-NA { background: #e2e8f0; color: #64748b; cursor: not-allowed; }
 
         .col-m-res { background: #eff6ff; font-weight: 600; color: #1e40af; }
         .col-o-res { background: #f0fdf4; font-weight: 700; color: #166534; }
@@ -513,7 +515,6 @@
             border: 1px solid var(--border-color);
         }
 
-        /* Printable Progress Card Styling */
         .printableProgressCard {
             background: #ffffff;
             color: #0f172a;
@@ -645,6 +646,9 @@
                     <h2 style="font-size: 1.15rem; color: var(--admin);"><i class="fa-solid fa-sliders"></i> संस्थान एडमिन नियंत्रण कक्ष</h2>
                 </div>
                 <div class="controls-right">
+                    <button class="app-btn app-btn-dark" onclick="openSessionConfigModal()">
+                        <i class="fa-solid fa-calendar-days"></i> सत्र निर्धारण (सत्र अवधि)
+                    </button>
                     <button class="app-btn app-btn-excel" onclick="openAdminAnnualExcelModal()">
                         <i class="fa-solid fa-file-excel"></i> वार्षिक ट्रेड-वाइज़ परफॉर्मेंस (Excel)
                     </button>
@@ -657,6 +661,13 @@
                     <button class="app-btn app-btn-warning" onclick="openAdminCredModal()"><i class="fa-solid fa-key"></i> एडमिन आईडी/पासवर्ड बदलें</button>
                     <button class="app-btn app-btn-success" onclick="syncWithFirebase()"><i class="fa-solid fa-cloud-arrow-up"></i> Firebase सेव करें</button>
                 </div>
+            </div>
+
+            <div style="background: #ffffff; padding: 10px 16px; border-radius: var(--radius-md); border: 1.5px solid #cbd5e1; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+                <span style="font-weight: 700; color: #1e3a8a;">
+                    <i class="fa-solid fa-calendar-check"></i> वर्तमान सक्रिय सत्र: <span id="adminSessionDisplayBadge" style="color: #2563eb;">2026-08-10 से 2027-06-30</span>
+                </span>
+                <span style="font-size: 0.8rem; color: #64748b;">(सभी उपस्थिति व कार्यदिवस इसी निर्धारित सत्र सीमा में ही गिने जाते हैं)</span>
             </div>
 
             <div class="glass-card" style="padding: 20px;">
@@ -707,8 +718,7 @@
                         <button class="app-btn app-btn-warning" onclick="openHolidayPrompt()"><i class="fa-solid fa-umbrella-beach"></i> अवकाश जोड़ें</button>
                     </div>
                     <div class="controls-right">
-                        <!-- अनुदेशक के लिए प्रोग्रेस रिपोर्ट कार्ड देखने का बटन -->
-                        <button class="app-btn app-btn-pdf" onclick="openInstructorAnnualReportModal()"><i class="fa-solid fa-id-card"></i> वार्षिक प्रोग्रेस कार्ड (प्रशिक्षु रिपोर्ट)</button>
+                        <button class="app-btn app-btn-pdf" onclick="openInstructorAnnualReportModal()"><i class="fa-solid fa-id-card"></i> वार्षिक प्रोग्रेस कार्ड</button>
                         <button class="app-btn app-btn-success" onclick="openTodayRollCallModal()"><i class="fa-solid fa-clipboard-user"></i> आज की हाजिरी (Roll Call)</button>
                         <button class="app-btn app-btn-excel" onclick="exportAttendanceToExcel()"><i class="fa-solid fa-file-excel"></i> अटेंडेंस एक्सेल (.xlsx)</button>
                         <button class="app-btn app-btn-dark" onclick="syncWithFirebase()"><i class="fa-solid fa-cloud-arrow-up"></i> सेव करें</button>
@@ -717,7 +727,7 @@
 
                 <div style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; font-size: 0.85rem; background: #ffffff; padding: 10px 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
                     <span id="workingDaysSummary" style="font-weight: 700; color: var(--primary);"></span>
-                    <span style="color: var(--text-muted);"><i class="fa-solid fa-circle-info"></i> <strong>M:</strong> सुबह सत्र | <strong>E:</strong> शाम सत्र (क्लिक करके स्थिति बदलें)</span>
+                    <span style="color: var(--text-muted);"><i class="fa-solid fa-circle-info"></i> <strong>M:</strong> सुबह सत्र | <strong>E:</strong> शाम सत्र (सत्र के बाहर के दिन अप्रभावी रहेंगे)</span>
                 </div>
 
                 <div class="table-shell">
@@ -777,7 +787,6 @@
                     </div>
                 </div>
 
-                <!-- स्टूडेंट नेविगेशन बार: 4 बटन (रिपोर्ट कार्ड सहित) -->
                 <div class="student-vertical-nav-column">
                     <button class="stud-nav-btn active" id="btnNavStudAtt" onclick="switchStudentSection('attendance')">
                         <span class="btn-label"><i class="fa-solid fa-calendar-check" style="color:#2563eb; font-size:1.1rem;"></i> 1. उपस्थिति रिपोर्ट (Attendance Report)</span>
@@ -791,7 +800,6 @@
                         <span class="btn-label"><i class="fa-solid fa-book-bookmark" style="color:#059669; font-size:1.1rem;"></i> 3. रिकॉर्ड, दैनिक डायरी व अन्य गतिविधियां</span>
                         <i class="fa-solid fa-chevron-right" style="font-size:0.85rem;"></i>
                     </button>
-                    <!-- छात्र केवल देख सकता है -->
                     <button class="stud-nav-btn" id="btnNavStudAnnualCard" onclick="switchStudentSection('annual_card')">
                         <span class="btn-label"><i class="fa-solid fa-id-card-clip" style="color:#be123c; font-size:1.1rem;"></i> 4. समग्र वार्षिक प्रोग्रेस रिपोर्ट कार्ड (View Report Card)</span>
                         <i class="fa-solid fa-chevron-right" style="font-size:0.85rem;"></i>
@@ -810,7 +818,7 @@
                         <div class="metric-card">
                             <div class="title">पूर्व अनुपस्थिति</div>
                             <div class="value" id="scPastA" style="color: var(--danger);">0</div>
-                            <div class="sub">पिछले महीनों के कुल एब्सेंट दिन</div>
+                            <div class="sub">सत्र से पूर्व के एब्सेंट दिन</div>
                         </div>
                         <div class="metric-card">
                             <div class="title">पिछला प्रतिशत</div>
@@ -824,7 +832,7 @@
                         <div class="metric-card">
                             <div class="title">इस माह उपस्थित</div>
                             <div class="value" id="scCurrP" style="color: var(--success);">0</div>
-                            <div class="sub">इस माह कार्यदिवस: <strong id="scCurrW">0</strong> दिन</div>
+                            <div class="sub">सत्र कार्यदिवस: <strong id="scCurrW">0</strong> दिन</div>
                         </div>
                         <div class="metric-card">
                             <div class="title">इस माह अनुपस्थित</div>
@@ -841,17 +849,17 @@
                     <div class="section-bar-title"><i class="fa-solid fa-award"></i> कुल संचित विवरण (Overall Cumulative)</div>
                     <div class="stats-tri-grid">
                         <div class="metric-card" style="background: #f0fdf4; border-color:#bbf7d0;">
-                            <div class="title" style="color: #166534;">कुल संचित उपस्थिति</div>
+                            <div class="title" style="color: #166534;">सत्र संचित उपस्थिति</div>
                             <div class="value" id="scTotalP" style="color: #16a34a;">0</div>
-                            <div class="sub">शुरुआत से कार्यदिवस: <strong id="scTotalW">0</strong> दिन</div>
+                            <div class="sub">सत्र प्रारंभ से कार्यदिवस: <strong id="scTotalW">0</strong> दिन</div>
                         </div>
                         <div class="metric-card" style="background: #fef2f2; border-color: #fecaca;">
-                            <div class="title" style="color: #991b1b;">कुल संचित अनुपस्थिति</div>
+                            <div class="title" style="color: #991b1b;">सत्र संचित अनुपस्थिति</div>
                             <div class="value" id="scTotalA" style="color: #dc2626;">0</div>
                             <div class="sub">कुल अनुपस्थित दिन</div>
                         </div>
                         <div class="metric-card" style="background: #eff6ff; border-color: #bfdbfe;">
-                            <div class="title" style="color: #1e40af;">कुल संचित प्रतिशत (Overall %)</div>
+                            <div class="title" style="color: #1e40af;">सत्र संचित प्रतिशत (Overall %)</div>
                             <div class="value" id="scTotalPct" style="color: var(--primary);">0%</div>
                             <div class="progress-track"><div class="progress-bar-fill" id="scTotalBar" style="width: 0%; background: var(--primary);"></div></div>
                         </div>
@@ -906,7 +914,7 @@
                     </div>
                 </div>
 
-                <!-- 4. छात्र के स्वयं का समग्र वार्षिक प्रोग्रेस कार्ड (केवल देखने के लिए) -->
+                <!-- 4. छात्र के स्वयं का समग्र वार्षिक प्रोग्रेस कार्ड -->
                 <div id="studSecAnnualCard" class="hidden">
                     <div id="studentOwnReportCardContainer" class="printableProgressCard"></div>
                 </div>
@@ -918,6 +926,32 @@
 
     <!-- MODALS -->
 
+    <!-- Modal 0: Session Start & End Settings Modal -->
+    <div id="sessionConfigModal" class="modal-backdrop hidden">
+        <div class="modal-content">
+            <h3 style="color: var(--primary); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                <i class="fa-solid fa-calendar-days"></i> प्रशिक्षण सत्र निर्धारण (Session Dates)
+            </h3>
+            <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 14px;">
+                सत्र की प्रारंभ और समाप्ति तिथि तय करें। दैनिक हाजिरी और कुल कार्यदिवस केवल इसी अवधि में गिने जाएंगे।
+            </p>
+            <form onsubmit="handleSaveSessionDates(event)">
+                <div class="input-group">
+                    <label>सत्र प्रारंभ तिथि (Session Start Date):</label>
+                    <input type="date" id="sessionStartDateInput" required>
+                </div>
+                <div class="input-group">
+                    <label>सत्र समाप्ति तिथि (Session End Date):</label>
+                    <input type="date" id="sessionEndDateInput" required>
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 14px;">
+                    <button type="submit" class="app-btn app-btn-primary" style="flex: 1;"><i class="fa-solid fa-check"></i> सुरक्षित करें</button>
+                    <button type="button" class="app-btn app-btn-secondary" onclick="closeModal('sessionConfigModal')">रद्द करें</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Modal A: Admin Trade-wise Annual Excel Export Modal -->
     <div id="adminAnnualExcelModal" class="modal-backdrop hidden">
         <div class="modal-content">
@@ -925,7 +959,7 @@
                 <i class="fa-solid fa-file-excel" style="color: #166534;"></i> वार्षिक ट्रेड-वाइज़ परफॉर्मेंस रिपोर्ट (Excel)
             </h3>
             <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 14px;">
-                ट्रेड का चयन करें। यह रिपोर्ट चुने गए ट्रेड के सभी छात्रों का पूरे सत्र/वर्ष का संचित उपस्थिति प्रतिशत, कुल टेस्ट प्राप्तांक और औसत परिणाम एक एक्सेल स्प्रेडशीट में एक्सपोर्ट करेगी।
+                ट्रेड का चयन करें। यह रिपोर्ट चुने गए ट्रेड के सभी छात्रों का वर्तमान सत्र अवधि में संचित उपस्थिति प्रतिशत और टेस्ट प्राप्तांक एक्सपोर्ट करेगी।
             </p>
             <div class="input-group">
                 <label>ट्रेड चुनें:</label>
@@ -973,10 +1007,7 @@
                     </button>
                 </div>
                 
-                <!-- Printable Sheet -->
-                <div id="printableProgressCard" class="printableProgressCard">
-                    <!-- Populated dynamically -->
-                </div>
+                <div id="printableProgressCard" class="printableProgressCard"></div>
             </div>
         </div>
     </div>
@@ -1100,11 +1131,11 @@
                     <input type="text" id="newStudentPass" required placeholder="पासवर्ड बनाएं" autocomplete="new-password">
                 </div>
                 <div class="input-group">
-                    <label>पूर्व संचित कार्यदिवस (Past Cumulative Working Days):</label>
+                    <label>पूर्व संचित कार्यदिवस (सत्र पूर्व यदि कोई हो):</label>
                     <input type="number" id="newPastWorking" value="0" min="0" autocomplete="off">
                 </div>
                 <div class="input-group">
-                    <label>पूर्व संचित उपस्थिति (Past Cumulative Present Days):</label>
+                    <label>पूर्व संचित उपस्थिति (सत्र पूर्व यदि कोई हो):</label>
                     <input type="number" id="newPastPresent" value="0" min="0" autocomplete="off">
                 </div>
                 <div style="display: flex; gap: 10px;">
@@ -1195,7 +1226,7 @@
                 <span id="rcModalDateLabel" style="font-weight: 700; color: #2563eb; font-size: 0.9rem;"></span>
             </div>
             <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px;">
-                अनुपस्थित छात्र पर <strong>A</strong> तथा उपस्थित पर <strong>P</strong> रखें (टैप करके टॉगल करें):
+                अनुपस्थित छात्र पर <strong>A</strong> तथा उपस्थित पर <strong>P</strong> रखें (टैप करके स्थिति बदलें):
             </p>
             <div class="table-shell" style="max-height: 380px;">
                 <table>
@@ -1246,6 +1277,10 @@
 
         let appData = {
             adminCreds: { id: "superadmin", pass: "admin@123" },
+            sessionConfig: {
+                startDate: "2026-08-10",
+                endDate: "2027-06-30"
+            },
             trades: ["COPA", "Electrician", "Fitter"],
             tradeTypes: {
                 "COPA": "non_engineering",
@@ -1258,11 +1293,11 @@
             ],
             students: {
                 "COPA": [
-                    { roll: "101", name: "राहुल शर्मा", studentId: "st101", password: "123", pastWorkingDays: 45, pastPresentDays: 41 },
-                    { roll: "102", name: "पूजा वर्मा", studentId: "st102", password: "123", pastWorkingDays: 45, pastPresentDays: 32 }
+                    { roll: "101", name: "राहुल शर्मा", studentId: "st101", password: "123", pastWorkingDays: 0, pastPresentDays: 0 },
+                    { roll: "102", name: "पूजा वर्मा", studentId: "st102", password: "123", pastWorkingDays: 0, pastPresentDays: 0 }
                 ],
                 "Electrician": [
-                    { roll: "201", name: "सुरेश गुर्जर", studentId: "el201", password: "123", pastWorkingDays: 45, pastPresentDays: 40 }
+                    { roll: "201", name: "सुरेश गुर्जर", studentId: "el201", password: "123", pastWorkingDays: 0, pastPresentDays: 0 }
                 ]
             },
             records: {},
@@ -1274,6 +1309,56 @@
         let currentRole = null;
         let currentTrade = null;
         let loggedInStudent = null;
+
+        function getSessionConfig() {
+            if (!appData.sessionConfig) {
+                appData.sessionConfig = { startDate: "2026-08-10", endDate: "2027-06-30" };
+            }
+            return appData.sessionConfig;
+        }
+
+        function isDateInSession(dateObj) {
+            const conf = getSessionConfig();
+            const start = new Date(conf.startDate + "T00:00:00");
+            const end = new Date(conf.endDate + "T23:59:59");
+            return dateObj >= start && dateObj <= end;
+        }
+
+        function isMonthInSession(monthVal) {
+            const conf = getSessionConfig();
+            const startM = conf.startDate.substring(0, 7);
+            const endM = conf.endDate.substring(0, 7);
+            return monthVal >= startM && monthVal <= endM;
+        }
+
+        function updateAdminSessionBadge() {
+            const badge = document.getElementById('adminSessionDisplayBadge');
+            if (badge) {
+                const conf = getSessionConfig();
+                badge.innerText = `${conf.startDate} से ${conf.endDate}`;
+            }
+        }
+
+        function openSessionConfigModal() {
+            const conf = getSessionConfig();
+            document.getElementById('sessionStartDateInput').value = conf.startDate;
+            document.getElementById('sessionEndDateInput').value = conf.endDate;
+            openModal('sessionConfigModal');
+        }
+
+        function handleSaveSessionDates(e) {
+            e.preventDefault();
+            const start = document.getElementById('sessionStartDateInput').value;
+            const end = document.getElementById('sessionEndDateInput').value;
+            if (!start || !end) { alert("दोनों तारीखें भरें!"); return; }
+            if (start > end) { alert("प्रारंभ तिथि समाप्ति तिथि से पहले की होनी चाहिए!"); return; }
+
+            appData.sessionConfig = { startDate: start, endDate: end };
+            syncWithFirebase();
+            closeModal('sessionConfigModal');
+            updateAdminSessionBadge();
+            showToast("प्रशिक्षण सत्र अवधि सुरक्षित कर दी गई!");
+        }
 
         function getTradesList() {
             if (!appData || !appData.trades) return [];
@@ -1308,6 +1393,7 @@
             loadLocalCache();
             listenToCloudData();
             populateTradeDropdowns();
+            updateAdminSessionBadge();
 
             const today = new Date();
             const yyyy = today.getFullYear();
@@ -1377,6 +1463,7 @@
                 closeModal('adminLoginModal');
                 setupUIRoute();
                 renderAdminView();
+                updateAdminSessionBadge();
                 showToast("सुपर एडमिन लॉगिन सफल!");
             } else {
                 alert("गलत एडमिन आईडी या पासवर्ड!");
@@ -1464,6 +1551,7 @@
                 document.getElementById('adminSection').classList.remove('hidden');
                 document.getElementById('roleLabel').innerHTML = `<i class="fa-solid fa-shield-halved"></i> एडमिन`;
                 populateTradeDropdowns();
+                updateAdminSessionBadge();
             } else if (currentRole === 'instructor') {
                 document.getElementById('instructorSection').classList.remove('hidden');
                 const isEngg = isEnggTrade(currentTrade);
@@ -1542,7 +1630,6 @@
             } else if (sec === 'annual_card') {
                 btnAnnual.classList.add('active');
                 viewAnnual.classList.remove('hidden');
-                // छात्र केवल अपना रिपोर्ट कार्ड देख सकता है
                 const container = document.getElementById('studentOwnReportCardContainer');
                 if (container && loggedInStudent && currentTrade) {
                     container.innerHTML = generateReportCardHTML(currentTrade, loggedInStudent);
@@ -1825,7 +1912,7 @@
             showToast("पूर्णांक एवं छात्र मासिक अंक सुरक्षित किए गए!");
         }
 
-        // --- STUDENT DASHBOARD RENDERING ---
+        // --- STUDENT DASHBOARD RENDERING (सत्र सीमा अनुसार) ---
         function renderStudentDashboard() {
             if (!loggedInStudent || !currentTrade) return;
 
@@ -1855,13 +1942,6 @@
                 : [];
             const cMonthHolidays = rawHols.map(Number);
 
-            let sundays = 0, holidays = 0;
-            for (let d = 1; d <= totalDays; d++) {
-                if (new Date(year, monthIndex, d).getDay() === 0) sundays++;
-                else if (cMonthHolidays.includes(d)) holidays++;
-            }
-
-            const currWorkingDays = totalDays - (sundays + holidays);
             const sRoll = String(loggedInStudent.roll).trim();
             const sData = (appData.records && appData.records[currentTrade] && appData.records[currentTrade][monthVal] && appData.records[currentTrade][monthVal][sRoll]) 
                 ? appData.records[currentTrade][monthVal][sRoll] 
@@ -1869,6 +1949,8 @@
 
             let currEvePresent = 0;
             let currEveAbsent = 0;
+            let currWorkingDays = 0;
+
             const logTableBody = document.getElementById('scDailyLogBody');
             if (logTableBody) logTableBody.innerHTML = '';
             const dayNames = ['रवि', 'सोम', 'मंगल', 'बुध', 'गुरु', 'शुक्र', 'शनि'];
@@ -1878,16 +1960,21 @@
                 const dayName = dayNames[dateObj.getDay()];
                 const isSun = (dateObj.getDay() === 0);
                 const isHol = cMonthHolidays.includes(d);
+                const inSession = isDateInSession(dateObj);
 
                 let mVal = '-', eVal = '-', statusLabel = '';
 
-                if (isSun) {
+                if (!inSession) {
+                    mVal = 'N/A'; eVal = 'N/A';
+                    statusLabel = '<span style="color:#64748b; font-style:italic;">सत्र अवधि से बाहर</span>';
+                } else if (isSun) {
                     mVal = 'रवि'; eVal = 'रवि';
                     statusLabel = '<span style="color:#b91c1c; font-weight:700;">रविवार</span>';
                 } else if (isHol) {
                     mVal = 'अवकाश'; eVal = 'अवकाश';
                     statusLabel = '<span style="color:#7e22ce; font-weight:700;">अवकाश</span>';
                 } else {
+                    currWorkingDays++;
                     mVal = sData[`${d}_m`] || 'P';
                     eVal = sData[`${d}_e`] || 'P';
 
@@ -2025,7 +2112,7 @@
             }
         }
 
-        // --- REGISTER TABLE LOGIC ---
+        // --- REGISTER TABLE LOGIC (सत्र सीमा अनुसार) ---
         function renderRegister() {
             if (!currentTrade) return;
             let monthVal = document.getElementById('selectedMonth')?.value;
@@ -2056,18 +2143,31 @@
 
             let sundayCount = 0;
             let holidayCount = 0;
+            let workingDays = 0;
 
             for (let d = 1; d <= totalDays; d++) {
-                const sunday = (new Date(year, monthIndex, d).getDay() === 0);
+                const dateObj = new Date(year, monthIndex, d);
+                const sunday = (dateObj.getDay() === 0);
                 const isCustomHol = cMonthHolidays.includes(d);
-
-                if (sunday) sundayCount++;
-                if (!sunday && isCustomHol) holidayCount++;
+                const inSession = isDateInSession(dateObj);
 
                 let cls = '';
                 let title = d;
-                if (sunday) { cls = 'day-sunday'; title = `${d} (रवि)`; }
-                else if (isCustomHol) { cls = 'day-holiday'; title = `${d} (अव)`; }
+
+                if (!inSession) {
+                    cls = 'day-inactive';
+                    title = `${d} (-)`;
+                } else if (sunday) { 
+                    sundayCount++;
+                    cls = 'day-sunday'; 
+                    title = `${d} (रवि)`; 
+                } else if (isCustomHol) { 
+                    holidayCount++;
+                    cls = 'day-holiday'; 
+                    title = `${d} (अव)`; 
+                } else {
+                    workingDays++;
+                }
 
                 headerTop += `<th colspan="2" class="${cls}">${title}</th>`;
                 headerSub += `<th class="${cls}">M</th><th class="${cls}">E</th>`;
@@ -2082,9 +2182,9 @@
                 <th class="col-o-res">कुल P / दिन</th><th class="col-o-res">कुल %</th></tr>`;
             thead.innerHTML = headerTop + headerSub;
 
-            const workingDays = totalDays - (sundayCount + holidayCount);
+            const conf = getSessionConfig();
             document.getElementById('workingDaysSummary').innerHTML = 
-                `<i class="fa-solid fa-calendar-check"></i> कुल कार्यदिवस: <strong>${workingDays} दिन</strong> | रविवार: ${sundayCount} | अवकाश: ${holidayCount}`;
+                `<i class="fa-solid fa-calendar-check"></i> सत्र कार्यदिवस: <strong>${workingDays} दिन</strong> | रविवार: ${sundayCount} | अवकाश: ${holidayCount} <span style="color:#64748b; font-size:0.75rem;">(सत्र: ${conf.startDate} से ${conf.endDate})</span>`;
 
             const tbody = document.getElementById('attendanceBody');
             tbody.innerHTML = '';
@@ -2092,7 +2192,7 @@
             const tStudents = getStudentList(currentTrade);
 
             if (tStudents.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="${totalDays * 2 + 8}" style="padding: 24px; color: var(--text-muted); font-size: 0.95rem;">इस ट्रेड में अभी तक कोई छात्र नहीं जोड़ा गया है। कृपया 'नया छात्र जोड़ें' बटन पर क्लिक करके छात्र जोड़ें।</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="${totalDays * 2 + 8}" style="padding: 24px; color: var(--text-muted); font-size: 0.95rem;">इस ट्रेड में अभी तक कोई छात्र नहीं जोड़ा गया है।</td></tr>`;
                 return;
             }
 
@@ -2107,10 +2207,15 @@
                     <td class="col-roll">${student.roll}</td>`;
 
                 for (let d = 1; d <= totalDays; d++) {
-                    const sunday = (new Date(year, monthIndex, d).getDay() === 0);
+                    const dateObj = new Date(year, monthIndex, d);
+                    const sunday = (dateObj.getDay() === 0);
                     const isCustomHol = cMonthHolidays.includes(d);
+                    const inSession = isDateInSession(dateObj);
 
-                    if (sunday) {
+                    if (!inSession) {
+                        rowHTML += `<td class="day-inactive"><span class="btn-status-toggle st-NA">-</span></td>
+                                    <td class="day-inactive"><span class="btn-status-toggle st-NA">-</span></td>`;
+                    } else if (sunday) {
                         rowHTML += `<td class="day-sunday"><span class="btn-status-toggle st-S">S</span></td>
                                     <td class="day-sunday"><span class="btn-status-toggle st-S">S</span></td>`;
                     } else if (isCustomHol) {
@@ -2177,6 +2282,11 @@
             let monthVal = document.getElementById('selectedMonth')?.value;
             if (!monthVal) {
                 monthVal = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+            }
+
+            if (!isDateInSession(today)) {
+                alert(`आज की तारीख (${today.toLocaleDateString()}) निर्धारित प्रशिक्षण सत्र सीमा के बाहर है!`);
+                return;
             }
 
             const tStudents = getStudentList(currentTrade);
@@ -2267,10 +2377,11 @@
             }
         }
 
-        // --- साझा रिपोर्ट कार्ड HTML जेनरेटर (सटीक कैलकुलेशन) ---
+        // --- साझा रिपोर्ट कार्ड HTML जेनरेटर (सत्र सीमा के आधार पर) ---
         function generateReportCardHTML(trade, st) {
             const isEngg = isEnggTrade(trade);
             const sRoll = String(st.roll).trim();
+            const sessionConf = getSessionConfig();
 
             const recordedMonthsSet = new Set();
             if (appData.records && appData.records[trade]) {
@@ -2279,7 +2390,11 @@
             if (appData.evaluations && appData.evaluations[trade]) {
                 Object.keys(appData.evaluations[trade]).forEach(m => recordedMonthsSet.add(m));
             }
-            const allMonths = Array.from(recordedMonthsSet).sort();
+            
+            // केवल सत्र की परिधि वाले महीनों को ही लें
+            const allMonths = Array.from(recordedMonthsSet)
+                .filter(mVal => isMonthInSession(mVal))
+                .sort();
 
             const pastW = parseInt(st.pastWorkingDays) || 0;
             const pastP = parseInt(st.pastPresentDays) || 0;
@@ -2293,7 +2408,6 @@
             let monthsTableRows = '';
 
             allMonths.forEach(mVal => {
-                // 1. उपस्थिति गणना
                 const [yStr, mStr] = mVal.split('-');
                 const y = parseInt(yStr);
                 const mi = parseInt(mStr) - 1;
@@ -2301,30 +2415,34 @@
 
                 const rHols = (appData.holidays && appData.holidays[trade] && appData.holidays[trade][mVal]) ? appData.holidays[trade][mVal] : [];
                 const hols = rHols.map(Number);
-                let sundays = 0, holidays = 0;
-                for (let d = 1; d <= totD; d++) {
-                    if (new Date(y, mi, d).getDay() === 0) sundays++;
-                    else if (hols.includes(d)) holidays++;
-                }
-                const mWorking = totD - (sundays + holidays);
-                yearlyPortalW += mWorking;
+
+                let mWorking = 0;
+                let mPresent = 0;
 
                 const sRecord = (appData.records && appData.records[trade] && appData.records[trade][mVal] && appData.records[trade][mVal][sRoll])
                     ? appData.records[trade][mVal][sRoll]
                     : {};
 
-                let mPresent = 0;
                 for (let d = 1; d <= totD; d++) {
-                    const isSun = (new Date(y, mi, d).getDay() === 0);
-                    const isHol = hols.includes(d);
-                    if (!isSun && !isHol) {
-                        if (sRecord[`${d}_e`] === 'P') mPresent++;
+                    const dateObj = new Date(y, mi, d);
+                    if (isDateInSession(dateObj)) {
+                        const isSun = (dateObj.getDay() === 0);
+                        const isHol = hols.includes(d);
+                        if (!isSun && !isHol) {
+                            mWorking++;
+                            if (sRecord[`${d}_e`] === 'P') mPresent++;
+                        }
                     }
                 }
+
+                if (mWorking === 0 && (!appData.evaluations || !appData.evaluations[trade] || !appData.evaluations[trade][mVal])) {
+                    return;
+                }
+
+                yearlyPortalW += mWorking;
                 yearlyPortalP += mPresent;
                 const mAttPct = mWorking > 0 ? ((mPresent / mWorking) * 100).toFixed(1) : "0.0";
 
-                // 2. केवल टेस्ट मार्क्स गणना
                 const sEval = (appData.evaluations && appData.evaluations[trade] && appData.evaluations[trade][mVal] && appData.evaluations[trade][mVal][sRoll])
                     ? appData.evaluations[trade][mVal][sRoll]
                     : null;
@@ -2352,7 +2470,6 @@
                     let mmTP = parseFloat(mm.tp) || 20;
                     let mmES = parseFloat(mm.es) || 20;
 
-                    // यदि प्राप्तांक डिफ़ॉल्ट पूर्णांक से अधिक दर्ज हो गया हो, तो स्वतः यथार्थ पूर्णांक समायोजित करें
                     if (tt > mmTT) mmTT = tt;
                     if (tp > mmTP) mmTP = tp;
                     if (es > mmES) mmES = es;
@@ -2410,7 +2527,7 @@
                 <div style="text-align: center; border-bottom: 2px solid #1e3a8a; padding-bottom: 10px; margin-bottom: 14px;">
                     <h2 style="font-size: 1.35rem; color: #1e3a8a; margin-bottom: 2px;">राजकीय औद्योगिक प्रशिक्षण संस्थान, कोटड़ी (भीलवाड़ा)</h2>
                     <p style="font-size: 0.95rem; font-weight: 700; color: #334155;">वार्षिक छात्र प्रगति व मूल्यांकन रिपोर्ट कार्ड (Annual Progress Card)</p>
-                    <p style="font-size: 0.8rem; color: #64748b;">सत्र: 2025–2026</p>
+                    <p style="font-size: 0.8rem; color: #64748b;">सत्र अवधि: <strong>${sessionConf.startDate}</strong> से <strong>${sessionConf.endDate}</strong></p>
                 </div>
 
                 <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; font-size: 0.88rem; background: #f8fafc; padding: 12px; border-radius: 6px; border: 1px solid #cbd5e1; margin-bottom: 14px;">
@@ -2422,7 +2539,7 @@
 
                 <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px;">
                     <div style="border: 1px solid #cbd5e1; padding: 10px; border-radius: 6px; background:#eff6ff;">
-                        <div style="font-size: 0.78rem; font-weight: 600; color: #1e40af;">कुल संचित उपस्थिति (Attendance)</div>
+                        <div style="font-size: 0.78rem; font-weight: 600; color: #1e40af;">सत्र संचित उपस्थिति (Attendance)</div>
                         <div style="font-size: 1.35rem; font-weight: 800; color: #1e3a8a;">${overallP} / ${overallW} दिन</div>
                         <div style="font-size: 0.85rem; font-weight: 700; color: ${isEligible ? '#166534' : '#991b1b'};">उपस्थिति: ${overallAttPct}%</div>
                     </div>
@@ -2446,7 +2563,7 @@
                         <thead>
                             <tr style="background:#f1f5f9;">
                                 <th>माह</th>
-                                <th>उपस्थिति (दिन)</th>
+                                <th>सत्र उपस्थिति (दिन)</th>
                                 <th>TT</th>
                                 <th>TP</th>
                                 ${isEngg ? '<th>WCS</th><th>ED</th>' : ''}
@@ -2498,12 +2615,15 @@
             if (appData.evaluations && appData.evaluations[trade]) {
                 Object.keys(appData.evaluations[trade]).forEach(m => recordedMonthsSet.add(m));
             }
-            const allMonths = Array.from(recordedMonthsSet).sort();
+            
+            const allMonths = Array.from(recordedMonthsSet)
+                .filter(mVal => isMonthInSession(mVal))
+                .sort();
 
             const headers = [
                 "रोल नंबर", "छात्र का नाम", "छात्र आईडी", "ट्रेड", "ट्रेड प्रकार",
                 "प्रारंभिक कार्यदिवस", "प्रारंभिक उपस्थिति",
-                "वार्षिक पोर्टल कार्यदिवस", "वार्षिक पोर्टल उपस्थिति", 
+                "सत्र पोर्टल कार्यदिवस", "सत्र पोर्टल उपस्थिति", 
                 "कुल संचित कार्यदिवस", "कुल संचित उपस्थिति", "कुल उपस्थिति %",
                 "वार्षिक TT प्राप्तांक", "वार्षिक TP प्राप्तांक"
             ];
@@ -2527,7 +2647,6 @@
                 let totalObt = 0, totalMax = 0;
 
                 allMonths.forEach(mVal => {
-                    // उपस्थिति
                     const [yStr, mStr] = mVal.split('-');
                     const y = parseInt(yStr);
                     const mi = parseInt(mStr) - 1;
@@ -2535,26 +2654,23 @@
 
                     const rHols = (appData.holidays && appData.holidays[trade] && appData.holidays[trade][mVal]) ? appData.holidays[trade][mVal] : [];
                     const hols = rHols.map(Number);
-                    let sundays = 0, holidays = 0;
-                    for (let d = 1; d <= totD; d++) {
-                        if (new Date(y, mi, d).getDay() === 0) sundays++;
-                        else if (hols.includes(d)) holidays++;
-                    }
-                    yearlyPortalW += (totD - (sundays + holidays));
 
                     const sRecord = (appData.records && appData.records[trade] && appData.records[trade][mVal] && appData.records[trade][mVal][sRoll])
                         ? appData.records[trade][mVal][sRoll]
                         : {};
 
                     for (let d = 1; d <= totD; d++) {
-                        const isSun = (new Date(y, mi, d).getDay() === 0);
-                        const isHol = hols.includes(d);
-                        if (!isSun && !isHol) {
-                            if (sRecord[`${d}_e`] === 'P') yearlyPortalP++;
+                        const dateObj = new Date(y, mi, d);
+                        if (isDateInSession(dateObj)) {
+                            const isSun = (dateObj.getDay() === 0);
+                            const isHol = hols.includes(d);
+                            if (!isSun && !isHol) {
+                                yearlyPortalW++;
+                                if (sRecord[`${d}_e`] === 'P') yearlyPortalP++;
+                            }
                         }
                     }
 
-                    // केवल टेस्ट मार्क्स (यदि अंक दर्ज हैं)
                     const sEval = (appData.evaluations && appData.evaluations[trade] && appData.evaluations[trade][mVal] && appData.evaluations[trade][mVal][sRoll])
                         ? appData.evaluations[trade][mVal][sRoll]
                         : null;
@@ -2639,7 +2755,7 @@
             populateTradeDropdowns();
             document.getElementById('reportModalHeading').innerHTML = `<i class="fa-solid fa-id-card-clip" style="color: #2563eb;"></i> वार्षिक छात्र प्रोग्रेस रिपोर्ट कार्ड (${currentTrade})`;
             document.getElementById('reportCardTradeSelect').value = currentTrade;
-            document.getElementById('reportCardTradeSelect').disabled = true; // अनुदेशक केवल अपनी ट्रेड देख सकता है
+            document.getElementById('reportCardTradeSelect').disabled = true;
             populateStudentSelectForReport();
             document.getElementById('adminPdfDownloadBtnContainer').classList.remove('hidden');
             document.getElementById('reportCardPreviewWrapper').classList.add('hidden');
@@ -2716,22 +2832,28 @@
 
             const rawHols = (appData.holidays && appData.holidays[currentTrade] && appData.holidays[currentTrade][monthVal]) ? appData.holidays[currentTrade][monthVal] : [];
             const cMonthHolidays = rawHols.map(Number);
-            let sundayCount = 0, holidayCount = 0;
+            let sundayCount = 0, holidayCount = 0, workingDays = 0;
             for (let d = 1; d <= totalDays; d++) {
-                if (new Date(year, monthIndex, d).getDay() === 0) sundayCount++;
-                else if (cMonthHolidays.includes(d)) holidayCount++;
+                const dateObj = new Date(year, monthIndex, d);
+                if (isDateInSession(dateObj)) {
+                    if (dateObj.getDay() === 0) sundayCount++;
+                    else if (cMonthHolidays.includes(d)) holidayCount++;
+                    else workingDays++;
+                }
             }
-            const workingDays = totalDays - (sundayCount + holidayCount);
 
             const tStudents = getStudentList(currentTrade);
             if (tStudents.length === 0) { alert("इस ट्रेड में कोई छात्र पंजीकृत नहीं है!"); return; }
 
             const headerRow = ["रोल नंबर", "छात्र का नाम"];
             for (let d = 1; d <= totalDays; d++) {
-                const isSun = (new Date(year, monthIndex, d).getDay() === 0);
+                const dateObj = new Date(year, monthIndex, d);
+                const inSession = isDateInSession(dateObj);
+                const isSun = (dateObj.getDay() === 0);
                 const isHol = cMonthHolidays.includes(d);
                 let tag = "";
-                if (isSun) tag = " (रवि)";
+                if (!inSession) tag = " (-)";
+                else if (isSun) tag = " (रवि)";
                 else if (isHol) tag = " (अव)";
                 headerRow.push(`${d}${tag} - M`);
                 headerRow.push(`${d}${tag} - E`);
@@ -2749,10 +2871,14 @@
                 const rowData = [st.roll, st.name];
 
                 for (let d = 1; d <= totalDays; d++) {
-                    const isSun = (new Date(year, monthIndex, d).getDay() === 0);
+                    const dateObj = new Date(year, monthIndex, d);
+                    const inSession = isDateInSession(dateObj);
+                    const isSun = (dateObj.getDay() === 0);
                     const isHol = cMonthHolidays.includes(d);
 
-                    if (isSun) {
+                    if (!inSession) {
+                        rowData.push("-", "-");
+                    } else if (isSun) {
                         rowData.push("रवि", "रवि");
                     } else if (isHol) {
                         rowData.push("अवकाश", "अवकाश");
@@ -3146,6 +3272,10 @@
                     appData.trades = getTradesList();
                     appData.instructors = getInstructorsList();
 
+                    if (!appData.sessionConfig) {
+                        appData.sessionConfig = { startDate: "2026-08-10", endDate: "2027-06-30" };
+                    }
+
                     if (!appData.tradeTypes) {
                         appData.tradeTypes = {
                             "COPA": "non_engineering",
@@ -3155,6 +3285,7 @@
                     }
                     saveLocalCache();
                     populateTradeDropdowns();
+                    updateAdminSessionBadge();
                     
                     if (currentRole === 'instructor') { 
                         renderRegister(); 
