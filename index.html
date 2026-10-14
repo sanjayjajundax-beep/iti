@@ -1218,7 +1218,7 @@
         </div>
     </div>
 
-    <!-- 8. Daily Roll-Call Modal -->
+    <!-- 8. Daily Roll-Call Modal (रोल नंबर पहले, फिर नाम) -->
     <div id="todayRollCallModal" class="modal-backdrop hidden">
         <div class="modal-content" style="max-width: 640px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1.5px solid var(--border-color); padding-bottom: 8px;">
@@ -1244,7 +1244,7 @@
                 </table>
             </div>
             <div style="display: flex; gap: 10px; margin-top: 16px;">
-                <button type="button" class="app-btn app-btn-primary" style="flex: 1; padding: 10px;" onclick="closeModal('todayRollCallModal'); syncWithFirebase(); showToast('दैनिक हाजिरी सुरक्षित कर दी गई!');">
+                <button type="button" class="app-btn app-btn-primary" style="flex: 1; padding: 10px;" onclick="saveAndCloseRollCallModal()">
                     <i class="fa-solid fa-check"></i> सुरक्षित करें
                 </button>
                 <button type="button" class="app-btn app-btn-secondary" onclick="closeModal('todayRollCallModal')">बंद करें</button>
@@ -1922,7 +1922,7 @@
             showToast("पूर्णांक एवं छात्र मासिक अंक सुरक्षित किए गए!");
         }
 
-        // --- STUDENT DASHBOARD RENDERING (सत्र सीमा अनुसार) ---
+        // --- STUDENT DASHBOARD RENDERING ---
         function renderStudentDashboard() {
             if (!loggedInStudent || !currentTrade) return;
 
@@ -2284,7 +2284,7 @@
             renderRegister();
         }
 
-        // --- दैनिक हाजिरी (Roll-Call) फ़ंक्शंस ---
+        // --- दैनिक हाजिरी (Roll-Call) फ़ंक्शंस (पूर्णतः सही किया हुआ) ---
         function openTodayRollCallModal() {
             if (!currentTrade) { alert("कृपया पहले ट्रेड चुनें!"); return; }
             const today = new Date();
@@ -2326,8 +2326,9 @@
                     appData.records[currentTrade][monthVal][sRoll] = {};
                 }
 
-                const mStatus = appData.records[currentTrade][monthVal][sRoll][`${d}_m`] || 'A';
-                const eStatus = appData.records[currentTrade][monthVal][sRoll][`${d}_e`] || 'A';
+                // जो पहले से उपस्थित है वो P रहेगा, अन्य स्थिति को भी सही लोड करें
+                const mStatus = appData.records[currentTrade][monthVal][sRoll][`${d}_m`] || 'P';
+                const eStatus = appData.records[currentTrade][monthVal][sRoll][`${d}_e`] || 'P';
 
                 tbody.innerHTML += `
                     <tr>
@@ -2350,11 +2351,17 @@
             if (!appData.records[currentTrade][monthVal][roll]) {
                 appData.records[currentTrade][monthVal][roll] = {};
             }
-            const curr = appData.records[currentTrade][monthVal][roll][key] || 'A';
-            const nextMap = { 'A': 'P', 'P': 'L', 'L': 'A' };
+            const curr = appData.records[currentTrade][monthVal][roll][key] || 'P';
+            const nextMap = { 'P': 'A', 'A': 'L', 'L': 'P' };
             appData.records[currentTrade][monthVal][roll][key] = nextMap[curr];
             renderTodayRollCallList(monthVal, d);
-            renderRegister();
+        }
+
+        async function saveAndCloseRollCallModal() {
+            closeModal('todayRollCallModal');
+            renderRegister(); // मुख्य रजिस्टर को तुरंत री-रेंडर करें
+            await syncWithFirebase(); // क्लाउड पर सेव करें
+            showToast("दैनिक हाजिरी सफलतापूर्वक सुरक्षित कर दी गई!");
         }
 
         // --- अवकाश जोड़ें (Holiday Prompt) फ़ंक्शन ---
