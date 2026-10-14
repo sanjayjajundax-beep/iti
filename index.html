@@ -330,7 +330,6 @@
         th, td { padding: 6px 5px; text-align: center; border: 1px solid var(--border-color); }
         th { background: #f8fafc; color: #334155; font-weight: 600; position: sticky; top: 0; z-index: 5; }
 
-        /* रोल नंबर पहले और नाम बाद में फिक्स (Sticky) */
         .col-sticky-roll {
             position: sticky; left: 0; background: #ffffff; z-index: 6; font-weight: 700; min-width: 65px; text-align: center;
         }
@@ -1219,7 +1218,7 @@
         </div>
     </div>
 
-    <!-- 8. Daily Roll-Call Modal (रोल नंबर पहले, फिर नाम) -->
+    <!-- 8. Daily Roll-Call Modal -->
     <div id="todayRollCallModal" class="modal-backdrop hidden">
         <div class="modal-content" style="max-width: 640px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1.5px solid var(--border-color); padding-bottom: 8px;">
@@ -1788,7 +1787,7 @@
             if (!appData.evaluations[currentTrade][monthVal]) appData.evaluations[currentTrade][monthVal] = {};
 
             const monthEval = appData.evaluations[currentTrade][monthVal];
-            const tStudents = getStudentList(currentTrade); // स्वतः 1, 2, 3... क्रम में सॉर्टेड
+            const tStudents = getStudentList(currentTrade);
             const tbody = document.getElementById('evaluationTableBody');
             if (!tbody) return;
             tbody.innerHTML = '';
@@ -2123,7 +2122,7 @@
             }
         }
 
-        // --- REGISTER TABLE LOGIC (रोल नंबर पहले, फिर नाम - 1,2,3... क्रम) ---
+        // --- REGISTER TABLE LOGIC ---
         function renderRegister() {
             if (!currentTrade) return;
             let monthVal = document.getElementById('selectedMonth')?.value;
@@ -2149,7 +2148,6 @@
             const cMonthHolidays = rawHols.map(Number);
 
             const thead = document.getElementById('attendanceHeader');
-            // रोल नंबर पहले और छात्र का नाम बाद में
             let headerTop = `<tr><th rowspan="2" class="col-sticky-roll">रोल</th><th rowspan="2" class="col-sticky-name">छात्र का नाम</th>`;
             let headerSub = `<tr>`;
 
@@ -2201,7 +2199,7 @@
             const tbody = document.getElementById('attendanceBody');
             tbody.innerHTML = '';
             
-            const tStudents = getStudentList(currentTrade); // 1, 2, 3... क्रम
+            const tStudents = getStudentList(currentTrade);
 
             if (tStudents.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="${totalDays * 2 + 8}" style="padding: 24px; color: var(--text-muted); font-size: 0.95rem;">इस ट्रेड में अभी तक कोई छात्र नहीं जोड़ा गया है।</td></tr>`;
@@ -2214,7 +2212,6 @@
                 let evePresentCount = 0;
                 let eveAbsentCount = 0;
 
-                // रोल नंबर पहले और नाम बाद में
                 let rowHTML = `<tr>
                     <td class="col-sticky-roll">${student.roll}</td>
                     <td class="col-sticky-name">${student.name}</td>`;
@@ -2390,7 +2387,7 @@
             }
         }
 
-        // --- साझा रिपोर्ट कार्ड HTML जेनरेटर (सत्र सीमा के आधार पर) ---
+        // --- साझा रिपोर्ट कार्ड HTML जेनरेटर (उपस्थिति त्रुटि रहित) ---
         function generateReportCardHTML(trade, st) {
             const isEngg = isEnggTrade(trade);
             const sRoll = String(st.roll).trim();
@@ -2435,6 +2432,7 @@
                     ? appData.records[trade][mVal][sRoll]
                     : {};
 
+                // उपस्थिति गणना: डिफ़ॉल्ट 'P' (उपस्थित) को शामिल किया गया है
                 for (let d = 1; d <= totD; d++) {
                     const dateObj = new Date(y, mi, d);
                     if (isDateInSession(dateObj)) {
@@ -2442,7 +2440,10 @@
                         const isHol = hols.includes(d);
                         if (!isSun && !isHol) {
                             mWorking++;
-                            if (sRecord[`${d}_e`] === 'P') mPresent++;
+                            const eStatus = sRecord[`${d}_e`] || 'P';
+                            if (eStatus === 'P') {
+                                mPresent++;
+                            }
                         }
                     }
                 }
@@ -2605,7 +2606,7 @@
             `;
         }
 
-        // --- NEW ADMIN POWER 1: TRADE-WISE OVERALL ANNUAL PERFORMANCE EXCEL EXPORT (रोल नंबर पहले) ---
+        // --- NEW ADMIN POWER 1: TRADE-WISE OVERALL ANNUAL PERFORMANCE EXCEL EXPORT ---
         function openAdminAnnualExcelModal() {
             populateTradeDropdowns();
             openModal('adminAnnualExcelModal');
@@ -2678,7 +2679,10 @@
                             const isHol = hols.includes(d);
                             if (!isSun && !isHol) {
                                 yearlyPortalW++;
-                                if (sRecord[`${d}_e`] === 'P') yearlyPortalP++;
+                                const eStatus = sRecord[`${d}_e`] || 'P';
+                                if (eStatus === 'P') {
+                                    yearlyPortalP++;
+                                }
                             }
                         }
                     }
