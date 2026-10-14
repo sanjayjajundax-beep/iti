@@ -12,6 +12,9 @@
     <!-- SheetJS (xlsx) for Excel Export -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
+    <!-- html2pdf for Individual Student Annual Progress Card PDF Export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
     <!-- Firebase SDK (Compat Version - Realtime Database) -->
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
@@ -269,6 +272,8 @@
         .app-btn-excel:hover { background: #14532d; }
         .app-btn-danger { background: #ef4444; color: white; }
         .app-btn-dark { background: #1e293b; color: white; }
+        .app-btn-pdf { background: #be123c; color: white; }
+        .app-btn-pdf:hover { background: #9f1239; }
 
         .max-marks-banner {
             background: #ffffff;
@@ -508,6 +513,16 @@
             border: 1px solid var(--border-color);
         }
 
+        /* Printable Progress Card Styling */
+        #printableProgressCard {
+            background: #ffffff;
+            color: #0f172a;
+            padding: 20px;
+            border: 2px solid #1e3a8a;
+            border-radius: 8px;
+            font-family: 'Hind', sans-serif;
+        }
+
         footer {
             background: #0f172a;
             color: #94a3b8;
@@ -630,6 +645,14 @@
                     <h2 style="font-size: 1.15rem; color: var(--admin);"><i class="fa-solid fa-sliders"></i> संस्थान एडमिन नियंत्रण कक्ष</h2>
                 </div>
                 <div class="controls-right">
+                    <!-- नए एडमिन पावर्स के दो बटन -->
+                    <button class="app-btn app-btn-excel" onclick="openAdminAnnualExcelModal()">
+                        <i class="fa-solid fa-file-excel"></i> वार्षिक ट्रेड-वाइज़ परफॉर्मेंस (Excel)
+                    </button>
+                    <button class="app-btn app-btn-pdf" onclick="openAdminAnnualReportModal()">
+                        <i class="fa-solid fa-file-pdf"></i> वार्षिक छात्र प्रोग्रेस रिपोर्ट (PDF)
+                    </button>
+
                     <button class="app-btn app-btn-primary" onclick="openModal('addTradeModal')"><i class="fa-solid fa-plus"></i> नई ट्रेड जोड़ें</button>
                     <button class="app-btn app-btn-secondary" onclick="openModal('addInstructorModal')"><i class="fa-solid fa-user-shield"></i> नया अनुदेशक जोड़ें</button>
                     <button class="app-btn app-btn-warning" onclick="openAdminCredModal()"><i class="fa-solid fa-key"></i> एडमिन आईडी/पासवर्ड बदलें</button>
@@ -682,11 +705,9 @@
                         </div>
                         <button class="app-btn app-btn-primary" onclick="openModal('addStudentModal')"><i class="fa-solid fa-user-plus"></i> नया छात्र जोड़ें</button>
                         <button class="app-btn app-btn-secondary" onclick="openStudentCredentialsModal()"><i class="fa-solid fa-id-card"></i> छात्र प्रबंधन / पासवर्ड</button>
-                        <!-- अवकाश जोड़ें बटन -->
                         <button class="app-btn app-btn-warning" onclick="openHolidayPrompt()"><i class="fa-solid fa-umbrella-beach"></i> अवकाश जोड़ें</button>
                     </div>
                     <div class="controls-right">
-                        <!-- आज की हाजिरी बटन -->
                         <button class="app-btn app-btn-success" onclick="openTodayRollCallModal()"><i class="fa-solid fa-clipboard-user"></i> आज की हाजिरी (Roll Call)</button>
                         <button class="app-btn app-btn-excel" onclick="exportAttendanceToExcel()"><i class="fa-solid fa-file-excel"></i> अटेंडेंस एक्सेल (.xlsx)</button>
                         <button class="app-btn app-btn-dark" onclick="syncWithFirebase()"><i class="fa-solid fa-cloud-arrow-up"></i> सेव करें</button>
@@ -884,6 +905,69 @@
     </main>
 
     <!-- MODALS -->
+
+    <!-- Modal A: Admin Trade-wise Annual Excel Export Modal -->
+    <div id="adminAnnualExcelModal" class="modal-backdrop hidden">
+        <div class="modal-content">
+            <h3 style="color: var(--admin); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                <i class="fa-solid fa-file-excel" style="color: #166534;"></i> वार्षिक ट्रेड-वाइज़ परफॉर्मेंस रिपोर्ट (Excel)
+            </h3>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 14px;">
+                ट्रेड का चयन करें। यह रिपोर्ट चुने गए ट्रेड के सभी छात्रों का पूरे सत्र/वर्ष का संचित उपस्थिति प्रतिशत, कुल टेस्ट प्राप्तांक और औसत परिणाम एक एक्सेल स्प्रेडशीट में एक्सपोर्ट करेगी।
+            </p>
+            <div class="input-group">
+                <label>ट्रेड चुनें:</label>
+                <select id="annualExportTradeSelect"></select>
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 14px;">
+                <button type="button" class="app-btn app-btn-excel" style="flex: 1;" onclick="executeTradeAnnualExcelExport()">
+                    <i class="fa-solid fa-download"></i> एक्सेल डाउनलोड करें
+                </button>
+                <button type="button" class="app-btn app-btn-secondary" onclick="closeModal('adminAnnualExcelModal')">रद्द करें</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal B: Admin Individual Student Annual Progress Report / PDF Modal -->
+    <div id="adminAnnualReportModal" class="modal-backdrop hidden">
+        <div class="modal-content" style="max-width: 820px; max-height: 90vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1.5px solid var(--border-color); padding-bottom: 8px;">
+                <h3 style="color: var(--admin); display: flex; align-items: center; gap: 8px; font-size: 1.15rem;">
+                    <i class="fa-solid fa-file-pdf" style="color: #be123c;"></i> वार्षिक छात्र प्रोग्रेस रिपोर्ट कार्ड (PDF)
+                </h3>
+                <button class="app-btn app-btn-secondary" style="padding: 4px 10px;" onclick="closeModal('adminAnnualReportModal')">✕</button>
+            </div>
+
+            <!-- Filters -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 10px; margin-bottom: 16px; align-items: flex-end;">
+                <div class="input-group" style="margin-bottom: 0;">
+                    <label>ट्रेड चुनें:</label>
+                    <select id="reportCardTradeSelect" onchange="populateStudentSelectForReport()"></select>
+                </div>
+                <div class="input-group" style="margin-bottom: 0;">
+                    <label>छात्र चुनें (ID / Roll):</label>
+                    <select id="reportCardStudentSelect"></select>
+                </div>
+                <button type="button" class="app-btn app-btn-primary" style="height: 42px;" onclick="generateAnnualReportPreview()">
+                    <i class="fa-solid fa-eye"></i> रिपोर्ट देखें
+                </button>
+            </div>
+
+            <!-- Preview Card Container -->
+            <div id="reportCardPreviewWrapper" class="hidden">
+                <div style="text-align: right; margin-bottom: 10px;">
+                    <button type="button" class="app-btn app-btn-pdf" onclick="downloadReportCardAsPDF()">
+                        <i class="fa-solid fa-file-arrow-down"></i> PDF के रूप में सेव करें
+                    </button>
+                </div>
+                
+                <!-- Printable Sheet -->
+                <div id="printableProgressCard">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- 1. Admin Login Modal -->
     <div id="adminLoginModal" class="modal-backdrop hidden">
@@ -1089,7 +1173,7 @@
         </div>
     </div>
 
-    <!-- 8. Daily Roll-Call Modal (सक्रिय मॉडल) -->
+    <!-- 8. Daily Roll-Call Modal -->
     <div id="todayRollCallModal" class="modal-backdrop hidden">
         <div class="modal-content" style="max-width: 640px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1.5px solid var(--border-color); padding-bottom: 8px;">
@@ -1237,7 +1321,7 @@
         }
 
         function populateTradeDropdowns() {
-            const selects = ['loginInstTrade', 'loginStudentTrade', 'instAssignTrade'];
+            const selects = ['loginInstTrade', 'loginStudentTrade', 'instAssignTrade', 'annualExportTradeSelect', 'reportCardTradeSelect'];
             const trades = getTradesList();
 
             selects.forEach(id => {
@@ -1254,6 +1338,8 @@
                     el.innerHTML += `<option value="${cleanTrade}">${cleanTrade} (${typeLabel})</option>`;
                 });
             });
+
+            populateStudentSelectForReport();
         }
 
         function openModal(id) { 
@@ -1365,6 +1451,7 @@
             if (currentRole === 'admin') {
                 document.getElementById('adminSection').classList.remove('hidden');
                 document.getElementById('roleLabel').innerHTML = `<i class="fa-solid fa-shield-halved"></i> एडमिन`;
+                populateTradeDropdowns();
             } else if (currentRole === 'instructor') {
                 document.getElementById('instructorSection').classList.remove('hidden');
                 const isEngg = isEnggTrade(currentTrade);
@@ -2065,7 +2152,7 @@
             renderRegister();
         }
 
-        // --- 1. सक्रिय दैनिक हाजिरी (Roll-Call) फ़ंक्शंस ---
+        // --- दैनिक हाजिरी (Roll-Call) फ़ंक्शंस ---
         function openTodayRollCallModal() {
             if (!currentTrade) { alert("कृपया पहले ट्रेड चुनें!"); return; }
             const today = new Date();
@@ -2102,7 +2189,6 @@
                     appData.records[currentTrade][monthVal][sRoll] = {};
                 }
 
-                // जो पहले से उपस्थित है वो P रहेगा, अन्य डिफ़ॉल्ट रूप से A
                 const mStatus = appData.records[currentTrade][monthVal][sRoll][`${d}_m`] || 'A';
                 const eStatus = appData.records[currentTrade][monthVal][sRoll][`${d}_e`] || 'A';
 
@@ -2134,7 +2220,7 @@
             renderRegister();
         }
 
-        // --- 2. सक्रिय अवकाश जोड़ें (Holiday Prompt) फ़ंक्शन ---
+        // --- अवकाश जोड़ें (Holiday Prompt) फ़ंक्शन ---
         function openHolidayPrompt() {
             if (!currentTrade) { alert("कृपया पहले ट्रेड चुनें!"); return; }
             let monthVal = document.getElementById('selectedMonth')?.value;
@@ -2164,7 +2250,374 @@
             }
         }
 
-        // --- EXCEL EXPORT FUNCTIONS ---
+        // --- NEW ADMIN POWER 1: TRADE-WISE OVERALL ANNUAL PERFORMANCE EXCEL EXPORT ---
+        function openAdminAnnualExcelModal() {
+            populateTradeDropdowns();
+            openModal('adminAnnualExcelModal');
+        }
+
+        function executeTradeAnnualExcelExport() {
+            const trade = document.getElementById('annualExportTradeSelect').value;
+            if (!trade) { alert("कृपया ट्रेड चुनें!"); return; }
+
+            const tStudents = getStudentList(trade);
+            if (tStudents.length === 0) { alert("इस ट्रेड में कोई छात्र पंजीकृत नहीं है!"); return; }
+
+            const isEngg = isEnggTrade(trade);
+
+            // Find all recorded months across records and evaluations for this trade
+            const recordedMonthsSet = new Set();
+            if (appData.records && appData.records[trade]) {
+                Object.keys(appData.records[trade]).forEach(m => recordedMonthsSet.add(m));
+            }
+            if (appData.evaluations && appData.evaluations[trade]) {
+                Object.keys(appData.evaluations[trade]).forEach(m => recordedMonthsSet.add(m));
+            }
+            const allMonths = Array.from(recordedMonthsSet).sort();
+
+            const headers = [
+                "रोल नंबर", "छात्र का नाम", "छात्र आईडी", "ट्रेड", "ट्रेड प्रकार",
+                "प्रारंभिक कार्यदिवस", "प्रारंभिक उपस्थिति",
+                "वार्षिक पोर्टल कार्यदिवस", "वार्षिक पोर्टल उपस्थिति", "कुल संचित कार्यदिवस", "कुल संचित उपस्थिति", "कुल उपस्थिति %",
+                "वार्षिक TT प्राप्तांक", "वार्षिक TP प्राप्तांक"
+            ];
+
+            if (isEngg) {
+                headers.push("वार्षिक WCS प्राप्तांक", "वार्षिक ED प्राप्तांक");
+            }
+            headers.push("वार्षिक ES प्राप्तांक", "कुल टेस्ट प्राप्तांक", "कुल टेस्ट पूर्णांक", "वार्षिक टेस्ट %", "परीक्षा पात्रता स्थिति");
+
+            const excelRows = [headers];
+
+            tStudents.forEach(st => {
+                const sRoll = String(st.roll).trim();
+                const pastW = parseInt(st.pastWorkingDays) || 0;
+                const pastP = parseInt(st.pastPresentDays) || 0;
+
+                let yearlyPortalW = 0;
+                let yearlyPortalP = 0;
+
+                let sumTT = 0, sumTP = 0, sumWCS = 0, sumED = 0, sumES = 0;
+                let totalObt = 0, totalMax = 0;
+
+                allMonths.forEach(mVal => {
+                    // Attendance calc for this month
+                    const [yStr, mStr] = mVal.split('-');
+                    const y = parseInt(yStr);
+                    const mi = parseInt(mStr) - 1;
+                    const totD = new Date(y, mi + 1, 0).getDate();
+
+                    const rHols = (appData.holidays && appData.holidays[trade] && appData.holidays[trade][mVal]) ? appData.holidays[trade][mVal] : [];
+                    const hols = rHols.map(Number);
+                    let sundays = 0, holidays = 0;
+                    for (let d = 1; d <= totD; d++) {
+                        if (new Date(y, mi, d).getDay() === 0) sundays++;
+                        else if (hols.includes(d)) holidays++;
+                    }
+                    const mWorking = totD - (sundays + holidays);
+                    yearlyPortalW += mWorking;
+
+                    const sRecord = (appData.records && appData.records[trade] && appData.records[trade][mVal] && appData.records[trade][mVal][sRoll])
+                        ? appData.records[trade][mVal][sRoll]
+                        : {};
+
+                    for (let d = 1; d <= totD; d++) {
+                        const isSun = (new Date(y, mi, d).getDay() === 0);
+                        const isHol = hols.includes(d);
+                        if (!isSun && !isHol) {
+                            if (sRecord[`${d}_e`] === 'P') yearlyPortalP++;
+                        }
+                    }
+
+                    // Evaluations calc for this month
+                    const sEval = (appData.evaluations && appData.evaluations[trade] && appData.evaluations[trade][mVal] && appData.evaluations[trade][mVal][sRoll])
+                        ? appData.evaluations[trade][mVal][sRoll]
+                        : null;
+
+                    if (sEval) {
+                        const mm = getMaxMarksConfig(trade, mVal);
+                        const tt = parseFloat(sEval.tt) || 0;
+                        const tp = parseFloat(sEval.tp) || 0;
+                        const es = parseFloat(sEval.es) || 0;
+
+                        sumTT += tt; sumTP += tp; sumES += es;
+                        totalObt += (tt + tp + es);
+                        totalMax += ((parseFloat(mm.tt) || 20) + (parseFloat(mm.tp) || 20) + (parseFloat(mm.es) || 20));
+
+                        if (isEngg) {
+                            const wcs = parseFloat(sEval.wcs) || 0;
+                            const ed = parseFloat(sEval.ed) || 0;
+                            sumWCS += wcs; sumED += ed;
+                            totalObt += (wcs + ed);
+                            totalMax += ((parseFloat(mm.wcs) || 20) + (parseFloat(mm.ed) || 20));
+                        }
+                    }
+                });
+
+                const finalTotalW = pastW + yearlyPortalW;
+                const finalTotalP = pastP + yearlyPortalP;
+                const overallAttPct = finalTotalW > 0 ? ((finalTotalP / finalTotalW) * 100).toFixed(1) : 0;
+                const overallTestPct = totalMax > 0 ? ((totalObt / totalMax) * 100).toFixed(1) : 0;
+                const eligibility = overallAttPct >= 75 ? "पात्र (Eligible)" : "अपात्र (Short Attendance)";
+
+                const row = [
+                    st.roll, st.name, st.studentId, trade, isEngg ? "Engineering" : "Non-Engineering",
+                    pastW, pastP, yearlyPortalW, yearlyPortalP, finalTotalW, finalTotalP, `${overallAttPct}%`,
+                    sumTT, sumTP
+                ];
+
+                if (isEngg) {
+                    row.push(sumWCS, sumED);
+                }
+                row.push(sumES, totalObt, totalMax, `${overallTestPct}%`, eligibility);
+                excelRows.push(row);
+            });
+
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(excelRows);
+            XLSX.utils.book_append_sheet(wb, ws, "Annual_Performance");
+            XLSX.writeFile(wb, `ITI_Kotri_${trade}_Annual_Overall_Report.xlsx`);
+            closeModal('adminAnnualExcelModal');
+            showToast(`ट्रेड ${trade} की वार्षिक परफॉर्मेंस रिपोर्ट डाउनलोड हो गई!`);
+        }
+
+        // --- NEW ADMIN POWER 2: INDIVIDUAL STUDENT ANNUAL REPORT & PDF GENERATION ---
+        function openAdminAnnualReportModal() {
+            populateTradeDropdowns();
+            document.getElementById('reportCardPreviewWrapper').classList.add('hidden');
+            openModal('adminAnnualReportModal');
+        }
+
+        function populateStudentSelectForReport() {
+            const trade = document.getElementById('reportCardTradeSelect').value;
+            const select = document.getElementById('reportCardStudentSelect');
+            if (!select) return;
+            select.innerHTML = '';
+
+            const list = getStudentList(trade);
+            if (list.length === 0) {
+                select.innerHTML = '<option value="">कोई छात्र नहीं</option>';
+                return;
+            }
+
+            list.forEach(s => {
+                select.innerHTML += `<option value="${s.studentId}">रोल ${s.roll} - ${s.name} (${s.studentId})</option>`;
+            });
+        }
+
+        function generateAnnualReportPreview() {
+            const trade = document.getElementById('reportCardTradeSelect').value;
+            const studentId = document.getElementById('reportCardStudentSelect').value;
+
+            if (!trade || !studentId) {
+                alert("कृपया ट्रेड और छात्र का चयन करें!");
+                return;
+            }
+
+            const list = getStudentList(trade);
+            const st = list.find(s => String(s.studentId).trim().toLowerCase() === studentId.trim().toLowerCase());
+            if (!st) {
+                alert("छात्र नहीं मिला!");
+                return;
+            }
+
+            const isEngg = isEnggTrade(trade);
+            const sRoll = String(st.roll).trim();
+
+            // Collect all recorded months
+            const recordedMonthsSet = new Set();
+            if (appData.records && appData.records[trade]) {
+                Object.keys(appData.records[trade]).forEach(m => recordedMonthsSet.add(m));
+            }
+            if (appData.evaluations && appData.evaluations[trade]) {
+                Object.keys(appData.evaluations[trade]).forEach(m => recordedMonthsSet.add(m));
+            }
+            const allMonths = Array.from(recordedMonthsSet).sort();
+
+            const pastW = parseInt(st.pastWorkingDays) || 0;
+            const pastP = parseInt(st.pastPresentDays) || 0;
+
+            let yearlyPortalW = 0;
+            let yearlyPortalP = 0;
+            let sumTT = 0, sumTP = 0, sumWCS = 0, sumED = 0, sumES = 0;
+            let totalObt = 0, totalMax = 0;
+
+            let monthsTableRows = '';
+
+            allMonths.forEach(mVal => {
+                const [yStr, mStr] = mVal.split('-');
+                const y = parseInt(yStr);
+                const mi = parseInt(mStr) - 1;
+                const totD = new Date(y, mi + 1, 0).getDate();
+
+                const rHols = (appData.holidays && appData.holidays[trade] && appData.holidays[trade][mVal]) ? appData.holidays[trade][mVal] : [];
+                const hols = rHols.map(Number);
+                let sundays = 0, holidays = 0;
+                for (let d = 1; d <= totD; d++) {
+                    if (new Date(y, mi, d).getDay() === 0) sundays++;
+                    else if (hols.includes(d)) holidays++;
+                }
+                const mWorking = totD - (sundays + holidays);
+                yearlyPortalW += mWorking;
+
+                const sRecord = (appData.records && appData.records[trade] && appData.records[trade][mVal] && appData.records[trade][mVal][sRoll])
+                    ? appData.records[trade][mVal][sRoll]
+                    : {};
+
+                let mPresent = 0;
+                for (let d = 1; d <= totD; d++) {
+                    const isSun = (new Date(y, mi, d).getDay() === 0);
+                    const isHol = hols.includes(d);
+                    if (!isSun && !isHol) {
+                        if (sRecord[`${d}_e`] === 'P') mPresent++;
+                    }
+                }
+                yearlyPortalP += mPresent;
+                const mAttPct = mWorking > 0 ? ((mPresent / mWorking) * 100).toFixed(1) : 0;
+
+                const sEval = (appData.evaluations && appData.evaluations[trade] && appData.evaluations[trade][mVal] && appData.evaluations[trade][mVal][sRoll])
+                    ? appData.evaluations[trade][mVal][sRoll]
+                    : {};
+
+                const mm = getMaxMarksConfig(trade, mVal);
+                const tt = parseFloat(sEval.tt) || 0;
+                const tp = parseFloat(sEval.tp) || 0;
+                const es = parseFloat(sEval.es) || 0;
+
+                let mTotalObt = tt + tp + es;
+                let mTotalMM = (parseFloat(mm.tt) || 20) + (parseFloat(mm.tp) || 20) + (parseFloat(mm.es) || 20);
+
+                sumTT += tt; sumTP += tp; sumES += es;
+
+                let enggCols = '';
+                if (isEngg) {
+                    const wcs = parseFloat(sEval.wcs) || 0;
+                    const ed = parseFloat(sEval.ed) || 0;
+                    mTotalObt += (wcs + ed);
+                    mTotalMM += ((parseFloat(mm.wcs) || 20) + (parseFloat(mm.ed) || 20));
+                    sumWCS += wcs; sumED += ed;
+                    enggCols = `<td>${sEval.wcs !== undefined ? sEval.wcs : '-'}</td><td>${sEval.ed !== undefined ? sEval.ed : '-'}</td>`;
+                }
+
+                totalObt += mTotalObt;
+                totalMax += mTotalMM;
+
+                const mTestPct = mTotalMM > 0 ? ((mTotalObt / mTotalMM) * 100).toFixed(1) : 0;
+
+                monthsTableRows += `
+                    <tr>
+                        <td style="font-weight:600;">${mVal}</td>
+                        <td>${mPresent} / ${mWorking} (${mAttPct}%)</td>
+                        <td>${sEval.tt !== undefined ? sEval.tt : '-'}</td>
+                        <td>${sEval.tp !== undefined ? sEval.tp : '-'}</td>
+                        ${enggCols}
+                        <td>${sEval.es !== undefined ? sEval.es : '-'}</td>
+                        <td style="font-weight:700;">${mTotalObt} / ${mTotalMM}</td>
+                        <td style="font-weight:700; color:#1e40af;">${mTestPct}%</td>
+                        <td>${sEval.diaryStatus || '-'}</td>
+                    </tr>
+                `;
+            });
+
+            const overallW = pastW + yearlyPortalW;
+            const overallP = pastP + yearlyPortalP;
+            const overallAttPct = overallW > 0 ? ((overallP / overallW) * 100).toFixed(1) : 0;
+            const overallTestPct = totalMax > 0 ? ((totalObt / totalMax) * 100).toFixed(1) : 0;
+            const isEligible = overallAttPct >= 75;
+
+            const preview = document.getElementById('printableProgressCard');
+            preview.innerHTML = `
+                <div style="text-align: center; border-bottom: 2px solid #1e3a8a; padding-bottom: 10px; margin-bottom: 14px;">
+                    <h2 style="font-size: 1.35rem; color: #1e3a8a; margin-bottom: 2px;">राजकीय औद्योगिक प्रशिक्षण संस्थान, कोटड़ी (भीलवाड़ा)</h2>
+                    <p style="font-size: 0.95rem; font-weight: 700; color: #334155;">वार्षिक छात्र प्रगति व मूल्यांकन रिपोर्ट कार्ड (Annual Progress Card)</p>
+                    <p style="font-size: 0.8rem; color: #64748b;">सत्र: 2025–2026</p>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; font-size: 0.88rem; background: #f8fafc; padding: 12px; border-radius: 6px; border: 1px solid #cbd5e1; margin-bottom: 14px;">
+                    <div><strong>प्रशिक्षु का नाम:</strong> ${st.name}</div>
+                    <div><strong>रोल नंबर:</strong> ${st.roll}</div>
+                    <div><strong>ट्रेड:</strong> ${trade} (${isEngg ? 'Engineering' : 'Non-Engineering'})</div>
+                    <div><strong>छात्र आईडी (Student ID):</strong> ${st.studentId}</div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px;">
+                    <div style="border: 1px solid #cbd5e1; padding: 10px; border-radius: 6px; background:#eff6ff;">
+                        <div style="font-size: 0.78rem; font-weight: 600; color: #1e40af;">कुल संचित उपस्थिति</div>
+                        <div style="font-size: 1.35rem; font-weight: 800; color: #1e3a8a;">${overallP} / ${overallW} दिन</div>
+                        <div style="font-size: 0.85rem; font-weight: 700; color: ${isEligible ? '#166534' : '#991b1b'};">उपस्थिति: ${overallAttPct}%</div>
+                    </div>
+                    <div style="border: 1px solid #cbd5e1; padding: 10px; border-radius: 6px; background:#f0fdf4;">
+                        <div style="font-size: 0.78rem; font-weight: 600; color: #166534;">कुल टेस्ट प्राप्तांक</div>
+                        <div style="font-size: 1.35rem; font-weight: 800; color: #15803d;">${totalObt} / ${totalMax}</div>
+                        <div style="font-size: 0.85rem; font-weight: 700; color: #166534;">औसत अंक: ${overallTestPct}%</div>
+                    </div>
+                    <div style="border: 1px solid #cbd5e1; padding: 10px; border-radius: 6px; background:${isEligible ? '#ecfdf5' : '#fef2f2'}; border-color:${isEligible ? '#a7f3d0' : '#fecaca'};">
+                        <div style="font-size: 0.78rem; font-weight: 600; color: ${isEligible ? '#065f46' : '#991b1b'};">वार्षिक परीक्षा पात्रता</div>
+                        <div style="font-size: 1.15rem; font-weight: 800; color: ${isEligible ? '#059669' : '#dc2626'}; margin-top: 4px;">
+                            ${isEligible ? 'पूर्णतः पात्र (Eligible)' : 'अपात्र (Short Att.)'}
+                        </div>
+                        <div style="font-size: 0.75rem; color:#64748b;">(न्यूनतम 75% अनिवार्य)</div>
+                    </div>
+                </div>
+
+                <div style="font-size: 0.88rem; font-weight: 700; margin-bottom: 6px; color: #1e3a8a;">मासिक मूल्यांकन एवं उपस्थिति ब्रेकअप:</div>
+                <div class="table-shell" style="max-height: none; margin-bottom: 18px;">
+                    <table style="font-size: 0.75rem;">
+                        <thead>
+                            <tr style="background:#f1f5f9;">
+                                <th>माह</th>
+                                <th>उपस्थिति</th>
+                                <th>TT</th>
+                                <th>TP</th>
+                                ${isEngg ? '<th>WCS</th><th>ED</th>' : ''}
+                                <th>ES</th>
+                                <th>मासिक योग</th>
+                                <th>%</th>
+                                <th>डायरी स्थिति</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${monthsTableRows || '<tr><td colspan="10">कोई रिकॉर्ड उपलब्ध नहीं है</td></tr>'}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 36px; padding: 0 10px; font-size: 0.85rem;">
+                    <div style="text-align: center;">
+                        <div style="width: 140px; border-bottom: 1px dashed #475569; margin-bottom: 4px;"></div>
+                        <strong>हस्ताक्षर वर्ग अनुदेशक</strong>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="width: 140px; border-bottom: 1px dashed #475569; margin-bottom: 4px;"></div>
+                        <strong>हस्ताक्षर अधीक्षक / प्राचार्य</strong>
+                        <div style="font-size: 0.75rem; color: #64748b;">आईटीआई कोटड़ी</div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('reportCardPreviewWrapper').classList.remove('hidden');
+        }
+
+        function downloadReportCardAsPDF() {
+            const studentId = document.getElementById('reportCardStudentSelect').value;
+            const element = document.getElementById('printableProgressCard');
+            if (!element) return;
+
+            const opt = {
+                margin:       8,
+                filename:     `Annual_Report_${studentId}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            showToast("PDF जनरेट किया जा रहा है...");
+            html2pdf().set(opt).from(element).save().then(() => {
+                showToast("PDF सफलतापूर्वक डाउनलोड हो गया!");
+            });
+        }
+
+        // --- EXCEL EXPORT FUNCTIONS (EXISTING) ---
         function exportAttendanceToExcel() {
             if (!currentTrade) { alert("कृपया पहले ट्रेड का चयन करें!"); return; }
             const monthVal = document.getElementById('selectedMonth').value;
@@ -2349,6 +2802,7 @@
             renderRegister();
             renderEvaluationTable();
             renderStudentCredentialsModalTable();
+            populateTradeDropdowns();
             showToast("छात्र सफलतापूर्वक जोड़ा गया!");
             
             document.getElementById('newRoll').value = '';
@@ -2432,6 +2886,7 @@
             renderRegister();
             renderEvaluationTable();
             renderStudentCredentialsModalTable();
+            populateTradeDropdowns();
             showToast("छात्र विवरण सफलतापूर्वक अपडेट हुआ!");
         }
 
@@ -2463,6 +2918,7 @@
                 renderRegister();
                 renderEvaluationTable();
                 renderStudentCredentialsModalTable();
+                populateTradeDropdowns();
                 showToast(`छात्र "${studentName}" हटाया गया!`);
             }
         }
