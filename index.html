@@ -2029,7 +2029,6 @@
                 : [];
             const cMonthHolidays = rawHols.map(Number);
 
-            // रोल नंबर को स्ट्रिंग और नंबर दोनों रूप में जांचें
             const sRollStr = String(loggedInStudent.roll).trim();
             const sRollNum = parseInt(loggedInStudent.roll, 10);
             
@@ -2531,7 +2530,7 @@
             }
         }
 
-        // --- साझा रिपोर्ट कार्ड HTML जेनरेटर (प्रवेश तिथि अनुसार सटीक कार्यदिवस) ---
+        // --- साझा रिपोर्ट कार्ड HTML जेनरेटर (सरकारी सत्रीय अंक अधिभार 50-30-10-10 / 30-50-10-10 अनुसार) ---
         function generateReportCardHTML(trade, st) {
             const isEngg = isEnggTrade(trade);
             const sRoll = String(st.roll).trim();
@@ -2558,6 +2557,11 @@
             
             let totalObt = 0;
             let totalMax = 0;
+
+            // विषयवार संचित टेस्ट अंक (सत्रीय वेटेज गणना हेतु)
+            let sumTTObt = 0, sumTTMax = 0;
+            let sumTPObt = 0, sumTPMax = 0;
+            let lastRecStatus = 'A', lastDiaryStatus = 'नियमित', lastDisc = 'उत्कृष्ट', lastAct = 'सक्रिय';
 
             let monthsTableRows = '';
             const today = new Date();
@@ -2624,7 +2628,6 @@
                     const tp = parseFloat(sEval.tp) || 0;
                     const es = parseFloat(sEval.es) || 0;
 
-                    mTotalObt = tt + tp + es;
                     let mmTT = parseFloat(mm.tt) || 20;
                     let mmTP = parseFloat(mm.tp) || 20;
                     let mmES = parseFloat(mm.es) || 20;
@@ -2633,7 +2636,11 @@
                     if (tp > mmTP) mmTP = tp;
                     if (es > mmES) mmES = es;
 
+                    mTotalObt = tt + tp + es;
                     mTotalMM = mmTT + mmTP + mmES;
+
+                    sumTTObt += tt; sumTTMax += mmTT;
+                    sumTPObt += tp; sumTPMax += mmTP;
 
                     if (isEngg) {
                         const wcs = parseFloat(sEval.wcs) || 0;
@@ -2651,6 +2658,13 @@
 
                     totalObt += mTotalObt;
                     totalMax += mTotalMM;
+                }
+
+                if (sEval) {
+                    if (sEval.recStatus) lastRecStatus = sEval.recStatus;
+                    if (sEval.diaryStatus) lastDiaryStatus = sEval.diaryStatus;
+                    if (sEval.disc) lastDisc = sEval.disc;
+                    if (sEval.act) lastAct = sEval.act;
                 }
 
                 let enggCols = '';
@@ -2676,27 +2690,61 @@
 
             const overallW = pastW + yearlyPortalW;
             const overallP = pastP + yearlyPortalP;
-            const overallAttPct = overallW > 0 ? ((overallP / overallW) * 100).toFixed(1) : 0;
+            const overallAttPct = overallW > 0 ? parseFloat(((overallP / overallW) * 100).toFixed(1)) : 0;
             const isEligible = overallAttPct >= 75;
 
             const overallTestPct = totalMax > 0 ? ((totalObt / totalMax) * 100).toFixed(1) : "0.0";
             const testMarksDisplay = totalMax > 0 ? `${totalObt} / ${totalMax}` : "कोई टेस्ट नहीं";
 
+            // --- सत्रीय अंक निर्धारण (DGT Formative Assessment Weightage Rules) ---
+            // उपस्थिति अधिभार (10% में से):
+            const attWeightScore = ((overallAttPct / 100) * 10).toFixed(1);
+
+            // प्रायोगिक टेस्ट औसत (30% में से):
+            const tpTestRatio = sumTPMax > 0 ? (sumTPObt / sumTPMax) : (totalMax > 0 ? totalObt / totalMax : 0.8);
+            const tpTestWeightScore = (tpTestRatio * 30).toFixed(1);
+
+            // नियमित प्रायोगिक कार्य (50% में से - रिकॉर्ड ग्रेड आधार):
+            let pracWorkScore = 45.0;
+            if (lastRecStatus === 'A+') pracWorkScore = 48.0;
+            else if (lastRecStatus === 'A') pracWorkScore = 44.0;
+            else if (lastRecStatus === 'B') pracWorkScore = 36.0;
+            else if (lastRecStatus === 'C') pracWorkScore = 28.0;
+
+            // सैद्धांतिक टेस्ट औसत (50% में से):
+            const ttTestRatio = sumTTMax > 0 ? (sumTTObt / sumTTMax) : (totalMax > 0 ? totalObt / totalMax : 0.8);
+            const ttTestWeightScore = (ttTestRatio * 50).toFixed(1);
+
+            // नोट्स एवं अभ्यास पुस्तिका / दैनिक डायरी (30% में से):
+            let notesScore = 26.0;
+            if (lastDiaryStatus === 'नियमित') notesScore = 27.5;
+            else if (lastDiaryStatus === 'अनियमित') notesScore = 21.0;
+            else notesScore = 18.0;
+
+            // सह-पाठ्यक्रम गतिविधियां (वृक्षारोपण, अनुशासन आदि 10% में से):
+            let activityScore = 9.0;
+            if (lastDisc === 'उत्कृष्ट' || lastAct === 'सक्रिय') activityScore = 9.5;
+            else if (lastDisc === 'संतोषजनक') activityScore = 7.5;
+            else activityScore = 6.0;
+
+            const totalPracticalSessional = (parseFloat(pracWorkScore) + parseFloat(tpTestWeightScore) + parseFloat(attWeightScore) + parseFloat(activityScore)).toFixed(1);
+            const totalTheorySessional = (parseFloat(notesScore) + parseFloat(ttTestWeightScore) + parseFloat(attWeightScore) + parseFloat(activityScore)).toFixed(1);
+
             return `
-                <div style="text-align: center; border-bottom: 2px solid #1e3a8a; padding-bottom: 10px; margin-bottom: 14px;">
+                <div style="text-align: center; border-bottom: 2px solid #1e3a8a; padding-bottom: 8px; margin-bottom: 12px;">
                     <h2 style="font-size: 1.35rem; color: #1e3a8a; margin-bottom: 2px;">राजकीय औद्योगिक प्रशिक्षण संस्थान, कोटड़ी (भीलवाड़ा)</h2>
                     <p style="font-size: 0.95rem; font-weight: 700; color: #334155;">वार्षिक छात्र प्रगति व मूल्यांकन रिपोर्ट कार्ड (Annual Progress Card)</p>
                     <p style="font-size: 0.8rem; color: #64748b;">सत्र अवधि: <strong>${sessionConf.startDate}</strong> से <strong>${sessionConf.endDate}</strong></p>
                 </div>
 
-                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; font-size: 0.88rem; background: #f8fafc; padding: 12px; border-radius: 6px; border: 1px solid #cbd5e1; margin-bottom: 14px;">
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; font-size: 0.85rem; background: #f8fafc; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1; margin-bottom: 12px;">
                     <div><strong>रोल नंबर:</strong> ${st.roll}</div>
                     <div><strong>प्रशिक्षु का नाम:</strong> ${st.name}</div>
                     <div><strong>ट्रेड:</strong> ${trade} (${isEngg ? 'Engineering' : 'Non-Engineering'})</div>
                     <div><strong>प्रवेश तिथि (Admission Date):</strong> ${admDateStr}</div>
                 </div>
 
-                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px;">
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 14px;">
                     <div style="border: 1px solid #cbd5e1; padding: 10px; border-radius: 6px; background:#eff6ff;">
                         <div style="font-size: 0.78rem; font-weight: 600; color: #1e40af;">सत्र संचित उपस्थिति (Attendance)</div>
                         <div style="font-size: 1.35rem; font-weight: 800; color: #1e3a8a;">${overallP} / ${overallW} दिन</div>
@@ -2716,8 +2764,9 @@
                     </div>
                 </div>
 
-                <div style="font-size: 0.88rem; font-weight: 700; margin-bottom: 6px; color: #1e3a8a;">मासिक मूल्यांकन एवं उपस्थिति ब्रेकअप:</div>
-                <div class="table-shell" style="max-height: none; margin-bottom: 18px;">
+                <!-- मासिक मूल्यांकन ब्रेकअप टेबल -->
+                <div style="font-size: 0.85rem; font-weight: 700; margin-bottom: 5px; color: #1e3a8a;">1. मासिक मूल्यांकन एवं उपस्थिति ब्रेकअप:</div>
+                <div class="table-shell" style="max-height: none; margin-bottom: 16px;">
                     <table style="font-size: 0.75rem;">
                         <thead>
                             <tr style="background:#f1f5f9;">
@@ -2738,7 +2787,92 @@
                     </table>
                 </div>
 
-                <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 36px; padding: 0 10px; font-size: 0.85rem;">
+                <!-- सत्रीय अंक अधिभार तालिकाएं (सरकारी गाइडलाइन अनुसार) -->
+                <div style="font-size: 0.85rem; font-weight: 700; margin-bottom: 6px; color: #831843;">
+                    <i class="fa-solid fa-scale-balanced"></i> 2. सत्रीय अंक निर्धारण (Formative Assessment / Sessional Marks Breakdown):
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 12px; margin-bottom: 14px;">
+                    
+                    <!-- A. प्रायोगिक / इंजीनियरिंग ड्राईंग -->
+                    <div style="border: 1.5px solid #cbd5e1; border-radius: 6px; padding: 10px; background: #ffffff;">
+                        <div style="font-size: 0.82rem; font-weight: 700; color: #1e3a8a; border-bottom: 1.5px solid #cbd5e1; padding-bottom: 4px; margin-bottom: 6px;">
+                            प्रायोगिक / इंजीनियरिंग ड्राईंग के सत्रीय अंक
+                        </div>
+                        <table style="width: 100%; font-size: 0.73rem; text-align: left;">
+                            <tbody>
+                                <tr>
+                                    <td style="text-align: left; padding: 3px;">1. नियमित प्रायोगिक कार्य (जॉब / रिकॉर्ड)</td>
+                                    <td style="text-align: right; font-weight: 600;">50 प्रतिशत</td>
+                                    <td style="text-align: right; font-weight: 700; color: #15803d;">${pracWorkScore} / 50</td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align: left; padding: 3px;">2. मासिक / एचिवमेन्ट टेस्ट</td>
+                                    <td style="text-align: right; font-weight: 600;">30 प्रतिशत</td>
+                                    <td style="text-align: right; font-weight: 700; color: #15803d;">${tpTestWeightScore} / 30</td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align: left; padding: 3px;">3. उपस्थिति (${overallAttPct}%)</td>
+                                    <td style="text-align: right; font-weight: 600;">10 प्रतिशत</td>
+                                    <td style="text-align: right; font-weight: 700; color: #15803d;">${attWeightScore} / 10</td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align: left; padding: 3px;">4. सह-पाठ्यक्रम गतिविधियां (वृक्षारोपण आदि)</td>
+                                    <td style="text-align: right; font-weight: 600;">10 प्रतिशत</td>
+                                    <td style="text-align: right; font-weight: 700; color: #15803d;">${activityScore} / 10</td>
+                                </tr>
+                                <tr style="background: #f0fdf4; font-weight: 800; border-top: 1.5px solid #86efac;">
+                                    <td style="text-align: left; padding: 4px;">कुल प्रायोगिक सत्रीय अंक</td>
+                                    <td style="text-align: right;">100%</td>
+                                    <td style="text-align: right; color: #166534; font-size: 0.82rem;">${totalPracticalSessional} / 100</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- B. सैद्धांतिक / कार्यशाला गणना एवं विज्ञान -->
+                    <div style="border: 1.5px solid #cbd5e1; border-radius: 6px; padding: 10px; background: #ffffff;">
+                        <div style="font-size: 0.82rem; font-weight: 700; color: #0d9488; border-bottom: 1.5px solid #cbd5e1; padding-bottom: 4px; margin-bottom: 6px;">
+                            सैद्धांतिक / कार्यशाला गणना एवं विज्ञान के सत्रीय अंक
+                        </div>
+                        <table style="width: 100%; font-size: 0.73rem; text-align: left;">
+                            <tbody>
+                                <tr>
+                                    <td style="text-align: left; padding: 3px;">1. नोट्स एवं अभ्यास पुस्तिका (डायरी आदि)</td>
+                                    <td style="text-align: right; font-weight: 600;">30 प्रतिशत</td>
+                                    <td style="text-align: right; font-weight: 700; color: #0f766e;">${notesScore} / 30</td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align: left; padding: 3px;">2. मासिक / एचिवमेन्ट टेस्ट</td>
+                                    <td style="text-align: right; font-weight: 600;">50 प्रतिशत</td>
+                                    <td style="text-align: right; font-weight: 700; color: #0f766e;">${ttTestWeightScore} / 50</td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align: left; padding: 3px;">3. उपस्थिति (${overallAttPct}%)</td>
+                                    <td style="text-align: right; font-weight: 600;">10 प्रतिशत</td>
+                                    <td style="text-align: right; font-weight: 700; color: #0f766e;">${attWeightScore} / 10</td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align: left; padding: 3px;">4. सह-पाठ्यक्रम गतिविधियां (वृक्षारोपण आदि)</td>
+                                    <td style="text-align: right; font-weight: 600;">10 प्रतिशत</td>
+                                    <td style="text-align: right; font-weight: 700; color: #0f766e;">${activityScore} / 10</td>
+                                </tr>
+                                <tr style="background: #f0fdfa; font-weight: 800; border-top: 1.5px solid #99f6e4;">
+                                    <td style="text-align: left; padding: 4px;">कुल सैद्धांतिक सत्रीय अंक</td>
+                                    <td style="text-align: right;">100%</td>
+                                    <td style="text-align: right; color: #115e59; font-size: 0.82rem;">${totalTheorySessional} / 100</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                </div>
+
+                <div style="background: #fffbeb; border: 1px dashed #f59e0b; padding: 6px 10px; border-radius: 4px; font-size: 0.72rem; color: #92400e; margin-bottom: 20px;">
+                    <strong>विशेष नोट:</strong> प्रत्येक त्रैमासिक टेस्ट को अचीवमेंट टेस्ट के रूप में लिया जावे। संस्थानों में वृक्षारोपण एवं पर्यावरण संवर्धन कार्य को आवश्यक रूप से सम्मिलित करें।
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 24px; padding: 0 10px; font-size: 0.85rem;">
                     <div style="text-align: center;">
                         <div style="width: 140px; border-bottom: 1px dashed #475569; margin-bottom: 4px;"></div>
                         <strong>हस्ताक्षर वर्ग अनुदेशक</strong>
