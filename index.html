@@ -778,10 +778,10 @@
                 </div>
                 <div class="controls-right">
                     <button class="app-btn app-btn-purple" onclick="openCollegeManagerModal()">
-                        <i class="fa-solid fa-school"></i> कॉलेज / संस्थान प्रबंधन
+                        <i class="fa-solid fa-school"></i> कॉलेज प्रबंधन
                     </button>
                     <button class="app-btn app-btn-purple" onclick="openInstituteSettingsModal()">
-                        <i class="fa-solid fa-building-columns"></i> प्रोफ़ाइल सेटिंग्स
+                        <i class="fa-solid fa-building-columns"></i> संस्थान प्रोफ़ाइल व हस्ताक्षर
                     </button>
                     <button class="app-btn app-btn-secondary" onclick="openBackupRestoreModal()">
                         <i class="fa-solid fa-database"></i> बैकअप / रीस्टोर
@@ -816,7 +816,7 @@
                     </select>
                 </div>
                 <div style="display: flex; gap: 8px; align-items: center;">
-                    <span style="font-size: 0.85rem; font-weight: 600; color: #475569;">पासवर्ड दृश्यता:</span>
+                    <span style="font-weight: 700; color: #1e3a8a;">सक्रिय सत्र: <span id="adminSessionDisplayBadge" style="color: #2563eb;">-</span></span>
                     <button class="app-btn app-btn-secondary" style="padding: 4px 10px;" onclick="toggleAllPasswordsVisibility()">
                         <i id="allPassEyeIcon" class="fa-solid fa-eye"></i> <span id="allPassEyeText">सभी पासवर्ड दिखाएं</span>
                     </button>
@@ -1091,17 +1091,17 @@
                 <i class="fa-solid fa-school"></i> संस्थान / कॉलेज प्रबंधन (Multi-College Setup)
             </h3>
             <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 14px;">
-                एडमिन यहाँ से नए कॉलेज जोड़ सकता है या मौजूदा कॉलेजों की सूची देख सकता है।
+                सुपर एडमिन यहाँ से नए कॉलेज जोड़ सकता है या मौजूदा कॉलेजों की सूची प्रबंधित कर सकता है।
             </p>
             <form onsubmit="handleSaveNewCollege(event)" style="background:#f8fafc; padding:12px; border-radius:8px; border:1px solid var(--border-color); margin-bottom:14px;">
                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px;">
                     <div class="input-group" style="margin-bottom:0;">
-                        <label>कॉलेज यूनिक आईडी (उदा. COL01):</label>
+                        <label>कॉलेज कोड / आईडी (उदा. COL01):</label>
                         <input type="text" id="newCollegeId" required placeholder="COL01" autocomplete="off">
                     </div>
                     <div class="input-group" style="margin-bottom:0;">
                         <label>कॉलेज का पूरा नाम:</label>
-                        <input type="text" id="newCollegeName" required placeholder="उदा. राजकीय आईटीआई, कोटड़ी" autocomplete="off">
+                        <input type="text" id="newCollegeName" required placeholder="राजकीय आईटीआई, कोटड़ी" autocomplete="off">
                     </div>
                 </div>
                 <button type="submit" class="app-btn app-btn-primary"><i class="fa-solid fa-plus"></i> नया कॉलेज जोड़ें</button>
@@ -1197,13 +1197,14 @@
                 <i class="fa-solid fa-database"></i> डेटाबेस बैकअप एवं रीस्टोर केंद्र
             </h3>
             <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 16px;">
-                समस्त कॉलेजों व छात्रों का संपूर्ण डेटाबेस बैकअप डाउनलोड करें।
+                आपातकालीन स्थिति में पूरा डेटा सुरक्षित करने हेतु बैकअप डाउनलोड करें या पूर्व बैकअप फ़ाइल से रीस्टोर करें।
             </p>
 
             <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 14px; margin-bottom: 16px;">
                 <h4 style="font-size: 0.9rem; margin-bottom: 8px; color: #1e3a8a;"><i class="fa-solid fa-download"></i> 1. लोकल बैकअप डाउनलोड करें</h4>
                 <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                     <button class="app-btn app-btn-primary" onclick="downloadDatabaseAsJSON()"><i class="fa-solid fa-file-code"></i> JSON बैकअप (.json)</button>
+                    <button class="app-btn app-btn-secondary" onclick="downloadDatabaseAsSQL()"><i class="fa-solid fa-file-lines"></i> SQL स्क्रिप्ट (.sql)</button>
                     <button class="app-btn app-btn-excel" onclick="downloadAllStudentsExcelBackup()"><i class="fa-solid fa-file-excel"></i> समस्त छात्र डेटा (.xlsx)</button>
                 </div>
             </div>
@@ -1211,7 +1212,7 @@
             <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: var(--radius-md); padding: 14px;">
                 <h4 style="font-size: 0.9rem; margin-bottom: 8px; color: #991b1b;"><i class="fa-solid fa-upload"></i> 2. JSON फ़ाइल से डेटाबेस रीस्टोर करें</h4>
                 <p style="font-size: 0.78rem; color: #b91c1c; margin-bottom: 10px;">
-                    चेतावनी: रीस्टोर करने पर वर्तमान डेटा ओवरराइट हो जाएगा।
+                    चेतावनी: रीस्टोर करने पर वर्तमान लोकल व क्लाउड डेटा अधिलेखित (Overwrite) हो जाएगा।
                 </p>
                 <input type="file" id="restoreJsonFileInput" accept=".json" style="margin-bottom: 10px; font-size: 0.85rem;">
                 <div>
@@ -1225,15 +1226,17 @@
         </div>
     </div>
 
-    <!-- Modal 4: BULK CSV UPLOAD MODAL -->
+    <!-- Modal 4: BULK CSV UPLOAD & PROMOTION MODAL -->
     <div id="bulkStudentModal" class="modal-backdrop hidden">
         <div class="modal-content" style="max-width: 680px;">
             <h3 style="color: var(--primary); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-                <i class="fa-solid fa-users-gear"></i> बल्क CSV छात्र डेटा अपलोड
+                <i class="fa-solid fa-users-gear"></i> केंद्रीय छात्र प्रबंधन: प्रमोट, आर्काइव व बल्क CSV
             </h3>
 
-            <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 14px;">
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+            <!-- सेक्शन A: बल्क CSV अपलोड -->
+            <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 14px; margin-bottom: 16px;">
+                <h4 style="font-size: 0.9rem; margin-bottom: 8px; color: #1e3a8a;"><i class="fa-solid fa-file-csv"></i> 1. कॉलेज एवं ट्रेड-वाइज छात्र डेटा बल्क CSV से जोड़ें</h4>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 10px;">
                     <div class="input-group" style="margin-bottom: 0;">
                         <label>कॉलेज चुनें:</label>
                         <select id="bulkUploadCollegeSelect"></select>
@@ -1242,18 +1245,30 @@
                         <label>ट्रेड चुनें:</label>
                         <select id="bulkUploadTradeSelect"></select>
                     </div>
-                </div>
-                <div class="input-group">
-                    <label>डिफ़ॉल्ट प्रवेश तिथि:</label>
-                    <input type="date" id="bulkDefaultAdmissionDate">
+                    <div class="input-group" style="margin-bottom: 0;">
+                        <label>डिफ़ॉल्ट प्रवेश तिथि:</label>
+                        <input type="date" id="bulkDefaultAdmissionDate">
+                    </div>
                 </div>
                 <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 8px;">
-                    CSV फ़ॉर्मेट: <code>रोल, छात्र का नाम, स्टूडेंट आईडी, पासवर्ड</code>
+                    CSV फ़ॉर्मेट: <code>रोल, छात्र का नाम, स्टूडेंट आईडी, पासवर्ड</code> (हेडर सहित या रहित)
                 </p>
                 <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
                     <input type="file" id="bulkCsvFileInput" accept=".csv, .txt">
                     <button class="app-btn app-btn-primary" onclick="processBulkStudentCSV()"><i class="fa-solid fa-upload"></i> CSV इम्पोर्ट करें</button>
                     <button class="app-btn app-btn-secondary" onclick="downloadSampleCSVTemplate()"><i class="fa-solid fa-download"></i> सैम्पल CSV</button>
+                </div>
+            </div>
+
+            <!-- सेक्शन B: छात्र प्रमोशन व आर्काइव -->
+            <div style="background: #fffbeb; border: 1px solid #fef3c7; border-radius: var(--radius-md); padding: 14px;">
+                <h4 style="font-size: 0.9rem; margin-bottom: 8px; color: #92400e;"><i class="fa-solid fa-box-archive"></i> 2. सत्र समाप्ति पर छात्र आर्काइव / प्रमोट</h4>
+                <p style="font-size: 0.78rem; color: #78350f; margin-bottom: 10px;">
+                    सत्र बदलने पर पुराने छात्रों को सुरक्षित रूप से आर्काइव (Archive) कर सकते हैं ताकि नए बैच के लिए रोल 1 से डेटा दर्ज हो सके।
+                </p>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <button class="app-btn app-btn-warning" onclick="archiveCurrentSessionStudents()"><i class="fa-solid fa-archive"></i> चयनित सत्र के छात्र आर्काइव करें</button>
+                    <button class="app-btn app-btn-secondary" onclick="viewArchivedStudentsCount()"><i class="fa-solid fa-list-check"></i> आर्काइव स्थिति देखें</button>
                 </div>
             </div>
 
@@ -1316,33 +1331,50 @@
         </div>
     </div>
 
-    <!-- Modal 6: MASTER PROFILE SETTINGS MODAL -->
+    <!-- Modal 6: INSTITUTE MASTER PROFILE SETTINGS MODAL -->
     <div id="instituteSettingsModal" class="modal-backdrop hidden">
         <div class="modal-content" style="max-width: 650px;">
             <h3 style="color: var(--primary); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-                <i class="fa-solid fa-building-columns"></i> पोर्टल सेटिंग्स
+                <i class="fa-solid fa-building-columns"></i> संस्थान प्रोफ़ाइल एवं मास्टर सेटिंग्स
             </h3>
+            <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 14px;">
+                यह विवरण पोर्टल के मुख्य हेडर, फुटर तथा छात्रों के प्रिंट होने वाले वार्षिक प्रोग्रेस रिपोर्ट कार्ड पर अधीक्षक के डिजिटल हस्ताक्षर सहित प्रदर्शित होगा।
+            </p>
             <form onsubmit="handleSaveInstituteSettings(event)">
                 <div class="input-group">
-                    <label>पोर्टल मुख्य शीर्षक (हेडर):</label>
+                    <label>संस्थान का पूरा नाम:</label>
                     <input type="text" id="setInstName" required>
                 </div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                     <div class="input-group">
-                        <label>टैगलाइन / सब-हेडिंग:</label>
-                        <input type="text" id="setPortalTagline">
+                        <label>संस्थान कोड (MIS / DGT Code):</label>
+                        <input type="text" id="setInstCode" placeholder="उदा. PR08000123">
                     </div>
                     <div class="input-group">
-                        <label>नोडल जिला / राज्य:</label>
-                        <input type="text" id="setInstLocation">
+                        <label>जिला व राज्य:</label>
+                        <input type="text" id="setInstLocation" placeholder="उदा. भीलवाड़ा (राजस्थान)">
                     </div>
                 </div>
                 <div class="input-group">
-                    <label>पोर्टल लोगो (Logo Image URL):</label>
-                    <input type="url" id="setInstLogo" placeholder="https://example.com/logo.png">
+                    <label>संस्थान लोगो (Logo Image URL):</label>
+                    <input type="url" id="setInstLogo" placeholder="https://example.com/logo.png (खाली छोड़ने पर डिफ़ॉल्ट आइकन रहेगा)">
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div class="input-group">
+                        <label>अधीक्षक / प्राचार्य का नाम:</label>
+                        <input type="text" id="setSuperintendentName" placeholder="उदा. श्री आर. के. शर्मा">
+                    </div>
+                    <div class="input-group">
+                        <label>पदनाम (Designation):</label>
+                        <input type="text" id="setSuperintendentTitle" placeholder="उदा. अधीक्षक / उपनिदेशक">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>डिजिटल हस्ताक्षर छवि URL (वैकल्पिक):</label>
+                    <input type="url" id="setSuperintendentSignUrl" placeholder="https://example.com/signature.png">
                 </div>
                 <div style="display: flex; gap: 10px; margin-top: 14px;">
-                    <button type="submit" class="app-btn app-btn-primary" style="flex: 1;"><i class="fa-solid fa-check"></i> सुरक्षित करें</button>
+                    <button type="submit" class="app-btn app-btn-primary" style="flex: 1;"><i class="fa-solid fa-check"></i> सेटिंग्स सुरक्षित करें</button>
                     <button type="button" class="app-btn app-btn-secondary" onclick="closeModal('instituteSettingsModal')">रद्द करें</button>
                 </div>
             </form>
@@ -1380,7 +1412,7 @@
             </h3>
             <div class="input-group">
                 <label>कॉलेज चुनें:</label>
-                <select id="annualExportCollegeSelect"></select>
+                <select id="annualExportCollegeSelect" onchange="populateTradeDropdowns()"></select>
             </div>
             <div class="input-group">
                 <label>ट्रेड चुनें:</label>
@@ -1408,7 +1440,7 @@
             <div style="display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 10px; margin-bottom: 16px; align-items: flex-end;">
                 <div class="input-group" style="margin-bottom: 0;">
                     <label>कॉलेज चुनें:</label>
-                    <select id="reportCardCollegeSelect" onchange="populateTradeDropdowns(); populateStudentSelectForReport();"></select>
+                    <select id="reportCardCollegeSelect" onchange="populateStudentSelectForReport()"></select>
                 </div>
                 <div class="input-group" style="margin-bottom: 0;">
                     <label>ट्रेड चुनें:</label>
@@ -1491,8 +1523,8 @@
             <div class="input-group">
                 <label>ट्रेड का प्रकार (Category):</label>
                 <select id="newTradeType">
-                    <option value="engineering">इंजीनियरिंग ट्रेड (Engineering)</option>
-                    <option value="non_engineering">नॉन-इंजीनियरिंग ट्रेड (Non-Engineering)</option>
+                    <option value="engineering">इंजीनियरिंग ट्रेड (Engineering - TT, TP, WCS, ED, ES)</option>
+                    <option value="non_engineering">नॉन-इंजीनियरिंग ट्रेड (Non-Engineering - TT, TP, ES)</option>
                 </select>
             </div>
             <div style="display: flex; gap: 10px;">
@@ -1521,7 +1553,7 @@
                 </div>
                 <div class="input-group">
                     <label>अनुदेशक लॉगिन आईडी:</label>
-                    <input type="text" id="newInstId" placeholder="उदा. inst_kotri_elec" required autocomplete="off">
+                    <input type="text" id="newInstId" placeholder="उदा. copa_inst" required autocomplete="off">
                 </div>
                 <div class="input-group">
                     <label>पासवर्ड:</label>
@@ -1561,11 +1593,11 @@
                     <input type="text" id="newStudentPass" required placeholder="पासवर्ड बनाएं" autocomplete="new-password">
                 </div>
                 <div class="input-group">
-                    <label>पूर्व संचित कार्यदिवस:</label>
+                    <label>पूर्व संचित कार्यदिवस (सत्र पूर्व यदि कोई हो):</label>
                     <input type="number" id="newPastWorking" value="0" min="0" autocomplete="off">
                 </div>
                 <div class="input-group">
-                    <label>पूर्व संचित उपस्थिति:</label>
+                    <label>पूर्व संचित उपस्थिति (सत्र पूर्व यदि कोई हो):</label>
                     <input type="number" id="newPastPresent" value="0" min="0" autocomplete="off">
                 </div>
                 <div style="display: flex; gap: 10px;">
@@ -1579,7 +1611,7 @@
     <!-- Edit Student Modal -->
     <div id="editStudentModal" class="modal-backdrop hidden">
         <div class="modal-content">
-            <h3 style="color: var(--primary); margin-bottom: 12px;"><i class="fa-solid fa-user-pen"></i> छात्र विवरण संशोधित करें</h3>
+            <h3 style="color: var(--primary); margin-bottom: 12px;"><i class="fa-solid fa-user-pen"></i> छात्र विवरण संशोधित करें (Edit)</h3>
             <form onsubmit="handleUpdateStudent(event)" autocomplete="off">
                 <input type="hidden" id="editOriginalRoll">
                 <div class="input-group">
@@ -1591,7 +1623,7 @@
                     <input type="text" id="editName" required autocomplete="off">
                 </div>
                 <div class="input-group">
-                    <label>छात्र की प्रवेश तिथि:</label>
+                    <label>छात्र की प्रवेश तिथि (Admission Date):</label>
                     <input type="date" id="editAdmissionDate" required>
                 </div>
                 <div class="input-group">
@@ -1660,6 +1692,9 @@
                 </h3>
                 <span id="rcModalDateLabel" style="font-weight: 700; color: #2563eb; font-size: 0.9rem;"></span>
             </div>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px;">
+                उपस्थिति दर्ज करने हेतु बटन पर टैप करें (क्रम: <strong>- (खाली) ➔ P ➔ A ➔ L</strong>):
+            </p>
             <div class="table-shell" style="max-height: 380px;">
                 <table>
                     <thead>
@@ -1714,17 +1749,21 @@
                 { id: "COL02", name: "राजकीय औद्योगिक प्रशिक्षण संस्थान, भीलवाड़ा" }
             ],
             instituteSettings: {
-                name: "राजकीय औद्योगिक प्रशिक्षण संस्थान पोर्टल",
-                code: "ITI-CENTRAL-2026",
-                location: "भीलवाड़ा (राजस्थान)",
-                tagline: "मल्टी-कॉलेज छात्र उपस्थिति, टेस्ट एवं प्रगति मूल्यांकन पोर्टल",
-                logoUrl: ""
+                name: "राजकीय औद्योगिक प्रशिक्षण संस्थान, कोटड़ी",
+                code: "ITI-KOTRI-2026",
+                location: "कोटड़ी, भीलवाड़ा (राजस्थान)",
+                tagline: "छात्र उपस्थिति, टेस्ट एवं प्रगति मूल्यांकन पोर्टल",
+                logoUrl: "",
+                superintendentName: "श्री अधीक्षक महोदय",
+                superintendentTitle: "अधीक्षक / प्राचार्य",
+                superintendentSignUrl: ""
             },
             sessionConfig: {
                 startDate: "2026-08-10",
                 endDate: "2027-06-30"
             },
             freezeLocks: {}, 
+            archivedSessions: {},
             trades: ["COPA", "Electrician", "Fitter"],
             tradeTypes: {
                 "COPA": "non_engineering",
@@ -1732,31 +1771,24 @@
                 "Fitter": "engineering"
             },
             instructors: [
-                { id: "copa_kotri", name: "संजय जाजुन्दा", pass: "copa123", trade: "COPA", collegeId: "COL01" },
-                { id: "elec_kotri", name: "दिनेश सर (कोटड़ी)", pass: "elec123", trade: "Electrician", collegeId: "COL01" },
-                { id: "elec_bhilwara", name: "सुरेश सर (भीलवाड़ा)", pass: "bhilwara123", trade: "Electrician", collegeId: "COL02" }
+                { id: "copa_inst", name: "संजय जाजुन्दा", pass: "copa123", trade: "COPA", collegeId: "COL01" },
+                { id: "elec_inst", name: "दिनेश सर (कोटड़ी)", pass: "elec123", trade: "Electrician", collegeId: "COL01" }
             ],
-            // संरचना: students[collegeId][trade] = [ { roll, name, ... } ]
             students: {
                 "COL01": {
                     "COPA": [
-                        { roll: "1", name: "राहुल शर्मा (कोटड़ी)", admissionDate: "2026-08-10", studentId: "copa101", password: "123", pastWorkingDays: 0, pastPresentDays: 0 },
-                        { roll: "2", name: "पूजा वर्मा (कोटड़ी)", admissionDate: "2026-08-10", studentId: "copa102", password: "123", pastWorkingDays: 0, pastPresentDays: 0 }
+                        { roll: "1", name: "राहुल शर्मा", admissionDate: "2026-08-10", studentId: "st101", password: "123", pastWorkingDays: 0, pastPresentDays: 0 },
+                        { roll: "2", name: "पूजा वर्मा", admissionDate: "2026-08-10", studentId: "st102", password: "123", pastWorkingDays: 0, pastPresentDays: 0 }
                     ],
                     "Electrician": [
-                        { roll: "1", name: "सुरेश गुर्जर (कोटड़ी)", admissionDate: "2026-08-10", studentId: "el_k1", password: "123", pastWorkingDays: 0, pastPresentDays: 0 }
-                    ]
-                },
-                "COL02": {
-                    "Electrician": [
-                        { roll: "1", name: "विकास जैन (भीलवाड़ा)", admissionDate: "2026-08-10", studentId: "el_b1", password: "123", pastWorkingDays: 0, pastPresentDays: 0 }
+                        { roll: "1", name: "सुरेश गुर्जर", admissionDate: "2026-08-10", studentId: "el201", password: "123", pastWorkingDays: 0, pastPresentDays: 0 }
                     ]
                 }
             },
-            records: {},     // records[collegeId][trade][month][roll]
-            holidays: {},    // holidays[collegeId][trade][month]
-            evaluations: {}, // evaluations[collegeId][trade][month][roll]
-            maxMarksConfig: {} // maxMarksConfig[collegeId][trade][month]
+            records: {},     
+            holidays: {},    
+            evaluations: {}, 
+            maxMarksConfig: {} 
         };
 
         let currentRole = null;
@@ -1766,6 +1798,126 @@
         let showPasswordsState = {};
         let isGlobalPasswordVisible = false;
 
+        // ==================== AUTO-MIGRATION ENGINE ====================
+        // यह लॉजिक पुराने डेटा (बिना कॉलेज वाले) को स्वतः 'COL01' में माइग्रेट करता है
+        function autoMigrateLegacyData() {
+            let migrated = false;
+            const defColId = "COL01";
+
+            if (!appData.colleges || !Array.isArray(appData.colleges) || appData.colleges.length === 0) {
+                appData.colleges = [
+                    { id: "COL01", name: "राजकीय औद्योगिक प्रशिक्षण संस्थान, कोटड़ी" },
+                    { id: "COL02", name: "राजकीय औद्योगिक प्रशिक्षण संस्थान, भीलवाड़ा" }
+                ];
+                migrated = true;
+            }
+
+            // 1. अनुदेशक माइग्रेशन
+            if (appData.instructors && Array.isArray(appData.instructors)) {
+                appData.instructors.forEach(inst => {
+                    if (!inst.collegeId) {
+                        inst.collegeId = defColId;
+                        migrated = true;
+                    }
+                });
+            }
+
+            // 2. छात्र डेटा माइग्रेशन: check if students[trade] format exists instead of students[collegeId][trade]
+            if (appData.students && typeof appData.students === 'object') {
+                const keys = Object.keys(appData.students);
+                const hasLegacyTrades = keys.some(k => (appData.trades || []).includes(k));
+                if (hasLegacyTrades) {
+                    const legacyStudents = {};
+                    keys.forEach(k => {
+                        if ((appData.trades || []).includes(k)) {
+                            legacyStudents[k] = appData.students[k];
+                            delete appData.students[k];
+                        }
+                    });
+                    if (!appData.students[defColId]) appData.students[defColId] = {};
+                    Object.assign(appData.students[defColId], legacyStudents);
+                    migrated = true;
+                }
+            }
+
+            // 3. हाजिरी रिकॉर्ड माइग्रेशन
+            if (appData.records && typeof appData.records === 'object') {
+                const rKeys = Object.keys(appData.records);
+                const hasLegacyRecords = rKeys.some(k => (appData.trades || []).includes(k));
+                if (hasLegacyRecords) {
+                    const legacyRec = {};
+                    rKeys.forEach(k => {
+                        if ((appData.trades || []).includes(k)) {
+                            legacyRec[k] = appData.records[k];
+                            delete appData.records[k];
+                        }
+                    });
+                    if (!appData.records[defColId]) appData.records[defColId] = {};
+                    Object.assign(appData.records[defColId], legacyRec);
+                    migrated = true;
+                }
+            }
+
+            // 4. मूल्यांकन (Evaluations) माइग्रेशन
+            if (appData.evaluations && typeof appData.evaluations === 'object') {
+                const eKeys = Object.keys(appData.evaluations);
+                const hasLegacyEval = eKeys.some(k => (appData.trades || []).includes(k));
+                if (hasLegacyEval) {
+                    const legacyEval = {};
+                    eKeys.forEach(k => {
+                        if ((appData.trades || []).includes(k)) {
+                            legacyEval[k] = appData.evaluations[k];
+                            delete appData.evaluations[k];
+                        }
+                    });
+                    if (!appData.evaluations[defColId]) appData.evaluations[defColId] = {};
+                    Object.assign(appData.evaluations[defColId], legacyEval);
+                    migrated = true;
+                }
+            }
+
+            // 5. अवकाश (Holidays) माइग्रेशन
+            if (appData.holidays && typeof appData.holidays === 'object') {
+                const hKeys = Object.keys(appData.holidays);
+                const hasLegacyHols = hKeys.some(k => (appData.trades || []).includes(k));
+                if (hasLegacyHols) {
+                    const legacyHols = {};
+                    hKeys.forEach(k => {
+                        if ((appData.trades || []).includes(k)) {
+                            legacyHols[k] = appData.holidays[k];
+                            delete appData.holidays[k];
+                        }
+                    });
+                    if (!appData.holidays[defColId]) appData.holidays[defColId] = {};
+                    Object.assign(appData.holidays[defColId], legacyHols);
+                    migrated = true;
+                }
+            }
+
+            // 6. MaxMarks Config माइग्रेशन
+            if (appData.maxMarksConfig && typeof appData.maxMarksConfig === 'object') {
+                const mmKeys = Object.keys(appData.maxMarksConfig);
+                const hasLegacyMM = mmKeys.some(k => (appData.trades || []).includes(k));
+                if (hasLegacyMM) {
+                    const legacyMM = {};
+                    mmKeys.forEach(k => {
+                        if ((appData.trades || []).includes(k)) {
+                            legacyMM[k] = appData.maxMarksConfig[k];
+                            delete appData.maxMarksConfig[k];
+                        }
+                    });
+                    if (!appData.maxMarksConfig[defColId]) appData.maxMarksConfig[defColId] = {};
+                    Object.assign(appData.maxMarksConfig[defColId], legacyMM);
+                    migrated = true;
+                }
+            }
+
+            if (migrated) {
+                console.log("पुराना डेटा सफलतापूर्वक मल्टी-कॉलेज (COL01) में माइग्रेट हुआ!");
+                syncWithFirebase();
+            }
+        }
+
         function getCollegesList() {
             if (!appData || !appData.colleges) return [];
             return Array.isArray(appData.colleges) ? appData.colleges.filter(Boolean) : Object.values(appData.colleges).filter(Boolean);
@@ -1774,37 +1926,44 @@
         function getCollegeName(collegeId) {
             const list = getCollegesList();
             const col = list.find(c => c.id === collegeId);
-            return col ? col.name : collegeId;
+            return col ? col.name : (collegeId || 'संस्थान');
         }
 
-        function getTradesList() {
-            if (!appData || !appData.trades) return [];
-            if (Array.isArray(appData.trades)) return appData.trades.filter(Boolean);
-            return Object.values(appData.trades).filter(Boolean);
-        }
-
-        function getInstructorsList() {
-            if (!appData || !appData.instructors) return [];
-            if (Array.isArray(appData.instructors)) return appData.instructors.filter(Boolean);
-            return Object.values(appData.instructors).filter(Boolean);
-        }
-
-        function getStudentList(collegeId, trade) {
-            if (!collegeId || !trade || !appData || !appData.students) return [];
-            if (!appData.students[collegeId]) appData.students[collegeId] = {};
-            const raw = appData.students[collegeId][trade];
-            if (!raw) return [];
-            let list = Array.isArray(raw) ? raw.filter(Boolean) : Object.values(raw).filter(Boolean);
-            return list.sort((a, b) => (parseInt(a.roll, 10) || 0) - (parseInt(b.roll, 10) || 0));
-        }
-
-        function isEnggTrade(trade) {
-            if (!trade) return true;
-            if (!appData.tradeTypes) appData.tradeTypes = {};
-            if (appData.tradeTypes[trade]) {
-                return appData.tradeTypes[trade] === 'engineering';
+        function getInstituteSettings() {
+            if (!appData.instituteSettings) {
+                appData.instituteSettings = {
+                    name: "राजकीय औद्योगिक प्रशिक्षण संस्थान, कोटड़ी",
+                    code: "ITI-KOTRI-2026",
+                    location: "कोटड़ी, भीलवाड़ा (राजस्थान)",
+                    tagline: "छात्र उपस्थिति, टेस्ट एवं प्रगति मूल्यांकन पोर्टल",
+                    logoUrl: "",
+                    superintendentName: "श्री अधीक्षक महोदय",
+                    superintendentTitle: "अधीक्षक / प्राचार्य",
+                    superintendentSignUrl: ""
+                };
             }
-            return trade !== 'COPA';
+            return appData.instituteSettings;
+        }
+
+        function applyInstituteBranding() {
+            const inst = getInstituteSettings();
+            document.title = `${inst.name} - मूल्यांकन पोर्टल`;
+            const headerName = document.getElementById('headerInstituteName');
+            const headerTag = document.getElementById('headerPortalTagline');
+            const footerName = document.getElementById('footerInstName');
+            const logoBox = document.getElementById('headerLogoContainer');
+
+            if (headerName) headerName.innerText = inst.name;
+            if (headerTag) headerTag.innerText = inst.tagline || "छात्र उपस्थिति, टेस्ट एवं प्रगति मूल्यांकन पोर्टल";
+            if (footerName) footerName.innerText = `${inst.name} (${inst.location || ''})`;
+
+            if (logoBox) {
+                if (inst.logoUrl && inst.logoUrl.trim() !== '') {
+                    logoBox.innerHTML = `<img src="${inst.logoUrl}" alt="Logo">`;
+                } else {
+                    logoBox.innerHTML = `<i class="fa-solid fa-graduation-cap"></i>`;
+                }
+            }
         }
 
         function getSessionConfig() {
@@ -1835,12 +1994,50 @@
             return !!appData.freezeLocks[`${collegeId}_${trade}_${monthVal}`];
         }
 
+        function updateAdminSessionBadge() {
+            const badge = document.getElementById('adminSessionDisplayBadge');
+            if (badge) {
+                const conf = getSessionConfig();
+                badge.innerText = `${conf.startDate} से ${conf.endDate}`;
+            }
+        }
+
+        function getTradesList() {
+            if (!appData || !appData.trades) return [];
+            return Array.isArray(appData.trades) ? appData.trades.filter(Boolean) : Object.values(appData.trades).filter(Boolean);
+        }
+
+        function getInstructorsList() {
+            if (!appData || !appData.instructors) return [];
+            return Array.isArray(appData.instructors) ? appData.instructors.filter(Boolean) : Object.values(appData.instructors).filter(Boolean);
+        }
+
+        function getStudentList(collegeId, trade) {
+            if (!collegeId || !trade || !appData || !appData.students) return [];
+            if (!appData.students[collegeId]) appData.students[collegeId] = {};
+            const raw = appData.students[collegeId][trade];
+            if (!raw) return [];
+            let list = Array.isArray(raw) ? raw.filter(Boolean) : Object.values(raw).filter(Boolean);
+            return list.sort((a, b) => (parseInt(a.roll, 10) || 0) - (parseInt(b.roll, 10) || 0));
+        }
+
+        function isEnggTrade(trade) {
+            if (!trade) return true;
+            if (!appData.tradeTypes) appData.tradeTypes = {};
+            if (appData.tradeTypes[trade]) {
+                return appData.tradeTypes[trade] === 'engineering';
+            }
+            return trade !== 'COPA';
+        }
+
         window.onload = function() {
             loadLocalCache();
+            autoMigrateLegacyData();
             listenToCloudData();
             applyInstituteBranding();
             populateCollegeDropdowns();
             populateTradeDropdowns();
+            updateAdminSessionBadge();
 
             const today = new Date();
             const defaultMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
@@ -1922,22 +2119,6 @@
             populateStudentSelectForReport();
         }
 
-        function applyInstituteBranding() {
-            const inst = appData.instituteSettings || {
-                name: "राजकीय औद्योगिक प्रशिक्षण संस्थान",
-                location: "राजस्थान",
-                tagline: "मल्टी-कॉलेज छात्र मूल्यांकन पोर्टल"
-            };
-            document.title = `${inst.name} - मूल्यांकन पोर्टल`;
-            const headerName = document.getElementById('headerInstituteName');
-            const headerTag = document.getElementById('headerPortalTagline');
-            const footerName = document.getElementById('footerInstName');
-
-            if (headerName) headerName.innerText = inst.name;
-            if (headerTag) headerTag.innerText = inst.tagline;
-            if (footerName) footerName.innerText = `${inst.name} (${inst.location || ''})`;
-        }
-
         function openModal(id) { 
             const el = document.getElementById(id);
             if (el) el.classList.remove('hidden'); 
@@ -1962,6 +2143,7 @@
                 closeModal('adminLoginModal');
                 setupUIRoute();
                 renderAdminView();
+                updateAdminSessionBadge();
                 showToast("सुपर एडमिन लॉगिन सफल!");
             } else {
                 alert("गलत सुपर एडमिन आईडी या पासवर्ड!");
@@ -2032,6 +2214,7 @@
                 document.getElementById('roleLabel').innerHTML = `<i class="fa-solid fa-shield-halved"></i> सुपर एडमिन`;
                 populateCollegeDropdowns();
                 populateTradeDropdowns();
+                updateAdminSessionBadge();
             } else if (currentRole === 'instructor') {
                 document.getElementById('instructorSection').classList.remove('hidden');
                 const isEngg = isEnggTrade(currentTrade);
@@ -2066,7 +2249,28 @@
             showToast("लॉगआउट संपन्न!");
         }
 
-        // ==================== SUPER ADMIN VIEW ====================
+        function switchInstructorTab(tab) {
+            const btnAtt = document.getElementById('tabBtnAtt');
+            const btnEval = document.getElementById('tabBtnEval');
+            const secAtt = document.getElementById('instTabAttendance');
+            const secEval = document.getElementById('instTabEvaluation');
+
+            if (tab === 'attendance') {
+                btnAtt.classList.add('active');
+                btnEval.classList.remove('active');
+                secAtt.classList.remove('hidden');
+                secEval.classList.add('hidden');
+                renderRegister();
+            } else if (tab === 'evaluation') {
+                btnEval.classList.add('active');
+                btnAtt.classList.remove('active');
+                secEval.classList.remove('hidden');
+                secAtt.classList.add('hidden');
+                renderEvaluationTable();
+            }
+        }
+
+        // ==================== SUPER ADMIN CONTROL & INSTRUCTOR MANAGEMENT ====================
 
         function renderAdminView() {
             const tbody = document.getElementById('adminInstructorTableBody');
@@ -2136,7 +2340,6 @@
             renderAdminView();
         }
 
-        // --- कॉलेज प्रबंधन ---
         function openCollegeManagerModal() {
             renderCollegeListTable();
             openModal('collegeManagerModal');
@@ -2301,863 +2504,235 @@
             if (el) el.value = res;
         }
 
-        // ==================== INSTRUCTOR DASHBOARD ====================
+        // ==================== LOCAL BACKUP & RESTORE ====================
 
-        function switchInstructorTab(tab) {
-            const btnAtt = document.getElementById('tabBtnAtt');
-            const btnEval = document.getElementById('tabBtnEval');
-            const secAtt = document.getElementById('instTabAttendance');
-            const secEval = document.getElementById('instTabEvaluation');
-
-            if (tab === 'attendance') {
-                btnAtt.classList.add('active');
-                btnEval.classList.remove('active');
-                secAtt.classList.remove('hidden');
-                secEval.classList.add('hidden');
-                renderRegister();
-            } else {
-                btnEval.classList.add('active');
-                btnAtt.classList.remove('active');
-                secEval.classList.remove('hidden');
-                secAtt.classList.add('hidden');
-                renderEvaluationTable();
-            }
+        function openBackupRestoreModal() {
+            openModal('backupRestoreModal');
         }
 
-        function renderRegister() {
-            if (!currentCollegeId || !currentTrade) return;
-            let monthVal = document.getElementById('selectedMonth')?.value;
-            if (!monthVal) {
-                const today = new Date();
-                monthVal = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
-                const el = document.getElementById('selectedMonth');
-                if (el) el.value = monthVal;
-            }
-
-            const isLocked = isMonthLocked(currentCollegeId, currentTrade, monthVal);
-            const lockBadge = document.getElementById('attLockStatusBadge');
-            const rollCallBtn = document.getElementById('btnRollCall');
-
-            if (lockBadge) {
-                lockBadge.className = isLocked ? "lock-indicator lock-active" : "lock-indicator lock-open";
-                lockBadge.innerHTML = isLocked ? `<i class="fa-solid fa-lock"></i> माह लॉक है` : `<i class="fa-solid fa-lock-open"></i> संपादन सक्रिय`;
-                if (rollCallBtn) rollCallBtn.disabled = isLocked;
-            }
-
-            const [yearStr, monthStr] = monthVal.split('-');
-            const year = parseInt(yearStr);
-            const monthIndex = parseInt(monthStr) - 1;
-            const totalDays = new Date(year, monthIndex + 1, 0).getDate();
-
-            if (!appData.records) appData.records = {};
-            if (!appData.records[currentCollegeId]) appData.records[currentCollegeId] = {};
-            if (!appData.records[currentCollegeId][currentTrade]) appData.records[currentCollegeId][currentTrade] = {};
-            if (!appData.records[currentCollegeId][currentTrade][monthVal]) appData.records[currentCollegeId][currentTrade][monthVal] = {};
-
-            const rawHols = (appData.holidays && appData.holidays[currentCollegeId] && appData.holidays[currentCollegeId][currentTrade] && appData.holidays[currentCollegeId][currentTrade][monthVal]) || [];
-            const cMonthHolidays = rawHols.map(Number);
-
-            const thead = document.getElementById('attendanceHeader');
-            let headerTop = `<tr><th rowspan="2" class="col-sticky-roll">रोल</th><th rowspan="2" class="col-sticky-name">छात्र का नाम</th>`;
-            let headerSub = `<tr>`;
-
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-
-            let sundayCount = 0, holidayCount = 0, maxWorkingDays = 0;
-
-            for (let d = 1; d <= totalDays; d++) {
-                const dateObj = new Date(year, monthIndex, d);
-                const sunday = (dateObj.getDay() === 0);
-                const isCustomHol = cMonthHolidays.includes(d);
-                const inSession = isDateInSession(dateObj);
-                const isFuture = dateObj > today;
-
-                let cls = '', title = d;
-                if (!inSession) { cls = 'day-inactive'; title = `${d} (-)`; }
-                else if (isFuture) { cls = 'day-future'; title = `${d}`; }
-                else if (sunday) { sundayCount++; cls = 'day-sunday'; title = `${d} (रवि)`; }
-                else if (isCustomHol) { holidayCount++; cls = 'day-holiday'; title = `${d} (अव)`; }
-                else { maxWorkingDays++; }
-
-                headerTop += `<th colspan="2" class="${cls}">${title}</th>`;
-                headerSub += `<th class="${cls}">M</th><th class="${cls}">E</th>`;
-            }
-
-            headerTop += `<th colspan="3" class="col-m-res">मासिक योग</th><th colspan="2" class="col-o-res">संचित योग</th><th rowspan="2">कार्रवाई</th></tr>`;
-            headerSub += `<th class="col-m-res">उपस्थित</th><th class="col-m-res">अनुपस्थित</th><th class="col-m-res">माह %</th><th class="col-o-res">कुल P / दिन</th><th class="col-o-res">कुल %</th></tr>`;
-            thead.innerHTML = headerTop + headerSub;
-
-            document.getElementById('workingDaysSummary').innerHTML = 
-                `<i class="fa-solid fa-calendar-check"></i> [${getCollegeName(currentCollegeId)}] सत्र कार्यदिवस: <strong>${maxWorkingDays} दिन</strong> | रविवार: ${sundayCount} | अवकाश: ${holidayCount}`;
-
-            const tbody = document.getElementById('attendanceBody');
-            tbody.innerHTML = '';
-            
-            const tStudents = getStudentList(currentCollegeId, currentTrade);
-            if (tStudents.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="${totalDays * 2 + 8}" style="padding: 24px; color: var(--text-muted);">इस कॉलेज और ट्रेड में कोई छात्र नहीं है।</td></tr>`;
-                return;
-            }
-
-            tStudents.forEach((student) => {
-                const sRoll = String(student.roll).trim();
-                const sData = appData.records[currentCollegeId][currentTrade][monthVal][sRoll] || {};
-                let evePresentCount = 0, eveAbsentCount = 0, studentMonthWorkingDays = 0;
-
-                let rowHTML = `<tr><td class="col-sticky-roll">${student.roll}</td><td class="col-sticky-name">${student.name}</td>`;
-
-                for (let d = 1; d <= totalDays; d++) {
-                    const dateObj = new Date(year, monthIndex, d);
-                    const sunday = (dateObj.getDay() === 0);
-                    const isCustomHol = cMonthHolidays.includes(d);
-                    const inSession = isDateInSession(dateObj);
-                    const inAdmission = isDateAfterAdmission(dateObj, student);
-                    const isFuture = dateObj > today;
-
-                    if (!inSession || !inAdmission || isFuture) {
-                        rowHTML += `<td style="background:#f1f5f9; color:#94a3b8;">-</td><td style="background:#f1f5f9; color:#94a3b8;">-</td>`;
-                    } else if (sunday) {
-                        rowHTML += `<td class="day-sunday"><span class="btn-status-toggle st-S">S</span></td><td class="day-sunday"><span class="btn-status-toggle st-S">S</span></td>`;
-                    } else if (isCustomHol) {
-                        rowHTML += `<td class="day-holiday"><span class="btn-status-toggle st-H">H</span></td><td class="day-holiday"><span class="btn-status-toggle st-H">H</span></td>`;
-                    } else {
-                        studentMonthWorkingDays++;
-                        const mStatus = sData[`${d}_m`] || '-';
-                        const eStatus = sData[`${d}_e`] || '-';
-                        if (eStatus === 'P') evePresentCount++;
-                        if (eStatus === 'A') eveAbsentCount++;
-
-                        const lockM = isLocked ? `disabled` : `onclick="toggleSession('${monthVal}', '${sRoll}', '${d}_m')"`;
-                        const lockE = isLocked ? `disabled` : `onclick="toggleSession('${monthVal}', '${sRoll}', '${d}_e')"`;
-
-                        rowHTML += `<td><button type="button" class="btn-status-toggle st-${mStatus}" ${lockM}>${mStatus}</button></td>
-                                    <td><button type="button" class="btn-status-toggle st-${eStatus}" ${lockE}>${eStatus}</button></td>`;
-                    }
-                }
-
-                const monthPct = studentMonthWorkingDays > 0 ? ((evePresentCount / studentMonthWorkingDays) * 100).toFixed(1) : 0;
-                const pastW = parseInt(student.pastWorkingDays) || 0;
-                const pastP = parseInt(student.pastPresentDays) || 0;
-                const overallW = pastW + studentMonthWorkingDays;
-                const overallP = pastP + evePresentCount;
-                const overallPct = overallW > 0 ? ((overallP / overallW) * 100).toFixed(1) : 0;
-                const getBadge = (p) => p >= 75 ? 'pct-high' : (p >= 60 ? 'pct-mid' : 'pct-low');
-
-                rowHTML += `
-                    <td class="col-m-res">${evePresentCount} / ${studentMonthWorkingDays}</td>
-                    <td class="col-m-res">${eveAbsentCount}</td>
-                    <td class="col-m-res"><span class="pct-badge ${getBadge(monthPct)}">${monthPct}%</span></td>
-                    <td class="col-o-res">${overallP} / ${overallW}</td>
-                    <td class="col-o-res"><span class="pct-badge ${getBadge(overallPct)}">${overallPct}%</span></td>
-                    <td>
-                        <i class="fa-solid fa-pen-to-square action-icon action-edit" title="छात्र संपादित करें" onclick="openEditStudentModal('${sRoll}')"></i>
-                        <i class="fa-solid fa-trash action-icon action-del" title="छात्र हटाएं" onclick="removeStudent('${sRoll}')"></i>
-                    </td>
-                </tr>`;
-                tbody.innerHTML += rowHTML;
-            });
+        function downloadDatabaseAsJSON() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData, null, 2));
+            const downloadAnchor = document.createElement('a');
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `Multi_ITI_Backup_${timestamp}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+            showToast("डेटाबेस JSON बैकअप सफलतापूर्वक डाउनलोड हुआ!");
         }
 
-        function toggleSession(monthVal, roll, key) {
-            if (isMonthLocked(currentCollegeId, currentTrade, monthVal)) {
-                showToast("यह माह लॉक है! संशोधन की अनुमति नहीं है।");
-                return;
-            }
-
-            if (!appData.records[currentCollegeId][currentTrade][monthVal][roll]) {
-                appData.records[currentCollegeId][currentTrade][monthVal][roll] = {};
-            }
-
-            const curr = appData.records[currentCollegeId][currentTrade][monthVal][roll][key] || '-';
-            const nextMap = { '-': 'P', 'P': 'A', 'A': 'L', 'L': 'P' };
-            appData.records[currentCollegeId][currentTrade][monthVal][roll][key] = nextMap[curr] || 'P';
-            renderRegister();
-        }
-
-        // --- मूल्यांकन (Evaluations) ---
-        function renderEvaluationTable() {
-            if (!currentCollegeId || !currentTrade) return;
-            let monthVal = document.getElementById('evalSelectedMonth')?.value;
-            if (!monthVal) {
-                const today = new Date();
-                monthVal = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
-                const el = document.getElementById('evalSelectedMonth');
-                if (el) el.value = monthVal;
-            }
-
-            const isLocked = isMonthLocked(currentCollegeId, currentTrade, monthVal);
-            const lockBadge = document.getElementById('evalLockStatusBadge');
-            const saveBtn = document.getElementById('btnSaveEval');
-
-            if (lockBadge) {
-                lockBadge.className = isLocked ? "lock-indicator lock-active" : "lock-indicator lock-open";
-                lockBadge.innerHTML = isLocked ? `<i class="fa-solid fa-lock"></i> माह लॉक है` : `<i class="fa-solid fa-lock-open"></i> संपादन सक्रिय`;
-                if (saveBtn) saveBtn.disabled = isLocked;
-            }
-
-            const isEngg = isEnggTrade(currentTrade);
-            const mmConfig = getMaxMarksConfig(currentCollegeId, currentTrade, monthVal);
-
-            const mmContainer = document.getElementById('maxMarksInputsContainer');
-            if (mmContainer) {
-                const dis = isLocked ? 'disabled' : '';
-                let mmHTML = `
-                    <div class="mm-box"><label>TT पूर्णांक:</label><input type="number" id="mm_tt" value="${mmConfig.tt || 20}" min="1" ${dis} oninput="updateMaxMarksLive()"></div>
-                    <div class="mm-box"><label>TP पूर्णांक:</label><input type="number" id="mm_tp" value="${mmConfig.tp || 20}" min="1" ${dis} oninput="updateMaxMarksLive()"></div>
-                `;
-                if (isEngg) {
-                    mmHTML += `
-                        <div class="mm-box"><label>WCS पूर्णांक:</label><input type="number" id="mm_wcs" value="${mmConfig.wcs || 20}" min="1" ${dis} oninput="updateMaxMarksLive()"></div>
-                        <div class="mm-box"><label>ED पूर्णांक:</label><input type="number" id="mm_ed" value="${mmConfig.ed || 20}" min="1" ${dis} oninput="updateMaxMarksLive()"></div>
-                    `;
-                }
-                mmHTML += `
-                    <div class="mm-box"><label>ES पूर्णांक:</label><input type="number" id="mm_es" value="${mmConfig.es || 20}" min="1" ${dis} oninput="updateMaxMarksLive()"></div>
-                    <div class="mm-box" style="background:#e0f2fe; border-color:#93c5fd;"><strong id="totalMMDisplay">कुल पूर्णांक: 0</strong></div>
-                `;
-                mmContainer.innerHTML = mmHTML;
-            }
-
-            const thead = document.getElementById('evalTableHeader');
-            if (thead) {
-                const testColSpan = isEngg ? 5 : 3;
-                let subCols = `<th style="background:#eff6ff;">Trade Theory (TT)</th><th style="background:#eff6ff;">Trade Practical (TP)</th>`;
-                if (isEngg) subCols += `<th style="background:#eff6ff;">WCS</th><th style="background:#eff6ff;">Engg. Drawing (ED)</th>`;
-                subCols += `<th style="background:#eff6ff;">Employability Skills (ES)</th>`;
-
-                thead.innerHTML = `
-                    <tr>
-                        <th rowspan="2" class="col-sticky-roll">रोल</th>
-                        <th rowspan="2" class="col-sticky-name">छात्र का नाम</th>
-                        <th colspan="${testColSpan}" style="background:#e0f2fe; color:#0369a1;">मासिक टेस्ट अंक</th>
-                        <th rowspan="2" style="background:#dbeafe; color:#1e40af;">कुल प्राप्तांक</th>
-                        <th rowspan="2" style="background:#dbeafe; color:#1e40af;">प्रतिशत (%)</th>
-                        <th colspan="2" style="background:#fef3c7; color:#92400e;">रिकॉर्ड व नोटबुक</th>
-                        <th colspan="2" style="background:#dcfce7; color:#166534;">दैनिक डायरी</th>
-                        <th colspan="2" style="background:#f3e8ff; color:#6b21a8;">गतिविधियां व आचरण</th>
-                    </tr>
-                    <tr>
-                        ${subCols}
-                        <th style="background:#fffbeb;">स्थिति</th><th style="background:#fffbeb;">रिमार्क</th>
-                        <th style="background:#f0fdf4;">डायरी चेकिंग</th><th style="background:#f0fdf4;">रिमार्क</th>
-                        <th style="background:#faf5ff;">अनुशासन</th><th style="background:#faf5ff;">सक्रियता</th>
-                    </tr>
-                `;
-            }
-
-            if (!appData.evaluations) appData.evaluations = {};
-            if (!appData.evaluations[currentCollegeId]) appData.evaluations[currentCollegeId] = {};
-            if (!appData.evaluations[currentCollegeId][currentTrade]) appData.evaluations[currentCollegeId][currentTrade] = {};
-            if (!appData.evaluations[currentCollegeId][currentTrade][monthVal]) appData.evaluations[currentCollegeId][currentTrade][monthVal] = {};
-
-            const monthEval = appData.evaluations[currentCollegeId][currentTrade][monthVal];
-            const tStudents = getStudentList(currentCollegeId, currentTrade);
-            const tbody = document.getElementById('evaluationTableBody');
-            if (!tbody) return;
-            tbody.innerHTML = '';
-
-            if (tStudents.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="${isEngg ? 15 : 13}" style="padding: 24px; color: var(--text-muted);">कोई छात्र पंजीकृत नहीं है।</td></tr>`;
-                refreshTotalMMDisplayOnly();
-                return;
-            }
-
-            const dis = isLocked ? 'disabled' : '';
-
-            tStudents.forEach(st => {
-                const sRoll = String(st.roll).trim();
-                const ev = monthEval[sRoll] || {
-                    tt: '', tp: '', wcs: '', ed: '', es: '',
-                    recStatus: 'A', recRem: '', diaryStatus: 'नियमित', diaryRem: '', disc: 'उत्कृष्ट', act: 'सक्रिय'
-                };
-
-                let inputsHTML = `
-                    <td><input type="number" id="tt_${sRoll}" min="0" ${dis} value="${ev.tt !== undefined ? ev.tt : ''}" oninput="calcStudentRowLive('${sRoll}')" style="width:52px; text-align:center;"></td>
-                    <td><input type="number" id="tp_${sRoll}" min="0" ${dis} value="${ev.tp !== undefined ? ev.tp : ''}" oninput="calcStudentRowLive('${sRoll}')" style="width:52px; text-align:center;"></td>
-                `;
-                if (isEngg) {
-                    inputsHTML += `
-                        <td><input type="number" id="wcs_${sRoll}" min="0" ${dis} value="${ev.wcs !== undefined ? ev.wcs : ''}" oninput="calcStudentRowLive('${sRoll}')" style="width:52px; text-align:center;"></td>
-                        <td><input type="number" id="ed_${sRoll}" min="0" ${dis} value="${ev.ed !== undefined ? ev.ed : ''}" oninput="calcStudentRowLive('${sRoll}')" style="width:52px; text-align:center;"></td>
-                    `;
-                }
-                inputsHTML += `<td><input type="number" id="es_${sRoll}" min="0" ${dis} value="${ev.es !== undefined ? ev.es : ''}" oninput="calcStudentRowLive('${sRoll}')" style="width:52px; text-align:center;"></td>`;
-
-                tbody.innerHTML += `
-                    <tr>
-                        <td class="col-sticky-roll">${sRoll}</td>
-                        <td class="col-sticky-name">${st.name}</td>
-                        ${inputsHTML}
-                        <td id="tot_${sRoll}" style="font-weight:700; color:#1e40af; background:#f8fafc;">0</td>
-                        <td id="pct_${sRoll}" style="font-weight:700; color:#15803d; background:#f8fafc;">0%</td>
-                        <td>
-                            <select id="recSt_${sRoll}" ${dis}>
-                                <option value="A+" ${ev.recStatus==='A+'?'selected':''}>A+</option>
-                                <option value="A" ${ev.recStatus==='A'?'selected':''}>A</option>
-                                <option value="B" ${ev.recStatus==='B'?'selected':''}>B</option>
-                                <option value="C" ${ev.recStatus==='C'?'selected':''}>C</option>
-                            </select>
-                        </td>
-                        <td><input type="text" id="recRem_${sRoll}" ${dis} value="${ev.recRem || ''}" style="width:80px;"></td>
-                        <td>
-                            <select id="diarySt_${sRoll}" ${dis}>
-                                <option value="नियमित" ${ev.diaryStatus==='नियमित'?'selected':''}>नियमित</option>
-                                <option value="अनियमित" ${ev.diaryStatus==='अनियमित'?'selected':''}>अनियमित</option>
-                                <option value="लंबित" ${ev.diaryStatus==='लंबित'?'selected':''}>लंबित</option>
-                            </select>
-                        </td>
-                        <td><input type="text" id="diaryRem_${sRoll}" ${dis} value="${ev.diaryRem || ''}" style="width:80px;"></td>
-                        <td>
-                            <select id="disc_${sRoll}" ${dis}>
-                                <option value="उत्कृष्ट" ${ev.disc==='उत्कृष्ट'?'selected':''}>उत्कृष्ट</option>
-                                <option value="संतोषजनक" ${ev.disc==='संतोषजनक'?'selected':''}>संतोषजनक</option>
-                            </select>
-                        </td>
-                        <td>
-                            <select id="act_${sRoll}" ${dis}>
-                                <option value="सक्रिय" ${ev.act==='सक्रिय'?'selected':''}>सक्रिय</option>
-                                <option value="सामान्य" ${ev.act==='सामान्य'?'selected':''}>सामान्य</option>
-                            </select>
-                        </td>
-                    </tr>
-                `;
+        function downloadDatabaseAsSQL() {
+            let sql = `-- ITI Multi-College Database SQL Dump Export\n-- Generated on: ${new Date().toLocaleString()}\n\n`;
+            sql += `CREATE TABLE IF NOT EXISTS colleges (college_id VARCHAR(50) PRIMARY KEY, name VARCHAR(150));\n`;
+            getCollegesList().forEach(c => {
+                sql += `REPLACE INTO colleges VALUES ('${c.id}', '${c.name.replace(/'/g, "''")}');\n`;
             });
 
-            refreshTotalMMDisplayOnly();
-            tStudents.forEach(st => calcStudentRowLive(String(st.roll).trim()));
-        }
-
-        function saveAllEvaluations() {
-            const monthVal = document.getElementById('evalSelectedMonth').value;
-            if (!monthVal || !currentCollegeId || !currentTrade) return;
-
-            if (isMonthLocked(currentCollegeId, currentTrade, monthVal)) {
-                alert("यह माह लॉक है! अंक सुरक्षित नहीं किए जा सकते।");
-                return;
-            }
-
-            const isEngg = isEnggTrade(currentTrade);
-
-            if (!appData.maxMarksConfig) appData.maxMarksConfig = {};
-            if (!appData.maxMarksConfig[currentCollegeId]) appData.maxMarksConfig[currentCollegeId] = {};
-            if (!appData.maxMarksConfig[currentCollegeId][currentTrade]) appData.maxMarksConfig[currentCollegeId][currentTrade] = {};
-
-            const mmConfig = {
-                tt: parseFloat(document.getElementById('mm_tt').value) || 20,
-                tp: parseFloat(document.getElementById('mm_tp').value) || 20,
-                es: parseFloat(document.getElementById('mm_es').value) || 20
-            };
-            if (isEngg) {
-                mmConfig.wcs = parseFloat(document.getElementById('mm_wcs').value) || 20;
-                mmConfig.ed = parseFloat(document.getElementById('mm_ed').value) || 20;
-            }
-            appData.maxMarksConfig[currentCollegeId][currentTrade][monthVal] = mmConfig;
-
-            const tStudents = getStudentList(currentCollegeId, currentTrade);
-            tStudents.forEach(st => {
-                const sRoll = String(st.roll).trim();
-                const elTT = document.getElementById(`tt_${sRoll}`);
-                if (!elTT) return;
-
-                const studentEval = {
-                    tt: elTT.value,
-                    tp: document.getElementById(`tp_${sRoll}`).value,
-                    es: document.getElementById(`es_${sRoll}`).value,
-                    recStatus: document.getElementById(`recSt_${sRoll}`).value,
-                    recRem: document.getElementById(`recRem_${sRoll}`).value,
-                    diaryStatus: document.getElementById(`diarySt_${sRoll}`).value,
-                    diaryRem: document.getElementById(`diaryRem_${sRoll}`).value,
-                    disc: document.getElementById(`disc_${sRoll}`).value,
-                    act: document.getElementById(`act_${sRoll}`).value
-                };
-
-                if (isEngg) {
-                    studentEval.wcs = document.getElementById(`wcs_${sRoll}`)?.value || '';
-                    studentEval.ed = document.getElementById(`ed_${sRoll}`)?.value || '';
-                }
-
-                appData.evaluations[currentCollegeId][currentTrade][monthVal][sRoll] = studentEval;
+            sql += `\nCREATE TABLE IF NOT EXISTS instructors (id VARCHAR(50) PRIMARY KEY, college_id VARCHAR(50), name VARCHAR(100), trade VARCHAR(50), pass VARCHAR(100));\n`;
+            getInstructorsList().forEach(i => {
+                sql += `REPLACE INTO instructors VALUES ('${i.id}', '${i.collegeId}', '${i.name.replace(/'/g, "''")}', '${i.trade}', '${i.pass}');\n`;
             });
 
-            syncWithFirebase();
-            showToast("मासिक टेस्ट अंक सुरक्षित किए गए!");
-        }
-
-        function getMaxMarksConfig(colId, trade, monthVal) {
-            if (!appData.maxMarksConfig) appData.maxMarksConfig = {};
-            if (!appData.maxMarksConfig[colId]) appData.maxMarksConfig[colId] = {};
-            if (!appData.maxMarksConfig[colId][trade]) appData.maxMarksConfig[colId][trade] = {};
-            
-            const isEngg = isEnggTrade(trade);
-            const defaultMM = isEngg ? { tt: 20, tp: 20, wcs: 20, ed: 20, es: 20 } : { tt: 20, tp: 20, es: 20 };
-            return appData.maxMarksConfig[colId][trade][monthVal] || defaultMM;
-        }
-
-        function refreshTotalMMDisplayOnly() {
-            const isEngg = isEnggTrade(currentTrade);
-            const tt = parseFloat(document.getElementById('mm_tt')?.value) || 0;
-            const tp = parseFloat(document.getElementById('mm_tp')?.value) || 0;
-            const es = parseFloat(document.getElementById('mm_es')?.value) || 0;
-            let total = tt + tp + es;
-            if (isEngg) {
-                total += (parseFloat(document.getElementById('mm_wcs')?.value) || 0) + (parseFloat(document.getElementById('mm_ed')?.value) || 0);
-            }
-            const disp = document.getElementById('totalMMDisplay');
-            if (disp) disp.innerText = `कुल पूर्णांक: ${total}`;
-        }
-
-        function updateMaxMarksLive() {
-            refreshTotalMMDisplayOnly();
-            getStudentList(currentCollegeId, currentTrade).forEach(st => calcStudentRowLive(String(st.roll).trim()));
-        }
-
-        function calcStudentRowLive(roll) {
-            const isEngg = isEnggTrade(currentTrade);
-            const tt = parseFloat(document.getElementById(`tt_${roll}`)?.value) || 0;
-            const tp = parseFloat(document.getElementById(`tp_${roll}`)?.value) || 0;
-            const es = parseFloat(document.getElementById(`es_${roll}`)?.value) || 0;
-            let obtained = tt + tp + es;
-
-            let totalMM = (parseFloat(document.getElementById('mm_tt')?.value) || 0) + 
-                          (parseFloat(document.getElementById('mm_tp')?.value) || 0) + 
-                          (parseFloat(document.getElementById('mm_es')?.value) || 0);
-
-            if (isEngg) {
-                obtained += (parseFloat(document.getElementById(`wcs_${roll}`)?.value) || 0) + (parseFloat(document.getElementById(`ed_${roll}`)?.value) || 0);
-                totalMM += (parseFloat(document.getElementById('mm_wcs')?.value) || 0) + (parseFloat(document.getElementById('mm_ed')?.value) || 0);
-            }
-
-            const pct = totalMM > 0 ? ((obtained / totalMM) * 100).toFixed(1) : 0;
-            const elTot = document.getElementById(`tot_${roll}`);
-            const elPct = document.getElementById(`pct_${roll}`);
-            if (elTot) elTot.innerText = `${obtained} / ${totalMM}`;
-            if (elPct) elPct.innerText = `${pct}%`;
-        }
-
-        // ==================== STUDENT DASHBOARD & SCORECARD ====================
-
-        function renderStudentDashboard() {
-            if (!loggedInStudent || !currentCollegeId || !currentTrade) return;
-
-            const isEngg = isEnggTrade(currentTrade);
-            const conf = getSessionConfig();
-            const colName = getCollegeName(currentCollegeId);
-
-            document.getElementById('scStudentName').innerText = loggedInStudent.name;
-            document.getElementById('scRoll').innerText = `कॉलेज: ${colName} | ट्रेड: ${currentTrade} | रोल: ${loggedInStudent.roll}`;
-
-            let monthVal = document.getElementById('studentMonthSelector')?.value;
-            if (!monthVal) {
-                const today = new Date();
-                monthVal = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
-                const el = document.getElementById('studentMonthSelector');
-                if (el) el.value = monthVal;
-            }
-
-            const [yearStr, monthStr] = monthVal.split('-');
-            const year = parseInt(yearStr);
-            const monthIndex = parseInt(monthStr) - 1;
-            const totalDays = new Date(year, monthIndex + 1, 0).getDate();
-
-            const rawHols = (appData.holidays && appData.holidays[currentCollegeId] && appData.holidays[currentCollegeId][currentTrade] && appData.holidays[currentCollegeId][currentTrade][monthVal]) || [];
-            const cMonthHolidays = rawHols.map(Number);
-
-            const sRollStr = String(loggedInStudent.roll).trim();
-            const sData = (appData.records && appData.records[currentCollegeId] && appData.records[currentCollegeId][currentTrade] && appData.records[currentCollegeId][currentTrade][monthVal] && appData.records[currentCollegeId][currentTrade][monthVal][sRollStr]) || {};
-
-            const today = new Date();
-            today.setHours(23, 59, 59, 999);
-
-            let currEvePresent = 0, currEveAbsent = 0, currWorkingDays = 0;
-            const logTableBody = document.getElementById('scDailyLogBody');
-            if (logTableBody) logTableBody.innerHTML = '';
-            const dayNames = ['रवि', 'सोम', 'मंगल', 'बुध', 'गुरु', 'शुक्र', 'शनि'];
-
-            for (let d = 1; d <= totalDays; d++) {
-                const dateObj = new Date(year, monthIndex, d);
-                const dayName = dayNames[dateObj.getDay()];
-                const isSun = (dateObj.getDay() === 0);
-                const isHol = cMonthHolidays.includes(d);
-                const inSession = isDateInSession(dateObj);
-                const inAdmission = isDateAfterAdmission(dateObj, loggedInStudent);
-                const isFuture = dateObj > today;
-
-                let mVal = '-', eVal = '-', statusLabel = '';
-
-                if (!inSession || !inAdmission || isFuture) {
-                    mVal = '-'; eVal = '-';
-                    statusLabel = '<span style="color:#94a3b8;">अमान्य / आगामी</span>';
-                } else if (isSun) {
-                    mVal = 'रवि'; eVal = 'रवि';
-                    statusLabel = '<span style="color:#b91c1c; font-weight:700;">रविवार</span>';
-                } else if (isHol) {
-                    mVal = 'अवकाश'; eVal = 'अवकाश';
-                    statusLabel = '<span style="color:#7e22ce; font-weight:700;">अवकाश</span>';
-                } else {
-                    currWorkingDays++;
-                    const rawM = sData[`${d}_m`] || '-';
-                    const rawE = sData[`${d}_e`] || '-';
-                    if (rawE === 'P') currEvePresent++;
-                    if (rawE === 'A') currEveAbsent++;
-
-                    mVal = `<span class="btn-status-toggle st-${rawM}">${rawM}</span>`;
-                    eVal = `<span class="btn-status-toggle st-${rawE}">${rawE}</span>`;
-                    statusLabel = rawE === 'P' ? '<span style="color:var(--success); font-weight:700;">उपस्थित</span>' : '<span style="color:var(--danger); font-weight:700;">अनुपस्थित</span>';
-                }
-
-                if (logTableBody) {
-                    logTableBody.innerHTML += `<tr><td><strong>${d}/${monthStr}/${year}</strong></td><td>${dayName}</td><td>${mVal}</td><td>${eVal}</td><td>${statusLabel}</td></tr>`;
-                }
-            }
-
-            const pastW = parseInt(loggedInStudent.pastWorkingDays) || 0;
-            const pastP = parseInt(loggedInStudent.pastPresentDays) || 0;
-            const totalW = pastW + currWorkingDays;
-            const totalP = pastP + currEvePresent;
-            const totalPct = totalW > 0 ? ((totalP / totalW) * 100).toFixed(1) : 0;
-
-            document.getElementById('scPastP').innerText = pastP;
-            document.getElementById('scPastW').innerText = pastW;
-            document.getElementById('scCurrP').innerText = currEvePresent;
-            document.getElementById('scCurrW').innerText = currWorkingDays;
-            document.getElementById('scTotalP').innerText = totalP;
-            document.getElementById('scTotalW').innerText = totalW;
-            document.getElementById('scTotalPct').innerText = `${totalPct}%`;
-            document.getElementById('scTotalBar').style.width = `${Math.min(totalPct, 100)}%`;
-
-            // अंक विवरण
-            const mmConfig = getMaxMarksConfig(currentCollegeId, currentTrade, monthVal);
-            const monthEval = (appData.evaluations && appData.evaluations[currentCollegeId] && appData.evaluations[currentCollegeId][currentTrade] && appData.evaluations[currentCollegeId][currentTrade][monthVal] && appData.evaluations[currentCollegeId][currentTrade][monthVal][sRollStr]) || null;
-
-            const cardsContainer = document.getElementById('scMarksCardsContainer');
-            if (cardsContainer) {
-                cardsContainer.innerHTML = '';
-                const addCard = (title, obt, mm, col) => {
-                    cardsContainer.innerHTML += `<div class="metric-card"><div class="title">${title}</div><div class="value" style="color:${col};">${obt !== '' && obt !== undefined ? obt : '-'} / ${mm}</div><div class="sub">पूर्णांक: <strong>${mm}</strong></div></div>`;
-                };
-
-                addCard("Trade Theory", monthEval?.tt, mmConfig.tt || 20, "#2563eb");
-                addCard("Trade Practical", monthEval?.tp, mmConfig.tp || 20, "#059669");
-                if (isEngg) {
-                    addCard("WCS", monthEval?.wcs, mmConfig.wcs || 20, "#7c3aed");
-                    addCard("Engg. Drawing", monthEval?.ed, mmConfig.ed || 20, "#0284c7");
-                }
-                addCard("Employability Skills", monthEval?.es, mmConfig.es || 20, "#d97706");
-            }
-        }
-
-        function switchStudentSection(sec) {
-            ['Attendance', 'Marks', 'Records', 'AnnualCard'].forEach(s => {
-                document.getElementById(`studSec${s}`)?.classList.add('hidden');
-                document.getElementById(`btnNavStud${s}`)?.classList.remove('active');
+            sql += `\nCREATE TABLE IF NOT EXISTS students (roll INT, college_id VARCHAR(50), trade VARCHAR(50), name VARCHAR(100), admission_date DATE, student_id VARCHAR(50) PRIMARY KEY, password VARCHAR(50));\n`;
+            getCollegesList().forEach(c => {
+                getTradesList().forEach(trade => {
+                    getStudentList(c.id, trade).forEach(s => {
+                        sql += `REPLACE INTO students VALUES (${s.roll}, '${c.id}', '${trade}', '${s.name.replace(/'/g, "''")}', '${s.admissionDate || ''}', '${s.studentId}', '${s.password}');\n`;
+                    });
+                });
             });
 
-            if (sec === 'attendance') {
-                document.getElementById('studSecAttendance')?.classList.remove('hidden');
-                document.getElementById('btnNavStudAtt')?.classList.add('active');
-            } else if (sec === 'marks') {
-                document.getElementById('studSecMarks')?.classList.remove('hidden');
-                document.getElementById('btnNavStudMarks')?.classList.add('active');
-            } else if (sec === 'records') {
-                document.getElementById('studSecRecords')?.classList.remove('hidden');
-                document.getElementById('btnNavStudRecords')?.classList.add('active');
-            } else if (sec === 'annual_card') {
-                document.getElementById('studSecAnnualCard')?.classList.remove('hidden');
-                document.getElementById('btnNavStudAnnualCard')?.classList.add('active');
-                const box = document.getElementById('studentOwnReportCardContainer');
-                if (box && loggedInStudent) {
-                    box.innerHTML = generateReportCardHTML(currentCollegeId, currentTrade, loggedInStudent);
-                }
-            }
+            const blob = new Blob([sql], { type: 'text/sql;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Multi_ITI_Database_${new Date().toISOString().slice(0,10)}.sql`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            showToast("SQL डंप स्क्रिप्ट सफलतापूर्वक डाउनलोड हुई!");
         }
 
-        // ==================== ANNUAL REPORT CARD HTML ====================
-
-        function generateReportCardHTML(collegeId, trade, st) {
-            const colName = getCollegeName(collegeId);
-            const isEngg = isEnggTrade(trade);
-            const sRoll = String(st.roll).trim();
-            const sessionConf = getSessionConfig();
-
-            return `
-                <div style="text-align: center; border-bottom: 2px solid #1e3a8a; padding-bottom: 6px; margin-bottom: 10px;">
-                    <h2 style="font-size: 1.3rem; color: #1e3a8a; font-weight:700;">${colName}</h2>
-                    <p style="font-size: 0.95rem; font-weight: 700; color: #334155;">वार्षिक छात्र प्रगति व मूल्यांकन रिपोर्ट कार्ड</p>
-                    <p style="font-size: 0.8rem; color: #64748b;">सत्र अवधि: <strong>${sessionConf.startDate}</strong> से <strong>${sessionConf.endDate}</strong></p>
-                </div>
-                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; font-size: 0.85rem; background: #f8fafc; padding: 8px; border-radius: 4px; border: 1px solid #cbd5e1; margin-bottom: 12px;">
-                    <div><strong>संस्थान:</strong> ${colName}</div>
-                    <div><strong>छात्र का नाम:</strong> ${st.name}</div>
-                    <div><strong>रोल नंबर:</strong> ${st.roll}</div>
-                    <div><strong>ट्रेड:</strong> ${trade} (${isEngg ? 'Engineering' : 'Non-Engineering'})</div>
-                </div>
-                <div style="padding:15px; background:#eff6ff; border:1px solid #bfdbfe; border-radius:6px; text-align:center;">
-                    <p style="font-weight:700; color:#1e40af;">छात्र आईडी: ${st.studentId} | प्रवेश तिथि: ${st.admissionDate || sessionConf.startDate}</p>
-                </div>
-                <div style="display: flex; justify-content: space-between; margin-top: 35px; padding: 0 20px;">
-                    <div style="text-align: center;"><div style="width: 140px; border-bottom: 1px dashed #475569; margin-bottom: 4px;"></div><strong>हस्ताक्षर अनुदेशक</strong></div>
-                    <div style="text-align: center;"><div style="width: 150px; border-bottom: 1px dashed #475569; margin-bottom: 4px;"></div><strong>हस्ताक्षर अधीक्षक/प्राचार्य</strong></div>
-                </div>
-            `;
-        }
-
-        // ==================== EXCEL & PDF EXPORT LOGIC ====================
-
-        function openAdminAnnualExcelModal() {
-            populateCollegeDropdowns();
-            populateTradeDropdowns();
-            openModal('adminAnnualExcelModal');
-        }
-
-        function executeTradeAnnualExcelExport() {
-            const collegeId = document.getElementById('annualExportCollegeSelect').value;
-            const trade = document.getElementById('annualExportTradeSelect').value;
-            if (!collegeId || !trade) { alert("कॉलेज और ट्रेड चुनें!"); return; }
-
-            const tStudents = getStudentList(collegeId, trade);
-            if (tStudents.length === 0) { alert("इस कॉलेज/ट्रेड में कोई छात्र नहीं है!"); return; }
-
-            const excelRows = [["कॉलेज", "ट्रेड", "रोल", "छात्र का नाम", "आईडी", "प्रवेश तिथि"]];
-            const colName = getCollegeName(collegeId);
-
-            tStudents.forEach(st => {
-                excelRows.push([colName, trade, st.roll, st.name, st.studentId, st.admissionDate || '']);
+        function downloadAllStudentsExcelBackup() {
+            const allRows = [["कॉलेज कोड", "कॉलेज का नाम", "ट्रेड", "रोल", "छात्र का नाम", "प्रवेश तिथि", "स्टूडेंट आईडी", "पासवर्ड", "पूर्व कार्यदिवस", "पूर्व उपस्थिति"]];
+            getCollegesList().forEach(c => {
+                getTradesList().forEach(t => {
+                    getStudentList(c.id, t).forEach(s => {
+                        allRows.push([c.id, c.name, t, s.roll, s.name, s.admissionDate || '', s.studentId, s.password, s.pastWorkingDays || 0, s.pastPresentDays || 0]);
+                    });
+                });
             });
 
             const wb = XLSX.utils.book_new();
-            const ws = XLSX.utils.aoa_to_sheet(excelRows);
-            XLSX.utils.book_append_sheet(wb, ws, "Report");
-            XLSX.writeFile(wb, `${colName}_${trade}_Report.xlsx`);
-            closeModal('adminAnnualExcelModal');
-            showToast("एक्सेल फाइल डाउनलोड हो गई!");
+            const ws = XLSX.utils.aoa_to_sheet(allRows);
+            XLSX.utils.book_append_sheet(wb, ws, "Master_Backup");
+            XLSX.writeFile(wb, `All_Colleges_Students_Backup.xlsx`);
+            showToast("समस्त कॉलेजों की छात्र एक्सेल मास्टर शीट डाउनलोड हुई!");
         }
 
-        function openAdminAnnualReportModal() {
-            populateCollegeDropdowns();
-            populateTradeDropdowns();
-            populateStudentSelectForReport();
-            openModal('adminAnnualReportModal');
-        }
-
-        function openInstructorAnnualReportModal() {
-            if (!currentCollegeId || !currentTrade) return;
-            populateCollegeDropdowns();
-            populateTradeDropdowns();
-            document.getElementById('reportCardCollegeSelect').value = currentCollegeId;
-            document.getElementById('reportCardCollegeSelect').disabled = true;
-            document.getElementById('reportCardTradeSelect').value = currentTrade;
-            document.getElementById('reportCardTradeSelect').disabled = true;
-            populateStudentSelectForReport();
-            openModal('adminAnnualReportModal');
-        }
-
-        function populateStudentSelectForReport() {
-            const colId = document.getElementById('reportCardCollegeSelect')?.value || currentCollegeId;
-            const trade = document.getElementById('reportCardTradeSelect')?.value || currentTrade;
-            const select = document.getElementById('reportCardStudentSelect');
-            if (!select) return;
-            select.innerHTML = '';
-
-            const list = getStudentList(colId, trade);
-            if (list.length === 0) {
-                select.innerHTML = '<option value="">कोई छात्र नहीं</option>';
+        function executeDatabaseRestore() {
+            const fileInput = document.getElementById('restoreJsonFileInput');
+            if (!fileInput.files || fileInput.files.length === 0) {
+                alert("कृपया पहले वैध .json बैकअप फ़ाइल चुनें!");
                 return;
             }
-            list.forEach(s => {
-                select.innerHTML += `<option value="${s.studentId}">रोल ${s.roll} - ${s.name}</option>`;
-            });
-        }
 
-        function generateAnnualReportPreview() {
-            const colId = document.getElementById('reportCardCollegeSelect').value || currentCollegeId;
-            const trade = document.getElementById('reportCardTradeSelect').value || currentTrade;
-            const studentId = document.getElementById('reportCardStudentSelect').value;
-
-            const list = getStudentList(colId, trade);
-            const st = list.find(s => s.studentId === studentId);
-            if (!st) { alert("छात्र नहीं मिला!"); return; }
-
-            document.getElementById('printableProgressCard').innerHTML = generateReportCardHTML(colId, trade, st);
-            document.getElementById('reportCardPreviewWrapper').classList.remove('hidden');
-        }
-
-        function downloadReportCardAsPDF() {
-            const el = document.getElementById('printableProgressCard');
-            const opt = {
-                margin: 4,
-                filename: `Annual_Report.pdf`,
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2 },
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            };
-            html2pdf().set(opt).from(el).save();
-        }
-
-        // ==================== STUDENT CRUD OPERATIONS ====================
-
-        function saveNewStudent(e) {
-            e.preventDefault();
-            const roll = document.getElementById('newRoll').value.trim();
-            const name = document.getElementById('newName').value.trim();
-            const admissionDate = document.getElementById('newAdmissionDate').value || getSessionConfig().startDate;
-            const studentId = document.getElementById('newStudentId').value.trim();
-            const password = document.getElementById('newStudentPass').value.trim();
-            const pastW = parseInt(document.getElementById('newPastWorking').value) || 0;
-            const pastP = parseInt(document.getElementById('newPastPresent').value) || 0;
-
-            const list = getStudentList(currentCollegeId, currentTrade);
-            if (list.some(s => String(s.roll).trim() === roll)) { alert("यह रोल नंबर पहले से है!"); return; }
-            if (list.some(s => s.studentId.toLowerCase() === studentId.toLowerCase())) { alert("यह छात्र आईडी पहले से मौजूद है!"); return; }
-
-            list.push({ roll, name, admissionDate, studentId, password, pastWorkingDays: pastW, pastPresentDays: pastP });
-            appData.students[currentCollegeId][currentTrade] = list;
-
-            syncWithFirebase();
-            closeModal('addStudentModal');
-            renderRegister();
-            renderEvaluationTable();
-            renderStudentCredentialsModalTable();
-            showToast("छात्र सफलतापूर्वक जोड़ा गया!");
-        }
-
-        function openEditStudentModal(roll) {
-            const list = getStudentList(currentCollegeId, currentTrade);
-            const st = list.find(s => String(s.roll).trim() === String(roll).trim());
-            if (!st) return;
-
-            document.getElementById('editOriginalRoll').value = st.roll;
-            document.getElementById('editRoll').value = st.roll;
-            document.getElementById('editName').value = st.name;
-            document.getElementById('editAdmissionDate').value = st.admissionDate || getSessionConfig().startDate;
-            document.getElementById('editStudentId').value = st.studentId;
-            document.getElementById('editStudentPass').value = st.password;
-            document.getElementById('editPastWorking').value = st.pastWorkingDays || 0;
-            document.getElementById('editPastPresent').value = st.pastPresentDays || 0;
-            openModal('editStudentModal');
-        }
-
-        function handleUpdateStudent(e) {
-            e.preventDefault();
-            const origRoll = document.getElementById('editOriginalRoll').value.trim();
-            const newRoll = document.getElementById('editRoll').value.trim();
-            const newName = document.getElementById('editName').value.trim();
-            const newAdmissionDate = document.getElementById('editAdmissionDate').value;
-            const newStudentId = document.getElementById('editStudentId').value.trim();
-            const newPassword = document.getElementById('editStudentPass').value.trim();
-            const newPastW = parseInt(document.getElementById('editPastWorking').value) || 0;
-            const newPastP = parseInt(document.getElementById('editPastPresent').value) || 0;
-
-            const list = getStudentList(currentCollegeId, currentTrade);
-            const idx = list.findIndex(s => String(s.roll).trim() === origRoll);
-            if (idx === -1) return;
-
-            list[idx] = { roll: newRoll, name: newName, admissionDate: newAdmissionDate, studentId: newStudentId, password: newPassword, pastWorkingDays: newPastW, pastPresentDays: newPastP };
-            appData.students[currentCollegeId][currentTrade] = list;
-
-            closeModal('editStudentModal');
-            syncWithFirebase();
-            renderRegister();
-            renderEvaluationTable();
-            renderStudentCredentialsModalTable();
-            showToast("छात्र रिकॉर्ड अपडेट किया गया!");
-        }
-
-        function removeStudent(roll) {
-            if (confirm(`क्या आप रोल ${roll} को हटाना चाहते हैं?`)) {
-                let list = getStudentList(currentCollegeId, currentTrade);
-                appData.students[currentCollegeId][currentTrade] = list.filter(s => String(s.roll).trim() !== String(roll).trim());
-                syncWithFirebase();
-                renderRegister();
-                renderEvaluationTable();
-                renderStudentCredentialsModalTable();
-                showToast("छात्र हटाया गया!");
+            if (!confirm("क्या आप सुनिश्चित हैं? यह क्रिया वर्तमान डेटाबेस को चुनी गई फ़ाइल से पूरी तरह बदल देगी!")) {
+                return;
             }
+
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const parsed = JSON.parse(e.target.result);
+                    if (parsed && typeof parsed === 'object') {
+                        appData = parsed;
+                        autoMigrateLegacyData();
+                        saveLocalCache();
+                        syncWithFirebase();
+                        populateCollegeDropdowns();
+                        populateTradeDropdowns();
+                        updateAdminSessionBadge();
+                        applyInstituteBranding();
+                        renderAdminView();
+                        closeModal('backupRestoreModal');
+                        alert("डेटाबेस सफलतापूर्वक रीस्टोर कर दिया गया है!");
+                    } else {
+                        throw new Error("Invalid structure");
+                    }
+                } catch(err) {
+                    alert("अमान्य JSON फ़ाइल! कृपया सही बैकअप फ़ाइल अपलोड करें।");
+                }
+            };
+            reader.readAsText(file);
         }
 
-        function renderStudentCredentialsModalTable() {
-            const tbody = document.getElementById('studentCredBody');
-            if (!tbody) return;
-            tbody.innerHTML = '';
-            getStudentList(currentCollegeId, currentTrade).forEach(s => {
-                tbody.innerHTML += `
-                    <tr>
-                        <td><strong>${s.roll}</strong></td>
-                        <td style="text-align:left; padding-left:10px;">${s.name}</td>
-                        <td>${s.admissionDate}</td>
-                        <td><code>${s.studentId}</code></td>
-                        <td><code>${s.password}</code></td>
-                        <td>
-                            <i class="fa-solid fa-pen-to-square action-icon action-edit" onclick="closeModal('studentCredModal'); openEditStudentModal('${s.roll}');"></i>
-                            <i class="fa-solid fa-trash action-icon action-del" onclick="removeStudent('${s.roll}')"></i>
-                        </td>
-                    </tr>
-                `;
-            });
-        }
-
-        function openStudentCredentialsModal() {
-            renderStudentCredentialsModalTable();
-            openModal('studentCredModal');
-        }
-
-        // ==================== CSV BULK IMPORT ====================
+        // ==================== BULK PROMOTION & ARCHIVE SYSTEM ====================
 
         function openBulkStudentModal() {
             populateCollegeDropdowns();
             populateTradeDropdowns();
-            document.getElementById('bulkDefaultAdmissionDate').value = getSessionConfig().startDate;
+            const conf = getSessionConfig();
+            document.getElementById('bulkDefaultAdmissionDate').value = conf.startDate;
             openModal('bulkStudentModal');
         }
 
         function downloadSampleCSVTemplate() {
-            const csv = "data:text/csv;charset=utf-8,roll,name,studentId,password\n1,रमेश कुमार,st101,pass123\n2,सुनीता सेन,st102,pass123";
-            const a = document.createElement("a");
-            a.href = encodeURI(csv);
-            a.download = "Sample_Import.csv";
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
+            const csvContent = "data:text/csv;charset=utf-8,roll,name,studentId,password\n1,रमेश कुमार,st101,pass123\n2,सुनीता सेन,st102,pass123\n3,प्रकाश जांगिड़,st103,pass123";
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "Sample_Student_Import.csv");
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
         }
 
         function processBulkStudentCSV() {
             const colId = document.getElementById('bulkUploadCollegeSelect').value;
             const trade = document.getElementById('bulkUploadTradeSelect').value;
-            const defAdm = document.getElementById('bulkDefaultAdmissionDate').value;
+            const defaultAdmDate = document.getElementById('bulkDefaultAdmissionDate').value || getSessionConfig().startDate;
             const fileInput = document.getElementById('bulkCsvFileInput');
 
-            if (!fileInput.files[0]) { alert("फ़ाइल चुनें!"); return; }
+            if (!colId || !trade) { alert("कॉलेज और ट्रेड दोनों चुनें!"); return; }
+            if (!fileInput.files || fileInput.files.length === 0) { alert("कृपया CSV फ़ाइल चुनें!"); return; }
 
+            const file = fileInput.files[0];
             const reader = new FileReader();
-            reader.onload = function(e) {
-                const lines = e.target.result.split(/\r\n|\n/).filter(l => l.trim() !== '');
-                let list = getStudentList(colId, trade);
-                let added = 0;
 
-                lines.forEach((line, i) => {
-                    if (i === 0 && line.toLowerCase().includes('roll')) return;
-                    const c = line.split(',').map(s => s.trim().replace(/^["']|["']$/g, ''));
-                    if (c.length >= 2) {
-                        const roll = c[0];
-                        const name = c[1];
-                        const studentId = c[2] || `st_${colId}_${roll}`;
-                        const pass = c[3] || '123456';
-                        if (!list.some(s => String(s.roll).trim() === roll)) {
-                            list.push({ roll, name, admissionDate: defAdm, studentId, password: pass, pastWorkingDays: 0, pastPresentDays: 0 });
-                            added++;
-                        }
+            reader.onload = function(e) {
+                const text = e.target.result;
+                const lines = text.split(/\r\n|\n/).filter(l => l.trim() !== '');
+                if (lines.length === 0) { alert("फ़ाइल खाली है!"); return; }
+
+                let currentStudents = getStudentList(colId, trade);
+                let addedCount = 0;
+                let skipCount = 0;
+
+                lines.forEach((line, index) => {
+                    const cols = line.split(',').map(c => c.trim().replace(/^["']|["']$/g, ''));
+                    if (cols.length < 2) return;
+                    if (index === 0 && (cols[0].toLowerCase().includes('roll') || cols[1].toLowerCase().includes('name'))) return;
+
+                    const roll = cols[0];
+                    const name = cols[1];
+                    const studentId = cols[2] || `st_${colId.toLowerCase()}_${trade.toLowerCase()}_${roll}`;
+                    const password = cols[3] || "123456";
+
+                    if (currentStudents.some(s => String(s.roll).trim() === String(roll).trim() || s.studentId.toLowerCase() === studentId.toLowerCase())) {
+                        skipCount++;
+                    } else {
+                        currentStudents.push({
+                            roll: roll,
+                            name: name,
+                            admissionDate: defaultAdmDate,
+                            studentId: studentId,
+                            password: password,
+                            pastWorkingDays: 0,
+                            pastPresentDays: 0
+                        });
+                        addedCount++;
                     }
                 });
 
-                appData.students[colId][trade] = list;
+                if (!appData.students[colId]) appData.students[colId] = {};
+                appData.students[colId][trade] = currentStudents;
+
                 syncWithFirebase();
+                fileInput.value = "";
                 closeModal('bulkStudentModal');
-                alert(`सफलतापूर्वक ${added} छात्र जोड़े गए!`);
+                if (currentRole === 'instructor') { renderRegister(); renderEvaluationTable(); }
+                alert(`CSV इम्पोर्ट संपन्न!\nजोड़े गए छात्र: ${addedCount}\nछोड़े गए: ${skipCount}`);
             };
-            reader.readAsText(fileInput.files[0]);
+            reader.readAsText(file);
         }
 
-        // ==================== FREEZE / LOCK SYSTEM ====================
+        function archiveCurrentSessionStudents() {
+            const conf = getSessionConfig();
+            const sessionKey = `${conf.startDate}_to_${conf.endDate}`;
+
+            if (!confirm(`क्या आप वर्तमान सत्र (${sessionKey}) के समस्त कॉलेजों के छात्रों और उनके रिकॉर्ड को आर्काइव (Archive) करना चाहते हैं?\nयह नए सत्र के लिए छात्र सूची को खाली कर देगा।`)) {
+                return;
+            }
+
+            if (!appData.archivedSessions) appData.archivedSessions = {};
+            appData.archivedSessions[sessionKey] = {
+                students: JSON.parse(JSON.stringify(appData.students || {})),
+                records: JSON.parse(JSON.stringify(appData.records || {})),
+                evaluations: JSON.parse(JSON.stringify(appData.evaluations || {})),
+                archivedAt: new Date().toISOString()
+            };
+
+            getCollegesList().forEach(c => {
+                appData.students[c.id] = {};
+                getTradesList().forEach(t => {
+                    appData.students[c.id][t] = [];
+                });
+            });
+            appData.records = {};
+            appData.evaluations = {};
+
+            syncWithFirebase();
+            closeModal('bulkStudentModal');
+            renderAdminView();
+            alert(`सत्र ${sessionKey} के छात्र सफलतापूर्वक आर्काइव कर दिए गए हैं। अब नए बैच हेतु छात्र जोड़ें।`);
+        }
+
+        function viewArchivedStudentsCount() {
+            if (!appData.archivedSessions || Object.keys(appData.archivedSessions).length === 0) {
+                alert("वर्तमान में कोई आर्काइव सत्र सुरक्षित नहीं है।");
+                return;
+            }
+            let info = "आर्काइव सत्र सूची:\n";
+            Object.keys(appData.archivedSessions).forEach(key => {
+                info += `• सत्र ${key} (आर्काइव तिथि: ${appData.archivedSessions[key].archivedAt.slice(0,10)})\n`;
+            });
+            alert(info);
+        }
+
+        // ==================== FREEZE & LOCK CONTROL ====================
 
         function openFreezeLockModal() {
             populateCollegeDropdowns();
@@ -3171,209 +2746,98 @@
             const trade = document.getElementById('lockTradeSelect').value;
             const month = document.getElementById('lockMonthSelect').value;
 
-            if (!colId || !trade || !month) { alert("सभी विवरण चुनें!"); return; }
+            if (!colId || !trade || !month) { alert("कॉलेज, ट्रेड और माह तीनों चुनें!"); return; }
             if (!appData.freezeLocks) appData.freezeLocks = {};
-
             const key = `${colId}_${trade}_${month}`;
-            if (shouldLock) appData.freezeLocks[key] = true;
-            else delete appData.freezeLocks[key];
+
+            if (shouldLock) {
+                appData.freezeLocks[key] = true;
+                showToast(`[${getCollegeName(colId)} - ${trade}] माह ${month} LOCK किया गया!`);
+            } else {
+                delete appData.freezeLocks[key];
+                showToast(`[${getCollegeName(colId)} - ${trade}] माह ${month} UNLOCK किया गया!`);
+            }
 
             syncWithFirebase();
             renderLockStatusTable();
-            renderRegister();
-            renderEvaluationTable();
-            showToast("लॉक स्थिति अपडेट की गई!");
+            if (currentRole === 'instructor') { renderRegister(); renderEvaluationTable(); }
         }
 
         function renderLockStatusTable() {
             const tbody = document.getElementById('lockStatusTableBody');
             if (!tbody) return;
             tbody.innerHTML = '';
+
             const locks = appData.freezeLocks || {};
             const keys = Object.keys(locks);
 
             if (keys.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" style="padding:10px; color:#64748b;">कोई माह लॉक नहीं है।</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" style="padding:14px; color:#64748b;">कोई माह लॉक नहीं है (सभी संपादन सक्रिय हैं)।</td></tr>`;
                 return;
             }
 
             keys.forEach(k => {
-                const [c, t, m] = k.split('_');
+                const parts = k.split('_');
+                const colId = parts[0];
+                const trade = parts[1];
+                const month = parts.slice(2).join('_');
                 tbody.innerHTML += `
                     <tr>
-                        <td>${getCollegeName(c)}</td>
-                        <td>${t}</td>
-                        <td>${m}</td>
+                        <td><strong>${getCollegeName(colId)}</strong></td>
+                        <td>${trade}</td>
+                        <td>${month}</td>
                         <td><span class="lock-indicator lock-active"><i class="fa-solid fa-lock"></i> लॉक्ड</span></td>
-                        <td><button class="app-btn app-btn-success" style="padding:2px 8px; font-size:0.75rem;" onclick="unlockKey('${k}')">खोलें</button></td>
+                        <td>
+                            <button class="app-btn app-btn-success" style="padding: 2px 8px; font-size: 0.75rem;" onclick="unlockSpecificKey('${k}')">
+                                <i class="fa-solid fa-lock-open"></i> खोलें
+                            </button>
+                        </td>
                     </tr>
                 `;
             });
         }
 
-        function unlockKey(k) {
-            delete appData.freezeLocks[k];
-            syncWithFirebase();
-            renderLockStatusTable();
-            renderRegister();
-            renderEvaluationTable();
-            showToast("अनलॉक संपन्न!");
-        }
-
-        // ==================== STORAGE & CLOUD ====================
-
-        function saveLocalCache() {
-            try { localStorage.setItem('multi_iti_cache', JSON.stringify(appData)); } catch(e) {}
-        }
-
-        function loadLocalCache() {
-            try {
-                const d = localStorage.getItem('multi_iti_cache');
-                if (d) appData = JSON.parse(d);
-            } catch(e) {}
-        }
-
-        function listenToCloudData() {
-            rtdb.ref('portal_data').on('value', (snap) => {
-                const val = snap.val();
-                if (val) {
-                    appData = val;
-                    if (!appData.colleges) {
-                        appData.colleges = [
-                            { id: "COL01", name: "राजकीय औद्योगिक प्रशिक्षण संस्थान, कोटड़ी" },
-                            { id: "COL02", name: "राजकीय औद्योगिक प्रशिक्षण संस्थान, भीलवाड़ा" }
-                        ];
-                    }
-                    saveLocalCache();
-                    applyInstituteBranding();
-                    populateCollegeDropdowns();
-                    populateTradeDropdowns();
-                    if (currentRole === 'admin') renderAdminView();
-                    if (currentRole === 'instructor') { renderRegister(); renderEvaluationTable(); }
-                    if (currentRole === 'student') renderStudentDashboard();
-                }
-            });
-        }
-
-        async function syncWithFirebase() {
-            saveLocalCache();
-            try {
-                await rtdb.ref('portal_data').set(appData);
-                showToast("Firebase Cloud पर सुरक्षित!");
-            } catch(e) {
-                showToast("लोकल सुरक्षित हुआ (Cloud Error)");
+        function unlockSpecificKey(key) {
+            if (appData.freezeLocks && appData.freezeLocks[key]) {
+                delete appData.freezeLocks[key];
+                syncWithFirebase();
+                renderLockStatusTable();
+                if (currentRole === 'instructor') { renderRegister(); renderEvaluationTable(); }
+                showToast("माह सफलतापूर्वक अनलॉक कर दिया गया!");
             }
         }
 
-        function downloadDatabaseAsJSON() {
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData, null, 2));
-            const a = document.createElement('a');
-            a.href = dataStr;
-            a.download = `Multi_ITI_Backup_${new Date().toISOString().slice(0,10)}.json`;
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-        }
+        // ==================== INSTITUTE MASTER PROFILE SETTINGS ====================
 
-        function downloadAllStudentsExcelBackup() {
-            const rows = [["कॉलेज", "ट्रेड", "रोल", "नाम", "आईडी", "पासवर्ड"]];
-            getCollegesList().forEach(c => {
-                getTradesList().forEach(t => {
-                    getStudentList(c.id, t).forEach(s => {
-                        rows.push([c.name, t, s.roll, s.name, s.studentId, s.password]);
-                    });
-                });
-            });
-            const wb = XLSX.utils.book_new();
-            const ws = XLSX.utils.aoa_to_sheet(rows);
-            XLSX.utils.book_append_sheet(wb, ws, "Master");
-            XLSX.writeFile(wb, "All_Colleges_Students.xlsx");
-        }
-
-        function executeDatabaseRestore() {
-            const file = document.getElementById('restoreJsonFileInput').files[0];
-            if (!file) { alert("फ़ाइल चुनें!"); return; }
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    appData = JSON.parse(e.target.result);
-                    syncWithFirebase();
-                    populateCollegeDropdowns();
-                    populateTradeDropdowns();
-                    alert("डेटाबेस सफलता से रीस्टोर हो गया!");
-                    closeModal('backupRestoreModal');
-                } catch(err) {
-                    alert("अमान्य JSON फ़ाइल!");
-                }
-            };
-            reader.readAsText(file);
-        }
-
-        function saveNewTrade() {
-            const name = document.getElementById('newTradeName').value.trim();
-            const type = document.getElementById('newTradeType').value;
-            if (!name) return;
-            let list = getTradesList();
-            if (list.includes(name)) { alert("यह ट्रेड पहले से है!"); return; }
-            list.push(name);
-            appData.trades = list;
-            if (!appData.tradeTypes) appData.tradeTypes = {};
-            appData.tradeTypes[name] = type;
-            syncWithFirebase();
-            closeModal('addTradeModal');
-            populateTradeDropdowns();
-            showToast("ट्रेड जोड़ी गई!");
+        function openInstituteSettingsModal() {
+            const inst = getInstituteSettings();
+            document.getElementById('setInstName').value = inst.name || "";
+            document.getElementById('setInstCode').value = inst.code || "";
+            document.getElementById('setInstLocation').value = inst.location || "";
+            document.getElementById('setInstLogo').value = inst.logoUrl || "";
+            document.getElementById('setSuperintendentName').value = inst.superintendentName || "";
+            document.getElementById('setSuperintendentTitle').value = inst.superintendentTitle || "";
+            document.getElementById('setSuperintendentSignUrl').value = inst.superintendentSignUrl || "";
+            openModal('instituteSettingsModal');
         }
 
         function handleSaveInstituteSettings(e) {
             e.preventDefault();
             appData.instituteSettings = {
                 name: document.getElementById('setInstName').value.trim(),
+                code: document.getElementById('setInstCode').value.trim(),
                 location: document.getElementById('setInstLocation').value.trim(),
-                tagline: document.getElementById('setPortalTagline').value.trim(),
-                logoUrl: document.getElementById('setInstLogo').value.trim()
+                tagline: "छात्र उपस्थिति, टेस्ट एवं प्रगति मूल्यांकन पोर्टल",
+                logoUrl: document.getElementById('setInstLogo').value.trim(),
+                superintendentName: document.getElementById('setSuperintendentName').value.trim(),
+                superintendentTitle: document.getElementById('setSuperintendentTitle').value.trim() || "अधीक्षक / प्राचार्य",
+                superintendentSignUrl: document.getElementById('setSuperintendentSignUrl').value.trim()
             };
+
             applyInstituteBranding();
             syncWithFirebase();
             closeModal('instituteSettingsModal');
-            showToast("प्रोफ़ाइल अपडेट हो गई!");
-        }
-
-        function handleSaveSessionDates(e) {
-            e.preventDefault();
-            appData.sessionConfig = {
-                startDate: document.getElementById('sessionStartDateInput').value,
-                endDate: document.getElementById('sessionEndDateInput').value
-            };
-            syncWithFirebase();
-            closeModal('sessionConfigModal');
-            renderRegister();
-            showToast("सत्र तिथियां सुरक्षित!");
-        }
-
-        function handleSaveAdminCreds(e) {
-            e.preventDefault();
-            appData.adminCreds = {
-                id: document.getElementById('newAdminIdInput').value.trim(),
-                pass: document.getElementById('newAdminPassInput').value.trim()
-            };
-            syncWithFirebase();
-            closeModal('adminChangeCredModal');
-            showToast("एडमिन क्रेडेंशियल्स अपडेट हो गए!");
-        }
-
-        function openAdminCredModal() {
-            document.getElementById('newAdminIdInput').value = appData.adminCreds?.id || "superadmin";
-            document.getElementById('newAdminPassInput').value = appData.adminCreds?.pass || "admin@123";
-            openModal('adminChangeCredModal');
-        }
-
-        function openInstituteSettingsModal() {
-            document.getElementById('setInstName').value = appData.instituteSettings?.name || "";
-            document.getElementById('setInstLocation').value = appData.instituteSettings?.location || "";
-            document.getElementById('setPortalTagline').value = appData.instituteSettings?.tagline || "";
-            document.getElementById('setInstLogo').value = appData.instituteSettings?.logoUrl || "";
-            openModal('instituteSettingsModal');
+            showToast("संस्थान प्रोफ़ाइल सेटिंग्स सुरक्षित कर दी गईं!");
         }
 
         function openSessionConfigModal() {
@@ -3383,136 +2847,42 @@
             openModal('sessionConfigModal');
         }
 
-        function openHolidayPrompt() {
-            if (!currentCollegeId || !currentTrade) return;
-            const monthVal = document.getElementById('selectedMonth')?.value;
-            if (isMonthLocked(currentCollegeId, currentTrade, monthVal)) {
-                alert("यह माह लॉक है!");
-                return;
-            }
-            if (!appData.holidays) appData.holidays = {};
-            if (!appData.holidays[currentCollegeId]) appData.holidays[currentCollegeId] = {};
-            if (!appData.holidays[currentCollegeId][currentTrade]) appData.holidays[currentCollegeId][currentTrade] = {};
+        function handleSaveSessionDates(e) {
+            e.preventDefault();
+            const start = document.getElementById('sessionStartDateInput').value;
+            const end = document.getElementById('sessionEndDateInput').value;
+            if (!start || !end) { alert("दोनों तारीखें भरें!"); return; }
+            if (start > end) { alert("प्रारंभ तिथि समाप्ति तिथि से पहले की होनी चाहिए!"); return; }
 
-            const cur = appData.holidays[currentCollegeId][currentTrade][monthVal]?.join(', ') || 'कोई नहीं';
-            const input = prompt(`[${getCollegeName(currentCollegeId)} - ${currentTrade}] माह (${monthVal}) में अवकाश की तारीखें (उदा: 2, 15):\nवर्तमान: ${cur}`);
-            if (input !== null) {
-                appData.holidays[currentCollegeId][currentTrade][monthVal] = input.split(',').map(x => parseInt(x.trim(), 10)).filter(x => !isNaN(x) && x >= 1 && x <= 31);
-                syncWithFirebase();
-                renderRegister();
-                showToast("अवकाश सुरक्षित!");
-            }
+            appData.sessionConfig = { startDate: start, endDate: end };
+            syncWithFirebase();
+            closeModal('sessionConfigModal');
+            updateAdminSessionBadge();
+            if (currentRole === 'instructor') renderRegister();
+            showToast("प्रशिक्षण सत्र अवधि सुरक्षित कर दी गई!");
         }
 
-        function openTodayRollCallModal() {
-            if (!currentCollegeId || !currentTrade) return;
-            const monthVal = document.getElementById('selectedMonth')?.value;
-            if (isMonthLocked(currentCollegeId, currentTrade, monthVal)) { alert("यह माह लॉक है!"); return; }
-            const today = new Date();
-            const d = today.getDate();
-            document.getElementById('rcModalDateLabel').innerText = `तारीख: ${d} (${monthVal})`;
-            renderTodayRollCallList(monthVal, d);
-            openModal('todayRollCallModal');
+        function openAdminCredModal() {
+            const currentAdminId = (appData.adminCreds && appData.adminCreds.id) ? appData.adminCreds.id : "superadmin";
+            const currentAdminPass = (appData.adminCreds && appData.adminCreds.pass) ? appData.adminCreds.pass : "admin@123";
+            document.getElementById('newAdminIdInput').value = currentAdminId;
+            document.getElementById('newAdminPassInput').value = currentAdminPass;
+            openModal('adminChangeCredModal');
         }
 
-        function renderTodayRollCallList(monthVal, d) {
-            const tStudents = getStudentList(currentCollegeId, currentTrade);
-            const tbody = document.getElementById('todayRollCallBody');
-            if (!tbody) return;
-            tbody.innerHTML = '';
-            tStudents.forEach(st => {
-                const sRoll = String(st.roll).trim();
-                const sData = (appData.records && appData.records[currentCollegeId] && appData.records[currentCollegeId][currentTrade] && appData.records[currentCollegeId][currentTrade][monthVal] && appData.records[currentCollegeId][currentTrade][monthVal][sRoll]) || {};
-                const mStatus = sData[`${d}_m`] || '-';
-                const eStatus = sData[`${d}_e`] || '-';
-                tbody.innerHTML += `
-                    <tr>
-                        <td><strong>${sRoll}</strong></td>
-                        <td style="text-align: left; padding-left: 10px;">${st.name}</td>
-                        <td><button type="button" class="btn-status-toggle st-${mStatus}" onclick="toggleQuickStatus('${monthVal}', '${sRoll}', '${d}_m', ${d})">${mStatus}</button></td>
-                        <td><button type="button" class="btn-status-toggle st-${eStatus}" onclick="toggleQuickStatus('${monthVal}', '${sRoll}', '${d}_e', ${d})">${eStatus}</button></td>
-                    </tr>
-                `;
-            });
-        }
+        function handleSaveAdminCreds(e) {
+            e.preventDefault();
+            const newId = document.getElementById('newAdminIdInput').value.trim();
+            const newPass = document.getElementById('newAdminPassInput').value.trim();
+            if (!newId || !newPass) { alert("आईडी और पासवर्ड खाली नहीं हो सकते!"); return; }
 
-        function toggleQuickStatus(monthVal, roll, key, d) {
-            if (!appData.records[currentCollegeId][currentTrade][monthVal][roll]) {
-                appData.records[currentCollegeId][currentTrade][monthVal][roll] = {};
-            }
-            const curr = appData.records[currentCollegeId][currentTrade][monthVal][roll][key] || '-';
-            const nextMap = { '-': 'P', 'P': 'A', 'A': 'L', 'L': 'P' };
-            appData.records[currentCollegeId][currentTrade][monthVal][roll][key] = nextMap[curr] || 'P';
-            renderTodayRollCallList(monthVal, d);
-        }
+            if (!appData.adminCreds) appData.adminCreds = {};
+            appData.adminCreds.id = newId;
+            appData.adminCreds.pass = newPass;
 
-        async function saveAndCloseRollCallModal() {
-            closeModal('todayRollCallModal');
-            renderRegister();
-            await syncWithFirebase();
-            showToast("दैनिक हाजिरी सुरक्षित!");
-        }
-
-        function exportAttendanceToExcel() {
-            if (!currentCollegeId || !currentTrade) return;
-            const monthVal = document.getElementById('selectedMonth').value;
-            const tStudents = getStudentList(currentCollegeId, currentTrade);
-            if (tStudents.length === 0) { alert("कोई छात्र नहीं है!"); return; }
-
-            const colName = getCollegeName(currentCollegeId);
-            const rows = [["कॉलेज", colName], ["ट्रेड", currentTrade], ["माह", monthVal], []];
-            rows.push(["रोल", "नाम", "प्रवेश तिथि", "माह उपस्थित", "माह %", "कुल उपस्थित", "कुल %"]);
-
-            tStudents.forEach(st => {
-                rows.push([st.roll, st.name, st.admissionDate, st.pastPresentDays || 0, "-", st.pastPresentDays || 0, "-"]);
-            });
-
-            const wb = XLSX.utils.book_new();
-            const ws = XLSX.utils.aoa_to_sheet(rows);
-            XLSX.utils.book_append_sheet(wb, ws, "Attendance");
-            XLSX.writeFile(wb, `${colName}_${currentTrade}_${monthVal}.xlsx`);
-            showToast("उपस्थिति एक्सेल शीट डाउनलोड हो गई!");
-        }
-
-        function exportEvaluationToExcel() {
-            if (!currentCollegeId || !currentTrade) return;
-            const monthVal = document.getElementById('evalSelectedMonth').value;
-            const tStudents = getStudentList(currentCollegeId, currentTrade);
-            if (tStudents.length === 0) { alert("कोई छात्र नहीं है!"); return; }
-
-            const colName = getCollegeName(currentCollegeId);
-            const rows = [["कॉलेज", colName], ["ट्रेड", currentTrade], ["माह", monthVal], []];
-            rows.push(["रोल", "नाम", "Trade Theory", "Trade Practical", "Employability Skills", "डायरी चेकिंग"]);
-
-            const mEval = (appData.evaluations && appData.evaluations[currentCollegeId] && appData.evaluations[currentCollegeId][currentTrade] && appData.evaluations[currentCollegeId][currentTrade][monthVal]) || {};
-            tStudents.forEach(st => {
-                const ev = mEval[String(st.roll).trim()] || {};
-                rows.push([st.roll, st.name, ev.tt || '-', ev.tp || '-', ev.es || '-', ev.diaryStatus || '-']);
-            });
-
-            const wb = XLSX.utils.book_new();
-            const ws = XLSX.utils.aoa_to_sheet(rows);
-            XLSX.utils.book_append_sheet(wb, ws, "Evaluation");
-            XLSX.writeFile(wb, `${colName}_${currentTrade}_Evaluation_${monthVal}.xlsx`);
-            showToast("मूल्यांकन एक्सेल शीट डाउनलोड हो गई!");
-        }
-
-        function exportStudentMasterListToExcel() {
-            if (!currentCollegeId || !currentTrade) return;
-            const tStudents = getStudentList(currentCollegeId, currentTrade);
-            if (tStudents.length === 0) { alert("कोई छात्र नहीं है!"); return; }
-
-            const colName = getCollegeName(currentCollegeId);
-            const rows = [["कॉलेज", "ट्रेड", "रोल", "नाम", "प्रवेश तिथि", "आईडी", "पासवर्ड"]];
-            tStudents.forEach(st => {
-                rows.push([colName, currentTrade, st.roll, st.name, st.admissionDate, st.studentId, st.password]);
-            });
-
-            const wb = XLSX.utils.book_new();
-            const ws = XLSX.utils.aoa_to_sheet(rows);
-            XLSX.utils.book_append_sheet(wb, ws, "MasterList");
-            XLSX.writeFile(wb, `${colName}_${currentTrade}_MasterList.xlsx`);
-            showToast("छात्र मास्टर लिस्ट एक्सेल शीट डाउनलोड हो गई!");
+            syncWithFirebase();
+            closeModal('adminChangeCredModal');
+            showToast("एडमिन आईडी व पासवर्ड सफलतापूर्वक बदल दिए गए!");
         }
     </script>
 </body>
