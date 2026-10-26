@@ -650,6 +650,11 @@
         }
         footer strong { color: #f8fafc; }
 
+        @media (max-width: 640px) {
+            #superintendentNavBtn { padding: 7px 9px; font-size: .78rem; }
+            #superintendentSection .controls-card { gap: 10px; }
+            #superintendentSection .table-shell { overflow-x: auto; }
+        }
         .hidden { display: none !important; }
 
         .toast-bubble {
@@ -694,6 +699,9 @@
         <div class="header-actions">
             <button id="adminNavBtn" class="btn-admin-portal" onclick="openModal('adminLoginModal')">
                 <i class="fa-solid fa-shield-halved"></i> सुपर एडमिन पोर्टल
+            </button>
+            <button id="superintendentNavBtn" class="app-btn app-btn-purple" onclick="openModal('superintendentLoginModal')">
+                <i class="fa-solid fa-user-tie"></i> अधीक्षक लॉगिन
             </button>
             <div id="authStatusPill" class="user-status-pill hidden">
                 <span id="roleLabel"><i class="fa-solid fa-user"></i> लॉगिन</span>
@@ -780,6 +788,9 @@
                     <button class="app-btn app-btn-purple" onclick="openCollegeManagerModal()">
                         <i class="fa-solid fa-school"></i> कॉलेज प्रबंधन
                     </button>
+                    <button class="app-btn app-btn-purple" onclick="openSuperintendentManager()">
+                        <i class="fa-solid fa-user-tie"></i> अधीक्षक अकाउंट प्रबंधन
+                    </button>
                     <button class="app-btn app-btn-purple" onclick="openInstituteSettingsModal()">
                         <i class="fa-solid fa-building-columns"></i> संस्थान प्रोफ़ाइल व हस्ताक्षर
                     </button>
@@ -847,7 +858,40 @@
             </div>
         </section>
 
-        <!-- 3. INSTRUCTOR DASHBOARD -->
+        <!-- 3. SUPERINTENDENT DASHBOARD -->
+        <section id="superintendentSection" class="hidden">
+            <div class="controls-card">
+                <div class="controls-left">
+                    <h2 style="font-size:1.15rem;color:var(--admin);"><i class="fa-solid fa-building-columns"></i> कॉलेज अधीक्षक नियंत्रण कक्ष</h2>
+                    <span id="supCollegeBadge" class="badge-college">कॉलेज: -</span>
+                </div>
+                <div class="controls-right">
+                    <button class="app-btn app-btn-secondary" onclick="renderSuperintendentDashboard()"><i class="fa-solid fa-rotate"></i> रिपोर्ट रीफ्रेश</button>
+                    <button class="app-btn app-btn-excel" onclick="exportSuperintendentSummary()"><i class="fa-solid fa-file-excel"></i> सारांश डाउनलोड</button>
+                </div>
+            </div>
+            <div class="admin-quick-bar" style="margin-bottom:14px;">
+                <strong>केवल आपके कॉलेज का डेटा दिखाया जा रहा है।</strong>
+                <span id="supSessionBadge" style="font-weight:700;color:#1d4ed8;">सक्रिय सत्र: -</span>
+            </div>
+            <div class="dashboard-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:16px;">
+                <div class="glass-card" style="padding:18px;"><div style="color:#64748b;font-size:.85rem;">कुल ट्रेड</div><div id="supTradeCount" style="font-size:1.8rem;font-weight:800;color:#1d4ed8;">0</div></div>
+                <div class="glass-card" style="padding:18px;"><div style="color:#64748b;font-size:.85rem;">कुल अनुदेशक</div><div id="supInstructorCount" style="font-size:1.8rem;font-weight:800;color:#0f766e;">0</div></div>
+                <div class="glass-card" style="padding:18px;"><div style="color:#64748b;font-size:.85rem;">कुल विद्यार्थी</div><div id="supStudentCount" style="font-size:1.8rem;font-weight:800;color:#7c3aed;">0</div></div>
+                <div class="glass-card" style="padding:18px;"><div style="color:#64748b;font-size:.85rem;">दर्ज उपस्थिति एंट्री</div><div id="supAttendanceCount" style="font-size:1.8rem;font-weight:800;color:#b45309;">0</div></div>
+            </div>
+            <div class="glass-card" style="padding:18px;margin-bottom:14px;">
+                <h3 style="margin-bottom:12px;color:var(--primary);"><i class="fa-solid fa-layer-group"></i> विभाग / ट्रेड की स्थिति</h3>
+                <div class="table-shell"><table><thead><tr><th>ट्रेड</th><th>प्रकार</th><th>अनुदेशक</th><th>विद्यार्थी</th><th>उपस्थिति रिकॉर्ड</th></tr></thead><tbody id="supTradeTableBody"></tbody></table></div>
+            </div>
+            <div class="glass-card" style="padding:18px;">
+                <h3 style="margin-bottom:12px;color:var(--primary);"><i class="fa-solid fa-chalkboard-user"></i> कॉलेज के अनुदेशक</h3>
+                <div class="table-shell"><table><thead><tr><th>क्र.सं.</th><th>अनुदेशक</th><th>ट्रेड</th><th>लॉगिन आईडी</th><th>स्थिति</th></tr></thead><tbody id="supInstructorTableBody"></tbody></table></div>
+            </div>
+            <p style="margin-top:12px;color:#64748b;font-size:.82rem;">यह प्रारंभिक मॉनिटरिंग डैशबोर्ड है। अगले चरण में कार्य आवंटन, निरीक्षण रजिस्टर, मासिक समीक्षा और अनुदेशक रिपोर्ट सबमिशन जोड़े जा सकते हैं।</p>
+        </section>
+
+        <!-- 4. INSTRUCTOR DASHBOARD -->
         <section id="instructorSection" class="hidden">
             
             <div class="instructor-tabs">
@@ -1466,6 +1510,45 @@
         </div>
     </div>
 
+    <!-- Superintendent Account Manager Modal -->
+    <div id="superintendentManagerModal" class="modal-backdrop hidden">
+        <div class="modal-content" style="max-width:760px;max-height:90vh;overflow-y:auto;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                <h3 style="color:var(--admin);"><i class="fa-solid fa-user-tie"></i> कॉलेज अधीक्षक अकाउंट प्रबंधन</h3>
+                <button type="button" class="app-btn app-btn-secondary" onclick="closeModal('superintendentManagerModal')">✕</button>
+            </div>
+            <div style="background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;padding:10px 12px;border-radius:8px;font-size:.82rem;margin-bottom:12px;">ध्यान दें: यह मौजूदा पोर्टल के पुराने लॉगिन ढाँचे के अनुरूप प्रारंभिक सुविधा है। अभी पासवर्ड Firebase डेटा में सुरक्षित Authentication के रूप में नहीं हैं। वास्तविक उपयोग से पहले Firebase Authentication और कॉलेज-आधारित Database Rules लागू करना आवश्यक है।</div>
+            <form onsubmit="saveSuperintendentAccount(event)">
+                <input type="hidden" id="supEditIndex" value="">
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;">
+                    <div class="input-group"><label>कॉलेज</label><select id="supAccountCollege" required></select></div>
+                    <div class="input-group"><label>अधीक्षक का नाम</label><input id="supAccountName" required placeholder="नाम दर्ज करें"></div>
+                    <div class="input-group"><label>लॉगिन आईडी</label><input id="supAccountId" required autocomplete="off" placeholder="उदा. kotri_sup"></div>
+                    <div class="input-group"><label>पासवर्ड</label><input id="supAccountPass" type="password" autocomplete="new-password" placeholder="नया पासवर्ड"></div>
+                </div>
+                <p style="font-size:.8rem;color:#64748b;margin:0 0 10px;">नया अकाउंट बनाते समय पासवर्ड आवश्यक है। एडिट करते समय पासवर्ड खाली छोड़ने पर पुराना पासवर्ड रहेगा।</p>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
+                    <button type="submit" class="app-btn app-btn-primary"><i class="fa-solid fa-floppy-disk"></i> अकाउंट सेव करें</button>
+                    <button type="button" class="app-btn app-btn-secondary" onclick="resetSuperintendentForm()">नया फॉर्म</button>
+                </div>
+            </form>
+            <div class="table-shell"><table><thead><tr><th>कॉलेज</th><th>अधीक्षक</th><th>लॉगिन आईडी</th><th>स्थिति</th><th>कार्रवाई</th></tr></thead><tbody id="superintendentAccountsBody"></tbody></table></div>
+        </div>
+    </div>
+
+    <!-- Superintendent Login Modal -->
+    <div id="superintendentLoginModal" class="modal-backdrop hidden">
+        <div class="modal-content">
+            <h3 style="color:var(--admin);margin-bottom:12px;"><i class="fa-solid fa-user-tie"></i> अधीक्षक लॉगिन</h3>
+            <form onsubmit="handleSuperintendentLogin(event)" autocomplete="off">
+                <div class="input-group"><label>अपना कॉलेज चुनें</label><select id="supLoginCollege" required></select></div>
+                <div class="input-group"><label>अधीक्षक लॉगिन आईडी</label><input id="supLoginId" required autocomplete="username" placeholder="लॉगिन आईडी"></div>
+                <div class="input-group"><label>पासवर्ड</label><input id="supLoginPass" type="password" required autocomplete="current-password" placeholder="पासवर्ड"></div>
+                <div style="display:flex;gap:10px;margin-top:14px;"><button type="submit" class="app-btn app-btn-primary" style="flex:1;"><i class="fa-solid fa-lock-open"></i> लॉगिन</button><button type="button" class="app-btn app-btn-secondary" onclick="closeModal('superintendentLoginModal')">रद्द करें</button></div>
+            </form>
+        </div>
+    </div>
+
     <!-- Admin Login Modal -->
     <div id="adminLoginModal" class="modal-backdrop hidden">
         <div class="modal-content">
@@ -1744,6 +1827,7 @@
 
         let appData = {
             adminCreds: { id: "superadmin", pass: "admin@123" },
+            superintendents: [],
             colleges: [
                 { id: "COL01", name: "राजकीय औद्योगिक प्रशिक्षण संस्थान, कोटड़ी" },
                 { id: "COL02", name: "राजकीय औद्योगिक प्रशिक्षण संस्थान, भीलवाड़ा" }
@@ -1795,6 +1879,7 @@
         let currentCollegeId = null;
         let currentTrade = null;
         let loggedInStudent = null;
+        let loggedInSuperintendent = null;
         let showPasswordsState = {};
         let isGlobalPasswordVisible = false;
 
@@ -2105,6 +2190,7 @@
             applyInstituteBranding();
             populateCollegeDropdowns();
             populateTradeDropdowns();
+            populateSuperintendentCollegeSelects();
             updateAdminSessionBadge();
             listenToCloudData();
 
@@ -2144,6 +2230,135 @@
         function closeModal(id) { 
             const el = document.getElementById(id);
             if (el) el.classList.add('hidden'); 
+        }
+
+        // ==================== SUPERINTENDENT ACCOUNTS & DASHBOARD ====================
+        function ensureSuperintendentStore() {
+            if (!Array.isArray(appData.superintendents)) appData.superintendents = [];
+            return appData.superintendents;
+        }
+
+        function populateSuperintendentCollegeSelects() {
+            const options = getCollegesList().map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+            ['supAccountCollege','supLoginCollege'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) { const old = el.value; el.innerHTML = options; if (old && getCollegesList().some(c => c.id === old)) el.value = old; }
+            });
+        }
+
+        function openSuperintendentManager() {
+            ensureSuperintendentStore();
+            populateSuperintendentCollegeSelects();
+            renderSuperintendentAccounts();
+            resetSuperintendentForm();
+            openModal('superintendentManagerModal');
+        }
+
+        function resetSuperintendentForm() {
+            ['supEditIndex','supAccountName','supAccountId','supAccountPass'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+            const col=document.getElementById('supAccountCollege'); if(col && col.options.length) col.selectedIndex=0;
+        }
+
+        function saveSuperintendentAccount(e) {
+            e.preventDefault();
+            const list = ensureSuperintendentStore();
+            const collegeId = document.getElementById('supAccountCollege').value;
+            const name = document.getElementById('supAccountName').value.trim();
+            const id = document.getElementById('supAccountId').value.trim();
+            const pass = document.getElementById('supAccountPass').value;
+            const editRaw = document.getElementById('supEditIndex').value;
+            const editIndex = editRaw === '' ? -1 : Number(editRaw);
+            if (!collegeId || !name || !id || (editIndex < 0 && !pass)) { alert('कॉलेज, नाम, लॉगिन आईडी और नया पासवर्ड भरें।'); return; }
+            if (list.some((a,i) => String(a.id).toLowerCase() === id.toLowerCase() && i !== editIndex)) { alert('यह लॉगिन आईडी पहले से किसी अधीक्षक को दी गई है।'); return; }
+            if (editIndex >= 0 && !list[editIndex]) { alert('अकाउंट रिकॉर्ड नहीं मिला।'); return; }
+            const account = editIndex >= 0 ? { ...list[editIndex], collegeId, name, id } : { collegeId, name, id, pass, active: true, createdAt: new Date().toISOString() };
+            if (pass) account.pass = pass;
+            if (typeof account.active !== 'boolean') account.active = true;
+            if (editIndex >= 0) list[editIndex] = account; else list.push(account);
+            syncWithFirebase();
+            renderSuperintendentAccounts();
+            resetSuperintendentForm();
+            showToast(editIndex >= 0 ? 'अधीक्षक अकाउंट अपडेट हो गया।' : 'अधीक्षक अकाउंट बन गया।');
+        }
+
+        function renderSuperintendentAccounts() {
+            const body = document.getElementById('superintendentAccountsBody'); if (!body) return;
+            const list = ensureSuperintendentStore();
+            if (!list.length) { body.innerHTML = '<tr><td colspan="5" style="padding:16px;text-align:center;color:#64748b;">अभी कोई अधीक्षक अकाउंट नहीं बनाया गया है।</td></tr>'; return; }
+            body.innerHTML = list.map((a,i) => `<tr><td>${getCollegeName(a.collegeId)}</td><td>${a.name}</td><td><code>${a.id}</code></td><td>${a.active === false ? '<span style="color:#b91c1c;font-weight:700;">बंद</span>' : '<span style="color:#15803d;font-weight:700;">सक्रिय</span>'}</td><td><button class="app-btn app-btn-secondary" style="padding:4px 8px;" onclick="editSuperintendentAccount(${i})">एडिट</button> <button class="app-btn app-btn-warning" style="padding:4px 8px;" onclick="toggleSuperintendentAccount(${i})">${a.active === false ? 'चालू करें' : 'बंद करें'}</button> <button class="app-btn app-btn-danger" style="padding:4px 8px;" onclick="deleteSuperintendentAccount(${i})">हटाएं</button></td></tr>`).join('');
+        }
+
+        function editSuperintendentAccount(i) {
+            const a = ensureSuperintendentStore()[i]; if (!a) return;
+            document.getElementById('supEditIndex').value = String(i);
+            document.getElementById('supAccountCollege').value = a.collegeId;
+            document.getElementById('supAccountName').value = a.name || '';
+            document.getElementById('supAccountId').value = a.id || '';
+            document.getElementById('supAccountPass').value = '';
+            document.getElementById('supAccountPass').placeholder = 'खाली छोड़ें तो पुराना पासवर्ड रहेगा';
+        }
+
+        function toggleSuperintendentAccount(i) {
+            const a = ensureSuperintendentStore()[i]; if (!a) return;
+            a.active = a.active === false; syncWithFirebase(); renderSuperintendentAccounts();
+        }
+
+        function deleteSuperintendentAccount(i) {
+            const list = ensureSuperintendentStore(); const a = list[i]; if (!a) return;
+            if (!confirm(`${a.name} का अधीक्षक अकाउंट हटाएं?`)) return;
+            list.splice(i,1); syncWithFirebase(); renderSuperintendentAccounts();
+        }
+
+        function handleSuperintendentLogin(e) {
+            e.preventDefault();
+            const collegeId = document.getElementById('supLoginCollege').value;
+            const id = document.getElementById('supLoginId').value.trim();
+            const pass = document.getElementById('supLoginPass').value;
+            const account = ensureSuperintendentStore().find(a => a.collegeId === collegeId && String(a.id).trim() === id && String(a.pass) === pass && a.active !== false);
+            if (!account) { alert('लॉगिन विवरण गलत हैं, अकाउंट बंद है या यह अकाउंट चुने गए कॉलेज का नहीं है।'); return; }
+            currentRole = 'superintendent'; currentCollegeId = collegeId; currentTrade = null; loggedInSuperintendent = account;
+            closeModal('superintendentLoginModal'); setupUIRoute();
+            showToast(`${getCollegeName(collegeId)} अधीक्षक लॉगिन सफल!`);
+        }
+
+        function renderSuperintendentDashboard() {
+            if (currentRole !== 'superintendent' || !currentCollegeId) return;
+            const collegeId = currentCollegeId;
+            const trades = getTradesList();
+            const instructors = getInstructorsList().filter(i => (i.collegeId || 'COL01') === collegeId);
+            let studentTotal = 0, attendanceTotal = 0;
+            const tradeRows = [];
+            trades.forEach(trade => {
+                const students = getStudentList(collegeId, trade); studentTotal += students.length;
+                const months = (appData.records && appData.records[collegeId] && appData.records[collegeId][trade]) || {};
+                let entries = 0;
+                Object.values(months).forEach(monthData => {
+                    if (!monthData || typeof monthData !== 'object') return;
+                    Object.values(monthData).forEach(studentRecord => {
+                        if (!studentRecord || typeof studentRecord !== 'object') return;
+                        entries += Object.keys(studentRecord).filter(k => ['P','A','L','H','-'].includes(String(studentRecord[k]))).length;
+                    });
+                });
+                attendanceTotal += entries;
+                const tradeInst = instructors.filter(i => String(i.trade).trim() === trade).length;
+                if (students.length || tradeInst || entries) tradeRows.push(`<tr><td><strong>${trade}</strong></td><td>${isEnggTrade(trade) ? 'इंजीनियरिंग' : 'नॉन-इंजीनियरिंग'}</td><td>${tradeInst}</td><td>${students.length}</td><td>${entries}</td></tr>`);
+            });
+            document.getElementById('supCollegeBadge').innerText = getCollegeName(collegeId);
+            document.getElementById('supSessionBadge').innerText = `सक्रिय सत्र: ${getSessionConfig().startDate} से ${getSessionConfig().endDate}`;
+            document.getElementById('supTradeCount').innerText = trades.length;
+            document.getElementById('supInstructorCount').innerText = instructors.length;
+            document.getElementById('supStudentCount').innerText = studentTotal;
+            document.getElementById('supAttendanceCount').innerText = attendanceTotal;
+            document.getElementById('supTradeTableBody').innerHTML = tradeRows.length ? tradeRows.join('') : '<tr><td colspan="5">इस कॉलेज में अभी ट्रेड डेटा उपलब्ध नहीं है।</td></tr>';
+            document.getElementById('supInstructorTableBody').innerHTML = instructors.length ? instructors.map((i,n) => `<tr><td>${n+1}</td><td>${i.name || '-'}</td><td>${i.trade || '-'}</td><td><code>${i.id || '-'}</code></td><td><span style="color:#15803d;font-weight:700;">पंजीकृत</span></td></tr>`).join('') : '<tr><td colspan="5">कोई अनुदेशक पंजीकृत नहीं है।</td></tr>';
+        }
+
+        function exportSuperintendentSummary() {
+            if (currentRole !== 'superintendent' || !currentCollegeId) return;
+            const cid = currentCollegeId; const rows = [['कॉलेज',getCollegeName(cid)],['रिपोर्ट','कॉलेज स्थिति सारांश'],['ट्रेड','अनुदेशक','विद्यार्थी','उपस्थिति एंट्री']];
+            getTradesList().forEach(t => { const ins=getInstructorsList().filter(i=>(i.collegeId||'COL01')===cid && i.trade===t).length; const stu=getStudentList(cid,t).length; const months=(appData.records&&appData.records[cid]&&appData.records[cid][t])||{}; let count=0; Object.values(months).forEach(md=>Object.values(md||{}).forEach(sd=>{ if(sd&&typeof sd==='object') count+=Object.keys(sd).filter(k=>['P','A','L','H','-'].includes(String(sd[k]))).length; })); rows.push([t,ins,stu,count]); });
+            const csv='\uFEFF'+rows.map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\r\n');
+            const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=`college-summary-${cid}.csv`; a.click(); URL.revokeObjectURL(url);
         }
 
         // ==================== AUTHENTICATION ====================
@@ -2221,17 +2436,20 @@
         function setupUIRoute() {
             document.getElementById('frontLoginSection').classList.add('hidden');
             document.getElementById('adminNavBtn').classList.add('hidden');
+            document.getElementById('superintendentNavBtn').classList.add('hidden');
             document.getElementById('authStatusPill').classList.remove('hidden');
 
             document.getElementById('adminSection').classList.add('hidden');
             document.getElementById('instructorSection').classList.add('hidden');
             document.getElementById('studentSection').classList.add('hidden');
+            document.getElementById('superintendentSection').classList.add('hidden');
 
             if (currentRole === 'admin') {
                 document.getElementById('adminSection').classList.remove('hidden');
                 document.getElementById('roleLabel').innerHTML = `<i class="fa-solid fa-shield-halved"></i> सुपर एडमिन`;
                 populateCollegeDropdowns();
                 populateTradeDropdowns();
+                populateSuperintendentCollegeSelects();
                 updateAdminSessionBadge();
             } else if (currentRole === 'instructor') {
                 document.getElementById('instructorSection').classList.remove('hidden');
@@ -2245,6 +2463,11 @@
                 document.getElementById('evalTradeTypeBadge').innerText = isEngg ? 'इंजीनियरिंग' : 'नॉन-इंजीनियरिंग';
                 document.getElementById('roleLabel').innerHTML = `<i class="fa-solid fa-chalkboard-user"></i> ${currentTrade} (${colName})`;
                 switchInstructorTab('attendance');
+            } else if (currentRole === 'superintendent') {
+                document.getElementById('superintendentSection').classList.remove('hidden');
+                document.getElementById('roleLabel').innerHTML = `<i class="fa-solid fa-user-tie"></i> अधीक्षक: ${loggedInSuperintendent.name}`;
+                document.getElementById('supCollegeBadge').innerText = getCollegeName(currentCollegeId);
+                renderSuperintendentDashboard();
             } else if (currentRole === 'student') {
                 document.getElementById('studentSection').classList.remove('hidden');
                 document.getElementById('roleLabel').innerHTML = `<i class="fa-solid fa-user-graduate"></i> छात्र: ${loggedInStudent.name}`;
@@ -2258,12 +2481,15 @@
             currentCollegeId = null;
             currentTrade = null;
             loggedInStudent = null;
+            loggedInSuperintendent = null;
             document.getElementById('frontLoginSection').classList.remove('hidden');
             document.getElementById('adminNavBtn').classList.remove('hidden');
+            document.getElementById('superintendentNavBtn').classList.remove('hidden');
             document.getElementById('authStatusPill').classList.add('hidden');
             document.getElementById('adminSection').classList.add('hidden');
             document.getElementById('instructorSection').classList.add('hidden');
             document.getElementById('studentSection').classList.add('hidden');
+            document.getElementById('superintendentSection').classList.add('hidden');
             showToast("लॉगआउट संपन्न!");
         }
 
@@ -3828,6 +4054,7 @@
                         appData.sessionConfig = { startDate: "2026-08-10", endDate: "2027-06-30" };
                     }
 
+                    if (!Array.isArray(appData.superintendents)) appData.superintendents = [];
                     if (!appData.tradeTypes) {
                         appData.tradeTypes = {
                             "COPA": "non_engineering",
@@ -3839,6 +4066,7 @@
                     applyInstituteBranding();
                     populateCollegeDropdowns();
                     populateTradeDropdowns();
+                    populateSuperintendentCollegeSelects();
                     updateAdminSessionBadge();
                     
                     if (currentRole === 'instructor') { 
@@ -3847,6 +4075,7 @@
                         renderStudentCredentialsModalTable();
                     }
                     if (currentRole === 'admin') renderAdminView();
+                    if (currentRole === 'superintendent') renderSuperintendentDashboard();
                     if (currentRole === 'student') renderStudentDashboard();
                 }
             });
