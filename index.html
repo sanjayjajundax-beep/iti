@@ -888,7 +888,31 @@
                 <h3 style="margin-bottom:12px;color:var(--primary);"><i class="fa-solid fa-chalkboard-user"></i> कॉलेज के अनुदेशक</h3>
                 <div class="table-shell"><table><thead><tr><th>क्र.सं.</th><th>अनुदेशक</th><th>ट्रेड</th><th>लॉगिन आईडी</th><th>स्थिति</th></tr></thead><tbody id="supInstructorTableBody"></tbody></table></div>
             </div>
-            <p style="margin-top:12px;color:#64748b;font-size:.82rem;">यह प्रारंभिक मॉनिटरिंग डैशबोर्ड है। अगले चरण में कार्य आवंटन, निरीक्षण रजिस्टर, मासिक समीक्षा और अनुदेशक रिपोर्ट सबमिशन जोड़े जा सकते हैं।</p>
+            <div class="glass-card" style="padding:18px;margin-top:14px;">
+                <h3 style="color:var(--primary);margin-bottom:10px;"><i class="fa-solid fa-list-check"></i> अनुदेशकों को कार्य आवंटित करें</h3>
+                <form onsubmit="createInstructorTask(event)" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;">
+                    <select id="supTaskInstructor" required style="padding:9px;border:1px solid var(--border-color);border-radius:7px;"><option value="">अनुदेशक चुनें</option></select>
+                    <input id="supTaskTitle" required placeholder="कार्य का शीर्षक" style="padding:9px;border:1px solid var(--border-color);border-radius:7px;">
+                    <input id="supTaskDue" type="date" required style="padding:9px;border:1px solid var(--border-color);border-radius:7px;">
+                    <input id="supTaskDetails" placeholder="कार्य का विवरण" style="padding:9px;border:1px solid var(--border-color);border-radius:7px;">
+                    <button class="app-btn app-btn-primary" type="submit"><i class="fa-solid fa-plus"></i> कार्य दें</button>
+                </form>
+                <div class="table-shell" style="margin-top:12px;"><table><thead><tr><th>अनुदेशक</th><th>कार्य</th><th>अंतिम तारीख</th><th>स्थिति</th><th>कार्रवाई</th></tr></thead><tbody id="supTaskTableBody"></tbody></table></div>
+            </div>
+            <div class="glass-card" style="padding:18px;margin-top:14px;">
+                <h3 style="color:var(--primary);margin-bottom:10px;"><i class="fa-solid fa-file-circle-check"></i> अनुदेशक रिपोर्ट की समीक्षा</h3>
+                <div class="table-shell"><table><thead><tr><th>अनुदेशक</th><th>माह</th><th>रिपोर्ट</th><th>स्थिति</th><th>टिप्पणी / कार्रवाई</th></tr></thead><tbody id="supReportTableBody"></tbody></table></div>
+            </div>
+            <div class="glass-card" style="padding:18px;margin-top:14px;">
+                <h3 style="color:var(--primary);margin-bottom:10px;"><i class="fa-solid fa-clipboard-list"></i> कॉलेज निरीक्षण रजिस्टर</h3>
+                <form onsubmit="saveInspectionRecord(event)" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;">
+                    <input id="supInspectionDate" type="date" required style="padding:9px;border:1px solid var(--border-color);border-radius:7px;">
+                    <input id="supInspectionTitle" required placeholder="निरीक्षण / निर्देश" style="padding:9px;border:1px solid var(--border-color);border-radius:7px;">
+                    <input id="supInspectionNote" placeholder="टिप्पणी / सुधार विवरण" style="padding:9px;border:1px solid var(--border-color);border-radius:7px;">
+                    <button class="app-btn app-btn-success" type="submit">निरीक्षण सेव करें</button>
+                </form>
+                <div id="supInspectionList" style="margin-top:10px;"></div>
+            </div>
         </section>
 
         <!-- 4. INSTRUCTOR DASHBOARD -->
@@ -971,6 +995,20 @@
                         <tbody id="evaluationTableBody"></tbody>
                     </table>
                 </div>
+            </div>
+            <div class="glass-card" style="padding:18px;margin-top:16px;">
+                <h3 style="color:var(--primary);margin-bottom:10px;"><i class="fa-solid fa-list-check"></i> अधीक्षक द्वारा दिए गए कार्य</h3>
+                <div id="instAssignedTasks"></div>
+            </div>
+            <div class="glass-card" style="padding:18px;margin-top:14px;">
+                <h3 style="color:var(--primary);margin-bottom:10px;"><i class="fa-solid fa-file-lines"></i> मासिक कार्य रिपोर्ट जमा करें</h3>
+                <form onsubmit="submitInstructorMonthlyReport(event)" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;">
+                    <input id="instReportMonth" type="month" required style="padding:9px;border:1px solid var(--border-color);border-radius:7px;">
+                    <select id="instReportType" style="padding:9px;border:1px solid var(--border-color);border-radius:7px;"><option>मासिक कार्य रिपोर्ट</option><option>थ्योरी / सिलेबस रिपोर्ट</option><option>प्रैक्टिकल रिपोर्ट</option><option>विद्यार्थी मार्गदर्शन रिपोर्ट</option></select>
+                    <textarea id="instReportDetails" required placeholder="इस माह किए गए कार्य का विवरण" style="padding:9px;border:1px solid var(--border-color);border-radius:7px;grid-column:1/-1;min-height:80px;"></textarea>
+                    <button class="app-btn app-btn-success" type="submit">रिपोर्ट अधीक्षक को भेजें</button>
+                </form>
+                <div id="instMyReports" style="margin-top:10px;"></div>
             </div>
 
         </section>
@@ -1828,6 +1866,9 @@
         let appData = {
             adminCreds: { id: "superadmin", pass: "admin@123" },
             superintendents: [],
+            assignedTasks: [],
+            monthlyReports: [],
+            inspectionRecords: [],
             colleges: [
                 { id: "COL01", name: "राजकीय औद्योगिक प्रशिक्षण संस्थान, कोटड़ी" },
                 { id: "COL02", name: "राजकीय औद्योगिक प्रशिक्षण संस्थान, भीलवाड़ा" }
@@ -1880,6 +1921,7 @@
         let currentTrade = null;
         let loggedInStudent = null;
         let loggedInSuperintendent = null;
+        let loggedInInstructor = null;
         let showPasswordsState = {};
         let isGlobalPasswordVisible = false;
 
@@ -2350,7 +2392,85 @@
             document.getElementById('supStudentCount').innerText = studentTotal;
             document.getElementById('supAttendanceCount').innerText = attendanceTotal;
             document.getElementById('supTradeTableBody').innerHTML = tradeRows.length ? tradeRows.join('') : '<tr><td colspan="5">इस कॉलेज में अभी ट्रेड डेटा उपलब्ध नहीं है।</td></tr>';
-            document.getElementById('supInstructorTableBody').innerHTML = instructors.length ? instructors.map((i,n) => `<tr><td>${n+1}</td><td>${i.name || '-'}</td><td>${i.trade || '-'}</td><td><code>${i.id || '-'}</code></td><td><span style="color:#15803d;font-weight:700;">पंजीकृत</span></td></tr>`).join('') : '<tr><td colspan="5">कोई अनुदेशक पंजीकृत नहीं है।</td></tr>';
+            document.getElementById('supInstructorTableBody').innerHTML = instructors.length ? instructors.map((i,n) => `<tr><td>${n+1}</td><td>${i.name || '-'}</td><td>${i.trade || '-'}</td><td><code>${i.id || '-'}</code></td><td><span style="color:#15803d;font-weight:700;">पंजीकृत</span></td></tr>`).join('') : '<tr><td colspan="5">कोई अनुदेशक पंजीकृत नहीं है।</td></tr>';            renderSuperintendentWorkPanels();
+        }
+
+        // कॉलेज-आधारित कार्य, रिपोर्ट और निरीक्षण मॉड्यूल
+        function ensureWorkStores() {
+            if (!Array.isArray(appData.assignedTasks)) appData.assignedTasks = [];
+            if (!Array.isArray(appData.monthlyReports)) appData.monthlyReports = [];
+            if (!Array.isArray(appData.inspectionRecords)) appData.inspectionRecords = [];
+        }
+        function escWork(v) { return String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+        function renderSuperintendentWorkPanels() {
+            ensureWorkStores();
+            const cid=currentCollegeId, instructors=getInstructorsList().filter(i=>(i.collegeId||'COL01')===cid);
+            const sel=document.getElementById('supTaskInstructor');
+            if(sel) sel.innerHTML='<option value="">अनुदेशक चुनें</option>'+instructors.map(i=>`<option value="${escWork(i.id)}">${escWork(i.name)} - ${escWork(i.trade)}</option>`).join('');
+            const tasks=appData.assignedTasks.filter(t=>t.collegeId===cid);
+            const tb=document.getElementById('supTaskTableBody');
+            if(tb) tb.innerHTML=tasks.length?tasks.map(t=>{const inst=instructors.find(i=>i.id===t.instructorId);return `<tr><td>${escWork(inst?.name||t.instructorId)}</td><td>${escWork(t.title)}<br><small>${escWork(t.details||'')}</small></td><td>${escWork(t.dueDate)}</td><td>${escWork(t.status||'लंबित')}</td><td>${t.status==='समीक्षा की गई'?'समीक्षित':`<button class="app-btn app-btn-warning" onclick="markTaskReviewed('${t.id}')">${t.status==='पूर्ण'?'पूर्ण कार्य की समीक्षा':'समीक्षा करें'}</button>`}</td></tr>`}).join(''):'<tr><td colspan="5">अभी कोई कार्य आवंटित नहीं है।</td></tr>';
+            const reports=appData.monthlyReports.filter(r=>r.collegeId===cid);
+            const rb=document.getElementById('supReportTableBody');
+            if(rb) rb.innerHTML=reports.length?reports.map(r=>{const inst=instructors.find(i=>i.id===r.instructorId);return `<tr><td>${escWork(inst?.name||r.instructorId)}</td><td>${escWork(r.month)}</td><td>${escWork(r.type)}<br><small>${escWork(r.details)}</small></td><td>${escWork(r.status)}</td><td>${r.status==='स्वीकृत'?'स्वीकृत':`<button class="app-btn app-btn-success" onclick="reviewInstructorReport('${r.id}','स्वीकृत')">स्वीकृत</button> <button class="app-btn app-btn-warning" onclick="reviewInstructorReport('${r.id}','सुधार हेतु वापस')">वापस भेजें</button>`}</td></tr>`}).join(''):'<tr><td colspan="5">कोई रिपोर्ट जमा नहीं हुई है।</td></tr>';
+            const il=document.getElementById('supInspectionList');
+            if(il) il.innerHTML=appData.inspectionRecords.filter(x=>x.collegeId===cid).slice().reverse().map(x=>`<div style="padding:9px;border-bottom:1px solid #e2e8f0;"><strong>${escWork(x.date)} - ${escWork(x.title)}</strong><div>${escWork(x.note||'')}</div></div>`).join('')||'<p>अभी निरीक्षण रिकॉर्ड नहीं है।</p>';
+        }
+        async function createInstructorTask(e) {
+            e.preventDefault(); if(currentRole!=='superintendent') return;
+            ensureWorkStores();
+            const instructorId=document.getElementById('supTaskInstructor').value;
+            if(!instructorId){alert('अनुदेशक चुनें।');return;}
+            appData.assignedTasks.push({id:'task_'+Date.now(),collegeId:currentCollegeId,instructorId,title:document.getElementById('supTaskTitle').value.trim(),details:document.getElementById('supTaskDetails').value.trim(),dueDate:document.getElementById('supTaskDue').value,status:'लंबित',createdAt:new Date().toISOString()});
+            await syncWithFirebase(); e.target.reset(); renderSuperintendentWorkPanels(); showToast('कार्य अनुदेशक को आवंटित कर दिया गया।');
+        }
+        async function markTaskReviewed(id) {
+            const t=(appData.assignedTasks||[]).find(x=>x.id===id&&x.collegeId===currentCollegeId); if(!t)return;
+            const note=prompt('अधीक्षक की समीक्षा टिप्पणी लिखें:'); if(note===null)return;
+            t.reviewNote=note; t.status='समीक्षा की गई'; t.reviewedAt=new Date().toISOString();
+            await syncWithFirebase(); renderSuperintendentWorkPanels();
+        }
+        async function reviewInstructorReport(id,status) {
+            const r=(appData.monthlyReports||[]).find(x=>x.id===id&&x.collegeId===currentCollegeId); if(!r)return;
+            let note=prompt(status==='स्वीकृत'?'स्वीकृति टिप्पणी (वैकल्पिक):':'सुधार के लिए कारण लिखें:'); if(note===null)return;
+            if(status==='सुधार हेतु वापस'&&!note.trim()){alert('वापस भेजने का कारण लिखना जरूरी है।');return;}
+            r.status=status; r.superintendentNote=note; r.reviewedAt=new Date().toISOString();
+            await syncWithFirebase(); renderSuperintendentWorkPanels(); showToast('रिपोर्ट की समीक्षा सेव हो गई।');
+        }
+        async function saveInspectionRecord(e) {
+            e.preventDefault(); if(currentRole!=='superintendent')return; ensureWorkStores();
+            appData.inspectionRecords.push({id:'insp_'+Date.now(),collegeId:currentCollegeId,date:document.getElementById('supInspectionDate').value,title:document.getElementById('supInspectionTitle').value.trim(),note:document.getElementById('supInspectionNote').value.trim(),createdAt:new Date().toISOString()});
+            await syncWithFirebase(); e.target.reset(); renderSuperintendentWorkPanels(); showToast('निरीक्षण रिकॉर्ड सेव हो गया।');
+        }
+        function renderInstructorWorkPanels() {
+            ensureWorkStores(); if(!loggedInInstructor)return;
+            const cid=currentCollegeId, iid=loggedInInstructor.id;
+            const tasks=appData.assignedTasks.filter(t=>t.collegeId===cid&&t.instructorId===iid);
+            const taskBox=document.getElementById('instAssignedTasks');
+            if(taskBox) taskBox.innerHTML=tasks.length?tasks.map(t=>`<div style="padding:10px;border-bottom:1px solid #e2e8f0;"><strong>${escWork(t.title)}</strong> - अंतिम तारीख: ${escWork(t.dueDate)}<p>${escWork(t.details||'')}</p><span>${escWork(t.status)}</span> ${t.status==='लंबित'?`<button class="app-btn app-btn-success" onclick="completeInstructorTask('${t.id}')">कार्य पूरा</button>`:''}<p><small>अधीक्षक टिप्पणी: ${escWork(t.reviewNote||'—')}</small></p></div>`).join(''):'<p>अभी कोई नया कार्य नहीं है।</p>';
+            const my=appData.monthlyReports.filter(r=>r.collegeId===cid&&r.instructorId===iid);
+            const box=document.getElementById('instMyReports');
+            if(box) box.innerHTML=my.slice().reverse().map(r=>`<div style="padding:9px;border-bottom:1px solid #e2e8f0;"><strong>${escWork(r.month)} - ${escWork(r.type)}</strong> | ${escWork(r.status)}<p>${escWork(r.superintendentNote||'')}</p>${r.status==='सुधार हेतु वापस'?`<button class="app-btn app-btn-warning" onclick="resubmitInstructorReport('${r.id}')">सुधार करके दोबारा भेजें</button>`:''}</div>`).join('')||'<p>अभी कोई रिपोर्ट नहीं भेजी गई है।</p>';
+        }
+        async function completeInstructorTask(id) {
+            const t=(appData.assignedTasks||[]).find(x=>x.id===id&&x.collegeId===currentCollegeId&&x.instructorId===loggedInInstructor?.id); if(!t)return;
+            t.status='पूर्ण'; t.completedAt=new Date().toISOString(); await syncWithFirebase(); renderInstructorWorkPanels(); showToast('कार्य पूर्ण दर्ज हो गया।');
+        }
+        async function resubmitInstructorReport(id) {
+            const r=(appData.monthlyReports||[]).find(x=>x.id===id&&x.collegeId===currentCollegeId&&x.instructorId===loggedInInstructor?.id&&x.status==='सुधार हेतु वापस');
+            if(!r)return;
+            const revised=prompt('रिपोर्ट में सुधार करके पूरा विवरण लिखें:',r.details||'');
+            if(revised===null)return;
+            if(!revised.trim()){alert('रिपोर्ट का विवरण खाली नहीं हो सकता।');return;}
+            r.details=revised.trim(); r.status='दोबारा जाँच हेतु जमा'; r.resubmittedAt=new Date().toISOString(); r.superintendentNote='';
+            await syncWithFirebase(); renderInstructorWorkPanels(); showToast('सुधारी हुई रिपोर्ट दोबारा भेज दी गई।');
+        }
+        async function submitInstructorMonthlyReport(e) {
+            e.preventDefault(); if(currentRole!=='instructor'||!loggedInInstructor)return; ensureWorkStores();
+            const month=document.getElementById('instReportMonth').value, details=document.getElementById('instReportDetails').value.trim();
+            if(!month||!details){alert('माह और रिपोर्ट विवरण भरें।');return;}
+            appData.monthlyReports.push({id:'rep_'+Date.now(),collegeId:currentCollegeId,trade:currentTrade,instructorId:loggedInInstructor.id,month,type:document.getElementById('instReportType').value,details,status:'जाँच हेतु जमा',createdAt:new Date().toISOString()});
+            await syncWithFirebase(); e.target.reset(); renderInstructorWorkPanels(); showToast('मासिक रिपोर्ट अधीक्षक को भेज दी गई।');
         }
 
         function exportSuperintendentSummary() {
@@ -2400,11 +2520,13 @@
 
             if (inst) {
                 currentRole = 'instructor';
+                loggedInInstructor = inst;
                 currentCollegeId = colId;
                 currentTrade = trade;
                 setupUIRoute();
                 renderRegister();
                 renderEvaluationTable();
+                renderInstructorWorkPanels();
                 showToast(`${getCollegeName(colId)} - ${trade} अनुदेशक लॉगिन सफल!`);
             } else {
                 alert("अमान्य विवरण! चुने गए कॉलेज में यह अनुदेशक आईडी/पासवर्ड/ट्रेड मैच नहीं हुआ।");
@@ -2465,6 +2587,7 @@
                 switchInstructorTab('attendance');
             } else if (currentRole === 'superintendent') {
                 document.getElementById('superintendentSection').classList.remove('hidden');
+                renderSuperintendentDashboard();
                 document.getElementById('roleLabel').innerHTML = `<i class="fa-solid fa-user-tie"></i> अधीक्षक: ${loggedInSuperintendent.name}`;
                 document.getElementById('supCollegeBadge').innerText = getCollegeName(currentCollegeId);
                 renderSuperintendentDashboard();
@@ -2482,6 +2605,7 @@
             currentTrade = null;
             loggedInStudent = null;
             loggedInSuperintendent = null;
+            loggedInInstructor = null;
             document.getElementById('frontLoginSection').classList.remove('hidden');
             document.getElementById('adminNavBtn').classList.remove('hidden');
             document.getElementById('superintendentNavBtn').classList.remove('hidden');
