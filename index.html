@@ -1,25 +1,21 @@
 <!DOCTYPE html>
+
 <html lang="hi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>राजकीय औद्योगिक प्रशिक्षण संस्थान - मल्टी-कॉलेज मूल्यांकन पोर्टल</title>
-    
-    <!-- Google Fonts & Font Awesome -->
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Hind:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-
-    <!-- SheetJS (xlsx) for Excel Export -->
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-
-    <!-- html2pdf for Individual Student Annual Progress Card PDF Export -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-
-    <!-- Firebase SDK (Compat Version - Realtime Database) -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
-
-    <style>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>राजकीय औद्योगिक प्रशिक्षण संस्थान - मल्टी-कॉलेज मूल्यांकन पोर्टल</title>
+<!-- Google Fonts & Font Awesome -->
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;family=Hind:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet"/>
+<!-- SheetJS (xlsx) for Excel Export -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<!-- html2pdf for Individual Student Annual Progress Card PDF Export -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<!-- Firebase SDK (Compat Version - Realtime Database) -->
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+<style>
         :root {
             --primary: #1e3a8a;
             --primary-accent: #2563eb;
@@ -695,1176 +691,1094 @@
             letter-spacing: 2px;
             color: #475569;
         }
-    </style>
+    
+        /* Unified left-column navigation for every role dashboard */
+        .role-sidebar-layout{display:grid;grid-template-columns:230px minmax(0,1fr);gap:15px;align-items:start}
+        .role-sidebar{position:sticky;top:92px;max-height:calc(100vh - 110px);overflow-y:auto;background:#fff;border:1px solid var(--border-color);border-radius:14px;padding:11px;box-shadow:var(--shadow-md);display:flex;flex-direction:column;gap:7px}
+        .role-side-heading{font-weight:800;color:#1e3a8a;padding:10px 8px 13px;border-bottom:1px solid #e2e8f0;margin-bottom:3px}
+        .role-side-btn{width:100%;text-align:left;white-space:normal;line-height:1.35;justify-content:flex-start;min-height:42px}
+        .role-main{min-width:0}
+        .role-dashboard-heading{background:#fff;border:1px solid var(--border-color);border-radius:12px;padding:13px 16px;margin-bottom:13px;color:var(--admin);font-weight:800}
+        .instructor-role-layout .role-side-btn{font-size:.86rem}
+        .student-side-nav{display:flex;flex-direction:column;gap:7px;max-width:230px;float:left;margin:0 16px 16px 0}
+        @media(max-width:760px){.role-sidebar-layout{grid-template-columns:108px minmax(0,1fr);gap:7px}.role-sidebar{top:75px;padding:6px;gap:5px;max-height:calc(100vh - 88px)}.role-side-heading{font-size:.72rem;padding:7px 3px 9px;line-height:1.25}.role-side-btn{font-size:.68rem!important;padding:9px 5px!important;min-height:38px;gap:5px!important;line-height:1.25}.role-side-btn i{width:14px;flex:0 0 14px}.role-dashboard-heading{padding:9px;font-size:.88rem}.student-side-nav{max-width:100%;float:none;margin:0 0 12px 0}}
+</style>
 </head>
 <body>
-
-    <!-- Header -->
-    <header>
-        <div class="brand-box">
-            <div class="brand-logo-icon" id="headerLogoContainer">
-                <i class="fa-solid fa-graduation-cap"></i>
-            </div>
-            <div class="brand-text">
-                <h1 id="headerInstituteName">राजकीय औद्योगिक प्रशिक्षण संस्थान</h1>
-                <p id="headerPortalTagline">मल्टी-कॉलेज छात्र उपस्थिति, टेस्ट एवं प्रगति मूल्यांकन पोर्टल</p>
-            </div>
-        </div>
-
-        <div class="header-actions">
-            <button id="adminNavBtn" class="btn-admin-portal" onclick="openModal('adminLoginModal')">
-                <i class="fa-solid fa-shield-halved"></i> सुपर एडमिन पोर्टल
+<!-- Header -->
+<header>
+<div class="brand-box">
+<div class="brand-logo-icon" id="headerLogoContainer">
+<i class="fa-solid fa-graduation-cap"></i>
+</div>
+<div class="brand-text">
+<h1 id="headerInstituteName">राजकीय औद्योगिक प्रशिक्षण संस्थान</h1>
+<p id="headerPortalTagline">मल्टी-कॉलेज छात्र उपस्थिति, टेस्ट एवं प्रगति मूल्यांकन पोर्टल</p>
+</div>
+</div>
+<div class="header-actions">
+<button class="btn-admin-portal" id="adminNavBtn" onclick="openModal('adminLoginModal')">
+<i class="fa-solid fa-shield-halved"></i> सुपर एडमिन पोर्टल
             </button>
-            <button id="superintendentNavBtn" class="app-btn app-btn-purple" onclick="openModal('superintendentLoginModal')">
-                <i class="fa-solid fa-user-tie"></i> अधीक्षक लॉगिन
+<button class="app-btn app-btn-purple" id="superintendentNavBtn" onclick="openModal('superintendentLoginModal')">
+<i class="fa-solid fa-user-tie"></i> अधीक्षक लॉगिन
             </button>
-            <div id="authStatusPill" class="user-status-pill hidden">
-                <span id="roleLabel"><i class="fa-solid fa-user"></i> लॉगिन</span>
-                <button class="btn-logout" onclick="logout()"><i class="fa-solid fa-power-off"></i> बाहर आएं</button>
-            </div>
-        </div>
-    </header>
-
-    <!-- Main Container -->
-    <main class="main-container">
-
-        <!-- 1. FRONT LOGIN -->
-        <section id="frontLoginSection">
-            <div class="login-wrapper">
-                
-                <!-- Instructor Login -->
-                <div class="glass-card card-instructor">
-                    <div class="card-header-icon"><i class="fa-solid fa-chalkboard-user"></i></div>
-                    <h2 class="form-title">ट्रेड अनुदेशक लॉगिन</h2>
-                    <p class="form-subtitle">कॉलेज व ट्रेड चुनकर अपनी कक्षा का रिकॉर्ड संभालें</p>
-                    
-                    <form onsubmit="handleInstructorLogin(event)" autocomplete="off">
-                        <div class="input-group">
-                            <label><i class="fa-solid fa-building-columns"></i> संस्थान / कॉलेज चुनें</label>
-                            <select id="loginInstCollege" required></select>
-                        </div>
-                        <div class="input-group">
-                            <label><i class="fa-solid fa-layer-group"></i> ट्रेड का चयन करें</label>
-                            <select id="loginInstTrade" required></select>
-                        </div>
-                        <div class="input-group">
-                            <label><i class="fa-solid fa-id-badge"></i> अनुदेशक आईडी</label>
-                            <input type="text" id="instId" placeholder="प्रदत्त लॉगिन आईडी" required autocomplete="off">
-                        </div>
-                        <div class="input-group">
-                            <label><i class="fa-solid fa-key"></i> पासवर्ड</label>
-                            <input type="password" id="instPass" placeholder="पासवर्ड दर्ज करें" required autocomplete="current-password">
-                        </div>
-                        <button type="submit" class="btn-submit btn-inst-submit">
-                            <i class="fa-solid fa-arrow-right-to-bracket"></i> अनुदेशक प्रवेश
+<div class="user-status-pill hidden" id="authStatusPill">
+<span id="roleLabel"><i class="fa-solid fa-user"></i> लॉगिन</span>
+<button class="btn-logout" onclick="logout()"><i class="fa-solid fa-power-off"></i> बाहर आएं</button>
+</div>
+</div>
+</header>
+<!-- Main Container -->
+<main class="main-container">
+<!-- 1. FRONT LOGIN -->
+<section id="frontLoginSection">
+<div class="login-wrapper">
+<!-- Instructor Login -->
+<div class="glass-card card-instructor">
+<div class="card-header-icon"><i class="fa-solid fa-chalkboard-user"></i></div>
+<h2 class="form-title">ट्रेड अनुदेशक लॉगिन</h2>
+<p class="form-subtitle">कॉलेज व ट्रेड चुनकर अपनी कक्षा का रिकॉर्ड संभालें</p>
+<form autocomplete="off" onsubmit="handleInstructorLogin(event)">
+<div class="input-group">
+<label><i class="fa-solid fa-building-columns"></i> संस्थान / कॉलेज चुनें</label>
+<select id="loginInstCollege" required=""></select>
+</div>
+<div class="input-group">
+<label><i class="fa-solid fa-layer-group"></i> ट्रेड का चयन करें</label>
+<select id="loginInstTrade" required=""></select>
+</div>
+<div class="input-group">
+<label><i class="fa-solid fa-id-badge"></i> अनुदेशक आईडी</label>
+<input autocomplete="off" id="instId" placeholder="प्रदत्त लॉगिन आईडी" required="" type="text"/>
+</div>
+<div class="input-group">
+<label><i class="fa-solid fa-key"></i> पासवर्ड</label>
+<input autocomplete="current-password" id="instPass" placeholder="पासवर्ड दर्ज करें" required="" type="password"/>
+</div>
+<button class="btn-submit btn-inst-submit" type="submit">
+<i class="fa-solid fa-arrow-right-to-bracket"></i> अनुदेशक प्रवेश
                         </button>
-                    </form>
-                </div>
-
-                <!-- Student Login -->
-                <div class="glass-card card-student">
-                    <div class="card-header-icon"><i class="fa-solid fa-user-graduate"></i></div>
-                    <h2 class="form-title">प्रशिक्षु (Student) लॉगिन</h2>
-                    <p class="form-subtitle">अपना कॉलेज, ट्रेड व आईडी डालकर स्कोरकार्ड देखें</p>
-                    
-                    <form onsubmit="handleStudentLogin(event)" autocomplete="off">
-                        <div class="input-group">
-                            <label><i class="fa-solid fa-building-columns"></i> अपना कॉलेज चुनें</label>
-                            <select id="loginStudentCollege" required></select>
-                        </div>
-                        <div class="input-group">
-                            <label><i class="fa-solid fa-layer-group"></i> अपनी ट्रेड चुनें</label>
-                            <select id="loginStudentTrade" required></select>
-                        </div>
-                        <div class="input-group">
-                            <label><i class="fa-solid fa-id-card"></i> छात्र लॉगिन आईडी</label>
-                            <input type="text" id="studentLoginId" placeholder="उदा. st101" required autocomplete="off">
-                        </div>
-                        <div class="input-group">
-                            <label><i class="fa-solid fa-lock"></i> पासवर्ड</label>
-                            <input type="password" id="studentLoginPass" placeholder="पासवर्ड दर्ज करें" required autocomplete="current-password">
-                        </div>
-                        <button type="submit" class="btn-submit btn-stud-submit">
-                            <i class="fa-solid fa-chart-pie"></i> स्कोरकार्ड देखें
+</form>
+</div>
+<!-- Student Login -->
+<div class="glass-card card-student">
+<div class="card-header-icon"><i class="fa-solid fa-user-graduate"></i></div>
+<h2 class="form-title">प्रशिक्षु (Student) लॉगिन</h2>
+<p class="form-subtitle">अपना कॉलेज, ट्रेड व आईडी डालकर स्कोरकार्ड देखें</p>
+<form autocomplete="off" onsubmit="handleStudentLogin(event)">
+<div class="input-group">
+<label><i class="fa-solid fa-building-columns"></i> अपना कॉलेज चुनें</label>
+<select id="loginStudentCollege" required=""></select>
+</div>
+<div class="input-group">
+<label><i class="fa-solid fa-layer-group"></i> अपनी ट्रेड चुनें</label>
+<select id="loginStudentTrade" required=""></select>
+</div>
+<div class="input-group">
+<label><i class="fa-solid fa-id-card"></i> छात्र लॉगिन आईडी</label>
+<input autocomplete="off" id="studentLoginId" placeholder="उदा. st101" required="" type="text"/>
+</div>
+<div class="input-group">
+<label><i class="fa-solid fa-lock"></i> पासवर्ड</label>
+<input autocomplete="current-password" id="studentLoginPass" placeholder="पासवर्ड दर्ज करें" required="" type="password"/>
+</div>
+<button class="btn-submit btn-stud-submit" type="submit">
+<i class="fa-solid fa-chart-pie"></i> स्कोरकार्ड देखें
                         </button>
-                    </form>
-                </div>
+</form>
+</div>
+</div>
+</section>
+<!-- 2. ADMIN DASHBOARD -->
+<section class="hidden" id="adminSection">
 
-            </div>
-        </section>
+<!-- Global College Filter Bar for Super Admin -->
 
-        <!-- 2. ADMIN DASHBOARD -->
-        <section id="adminSection" class="hidden">
-            <div class="controls-card">
-                <div class="controls-left">
-                    <h2 style="font-size: 1.15rem; color: var(--admin);"><i class="fa-solid fa-sliders"></i> केंद्रीय मल्टी-कॉलेज एडमिन नियंत्रण कक्ष</h2>
-                </div>
-                <div class="controls-right">
-                    <button class="app-btn app-btn-purple" onclick="openCollegeManagerModal()">
-                        <i class="fa-solid fa-school"></i> कॉलेज प्रबंधन
-                    </button>
-                    <button class="app-btn app-btn-purple" onclick="openSuperintendentManager()">
-                        <i class="fa-solid fa-user-tie"></i> अधीक्षक अकाउंट प्रबंधन
-                    </button>
-                    <button class="app-btn app-btn-purple" onclick="openInstituteSettingsModal()">
-                        <i class="fa-solid fa-building-columns"></i> संस्थान प्रोफ़ाइल व हस्ताक्षर
-                    </button>
-                    <button class="app-btn app-btn-secondary" onclick="openBackupRestoreModal()">
-                        <i class="fa-solid fa-database"></i> बैकअप / रीस्टोर
-                    </button>
-                    <button class="app-btn app-btn-primary" onclick="openBulkStudentModal()">
-                        <i class="fa-solid fa-users-gear"></i> बल्क छात्र अपलोड/प्रमोशन
-                    </button>
-                    <button class="app-btn app-btn-warning" onclick="openFreezeLockModal()">
-                        <i class="fa-solid fa-lock"></i> अटेंडेंस/मार्क्स लॉक-अनलॉक
-                    </button>
-                    <button class="app-btn app-btn-dark" onclick="openSessionConfigModal()">
-                        <i class="fa-solid fa-calendar-days"></i> सत्र निर्धारण
-                    </button>
-                    <button class="app-btn app-btn-excel" onclick="openAdminAnnualExcelModal()">
-                        <i class="fa-solid fa-file-excel"></i> वार्षिक Excel
-                    </button>
-                    <button class="app-btn app-btn-pdf" onclick="openAdminAnnualReportModal()">
-                        <i class="fa-solid fa-file-pdf"></i> वार्षिक प्रोग्रेस (PDF)
-                    </button>
-                    <button class="app-btn app-btn-primary" onclick="openModal('addTradeModal')"><i class="fa-solid fa-plus"></i> नई ट्रेड</button>
-                    <button class="app-btn app-btn-secondary" onclick="openModal('addInstructorModal')"><i class="fa-solid fa-user-shield"></i> नया अनुदेशक</button>
-                    <button class="app-btn app-btn-warning" onclick="openAdminCredModal()"><i class="fa-solid fa-key"></i> एडमिन क्रेडेंशियल</button>
-                    <button class="app-btn app-btn-success" onclick="syncWithFirebase()"><i class="fa-solid fa-cloud-arrow-up"></i> Firebase सेव करें</button>
-                </div>
-            </div>
 
-            <!-- Global College Filter Bar for Super Admin -->
-            <div class="admin-quick-bar">
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <span style="font-weight: 700; color: #1e3a8a;"><i class="fa-solid fa-filter"></i> कॉलेज फ़िल्टर:</span>
-                    <select id="adminCollegeFilterSelect" onchange="renderAdminView()" style="padding: 5px 12px; border-radius: 6px; border: 1.5px solid var(--border-color); font-weight: 700; color: #1e3a8a;">
-                    </select>
-                </div>
-                <div style="display: flex; gap: 8px; align-items: center;">
-                    <span style="font-weight: 700; color: #1e3a8a;">सक्रिय सत्र: <span id="adminSessionDisplayBadge" style="color: #2563eb;">-</span></span>
-                    <button class="app-btn app-btn-secondary" style="padding: 4px 10px;" onclick="toggleAllPasswordsVisibility()">
-                        <i id="allPassEyeIcon" class="fa-solid fa-eye"></i> <span id="allPassEyeText">सभी पासवर्ड दिखाएं</span>
-                    </button>
-                </div>
-            </div>
-
-            <div class="glass-card" style="padding: 20px;">
-                <h3 style="font-size: 1rem; margin-bottom: 14px; color: var(--primary);">
-                    <i class="fa-solid fa-id-card-clip"></i> पंजीकृत कॉलेज, ट्रेड एवं अनुदेशक सूची
+<div class="role-sidebar-layout admin-role-layout"><aside aria-label="सुपर एडमिन मेन्यू" class="role-sidebar"><div class="role-side-heading">सुपर एडमिन मेन्यू</div><button class="app-btn-purple app-btn role-side-btn" onclick="openCollegeManagerModal()">
+<i class="fa-solid fa-school"></i> कॉलेज प्रबंधन
+                    </button><button class="app-btn-purple app-btn role-side-btn" onclick="openSuperintendentManager()">
+<i class="fa-solid fa-user-tie"></i> अधीक्षक अकाउंट प्रबंधन
+                    </button><button class="app-btn-purple app-btn role-side-btn" onclick="openInstituteSettingsModal()">
+<i class="fa-solid fa-building-columns"></i> संस्थान प्रोफ़ाइल व हस्ताक्षर
+                    </button><button class="role-side-btn app-btn-secondary app-btn" onclick="openBackupRestoreModal()">
+<i class="fa-solid fa-database"></i> बैकअप / रीस्टोर
+                    </button><button class="app-btn-primary app-btn role-side-btn" onclick="openBulkStudentModal()">
+<i class="fa-solid fa-users-gear"></i> बल्क छात्र अपलोड/प्रमोशन
+                    </button><button class="role-side-btn app-btn-warning app-btn" onclick="openFreezeLockModal()">
+<i class="fa-solid fa-lock"></i> अटेंडेंस/मार्क्स लॉक-अनलॉक
+                    </button><button class="role-side-btn app-btn-dark app-btn" onclick="openSessionConfigModal()">
+<i class="fa-solid fa-calendar-days"></i> सत्र निर्धारण
+                    </button><button class="role-side-btn app-btn-excel app-btn" onclick="openAdminAnnualExcelModal()">
+<i class="fa-solid fa-file-excel"></i> वार्षिक Excel
+                    </button><button class="role-side-btn app-btn-pdf app-btn" onclick="openAdminAnnualReportModal()">
+<i class="fa-solid fa-file-pdf"></i> वार्षिक प्रोग्रेस (PDF)
+                    </button><button class="app-btn-primary app-btn role-side-btn" onclick="openModal('addTradeModal')"><i class="fa-solid fa-plus"></i> नई ट्रेड</button><button class="role-side-btn app-btn-secondary app-btn" onclick="openModal('addInstructorModal')"><i class="fa-solid fa-user-shield"></i> नया अनुदेशक</button><button class="role-side-btn app-btn-warning app-btn" onclick="openAdminCredModal()"><i class="fa-solid fa-key"></i> एडमिन क्रेडेंशियल</button><button class="role-side-btn app-btn app-btn-success" onclick="syncWithFirebase()"><i class="fa-solid fa-cloud-arrow-up"></i> Firebase सेव करें</button></aside><div class="role-main"><div class="role-dashboard-heading">
+<h2 style="font-size: 1.15rem; color: var(--admin);"><i class="fa-solid fa-sliders"></i> केंद्रीय मल्टी-कॉलेज एडमिन नियंत्रण कक्ष</h2>
+</div><div class="admin-quick-bar">
+<div style="display: flex; align-items: center; gap: 10px;">
+<span style="font-weight: 700; color: #1e3a8a;"><i class="fa-solid fa-filter"></i> कॉलेज फ़िल्टर:</span>
+<select id="adminCollegeFilterSelect" onchange="renderAdminView()" style="padding: 5px 12px; border-radius: 6px; border: 1.5px solid var(--border-color); font-weight: 700; color: #1e3a8a;">
+</select>
+</div>
+<div style="display: flex; gap: 8px; align-items: center;">
+<span style="font-weight: 700; color: #1e3a8a;">सक्रिय सत्र: <span id="adminSessionDisplayBadge" style="color: #2563eb;">-</span></span>
+<button class="app-btn app-btn-secondary" onclick="toggleAllPasswordsVisibility()" style="padding: 4px 10px;">
+<i class="fa-solid fa-eye" id="allPassEyeIcon"></i> <span id="allPassEyeText">सभी पासवर्ड दिखाएं</span>
+</button>
+</div>
+</div><div class="glass-card" style="padding: 20px;">
+<h3 style="font-size: 1rem; margin-bottom: 14px; color: var(--primary);">
+<i class="fa-solid fa-id-card-clip"></i> पंजीकृत कॉलेज, ट्रेड एवं अनुदेशक सूची
                 </h3>
-                <div class="table-shell">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>क्र.सं.</th>
-                                <th>कॉलेज (संस्थान)</th>
-                                <th>ट्रेड का नाम</th>
-                                <th>प्रकार (Category)</th>
-                                <th>अनुदेशक का नाम</th>
-                                <th>लॉगिन आईडी</th>
-                                <th>पासवर्ड (सुरक्षित)</th>
-                                <th>कार्रवाई (Action)</th>
-                            </tr>
-                        </thead>
-                        <tbody id="adminInstructorTableBody"></tbody>
-                    </table>
-                </div>
-            </div>
-        </section>
+<div class="table-shell">
+<table>
+<thead>
+<tr>
+<th>क्र.सं.</th>
+<th>कॉलेज (संस्थान)</th>
+<th>ट्रेड का नाम</th>
+<th>प्रकार (Category)</th>
+<th>अनुदेशक का नाम</th>
+<th>लॉगिन आईडी</th>
+<th>पासवर्ड (सुरक्षित)</th>
+<th>कार्रवाई (Action)</th>
+</tr>
+</thead>
+<tbody id="adminInstructorTableBody"></tbody>
+</table>
+</div>
+</div></div></div></section>
+<!-- 3. SUPERINTENDENT DASHBOARD -->
+<section class="hidden" id="superintendentSection">
+<div class="sup-layout">
+<aside aria-label="अधीक्षक मेन्यू" class="sup-sidebar">
+<div class="sup-side-heading"><i class="fa-solid fa-building-columns"></i><span>अधीक्षक मेन्यू</span></div>
+<button class="sup-nav-btn active" data-view="overview" onclick="switchSupView('overview',this)"><i class="fa-solid fa-gauge-high"></i><span>डैशबोर्ड</span></button>
+<button class="sup-nav-btn" data-view="performance" onclick="switchSupView('performance',this)"><i class="fa-solid fa-chart-line"></i><span>अनुदेशक प्रदर्शन</span></button>
+<button class="sup-nav-btn" data-view="instructors" onclick="switchSupView('instructors',this)"><i class="fa-solid fa-chalkboard-user"></i><span>अनुदेशक रिकॉर्ड</span></button>
+<button class="sup-nav-btn" data-view="inspection" onclick="switchSupView('inspection',this)"><i class="fa-solid fa-clipboard-check"></i><span>निरीक्षण रजिस्टर</span></button>
+<button class="sup-nav-btn" data-view="assets" onclick="switchSupView('assets',this)"><i class="fa-solid fa-screwdriver-wrench"></i><span>लैब / मशीनरी</span></button>
+<button class="sup-nav-btn" data-view="tasks" onclick="switchSupView('tasks',this)"><i class="fa-solid fa-list-check"></i><span>कार्य गतिविधियाँ</span></button>
+<div class="sup-sidebar-foot">केवल अपने कॉलेज का डेटा</div>
+</aside>
+<div class="sup-main-content">
+<div class="controls-card sup-topbar">
+<div class="controls-left"><h2 style="font-size:1.15rem;color:var(--admin);"><i class="fa-solid fa-building-columns"></i> कॉलेज अधीक्षक नियंत्रण कक्ष</h2><span class="badge-college" id="supCollegeBadge">कॉलेज: -</span></div>
+<div class="controls-right"><button class="app-btn app-btn-secondary" onclick="renderSuperintendentDashboard()"><i class="fa-solid fa-rotate"></i> रीफ्रेश</button><button class="app-btn app-btn-excel" onclick="exportSuperintendentSummary()"><i class="fa-solid fa-file-excel"></i> सारांश डाउनलोड</button></div>
+</div>
+<div class="admin-quick-bar" style="margin-bottom:14px;"><strong>केवल आपके कॉलेज का डेटा दिखाया जा रहा है।</strong><span id="supSessionBadge" style="font-weight:700;color:#1d4ed8;">सक्रिय सत्र: -</span></div>
+<div class="sup-view-panel" id="supViewOverview">
+<div class="dashboard-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px;">
+<div class="glass-card sup-metric"><div>कुल ट्रेड</div><strong id="supTradeCount">0</strong></div><div class="glass-card sup-metric"><div>कुल अनुदेशक</div><strong id="supInstructorCount">0</strong></div><div class="glass-card sup-metric"><div>कुल विद्यार्थी</div><strong id="supStudentCount">0</strong></div><div class="glass-card sup-metric"><div>दर्ज उपस्थिति एंट्री</div><strong id="supAttendanceCount">0</strong></div>
+</div>
+<div class="glass-card sup-panel"><h3><i class="fa-solid fa-layer-group"></i> विभाग / ट्रेड की स्थिति</h3><div class="table-shell"><table><thead><tr><th>ट्रेड</th><th>प्रकार</th><th>अनुदेशक</th><th>विद्यार्थी</th><th>उपस्थिति रिकॉर्ड</th></tr></thead><tbody id="supTradeTableBody"></tbody></table></div></div>
+<div class="glass-card sup-panel"><h3><i class="fa-solid fa-chart-column"></i> कॉलेज की कार्य स्थिति</h3><div class="sup-alert-grid" id="supOverviewAlerts"></div></div>
+</div>
+<div class="sup-view-panel hidden" id="supViewPerformance">
+<div class="glass-card sup-panel"><h3><i class="fa-solid fa-chart-line"></i> अनुदेशक प्रदर्शन ग्राफ</h3><p class="sup-help">ग्राफ मौजूदा उपस्थिति रिकॉर्ड, मूल्यांकन डेटा और दर्ज निरीक्षण/कार्य गतिविधियों पर आधारित है। जहाँ डेटा उपलब्ध नहीं है, वहाँ शून्य दिखेगा।</p><div class="sup-chart-list" id="supPerformanceChart"></div></div>
+</div>
+<div class="sup-view-panel hidden" id="supViewInstructors">
+<div class="glass-card sup-panel"><h3><i class="fa-solid fa-chalkboard-user"></i> अनुदेशक रिकॉर्ड की जाँच</h3><div class="table-shell"><table><thead><tr><th>अनुदेशक</th><th>ट्रेड</th><th>विद्यार्थी</th><th>उपस्थिति एंट्री</th><th>मूल्यांकन रिकॉर्ड</th><th>अंतिम गतिविधि</th></tr></thead><tbody id="supInstructorTableBody"></tbody></table></div></div>
+</div>
+<div class="sup-view-panel hidden" id="supViewInspection">
+<div class="glass-card sup-panel"><h3><i class="fa-solid fa-clipboard-check"></i> नया निरीक्षण दर्ज करें</h3>
+<div class="sup-form-grid">
+<div class="input-group"><label>निरीक्षण की तारीख</label><input id="supInspectionDate" type="date"/></div>
+<div class="input-group"><label>निरीक्षण का प्रकार</label><select id="supInspectionType"><option value="instructor">अनुदेशक रिकॉर्ड / कार्य</option><option value="lab">लैब निरीक्षण</option><option value="machine">मशीन / उपकरण</option><option value="safety">सुरक्षा व्यवस्था</option><option value="general">सामान्य निरीक्षण</option></select></div>
+<div class="input-group"><label>संबंधित अनुदेशक (यदि लागू हो)</label><select id="supInspectionInstructor"><option value="">लागू नहीं</option></select></div>
+<div class="input-group"><label>लैब / मशीन / स्थान</label><input id="supInspectionLocation" placeholder="जैसे COPA लैब / CNC मशीन"/></div>
+<div class="input-group"><label>निरीक्षण निष्कर्ष / कमी</label><textarea id="supInspectionFinding" placeholder="क्या जाँच की और क्या कमी मिली?" rows="2"></textarea></div>
+<div class="input-group"><label>सुधार निर्देश / कार्रवाई</label><textarea id="supInspectionAction" placeholder="किसे क्या सुधार करना है?" rows="2"></textarea></div>
+<div class="input-group"><label>स्थिति</label><select id="supInspectionStatus"><option value="सुधार आवश्यक">सुधार आवश्यक</option><option value="संतोषजनक">संतोषजनक</option><option value="कार्यवाही जारी">कार्यवाही जारी</option><option value="पूर्ण">पूर्ण</option></select></div>
+</div>
+<button class="app-btn app-btn-success" onclick="saveSupInspection()"><i class="fa-solid fa-floppy-disk"></i> निरीक्षण सेव करें</button>
+</div>
+<div class="glass-card sup-panel"><h3>निरीक्षण इतिहास</h3><div class="table-shell"><table><thead><tr><th>तारीख</th><th>प्रकार</th><th>अनुदेशक / स्थान</th><th>निष्कर्ष</th><th>निर्देश</th><th>स्थिति</th><th>कार्रवाई</th></tr></thead><tbody id="supInspectionHistory"></tbody></table></div></div>
+</div>
+<div class="sup-view-panel hidden" id="supViewAssets">
+<div class="glass-card sup-panel"><h3><i class="fa-solid fa-screwdriver-wrench"></i> लैब और मशीनरी निरीक्षण सारांश</h3><p class="sup-help">लैब, मशीन, उपकरण, सुरक्षा और मरम्मत से जुड़ी प्रविष्टियाँ निरीक्षण रजिस्टर में दर्ज करें।</p><div class="sup-asset-grid" id="supAssetSummary"></div><button class="app-btn app-btn-primary" onclick="switchSupView('inspection',document.querySelector('[data-view=inspection]'));document.getElementById('supInspectionType').value='lab';"><i class="fa-solid fa-plus"></i> लैब निरीक्षण दर्ज करें</button> <button class="app-btn app-btn-secondary" onclick="switchSupView('inspection',document.querySelector('[data-view=inspection]'));document.getElementById('supInspectionType').value='machine';"><i class="fa-solid fa-plus"></i> मशीन निरीक्षण दर्ज करें</button></div>
+</div>
+<div class="sup-view-panel hidden" id="supViewTasks">
+<div class="glass-card sup-panel"><h3><i class="fa-solid fa-list-check"></i> अनुदेशक कार्य गतिविधियाँ</h3><div class="sup-form-grid"><div class="input-group"><label>अनुदेशक</label><select id="supTaskInstructor"></select></div><div class="input-group"><label>कार्य / गतिविधि</label><input id="supTaskTitle" placeholder="जैसे प्रैक्टिकल रिकॉर्ड अपडेट करना"/></div><div class="input-group"><label>अंतिम तारीख</label><input id="supTaskDue" type="date"/></div><div class="input-group"><label>प्राथमिकता</label><select id="supTaskPriority"><option>सामान्य</option><option>महत्वपूर्ण</option><option>अति आवश्यक</option></select></div><div class="input-group"><label>विवरण</label><textarea id="supTaskDescription" placeholder="कार्य का विवरण" rows="2"></textarea></div></div><button class="app-btn app-btn-primary" onclick="assignSupTask()"><i class="fa-solid fa-paper-plane"></i> कार्य आवंटित करें</button></div>
+<div class="glass-card sup-panel"><h3>आवंटित कार्य</h3><div class="table-shell"><table><thead><tr><th>अनुदेशक</th><th>कार्य</th><th>अंतिम तारीख</th><th>प्राथमिकता</th><th>स्थिति</th><th>कार्रवाई</th></tr></thead><tbody id="supTaskHistory"></tbody></table></div></div>
+<div class="glass-card sup-panel"><h3>अनुदेशकों की जमा की गई गतिविधि रिपोर्ट</h3><div class="table-shell"><table><thead><tr><th>तारीख</th><th>अनुदेशक</th><th>गतिविधि</th><th>विद्यार्थी</th><th>विवरण</th><th>स्थिति</th></tr></thead><tbody id="supActivityReports"></tbody></table></div></div>
+</div>
+</div>
+</div>
+</section>
+<!-- 4. INSTRUCTOR DASHBOARD -->
+<section class="hidden" id="instructorSection">
 
-        <!-- 3. SUPERINTENDENT DASHBOARD -->
-        <section id="superintendentSection" class="hidden">
-            <div class="sup-layout">
-                <aside class="sup-sidebar" aria-label="अधीक्षक मेन्यू">
-                    <div class="sup-side-heading"><i class="fa-solid fa-building-columns"></i><span>अधीक्षक मेन्यू</span></div>
-                    <button class="sup-nav-btn active" data-view="overview" onclick="switchSupView('overview',this)"><i class="fa-solid fa-gauge-high"></i><span>डैशबोर्ड</span></button>
-                    <button class="sup-nav-btn" data-view="performance" onclick="switchSupView('performance',this)"><i class="fa-solid fa-chart-line"></i><span>अनुदेशक प्रदर्शन</span></button>
-                    <button class="sup-nav-btn" data-view="instructors" onclick="switchSupView('instructors',this)"><i class="fa-solid fa-chalkboard-user"></i><span>अनुदेशक रिकॉर्ड</span></button>
-                    <button class="sup-nav-btn" data-view="inspection" onclick="switchSupView('inspection',this)"><i class="fa-solid fa-clipboard-check"></i><span>निरीक्षण रजिस्टर</span></button>
-                    <button class="sup-nav-btn" data-view="assets" onclick="switchSupView('assets',this)"><i class="fa-solid fa-screwdriver-wrench"></i><span>लैब / मशीनरी</span></button>
-                    <button class="sup-nav-btn" data-view="tasks" onclick="switchSupView('tasks',this)"><i class="fa-solid fa-list-check"></i><span>कार्य गतिविधियाँ</span></button>
-                    <div class="sup-sidebar-foot">केवल अपने कॉलेज का डेटा</div>
-                </aside>
-                <div class="sup-main-content">
-                    <div class="controls-card sup-topbar">
-                        <div class="controls-left"><h2 style="font-size:1.15rem;color:var(--admin);"><i class="fa-solid fa-building-columns"></i> कॉलेज अधीक्षक नियंत्रण कक्ष</h2><span id="supCollegeBadge" class="badge-college">कॉलेज: -</span></div>
-                        <div class="controls-right"><button class="app-btn app-btn-secondary" onclick="renderSuperintendentDashboard()"><i class="fa-solid fa-rotate"></i> रीफ्रेश</button><button class="app-btn app-btn-excel" onclick="exportSuperintendentSummary()"><i class="fa-solid fa-file-excel"></i> सारांश डाउनलोड</button></div>
+<!-- Tab 1: Attendance -->
+
+<!-- Tab 2: Evaluations -->
+
+
+<div class="role-sidebar-layout instructor-role-layout"><aside aria-label="अनुदेशक मेन्यू" class="role-sidebar"><div class="role-side-heading">अनुदेशक मेन्यू</div><button class="role-side-btn inst-tab-btn active" id="tabBtnAtt" onclick="switchInstructorTab('attendance')">
+<i class="fa-solid fa-calendar-check"></i> 1. दैनिक उपस्थिति रजिस्टर
+                </button><button class="role-side-btn inst-tab-btn" id="tabBtnEval" onclick="switchInstructorTab('evaluation')">
+<i class="fa-solid fa-pen-ruler"></i> 2. मासिक टेस्ट अंक, डायरी व रिकॉर्ड चेकिंग
+                </button><button class="role-side-btn inst-tab-btn" id="tabBtnWork" onclick="switchInstructorTab('work')"><i class="fa-solid fa-list-check"></i> 3. अधीक्षक कार्य / दैनिक गतिविधि रिपोर्ट</button></aside><div class="role-main"><div id="instTabAttendance">
+<div class="controls-card">
+<div class="controls-left">
+<span class="badge-college" id="activeCollegeBadge">कॉलेज: -</span>
+<span class="badge-trade" id="activeTradeBadge">ट्रेड: -</span>
+<span class="badge-type" id="activeTradeTypeBadge">इंजीनियरिंग</span>
+<div>
+<input id="selectedMonth" onchange="renderRegister()" style="padding: 6px 10px; border-radius: 8px; border: 1px solid var(--border-color); font-weight: 600;" type="month"/>
+</div>
+<span class="lock-indicator lock-open" id="attLockStatusBadge"><i class="fa-solid fa-lock-open"></i> संपादन सक्रिय</span>
+<button class="app-btn app-btn-primary" onclick="openModal('addStudentModal')"><i class="fa-solid fa-user-plus"></i> नया छात्र जोड़ें</button>
+<button class="app-btn app-btn-secondary" onclick="openStudentCredentialsModal()"><i class="fa-solid fa-id-card"></i> छात्र प्रबंधन / पासवर्ड</button>
+<button class="app-btn app-btn-warning" onclick="openHolidayPrompt()"><i class="fa-solid fa-umbrella-beach"></i> अवकाश जोड़ें</button>
+</div>
+<div class="controls-right">
+<button class="app-btn app-btn-pdf" onclick="openInstructorAnnualReportModal()"><i class="fa-solid fa-id-card"></i> वार्षिक प्रोग्रेस कार्ड</button>
+<button class="app-btn app-btn-success" id="btnRollCall" onclick="openTodayRollCallModal()"><i class="fa-solid fa-clipboard-user"></i> आज की हाजिरी (Roll Call)</button>
+<button class="app-btn app-btn-excel" onclick="exportAttendanceToExcel()"><i class="fa-solid fa-file-excel"></i> अटेंडेंस एक्सेल (.xlsx)</button>
+<button class="app-btn app-btn-dark" onclick="syncWithFirebase()"><i class="fa-solid fa-cloud-arrow-up"></i> सेव करें</button>
+</div>
+</div>
+<div style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; font-size: 0.85rem; background: #ffffff; padding: 10px 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+<span id="workingDaysSummary" style="font-weight: 700; color: var(--primary);"></span>
+<span style="color: var(--text-muted);"><i class="fa-solid fa-circle-info"></i> <strong>M:</strong> सुबह सत्र | <strong>E:</strong> शाम सत्र (प्रवेश से पूर्व व आगामी तारीखें निष्प्रभावी रहेंगी)</span>
+</div>
+<div class="table-shell">
+<table id="attendanceTable">
+<thead id="attendanceHeader"></thead>
+<tbody id="attendanceBody"></tbody>
+</table>
+</div>
+</div><div class="hidden" id="instTabEvaluation">
+<div class="controls-card">
+<div class="controls-left">
+<span class="badge-college" id="evalCollegeBadge">कॉलेज</span>
+<span class="badge-trade" id="evalTradeBadge">ट्रेड मूल्यांकन</span>
+<span class="badge-type" id="evalTradeTypeBadge">इंजीनियरिंग</span>
+<div>
+<input id="evalSelectedMonth" onchange="renderEvaluationTable()" style="padding: 6px 10px; border-radius: 8px; border: 1px solid var(--border-color); font-weight: 600;" type="month"/>
+</div>
+<span class="lock-indicator lock-open" id="evalLockStatusBadge"><i class="fa-solid fa-lock-open"></i> संपादन सक्रिय</span>
+</div>
+<div class="controls-right">
+<button class="app-btn app-btn-excel" onclick="exportEvaluationToExcel()"><i class="fa-solid fa-file-excel"></i> मूल्यांकन एक्सेल (.xlsx)</button>
+<button class="app-btn app-btn-success" id="btnSaveEval" onclick="saveAllEvaluations()"><i class="fa-solid fa-floppy-disk"></i> मूल्यांकन सुरक्षित करें</button>
+<button class="app-btn app-btn-dark" onclick="syncWithFirebase()"><i class="fa-solid fa-cloud-arrow-up"></i> Firebase सेव करें</button>
+</div>
+</div>
+<div class="max-marks-banner">
+<div style="font-weight: 700; color: #1e3a8a; font-size: 0.88rem;">
+<i class="fa-solid fa-sliders"></i> इस माह के टेस्ट का विषयवार पूर्णांक (Max Marks) सेट करें:
                     </div>
-                    <div class="admin-quick-bar" style="margin-bottom:14px;"><strong>केवल आपके कॉलेज का डेटा दिखाया जा रहा है।</strong><span id="supSessionBadge" style="font-weight:700;color:#1d4ed8;">सक्रिय सत्र: -</span></div>
-                    <div id="supViewOverview" class="sup-view-panel">
-                        <div class="dashboard-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px;">
-                            <div class="glass-card sup-metric"><div>कुल ट्रेड</div><strong id="supTradeCount">0</strong></div><div class="glass-card sup-metric"><div>कुल अनुदेशक</div><strong id="supInstructorCount">0</strong></div><div class="glass-card sup-metric"><div>कुल विद्यार्थी</div><strong id="supStudentCount">0</strong></div><div class="glass-card sup-metric"><div>दर्ज उपस्थिति एंट्री</div><strong id="supAttendanceCount">0</strong></div>
-                        </div>
-                        <div class="glass-card sup-panel"><h3><i class="fa-solid fa-layer-group"></i> विभाग / ट्रेड की स्थिति</h3><div class="table-shell"><table><thead><tr><th>ट्रेड</th><th>प्रकार</th><th>अनुदेशक</th><th>विद्यार्थी</th><th>उपस्थिति रिकॉर्ड</th></tr></thead><tbody id="supTradeTableBody"></tbody></table></div></div>
-                        <div class="glass-card sup-panel"><h3><i class="fa-solid fa-chart-column"></i> कॉलेज की कार्य स्थिति</h3><div id="supOverviewAlerts" class="sup-alert-grid"></div></div>
-                    </div>
-                    <div id="supViewPerformance" class="sup-view-panel hidden">
-                        <div class="glass-card sup-panel"><h3><i class="fa-solid fa-chart-line"></i> अनुदेशक प्रदर्शन ग्राफ</h3><p class="sup-help">ग्राफ मौजूदा उपस्थिति रिकॉर्ड, मूल्यांकन डेटा और दर्ज निरीक्षण/कार्य गतिविधियों पर आधारित है। जहाँ डेटा उपलब्ध नहीं है, वहाँ शून्य दिखेगा।</p><div id="supPerformanceChart" class="sup-chart-list"></div></div>
-                    </div>
-                    <div id="supViewInstructors" class="sup-view-panel hidden">
-                        <div class="glass-card sup-panel"><h3><i class="fa-solid fa-chalkboard-user"></i> अनुदेशक रिकॉर्ड की जाँच</h3><div class="table-shell"><table><thead><tr><th>अनुदेशक</th><th>ट्रेड</th><th>विद्यार्थी</th><th>उपस्थिति एंट्री</th><th>मूल्यांकन रिकॉर्ड</th><th>अंतिम गतिविधि</th></tr></thead><tbody id="supInstructorTableBody"></tbody></table></div></div>
-                    </div>
-                    <div id="supViewInspection" class="sup-view-panel hidden">
-                        <div class="glass-card sup-panel"><h3><i class="fa-solid fa-clipboard-check"></i> नया निरीक्षण दर्ज करें</h3>
-                            <div class="sup-form-grid">
-                                <div class="input-group"><label>निरीक्षण की तारीख</label><input type="date" id="supInspectionDate"></div>
-                                <div class="input-group"><label>निरीक्षण का प्रकार</label><select id="supInspectionType"><option value="instructor">अनुदेशक रिकॉर्ड / कार्य</option><option value="lab">लैब निरीक्षण</option><option value="machine">मशीन / उपकरण</option><option value="safety">सुरक्षा व्यवस्था</option><option value="general">सामान्य निरीक्षण</option></select></div>
-                                <div class="input-group"><label>संबंधित अनुदेशक (यदि लागू हो)</label><select id="supInspectionInstructor"><option value="">लागू नहीं</option></select></div>
-                                <div class="input-group"><label>लैब / मशीन / स्थान</label><input id="supInspectionLocation" placeholder="जैसे COPA लैब / CNC मशीन"></div>
-                                <div class="input-group"><label>निरीक्षण निष्कर्ष / कमी</label><textarea id="supInspectionFinding" rows="2" placeholder="क्या जाँच की और क्या कमी मिली?"></textarea></div>
-                                <div class="input-group"><label>सुधार निर्देश / कार्रवाई</label><textarea id="supInspectionAction" rows="2" placeholder="किसे क्या सुधार करना है?"></textarea></div>
-                                <div class="input-group"><label>स्थिति</label><select id="supInspectionStatus"><option value="सुधार आवश्यक">सुधार आवश्यक</option><option value="संतोषजनक">संतोषजनक</option><option value="कार्यवाही जारी">कार्यवाही जारी</option><option value="पूर्ण">पूर्ण</option></select></div>
-                            </div>
-                            <button class="app-btn app-btn-success" onclick="saveSupInspection()"><i class="fa-solid fa-floppy-disk"></i> निरीक्षण सेव करें</button>
-                        </div>
-                        <div class="glass-card sup-panel"><h3>निरीक्षण इतिहास</h3><div class="table-shell"><table><thead><tr><th>तारीख</th><th>प्रकार</th><th>अनुदेशक / स्थान</th><th>निष्कर्ष</th><th>निर्देश</th><th>स्थिति</th><th>कार्रवाई</th></tr></thead><tbody id="supInspectionHistory"></tbody></table></div></div>
-                    </div>
-                    <div id="supViewAssets" class="sup-view-panel hidden">
-                        <div class="glass-card sup-panel"><h3><i class="fa-solid fa-screwdriver-wrench"></i> लैब और मशीनरी निरीक्षण सारांश</h3><p class="sup-help">लैब, मशीन, उपकरण, सुरक्षा और मरम्मत से जुड़ी प्रविष्टियाँ निरीक्षण रजिस्टर में दर्ज करें।</p><div id="supAssetSummary" class="sup-asset-grid"></div><button class="app-btn app-btn-primary" onclick="switchSupView('inspection',document.querySelector('[data-view=inspection]'));document.getElementById('supInspectionType').value='lab';"><i class="fa-solid fa-plus"></i> लैब निरीक्षण दर्ज करें</button> <button class="app-btn app-btn-secondary" onclick="switchSupView('inspection',document.querySelector('[data-view=inspection]'));document.getElementById('supInspectionType').value='machine';"><i class="fa-solid fa-plus"></i> मशीन निरीक्षण दर्ज करें</button></div>
-                    </div>
-                    <div id="supViewTasks" class="sup-view-panel hidden">
-                        <div class="glass-card sup-panel"><h3><i class="fa-solid fa-list-check"></i> अनुदेशक कार्य गतिविधियाँ</h3><div class="sup-form-grid"><div class="input-group"><label>अनुदेशक</label><select id="supTaskInstructor"></select></div><div class="input-group"><label>कार्य / गतिविधि</label><input id="supTaskTitle" placeholder="जैसे प्रैक्टिकल रिकॉर्ड अपडेट करना"></div><div class="input-group"><label>अंतिम तारीख</label><input id="supTaskDue" type="date"></div><div class="input-group"><label>प्राथमिकता</label><select id="supTaskPriority"><option>सामान्य</option><option>महत्वपूर्ण</option><option>अति आवश्यक</option></select></div><div class="input-group"><label>विवरण</label><textarea id="supTaskDescription" rows="2" placeholder="कार्य का विवरण"></textarea></div></div><button class="app-btn app-btn-primary" onclick="assignSupTask()"><i class="fa-solid fa-paper-plane"></i> कार्य आवंटित करें</button></div>
-                        <div class="glass-card sup-panel"><h3>आवंटित कार्य</h3><div class="table-shell"><table><thead><tr><th>अनुदेशक</th><th>कार्य</th><th>अंतिम तारीख</th><th>प्राथमिकता</th><th>स्थिति</th><th>कार्रवाई</th></tr></thead><tbody id="supTaskHistory"></tbody></table></div></div>
-                        <div class="glass-card sup-panel"><h3>अनुदेशकों की जमा की गई गतिविधि रिपोर्ट</h3><div class="table-shell"><table><thead><tr><th>तारीख</th><th>अनुदेशक</th><th>गतिविधि</th><th>विद्यार्थी</th><th>विवरण</th><th>स्थिति</th></tr></thead><tbody id="supActivityReports"></tbody></table></div></div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- 4. INSTRUCTOR DASHBOARD -->
-        <section id="instructorSection" class="hidden">
-            
-            <div class="instructor-tabs">
-                <button class="inst-tab-btn active" id="tabBtnAtt" onclick="switchInstructorTab('attendance')">
-                    <i class="fa-solid fa-calendar-check"></i> 1. दैनिक उपस्थिति रजिस्टर
-                </button>
-                <button class="inst-tab-btn" id="tabBtnEval" onclick="switchInstructorTab('evaluation')">
-                    <i class="fa-solid fa-pen-ruler"></i> 2. मासिक टेस्ट अंक, डायरी व रिकॉर्ड चेकिंग
-                </button>
-                <button class="inst-tab-btn" id="tabBtnWork" onclick="switchInstructorTab('work')"><i class="fa-solid fa-list-check"></i> 3. अधीक्षक कार्य / दैनिक गतिविधि रिपोर्ट</button>
-            </div>
-
-            <!-- Tab 1: Attendance -->
-            <div id="instTabAttendance">
-                <div class="controls-card">
-                    <div class="controls-left">
-                        <span id="activeCollegeBadge" class="badge-college">कॉलेज: -</span>
-                        <span id="activeTradeBadge" class="badge-trade">ट्रेड: -</span>
-                        <span id="activeTradeTypeBadge" class="badge-type">इंजीनियरिंग</span>
-                        <div>
-                            <input type="month" id="selectedMonth" onchange="renderRegister()" style="padding: 6px 10px; border-radius: 8px; border: 1px solid var(--border-color); font-weight: 600;">
-                        </div>
-                        <span id="attLockStatusBadge" class="lock-indicator lock-open"><i class="fa-solid fa-lock-open"></i> संपादन सक्रिय</span>
-                        <button class="app-btn app-btn-primary" onclick="openModal('addStudentModal')"><i class="fa-solid fa-user-plus"></i> नया छात्र जोड़ें</button>
-                        <button class="app-btn app-btn-secondary" onclick="openStudentCredentialsModal()"><i class="fa-solid fa-id-card"></i> छात्र प्रबंधन / पासवर्ड</button>
-                        <button class="app-btn app-btn-warning" onclick="openHolidayPrompt()"><i class="fa-solid fa-umbrella-beach"></i> अवकाश जोड़ें</button>
-                    </div>
-                    <div class="controls-right">
-                        <button class="app-btn app-btn-pdf" onclick="openInstructorAnnualReportModal()"><i class="fa-solid fa-id-card"></i> वार्षिक प्रोग्रेस कार्ड</button>
-                        <button class="app-btn app-btn-success" id="btnRollCall" onclick="openTodayRollCallModal()"><i class="fa-solid fa-clipboard-user"></i> आज की हाजिरी (Roll Call)</button>
-                        <button class="app-btn app-btn-excel" onclick="exportAttendanceToExcel()"><i class="fa-solid fa-file-excel"></i> अटेंडेंस एक्सेल (.xlsx)</button>
-                        <button class="app-btn app-btn-dark" onclick="syncWithFirebase()"><i class="fa-solid fa-cloud-arrow-up"></i> सेव करें</button>
-                    </div>
-                </div>
-
-                <div style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; font-size: 0.85rem; background: #ffffff; padding: 10px 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
-                    <span id="workingDaysSummary" style="font-weight: 700; color: var(--primary);"></span>
-                    <span style="color: var(--text-muted);"><i class="fa-solid fa-circle-info"></i> <strong>M:</strong> सुबह सत्र | <strong>E:</strong> शाम सत्र (प्रवेश से पूर्व व आगामी तारीखें निष्प्रभावी रहेंगी)</span>
-                </div>
-
-                <div class="table-shell">
-                    <table id="attendanceTable">
-                        <thead id="attendanceHeader"></thead>
-                        <tbody id="attendanceBody"></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Tab 2: Evaluations -->
-            <div id="instTabEvaluation" class="hidden">
-                <div class="controls-card">
-                    <div class="controls-left">
-                        <span class="badge-college" id="evalCollegeBadge">कॉलेज</span>
-                        <span class="badge-trade" id="evalTradeBadge">ट्रेड मूल्यांकन</span>
-                        <span class="badge-type" id="evalTradeTypeBadge">इंजीनियरिंग</span>
-                        <div>
-                            <input type="month" id="evalSelectedMonth" onchange="renderEvaluationTable()" style="padding: 6px 10px; border-radius: 8px; border: 1px solid var(--border-color); font-weight: 600;">
-                        </div>
-                        <span id="evalLockStatusBadge" class="lock-indicator lock-open"><i class="fa-solid fa-lock-open"></i> संपादन सक्रिय</span>
-                    </div>
-                    <div class="controls-right">
-                        <button class="app-btn app-btn-excel" onclick="exportEvaluationToExcel()"><i class="fa-solid fa-file-excel"></i> मूल्यांकन एक्सेल (.xlsx)</button>
-                        <button class="app-btn app-btn-success" id="btnSaveEval" onclick="saveAllEvaluations()"><i class="fa-solid fa-floppy-disk"></i> मूल्यांकन सुरक्षित करें</button>
-                        <button class="app-btn app-btn-dark" onclick="syncWithFirebase()"><i class="fa-solid fa-cloud-arrow-up"></i> Firebase सेव करें</button>
-                    </div>
-                </div>
-
-                <div class="max-marks-banner">
-                    <div style="font-weight: 700; color: #1e3a8a; font-size: 0.88rem;">
-                        <i class="fa-solid fa-sliders"></i> इस माह के टेस्ट का विषयवार पूर्णांक (Max Marks) सेट करें:
-                    </div>
-                    <div class="max-marks-inputs" id="maxMarksInputsContainer"></div>
-                </div>
-
-                <div class="table-shell">
-                    <table>
-                        <thead id="evalTableHeader"></thead>
-                        <tbody id="evaluationTableBody"></tbody>
-                    </table>
-                </div>
-            </div>
-            <div id="instTabWork" class="hidden">
-                <div class="glass-card" style="padding:18px;margin-bottom:14px;">
-                    <h3 style="color:var(--primary);margin-bottom:12px;"><i class="fa-solid fa-list-check"></i> अधीक्षक द्वारा सौंपे गए कार्य</h3>
-                    <div class="table-shell"><table><thead><tr><th>कार्य</th><th>अंतिम तारीख</th><th>प्राथमिकता</th><th>स्थिति</th><th>कार्रवाई</th></tr></thead><tbody id="instAssignedTasksBody"></tbody></table></div>
-                </div>
-                <div class="glass-card" style="padding:18px;">
-                    <h3 style="color:var(--primary);margin-bottom:12px;"><i class="fa-solid fa-file-circle-plus"></i> दैनिक / साप्ताहिक / मासिक गतिविधि रिपोर्ट जमा करें</h3>
-                    <div class="sup-form-grid"><div class="input-group"><label>रिपोर्ट की अवधि</label><select id="instActivityPeriod" onchange="toggleActivityPeriodFields()"><option value="दैनिक">दैनिक</option><option value="साप्ताहिक">साप्ताहिक</option><option value="मासिक">मासिक</option></select></div><div class="input-group"><label>तारीख / अवधि प्रारंभ</label><input type="date" id="instActivityDate"></div><div class="input-group" id="instActivityEndWrap" style="display:none"><label>अवधि समाप्त</label><input type="date" id="instActivityEndDate"></div><div class="input-group"><label>गतिविधि का प्रकार</label><select id="instActivityType"><option>थ्योरी क्लास</option><option>प्रैक्टिकल</option><option>लैब / मशीन रखरखाव</option><option>टेस्ट / मूल्यांकन</option><option>विद्यार्थी मार्गदर्शन</option><option>अन्य</option></select></div><div class="input-group"><label>कितने विद्यार्थी शामिल हुए</label><input type="number" min="0" id="instActivityStudents" placeholder="संख्या"></div><div class="input-group"><label>कार्य का विवरण</label><textarea id="instActivityDetails" rows="2" placeholder="आज क्या कार्य किया, कौन-सा विषय / प्रैक्टिकल कराया?"></textarea></div></div>
-                    <button class="app-btn app-btn-success" onclick="saveInstructorActivity()"><i class="fa-solid fa-paper-plane"></i> रिपोर्ट अधीक्षक को भेजें</button>
-                    <div id="instActivityHistory" style="margin-top:14px;"></div>
-                </div>
-            </div>
-
-        </section>
-
-        <!-- 4. STUDENT SCORECARD -->
-        <section id="studentSection" class="hidden">
-            <div class="scorecard-box">
-                <div class="scorecard-header">
-                    <div>
-                        <h2 id="scStudentName" style="color: var(--primary); font-size: 1.35rem;">छात्र का नाम</h2>
-                        <p style="color: var(--text-muted); font-size: 0.85rem;" id="scRoll">कॉलेज: - | ट्रेड: - | रोल: -</p>
-                    </div>
-                    <div id="studentMonthSelectorContainer">
-                        <label style="font-size: 0.82rem; font-weight: 600; margin-right: 6px;">महीना चयन:</label>
-                        <input type="month" id="studentMonthSelector" onchange="renderStudentDashboard()" style="padding: 6px 10px; border-radius: 8px; border: 1px solid var(--border-color); font-weight: 600;">
-                    </div>
-                </div>
-
-                <div class="student-vertical-nav-column">
-                    <button class="stud-nav-btn active" id="btnNavStudAtt" onclick="switchStudentSection('attendance')">
-                        <span class="btn-label"><i class="fa-solid fa-calendar-check" style="color:#2563eb; font-size:1.1rem;"></i> 1. उपस्थिति रिपोर्ट (Attendance Report)</span>
-                        <i class="fa-solid fa-chevron-right" style="font-size:0.85rem;"></i>
-                    </button>
-                    <button class="stud-nav-btn" id="btnNavStudMarks" onclick="switchStudentSection('marks')">
-                        <span class="btn-label"><i class="fa-solid fa-file-signature" style="color:#d97706; font-size:1.1rem;"></i> 2. मासिक टेस्ट अंक (Monthly Test Marks)</span>
-                        <i class="fa-solid fa-chevron-right" style="font-size:0.85rem;"></i>
-                    </button>
-                    <button class="stud-nav-btn" id="btnNavStudRecords" onclick="switchStudentSection('records')">
-                        <span class="btn-label"><i class="fa-solid fa-book-bookmark" style="color:#059669; font-size:1.1rem;"></i> 3. रिकॉर्ड, दैनिक डायरी व अन्य गतिविधियां</span>
-                        <i class="fa-solid fa-chevron-right" style="font-size:0.85rem;"></i>
-                    </button>
-                    <button class="stud-nav-btn" id="btnNavStudAnnualCard" onclick="switchStudentSection('annual_card')">
-                        <span class="btn-label"><i class="fa-solid fa-id-card-clip" style="color:#be123c; font-size:1.1rem;"></i> 4. समग्र वार्षिक प्रोग्रेस रिपोर्ट कार्ड (View Report Card)</span>
-                        <i class="fa-solid fa-chevron-right" style="font-size:0.85rem;"></i>
-                    </button>
-                </div>
-
-                <!-- 1. उपस्थिति सेक्शन -->
-                <div id="studSecAttendance">
-                    <div class="section-bar-title"><i class="fa-solid fa-clock-rotate-left"></i> पूर्व संचित विवरण (Past Record)</div>
-                    <div class="stats-tri-grid">
-                        <div class="metric-card">
-                            <div class="title">पूर्व उपस्थिति</div>
-                            <div class="value" id="scPastP" style="color: var(--success);">0</div>
-                            <div class="sub">पूर्व कार्यदिवस: <strong id="scPastW">0</strong> दिन</div>
-                        </div>
-                        <div class="metric-card">
-                            <div class="title">पूर्व अनुपस्थिति</div>
-                            <div class="value" id="scPastA" style="color: var(--danger);">0</div>
-                            <div class="sub">प्रवेश से पूर्व के एब्सेंट दिन</div>
-                        </div>
-                        <div class="metric-card">
-                            <div class="title">पिछला प्रतिशत</div>
-                            <div class="value" id="scPastPct" style="color: var(--primary-accent);">0%</div>
-                            <div class="progress-track"><div class="progress-bar-fill" id="scPastBar" style="width: 0%; background: var(--primary-accent);"></div></div>
-                        </div>
-                    </div>
-
-                    <div class="section-bar-title"><i class="fa-solid fa-calendar-day"></i> इस माह का विवरण (Current Month - आज तक)</div>
-                    <div class="stats-tri-grid">
-                        <div class="metric-card">
-                            <div class="title">इस माह उपस्थित</div>
-                            <div class="value" id="scCurrP" style="color: var(--success);">0</div>
-                            <div class="sub">प्रवेश उपरांत कार्यदिवस: <strong id="scCurrW">0</strong> दिन</div>
-                        </div>
-                        <div class="metric-card">
-                            <div class="title">इस माह अनुपस्थित</div>
-                            <div class="value" id="scCurrA" style="color: var(--danger);">0</div>
-                            <div class="sub">इस माह के कुल एब्सेंट दिन</div>
-                        </div>
-                        <div class="metric-card">
-                            <div class="title">इस माह का प्रतिशत</div>
-                            <div class="value" id="scCurrPct" style="color: var(--warning);">0%</div>
-                            <div class="progress-track"><div class="progress-bar-fill" id="scCurrBar" style="width: 0%; background: var(--warning);"></div></div>
-                        </div>
-                    </div>
-
-                    <div class="section-bar-title"><i class="fa-solid fa-award"></i> कुल संचित विवरण (Overall Cumulative)</div>
-                    <div class="stats-tri-grid">
-                        <div class="metric-card" style="background: #f0fdf4; border-color:#bbf7d0;">
-                            <div class="title" style="color: #166534;">कुल संचित उपस्थिति</div>
-                            <div class="value" id="scTotalP" style="color: #16a34a;">0</div>
-                            <div class="sub">प्रवेश से आज तक कार्यदिवस: <strong id="scTotalW">0</strong> दिन</div>
-                        </div>
-                        <div class="metric-card" style="background: #fef2f2; border-color: #fecaca;">
-                            <div class="title" style="color: #991b1b;">कुल संचित अनुपस्थिति</div>
-                            <div class="value" id="scTotalA" style="color: #dc2626;">0</div>
-                            <div class="sub">कुल अनुपस्थित दिन</div>
-                        </div>
-                        <div class="metric-card" style="background: #eff6ff; border-color: #bfdbfe;">
-                            <div class="title" style="color: #1e40af;">कुल संचित प्रतिशत (Overall %)</div>
-                            <div class="value" id="scTotalPct" style="color: var(--primary);">0%</div>
-                            <div class="progress-track"><div class="progress-bar-fill" id="scTotalBar" style="width: 0%; background: var(--primary);"></div></div>
-                        </div>
-                    </div>
-
-                    <div style="background: #f8fafc; padding: 12px 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color); margin-top: 8px;">
-                        <p style="font-size: 0.92rem;"><strong>परीक्षा पात्रता स्थिति:</strong> <span id="scStatusRemarks">गणना जारी...</span></p>
-                    </div>
-
-                    <div class="section-bar-title" style="margin-top: 22px;"><i class="fa-solid fa-list-check"></i> दैनिक उपस्थिति सत्र लॉग</div>
-                    <div class="table-shell" style="max-height: 240px;">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>तारीख</th>
-                                    <th>दिन</th>
-                                    <th>सुबह (Morning)</th>
-                                    <th>शाम (Evening)</th>
-                                    <th>स्थिति</th>
-                                </tr>
-                            </thead>
-                            <tbody id="scDailyLogBody"></tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- 2. टेस्ट अंक सेक्शन -->
-                <div id="studSecMarks" class="hidden">
-                    <div class="section-bar-title"><i class="fa-solid fa-pen-nib"></i> मासिक टेस्ट विषयवार प्राप्तांक एवं पूर्णांक</div>
-                    <div class="stats-tri-grid" id="scMarksCardsContainer"></div>
-                </div>
-
-                <!-- 3. रिकॉर्ड व डायरी सेक्शन -->
-                <div id="studSecRecords" class="hidden">
-                    <div class="section-bar-title"><i class="fa-solid fa-clipboard-check"></i> प्रैक्टिकल रिकॉर्ड, नोटबुक व दैनिक डायरी स्थिति</div>
-                    <div class="stats-tri-grid">
-                        <div class="metric-card">
-                            <div class="title">प्रैक्टिकल रिकॉर्ड / नोटबुक</div>
-                            <div class="value" id="scRecordStatus" style="font-size:1.3rem; color:#2563eb;">-</div>
-                            <div class="sub">रिमार्क: <strong id="scRecordRemark">-</strong></div>
-                        </div>
-                        <div class="metric-card">
-                            <div class="title">दैनिक डायरी निरीक्षण</div>
-                            <div class="value" id="scDiaryStatus" style="font-size:1.3rem; color:#059669;">-</div>
-                            <div class="sub">रिमार्क: <strong id="scDiaryRemark">-</strong></div>
-                        </div>
-                        <div class="metric-card">
-                            <div class="title">अनुशासन व वर्कशॉप आचरण</div>
-                            <div class="value" id="scDiscipline" style="font-size:1.3rem; color:#7c3aed;">-</div>
-                            <div class="sub">गतिविधि भागीदारी: <strong id="scActivity">-</strong></div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 4. छात्र के स्वयं का समग्र वार्षिक प्रोग्रेस कार्ड -->
-                <div id="studSecAnnualCard" class="hidden">
-                    <div id="studentOwnReportCardContainer" class="printableProgressCard"></div>
-                </div>
-
-            </div>
-        </section>
-
-    </main>
-
-    <!-- ==================== MODALS ==================== -->
-
-    <!-- Modal: कॉलेज प्रबंधन (College Manager Modal) -->
-    <div id="collegeManagerModal" class="modal-backdrop hidden">
-        <div class="modal-content" style="max-width: 650px;">
-            <h3 style="color: var(--primary); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-                <i class="fa-solid fa-school"></i> संस्थान / कॉलेज प्रबंधन (Multi-College Setup)
+<div class="max-marks-inputs" id="maxMarksInputsContainer"></div>
+</div>
+<div class="table-shell">
+<table>
+<thead id="evalTableHeader"></thead>
+<tbody id="evaluationTableBody"></tbody>
+</table>
+</div>
+</div><div class="hidden" id="instTabWork">
+<div class="glass-card" style="padding:18px;margin-bottom:14px;">
+<h3 style="color:var(--primary);margin-bottom:12px;"><i class="fa-solid fa-list-check"></i> अधीक्षक द्वारा सौंपे गए कार्य</h3>
+<div class="table-shell"><table><thead><tr><th>कार्य</th><th>अंतिम तारीख</th><th>प्राथमिकता</th><th>स्थिति</th><th>कार्रवाई</th></tr></thead><tbody id="instAssignedTasksBody"></tbody></table></div>
+</div>
+<div class="glass-card" style="padding:18px;">
+<h3 style="color:var(--primary);margin-bottom:12px;"><i class="fa-solid fa-file-circle-plus"></i> दैनिक / साप्ताहिक / मासिक गतिविधि रिपोर्ट जमा करें</h3>
+<div class="sup-form-grid"><div class="input-group"><label>रिपोर्ट की अवधि</label><select id="instActivityPeriod" onchange="toggleActivityPeriodFields()"><option value="दैनिक">दैनिक</option><option value="साप्ताहिक">साप्ताहिक</option><option value="मासिक">मासिक</option></select></div><div class="input-group"><label>तारीख / अवधि प्रारंभ</label><input id="instActivityDate" type="date"/></div><div class="input-group" id="instActivityEndWrap" style="display:none"><label>अवधि समाप्त</label><input id="instActivityEndDate" type="date"/></div><div class="input-group"><label>गतिविधि का प्रकार</label><select id="instActivityType"><option>थ्योरी क्लास</option><option>प्रैक्टिकल</option><option>लैब / मशीन रखरखाव</option><option>टेस्ट / मूल्यांकन</option><option>विद्यार्थी मार्गदर्शन</option><option>अन्य</option></select></div><div class="input-group"><label>कितने विद्यार्थी शामिल हुए</label><input id="instActivityStudents" min="0" placeholder="संख्या" type="number"/></div><div class="input-group"><label>कार्य का विवरण</label><textarea id="instActivityDetails" placeholder="आज क्या कार्य किया, कौन-सा विषय / प्रैक्टिकल कराया?" rows="2"></textarea></div></div>
+<button class="app-btn app-btn-success" onclick="saveInstructorActivity()"><i class="fa-solid fa-paper-plane"></i> रिपोर्ट अधीक्षक को भेजें</button>
+<div id="instActivityHistory" style="margin-top:14px;"></div>
+</div>
+</div></div></div></section>
+<!-- 4. STUDENT SCORECARD -->
+<section class="hidden" id="studentSection">
+<div class="scorecard-box">
+<div class="scorecard-header">
+<div>
+<h2 id="scStudentName" style="color: var(--primary); font-size: 1.35rem;">छात्र का नाम</h2>
+<p id="scRoll" style="color: var(--text-muted); font-size: 0.85rem;">कॉलेज: - | ट्रेड: - | रोल: -</p>
+</div>
+<div id="studentMonthSelectorContainer">
+<label style="font-size: 0.82rem; font-weight: 600; margin-right: 6px;">महीना चयन:</label>
+<input id="studentMonthSelector" onchange="renderStudentDashboard()" style="padding: 6px 10px; border-radius: 8px; border: 1px solid var(--border-color); font-weight: 600;" type="month"/>
+</div>
+</div>
+<div class="student-vertical-nav-column student-side-nav">
+<button class="stud-nav-btn active" id="btnNavStudAtt" onclick="switchStudentSection('attendance')">
+<span class="btn-label"><i class="fa-solid fa-calendar-check" style="color:#2563eb; font-size:1.1rem;"></i> 1. उपस्थिति रिपोर्ट (Attendance Report)</span>
+<i class="fa-solid fa-chevron-right" style="font-size:0.85rem;"></i>
+</button>
+<button class="stud-nav-btn" id="btnNavStudMarks" onclick="switchStudentSection('marks')">
+<span class="btn-label"><i class="fa-solid fa-file-signature" style="color:#d97706; font-size:1.1rem;"></i> 2. मासिक टेस्ट अंक (Monthly Test Marks)</span>
+<i class="fa-solid fa-chevron-right" style="font-size:0.85rem;"></i>
+</button>
+<button class="stud-nav-btn" id="btnNavStudRecords" onclick="switchStudentSection('records')">
+<span class="btn-label"><i class="fa-solid fa-book-bookmark" style="color:#059669; font-size:1.1rem;"></i> 3. रिकॉर्ड, दैनिक डायरी व अन्य गतिविधियां</span>
+<i class="fa-solid fa-chevron-right" style="font-size:0.85rem;"></i>
+</button>
+<button class="stud-nav-btn" id="btnNavStudAnnualCard" onclick="switchStudentSection('annual_card')">
+<span class="btn-label"><i class="fa-solid fa-id-card-clip" style="color:#be123c; font-size:1.1rem;"></i> 4. समग्र वार्षिक प्रोग्रेस रिपोर्ट कार्ड (View Report Card)</span>
+<i class="fa-solid fa-chevron-right" style="font-size:0.85rem;"></i>
+</button>
+</div>
+<!-- 1. उपस्थिति सेक्शन -->
+<div id="studSecAttendance">
+<div class="section-bar-title"><i class="fa-solid fa-clock-rotate-left"></i> पूर्व संचित विवरण (Past Record)</div>
+<div class="stats-tri-grid">
+<div class="metric-card">
+<div class="title">पूर्व उपस्थिति</div>
+<div class="value" id="scPastP" style="color: var(--success);">0</div>
+<div class="sub">पूर्व कार्यदिवस: <strong id="scPastW">0</strong> दिन</div>
+</div>
+<div class="metric-card">
+<div class="title">पूर्व अनुपस्थिति</div>
+<div class="value" id="scPastA" style="color: var(--danger);">0</div>
+<div class="sub">प्रवेश से पूर्व के एब्सेंट दिन</div>
+</div>
+<div class="metric-card">
+<div class="title">पिछला प्रतिशत</div>
+<div class="value" id="scPastPct" style="color: var(--primary-accent);">0%</div>
+<div class="progress-track"><div class="progress-bar-fill" id="scPastBar" style="width: 0%; background: var(--primary-accent);"></div></div>
+</div>
+</div>
+<div class="section-bar-title"><i class="fa-solid fa-calendar-day"></i> इस माह का विवरण (Current Month - आज तक)</div>
+<div class="stats-tri-grid">
+<div class="metric-card">
+<div class="title">इस माह उपस्थित</div>
+<div class="value" id="scCurrP" style="color: var(--success);">0</div>
+<div class="sub">प्रवेश उपरांत कार्यदिवस: <strong id="scCurrW">0</strong> दिन</div>
+</div>
+<div class="metric-card">
+<div class="title">इस माह अनुपस्थित</div>
+<div class="value" id="scCurrA" style="color: var(--danger);">0</div>
+<div class="sub">इस माह के कुल एब्सेंट दिन</div>
+</div>
+<div class="metric-card">
+<div class="title">इस माह का प्रतिशत</div>
+<div class="value" id="scCurrPct" style="color: var(--warning);">0%</div>
+<div class="progress-track"><div class="progress-bar-fill" id="scCurrBar" style="width: 0%; background: var(--warning);"></div></div>
+</div>
+</div>
+<div class="section-bar-title"><i class="fa-solid fa-award"></i> कुल संचित विवरण (Overall Cumulative)</div>
+<div class="stats-tri-grid">
+<div class="metric-card" style="background: #f0fdf4; border-color:#bbf7d0;">
+<div class="title" style="color: #166534;">कुल संचित उपस्थिति</div>
+<div class="value" id="scTotalP" style="color: #16a34a;">0</div>
+<div class="sub">प्रवेश से आज तक कार्यदिवस: <strong id="scTotalW">0</strong> दिन</div>
+</div>
+<div class="metric-card" style="background: #fef2f2; border-color: #fecaca;">
+<div class="title" style="color: #991b1b;">कुल संचित अनुपस्थिति</div>
+<div class="value" id="scTotalA" style="color: #dc2626;">0</div>
+<div class="sub">कुल अनुपस्थित दिन</div>
+</div>
+<div class="metric-card" style="background: #eff6ff; border-color: #bfdbfe;">
+<div class="title" style="color: #1e40af;">कुल संचित प्रतिशत (Overall %)</div>
+<div class="value" id="scTotalPct" style="color: var(--primary);">0%</div>
+<div class="progress-track"><div class="progress-bar-fill" id="scTotalBar" style="width: 0%; background: var(--primary);"></div></div>
+</div>
+</div>
+<div style="background: #f8fafc; padding: 12px 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color); margin-top: 8px;">
+<p style="font-size: 0.92rem;"><strong>परीक्षा पात्रता स्थिति:</strong> <span id="scStatusRemarks">गणना जारी...</span></p>
+</div>
+<div class="section-bar-title" style="margin-top: 22px;"><i class="fa-solid fa-list-check"></i> दैनिक उपस्थिति सत्र लॉग</div>
+<div class="table-shell" style="max-height: 240px;">
+<table>
+<thead>
+<tr>
+<th>तारीख</th>
+<th>दिन</th>
+<th>सुबह (Morning)</th>
+<th>शाम (Evening)</th>
+<th>स्थिति</th>
+</tr>
+</thead>
+<tbody id="scDailyLogBody"></tbody>
+</table>
+</div>
+</div>
+<!-- 2. टेस्ट अंक सेक्शन -->
+<div class="hidden" id="studSecMarks">
+<div class="section-bar-title"><i class="fa-solid fa-pen-nib"></i> मासिक टेस्ट विषयवार प्राप्तांक एवं पूर्णांक</div>
+<div class="stats-tri-grid" id="scMarksCardsContainer"></div>
+</div>
+<!-- 3. रिकॉर्ड व डायरी सेक्शन -->
+<div class="hidden" id="studSecRecords">
+<div class="section-bar-title"><i class="fa-solid fa-clipboard-check"></i> प्रैक्टिकल रिकॉर्ड, नोटबुक व दैनिक डायरी स्थिति</div>
+<div class="stats-tri-grid">
+<div class="metric-card">
+<div class="title">प्रैक्टिकल रिकॉर्ड / नोटबुक</div>
+<div class="value" id="scRecordStatus" style="font-size:1.3rem; color:#2563eb;">-</div>
+<div class="sub">रिमार्क: <strong id="scRecordRemark">-</strong></div>
+</div>
+<div class="metric-card">
+<div class="title">दैनिक डायरी निरीक्षण</div>
+<div class="value" id="scDiaryStatus" style="font-size:1.3rem; color:#059669;">-</div>
+<div class="sub">रिमार्क: <strong id="scDiaryRemark">-</strong></div>
+</div>
+<div class="metric-card">
+<div class="title">अनुशासन व वर्कशॉप आचरण</div>
+<div class="value" id="scDiscipline" style="font-size:1.3rem; color:#7c3aed;">-</div>
+<div class="sub">गतिविधि भागीदारी: <strong id="scActivity">-</strong></div>
+</div>
+</div>
+</div>
+<!-- 4. छात्र के स्वयं का समग्र वार्षिक प्रोग्रेस कार्ड -->
+<div class="hidden" id="studSecAnnualCard">
+<div class="printableProgressCard" id="studentOwnReportCardContainer"></div>
+</div>
+</div>
+</section>
+</main>
+<!-- ==================== MODALS ==================== -->
+<!-- Modal: कॉलेज प्रबंधन (College Manager Modal) -->
+<div class="modal-backdrop hidden" id="collegeManagerModal">
+<div class="modal-content" style="max-width: 650px;">
+<h3 style="color: var(--primary); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+<i class="fa-solid fa-school"></i> संस्थान / कॉलेज प्रबंधन (Multi-College Setup)
             </h3>
-            <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 14px;">
+<p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 14px;">
                 सुपर एडमिन यहाँ से नए कॉलेज जोड़ सकता है या मौजूदा कॉलेजों की सूची प्रबंधित कर सकता है।
             </p>
-            <form onsubmit="handleSaveNewCollege(event)" style="background:#f8fafc; padding:12px; border-radius:8px; border:1px solid var(--border-color); margin-bottom:14px;">
-                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px;">
-                    <div class="input-group" style="margin-bottom:0;">
-                        <label>कॉलेज कोड / आईडी (उदा. COL01):</label>
-                        <input type="text" id="newCollegeId" required placeholder="COL01" autocomplete="off">
-                    </div>
-                    <div class="input-group" style="margin-bottom:0;">
-                        <label>कॉलेज का पूरा नाम:</label>
-                        <input type="text" id="newCollegeName" required placeholder="राजकीय आईटीआई, कोटड़ी" autocomplete="off">
-                    </div>
-                </div>
-                <button type="submit" class="app-btn app-btn-primary"><i class="fa-solid fa-plus"></i> नया कॉलेज जोड़ें</button>
-            </form>
-
-            <h4 style="font-size:0.9rem; color:var(--primary); margin-bottom:8px;">वर्तमान पंजीकृत कॉलेज:</h4>
-            <div class="table-shell" style="max-height: 220px;">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>आईडी</th>
-                            <th>कॉलेज का नाम</th>
-                            <th>कार्रवाई</th>
-                        </tr>
-                    </thead>
-                    <tbody id="collegeListTableBody"></tbody>
-                </table>
-            </div>
-
-            <div style="margin-top: 14px; text-align: right;">
-                <button type="button" class="app-btn app-btn-secondary" onclick="closeModal('collegeManagerModal')">बंद करें</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal 1: EDIT INSTRUCTOR MODAL -->
-    <div id="editInstructorModal" class="modal-backdrop hidden">
-        <div class="modal-content">
-            <h3 style="color: var(--primary); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-                <i class="fa-solid fa-user-pen"></i> अनुदेशक विवरण व पासवर्ड संशोधित करें
+<form onsubmit="handleSaveNewCollege(event)" style="background:#f8fafc; padding:12px; border-radius:8px; border:1px solid var(--border-color); margin-bottom:14px;">
+<div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px;">
+<div class="input-group" style="margin-bottom:0;">
+<label>कॉलेज कोड / आईडी (उदा. COL01):</label>
+<input autocomplete="off" id="newCollegeId" placeholder="COL01" required="" type="text"/>
+</div>
+<div class="input-group" style="margin-bottom:0;">
+<label>कॉलेज का पूरा नाम:</label>
+<input autocomplete="off" id="newCollegeName" placeholder="राजकीय आईटीआई, कोटड़ी" required="" type="text"/>
+</div>
+</div>
+<button class="app-btn app-btn-primary" type="submit"><i class="fa-solid fa-plus"></i> नया कॉलेज जोड़ें</button>
+</form>
+<h4 style="font-size:0.9rem; color:var(--primary); margin-bottom:8px;">वर्तमान पंजीकृत कॉलेज:</h4>
+<div class="table-shell" style="max-height: 220px;">
+<table>
+<thead>
+<tr>
+<th>आईडी</th>
+<th>कॉलेज का नाम</th>
+<th>कार्रवाई</th>
+</tr>
+</thead>
+<tbody id="collegeListTableBody"></tbody>
+</table>
+</div>
+<div style="margin-top: 14px; text-align: right;">
+<button class="app-btn app-btn-secondary" onclick="closeModal('collegeManagerModal')" type="button">बंद करें</button>
+</div>
+</div>
+</div>
+<!-- Modal 1: EDIT INSTRUCTOR MODAL -->
+<div class="modal-backdrop hidden" id="editInstructorModal">
+<div class="modal-content">
+<h3 style="color: var(--primary); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+<i class="fa-solid fa-user-pen"></i> अनुदेशक विवरण व पासवर्ड संशोधित करें
             </h3>
-            <form onsubmit="handleSaveEditedInstructor(event)" autocomplete="off">
-                <input type="hidden" id="editInstOriginalIndex">
-                <div class="input-group">
-                    <label>संस्थान / कॉलेज:</label>
-                    <select id="editInstCollege" required></select>
-                </div>
-                <div class="input-group">
-                    <label>संबंधित ट्रेड:</label>
-                    <select id="editInstTrade" required></select>
-                </div>
-                <div class="input-group">
-                    <label>अनुदेशक का नाम:</label>
-                    <input type="text" id="editInstName" required autocomplete="off">
-                </div>
-                <div class="input-group">
-                    <label>लॉगिन आईडी:</label>
-                    <input type="text" id="editInstId" required autocomplete="off">
-                </div>
-                <div class="input-group">
-                    <label>पासवर्ड:</label>
-                    <div style="display: flex; gap: 8px;">
-                        <input type="text" id="editInstPass" required autocomplete="new-password">
-                        <button type="button" class="app-btn app-btn-secondary" onclick="generateRandomPass('editInstPass')">रैंडम</button>
-                    </div>
-                </div>
-                <div style="display: flex; gap: 10px; margin-top: 14px;">
-                    <button type="submit" class="app-btn app-btn-primary" style="flex: 1;"><i class="fa-solid fa-check"></i> अपडेट करें</button>
-                    <button type="button" class="app-btn app-btn-secondary" onclick="closeModal('editInstructorModal')">रद्द करें</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Modal 2: RESET PASSWORD PROMPT MODAL -->
-    <div id="resetPassModal" class="modal-backdrop hidden">
-        <div class="modal-content">
-            <h3 style="color: var(--admin); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-                <i class="fa-solid fa-key"></i> नया पासवर्ड रीसेट करें
+<form autocomplete="off" onsubmit="handleSaveEditedInstructor(event)">
+<input id="editInstOriginalIndex" type="hidden"/>
+<div class="input-group">
+<label>संस्थान / कॉलेज:</label>
+<select id="editInstCollege" required=""></select>
+</div>
+<div class="input-group">
+<label>संबंधित ट्रेड:</label>
+<select id="editInstTrade" required=""></select>
+</div>
+<div class="input-group">
+<label>अनुदेशक का नाम:</label>
+<input autocomplete="off" id="editInstName" required="" type="text"/>
+</div>
+<div class="input-group">
+<label>लॉगिन आईडी:</label>
+<input autocomplete="off" id="editInstId" required="" type="text"/>
+</div>
+<div class="input-group">
+<label>पासवर्ड:</label>
+<div style="display: flex; gap: 8px;">
+<input autocomplete="new-password" id="editInstPass" required="" type="text"/>
+<button class="app-btn app-btn-secondary" onclick="generateRandomPass('editInstPass')" type="button">रैंडम</button>
+</div>
+</div>
+<div style="display: flex; gap: 10px; margin-top: 14px;">
+<button class="app-btn app-btn-primary" style="flex: 1;" type="submit"><i class="fa-solid fa-check"></i> अपडेट करें</button>
+<button class="app-btn app-btn-secondary" onclick="closeModal('editInstructorModal')" type="button">रद्द करें</button>
+</div>
+</form>
+</div>
+</div>
+<!-- Modal 2: RESET PASSWORD PROMPT MODAL -->
+<div class="modal-backdrop hidden" id="resetPassModal">
+<div class="modal-content">
+<h3 style="color: var(--admin); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+<i class="fa-solid fa-key"></i> नया पासवर्ड रीसेट करें
             </h3>
-            <p id="resetPassTargetLabel" style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;"></p>
-            <form onsubmit="handleExecutePasswordReset(event)">
-                <input type="hidden" id="resetPassTargetIndex">
-                <div class="input-group">
-                    <label>नया सुरक्षित पासवर्ड दर्ज करें:</label>
-                    <div style="display: flex; gap: 8px;">
-                        <input type="text" id="newResetPasswordInput" required autocomplete="new-password">
-                        <button type="button" class="app-btn app-btn-secondary" onclick="generateRandomPass('newResetPasswordInput')">ऑटो</button>
-                    </div>
-                </div>
-                <div style="display: flex; gap: 10px; margin-top: 14px;">
-                    <button type="submit" class="app-btn app-btn-primary" style="flex: 1;"><i class="fa-solid fa-check"></i> पासवर्ड बदलें</button>
-                    <button type="button" class="app-btn app-btn-secondary" onclick="closeModal('resetPassModal')">रद्द करें</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Modal 3: BACKUP & RESTORE MODAL -->
-    <div id="backupRestoreModal" class="modal-backdrop hidden">
-        <div class="modal-content" style="max-width: 620px;">
-            <h3 style="color: var(--primary); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-                <i class="fa-solid fa-database"></i> डेटाबेस बैकअप एवं रीस्टोर केंद्र
+<p id="resetPassTargetLabel" style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;"></p>
+<form onsubmit="handleExecutePasswordReset(event)">
+<input id="resetPassTargetIndex" type="hidden"/>
+<div class="input-group">
+<label>नया सुरक्षित पासवर्ड दर्ज करें:</label>
+<div style="display: flex; gap: 8px;">
+<input autocomplete="new-password" id="newResetPasswordInput" required="" type="text"/>
+<button class="app-btn app-btn-secondary" onclick="generateRandomPass('newResetPasswordInput')" type="button">ऑटो</button>
+</div>
+</div>
+<div style="display: flex; gap: 10px; margin-top: 14px;">
+<button class="app-btn app-btn-primary" style="flex: 1;" type="submit"><i class="fa-solid fa-check"></i> पासवर्ड बदलें</button>
+<button class="app-btn app-btn-secondary" onclick="closeModal('resetPassModal')" type="button">रद्द करें</button>
+</div>
+</form>
+</div>
+</div>
+<!-- Modal 3: BACKUP & RESTORE MODAL -->
+<div class="modal-backdrop hidden" id="backupRestoreModal">
+<div class="modal-content" style="max-width: 620px;">
+<h3 style="color: var(--primary); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+<i class="fa-solid fa-database"></i> डेटाबेस बैकअप एवं रीस्टोर केंद्र
             </h3>
-            <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 16px;">
+<p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 16px;">
                 आपातकालीन स्थिति में पूरा डेटा सुरक्षित करने हेतु बैकअप डाउनलोड करें या पूर्व बैकअप फ़ाइल से रीस्टोर करें।
             </p>
-
-            <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 14px; margin-bottom: 16px;">
-                <h4 style="font-size: 0.9rem; margin-bottom: 8px; color: #1e3a8a;"><i class="fa-solid fa-download"></i> 1. लोकल बैकअप डाउनलोड करें</h4>
-                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                    <button class="app-btn app-btn-primary" onclick="downloadDatabaseAsJSON()"><i class="fa-solid fa-file-code"></i> JSON बैकअप (.json)</button>
-                    <button class="app-btn app-btn-secondary" onclick="downloadDatabaseAsSQL()"><i class="fa-solid fa-file-lines"></i> SQL स्क्रिप्ट (.sql)</button>
-                    <button class="app-btn app-btn-excel" onclick="downloadAllStudentsExcelBackup()"><i class="fa-solid fa-file-excel"></i> समस्त छात्र डेटा (.xlsx)</button>
-                </div>
-            </div>
-
-            <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: var(--radius-md); padding: 14px;">
-                <h4 style="font-size: 0.9rem; margin-bottom: 8px; color: #991b1b;"><i class="fa-solid fa-upload"></i> 2. JSON फ़ाइल से डेटाबेस रीस्टोर करें</h4>
-                <p style="font-size: 0.78rem; color: #b91c1c; margin-bottom: 10px;">
+<div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 14px; margin-bottom: 16px;">
+<h4 style="font-size: 0.9rem; margin-bottom: 8px; color: #1e3a8a;"><i class="fa-solid fa-download"></i> 1. लोकल बैकअप डाउनलोड करें</h4>
+<div style="display: flex; gap: 8px; flex-wrap: wrap;">
+<button class="app-btn app-btn-primary" onclick="downloadDatabaseAsJSON()"><i class="fa-solid fa-file-code"></i> JSON बैकअप (.json)</button>
+<button class="app-btn app-btn-secondary" onclick="downloadDatabaseAsSQL()"><i class="fa-solid fa-file-lines"></i> SQL स्क्रिप्ट (.sql)</button>
+<button class="app-btn app-btn-excel" onclick="downloadAllStudentsExcelBackup()"><i class="fa-solid fa-file-excel"></i> समस्त छात्र डेटा (.xlsx)</button>
+</div>
+</div>
+<div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: var(--radius-md); padding: 14px;">
+<h4 style="font-size: 0.9rem; margin-bottom: 8px; color: #991b1b;"><i class="fa-solid fa-upload"></i> 2. JSON फ़ाइल से डेटाबेस रीस्टोर करें</h4>
+<p style="font-size: 0.78rem; color: #b91c1c; margin-bottom: 10px;">
                     चेतावनी: रीस्टोर करने पर वर्तमान लोकल व क्लाउड डेटा अधिलेखित (Overwrite) हो जाएगा।
                 </p>
-                <input type="file" id="restoreJsonFileInput" accept=".json" style="margin-bottom: 10px; font-size: 0.85rem;">
-                <div>
-                    <button type="button" class="app-btn app-btn-danger" onclick="executeDatabaseRestore()"><i class="fa-solid fa-rotate-left"></i> रीस्टोर शुरू करें</button>
-                </div>
-            </div>
-
-            <div style="margin-top: 14px; text-align: right;">
-                <button type="button" class="app-btn app-btn-secondary" onclick="closeModal('backupRestoreModal')">बंद करें</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal 4: BULK CSV UPLOAD & PROMOTION MODAL -->
-    <div id="bulkStudentModal" class="modal-backdrop hidden">
-        <div class="modal-content" style="max-width: 680px;">
-            <h3 style="color: var(--primary); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-                <i class="fa-solid fa-users-gear"></i> केंद्रीय छात्र प्रबंधन: प्रमोट, आर्काइव व बल्क CSV
+<input accept=".json" id="restoreJsonFileInput" style="margin-bottom: 10px; font-size: 0.85rem;" type="file"/>
+<div>
+<button class="app-btn app-btn-danger" onclick="executeDatabaseRestore()" type="button"><i class="fa-solid fa-rotate-left"></i> रीस्टोर शुरू करें</button>
+</div>
+</div>
+<div style="margin-top: 14px; text-align: right;">
+<button class="app-btn app-btn-secondary" onclick="closeModal('backupRestoreModal')" type="button">बंद करें</button>
+</div>
+</div>
+</div>
+<!-- Modal 4: BULK CSV UPLOAD & PROMOTION MODAL -->
+<div class="modal-backdrop hidden" id="bulkStudentModal">
+<div class="modal-content" style="max-width: 680px;">
+<h3 style="color: var(--primary); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+<i class="fa-solid fa-users-gear"></i> केंद्रीय छात्र प्रबंधन: प्रमोट, आर्काइव व बल्क CSV
             </h3>
-
-            <!-- सेक्शन A: बल्क CSV अपलोड -->
-            <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 14px; margin-bottom: 16px;">
-                <h4 style="font-size: 0.9rem; margin-bottom: 8px; color: #1e3a8a;"><i class="fa-solid fa-file-csv"></i> 1. कॉलेज एवं ट्रेड-वाइज छात्र डेटा बल्क CSV से जोड़ें</h4>
-                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 10px;">
-                    <div class="input-group" style="margin-bottom: 0;">
-                        <label>कॉलेज चुनें:</label>
-                        <select id="bulkUploadCollegeSelect"></select>
-                    </div>
-                    <div class="input-group" style="margin-bottom: 0;">
-                        <label>ट्रेड चुनें:</label>
-                        <select id="bulkUploadTradeSelect"></select>
-                    </div>
-                    <div class="input-group" style="margin-bottom: 0;">
-                        <label>डिफ़ॉल्ट प्रवेश तिथि:</label>
-                        <input type="date" id="bulkDefaultAdmissionDate">
-                    </div>
-                </div>
-                <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 8px;">
+<!-- सेक्शन A: बल्क CSV अपलोड -->
+<div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 14px; margin-bottom: 16px;">
+<h4 style="font-size: 0.9rem; margin-bottom: 8px; color: #1e3a8a;"><i class="fa-solid fa-file-csv"></i> 1. कॉलेज एवं ट्रेड-वाइज छात्र डेटा बल्क CSV से जोड़ें</h4>
+<div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+<div class="input-group" style="margin-bottom: 0;">
+<label>कॉलेज चुनें:</label>
+<select id="bulkUploadCollegeSelect"></select>
+</div>
+<div class="input-group" style="margin-bottom: 0;">
+<label>ट्रेड चुनें:</label>
+<select id="bulkUploadTradeSelect"></select>
+</div>
+<div class="input-group" style="margin-bottom: 0;">
+<label>डिफ़ॉल्ट प्रवेश तिथि:</label>
+<input id="bulkDefaultAdmissionDate" type="date"/>
+</div>
+</div>
+<p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 8px;">
                     CSV फ़ॉर्मेट: <code>रोल, छात्र का नाम, स्टूडेंट आईडी, पासवर्ड</code> (हेडर सहित या रहित)
                 </p>
-                <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-                    <input type="file" id="bulkCsvFileInput" accept=".csv, .txt">
-                    <button class="app-btn app-btn-primary" onclick="processBulkStudentCSV()"><i class="fa-solid fa-upload"></i> CSV इम्पोर्ट करें</button>
-                    <button class="app-btn app-btn-secondary" onclick="downloadSampleCSVTemplate()"><i class="fa-solid fa-download"></i> सैम्पल CSV</button>
-                </div>
-            </div>
-
-            <!-- सेक्शन B: छात्र प्रमोशन व आर्काइव -->
-            <div style="background: #fffbeb; border: 1px solid #fef3c7; border-radius: var(--radius-md); padding: 14px;">
-                <h4 style="font-size: 0.9rem; margin-bottom: 8px; color: #92400e;"><i class="fa-solid fa-box-archive"></i> 2. सत्र समाप्ति पर छात्र आर्काइव / प्रमोट</h4>
-                <p style="font-size: 0.78rem; color: #78350f; margin-bottom: 10px;">
+<div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+<input accept=".csv, .txt" id="bulkCsvFileInput" type="file"/>
+<button class="app-btn app-btn-primary" onclick="processBulkStudentCSV()"><i class="fa-solid fa-upload"></i> CSV इम्पोर्ट करें</button>
+<button class="app-btn app-btn-secondary" onclick="downloadSampleCSVTemplate()"><i class="fa-solid fa-download"></i> सैम्पल CSV</button>
+</div>
+</div>
+<!-- सेक्शन B: छात्र प्रमोशन व आर्काइव -->
+<div style="background: #fffbeb; border: 1px solid #fef3c7; border-radius: var(--radius-md); padding: 14px;">
+<h4 style="font-size: 0.9rem; margin-bottom: 8px; color: #92400e;"><i class="fa-solid fa-box-archive"></i> 2. सत्र समाप्ति पर छात्र आर्काइव / प्रमोट</h4>
+<p style="font-size: 0.78rem; color: #78350f; margin-bottom: 10px;">
                     सत्र बदलने पर पुराने छात्रों को सुरक्षित रूप से आर्काइव (Archive) कर सकते हैं ताकि नए बैच के लिए रोल 1 से डेटा दर्ज हो सके।
                 </p>
-                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                    <button class="app-btn app-btn-warning" onclick="archiveCurrentSessionStudents()"><i class="fa-solid fa-archive"></i> चयनित सत्र के छात्र आर्काइव करें</button>
-                    <button class="app-btn app-btn-secondary" onclick="viewArchivedStudentsCount()"><i class="fa-solid fa-list-check"></i> आर्काइव स्थिति देखें</button>
-                </div>
-            </div>
-
-            <div style="margin-top: 14px; text-align: right;">
-                <button type="button" class="app-btn app-btn-secondary" onclick="closeModal('bulkStudentModal')">बंद करें</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal 5: FREEZE & LOCK CONTROL MODAL -->
-    <div id="freezeLockModal" class="modal-backdrop hidden">
-        <div class="modal-content" style="max-width: 600px;">
-            <h3 style="color: var(--admin); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-                <i class="fa-solid fa-lock"></i> अटेंडेंस एवं टेस्ट अंक फ़्रीज़ / लॉक नियंत्रण
+<div style="display: flex; gap: 8px; flex-wrap: wrap;">
+<button class="app-btn app-btn-warning" onclick="archiveCurrentSessionStudents()"><i class="fa-solid fa-archive"></i> चयनित सत्र के छात्र आर्काइव करें</button>
+<button class="app-btn app-btn-secondary" onclick="viewArchivedStudentsCount()"><i class="fa-solid fa-list-check"></i> आर्काइव स्थिति देखें</button>
+</div>
+</div>
+<div style="margin-top: 14px; text-align: right;">
+<button class="app-btn app-btn-secondary" onclick="closeModal('bulkStudentModal')" type="button">बंद करें</button>
+</div>
+</div>
+</div>
+<!-- Modal 5: FREEZE & LOCK CONTROL MODAL -->
+<div class="modal-backdrop hidden" id="freezeLockModal">
+<div class="modal-content" style="max-width: 600px;">
+<h3 style="color: var(--admin); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+<i class="fa-solid fa-lock"></i> अटेंडेंस एवं टेस्ट अंक फ़्रीज़ / लॉक नियंत्रण
             </h3>
-            
-            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 14px;">
-                <div class="input-group" style="margin-bottom: 0;">
-                    <label>कॉलेज चुनें:</label>
-                    <select id="lockCollegeSelect"></select>
-                </div>
-                <div class="input-group" style="margin-bottom: 0;">
-                    <label>ट्रेड चुनें:</label>
-                    <select id="lockTradeSelect"></select>
-                </div>
-                <div class="input-group" style="margin-bottom: 0;">
-                    <label>माह चुनें:</label>
-                    <input type="month" id="lockMonthSelect">
-                </div>
-            </div>
-
-            <div style="display: flex; gap: 10px; margin-bottom: 16px;">
-                <button class="app-btn app-btn-danger" style="flex: 1;" onclick="setFreezeStatus(true)">
-                    <i class="fa-solid fa-lock"></i> इस माह का डेटा LOCK करें
+<div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 14px;">
+<div class="input-group" style="margin-bottom: 0;">
+<label>कॉलेज चुनें:</label>
+<select id="lockCollegeSelect"></select>
+</div>
+<div class="input-group" style="margin-bottom: 0;">
+<label>ट्रेड चुनें:</label>
+<select id="lockTradeSelect"></select>
+</div>
+<div class="input-group" style="margin-bottom: 0;">
+<label>माह चुनें:</label>
+<input id="lockMonthSelect" type="month"/>
+</div>
+</div>
+<div style="display: flex; gap: 10px; margin-bottom: 16px;">
+<button class="app-btn app-btn-danger" onclick="setFreezeStatus(true)" style="flex: 1;">
+<i class="fa-solid fa-lock"></i> इस माह का डेटा LOCK करें
                 </button>
-                <button class="app-btn app-btn-success" style="flex: 1;" onclick="setFreezeStatus(false)">
-                    <i class="fa-solid fa-lock-open"></i> UNLOCK करें
+<button class="app-btn app-btn-success" onclick="setFreezeStatus(false)" style="flex: 1;">
+<i class="fa-solid fa-lock-open"></i> UNLOCK करें
                 </button>
-            </div>
-
-            <h4 style="font-size: 0.85rem; color: #1e3a8a; margin-bottom: 8px;">वर्तमान लॉक स्थिति तालिका:</h4>
-            <div class="table-shell" style="max-height: 200px;">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>कॉलेज</th>
-                            <th>ट्रेड</th>
-                            <th>माह</th>
-                            <th>स्थिति</th>
-                            <th>कार्रवाई</th>
-                        </tr>
-                    </thead>
-                    <tbody id="lockStatusTableBody"></tbody>
-                </table>
-            </div>
-
-            <div style="margin-top: 14px; text-align: right;">
-                <button type="button" class="app-btn app-btn-secondary" onclick="closeModal('freezeLockModal')">बंद करें</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal 6: INSTITUTE MASTER PROFILE SETTINGS MODAL -->
-    <div id="instituteSettingsModal" class="modal-backdrop hidden">
-        <div class="modal-content" style="max-width: 650px;">
-            <h3 style="color: var(--primary); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-                <i class="fa-solid fa-building-columns"></i> संस्थान प्रोफ़ाइल एवं मास्टर सेटिंग्स
+</div>
+<h4 style="font-size: 0.85rem; color: #1e3a8a; margin-bottom: 8px;">वर्तमान लॉक स्थिति तालिका:</h4>
+<div class="table-shell" style="max-height: 200px;">
+<table>
+<thead>
+<tr>
+<th>कॉलेज</th>
+<th>ट्रेड</th>
+<th>माह</th>
+<th>स्थिति</th>
+<th>कार्रवाई</th>
+</tr>
+</thead>
+<tbody id="lockStatusTableBody"></tbody>
+</table>
+</div>
+<div style="margin-top: 14px; text-align: right;">
+<button class="app-btn app-btn-secondary" onclick="closeModal('freezeLockModal')" type="button">बंद करें</button>
+</div>
+</div>
+</div>
+<!-- Modal 6: INSTITUTE MASTER PROFILE SETTINGS MODAL -->
+<div class="modal-backdrop hidden" id="instituteSettingsModal">
+<div class="modal-content" style="max-width: 650px;">
+<h3 style="color: var(--primary); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+<i class="fa-solid fa-building-columns"></i> संस्थान प्रोफ़ाइल एवं मास्टर सेटिंग्स
             </h3>
-            <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 14px;">
+<p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 14px;">
                 यह विवरण पोर्टल के मुख्य हेडर, फुटर तथा छात्रों के प्रिंट होने वाले वार्षिक प्रोग्रेस रिपोर्ट कार्ड पर अधीक्षक के डिजिटल हस्ताक्षर सहित प्रदर्शित होगा।
             </p>
-            <form onsubmit="handleSaveInstituteSettings(event)">
-                <div class="input-group">
-                    <label>संस्थान का पूरा नाम:</label>
-                    <input type="text" id="setInstName" required>
-                </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                    <div class="input-group">
-                        <label>संस्थान कोड (MIS / DGT Code):</label>
-                        <input type="text" id="setInstCode" placeholder="उदा. PR08000123">
-                    </div>
-                    <div class="input-group">
-                        <label>जिला व राज्य:</label>
-                        <input type="text" id="setInstLocation" placeholder="उदा. भीलवाड़ा (राजस्थान)">
-                    </div>
-                </div>
-                <div class="input-group">
-                    <label>संस्थान लोगो (Logo Image URL):</label>
-                    <input type="url" id="setInstLogo" placeholder="https://example.com/logo.png (खाली छोड़ने पर डिफ़ॉल्ट आइकन रहेगा)">
-                </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                    <div class="input-group">
-                        <label>अधीक्षक / प्राचार्य का नाम:</label>
-                        <input type="text" id="setSuperintendentName" placeholder="उदा. श्री आर. के. शर्मा">
-                    </div>
-                    <div class="input-group">
-                        <label>पदनाम (Designation):</label>
-                        <input type="text" id="setSuperintendentTitle" placeholder="उदा. अधीक्षक / उपनिदेशक">
-                    </div>
-                </div>
-                <div class="input-group">
-                    <label>डिजिटल हस्ताक्षर छवि URL (वैकल्पिक):</label>
-                    <input type="url" id="setSuperintendentSignUrl" placeholder="https://example.com/signature.png">
-                </div>
-                <div style="display: flex; gap: 10px; margin-top: 14px;">
-                    <button type="submit" class="app-btn app-btn-primary" style="flex: 1;"><i class="fa-solid fa-check"></i> सेटिंग्स सुरक्षित करें</button>
-                    <button type="button" class="app-btn app-btn-secondary" onclick="closeModal('instituteSettingsModal')">रद्द करें</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Modal 0: Session Start & End Settings Modal -->
-    <div id="sessionConfigModal" class="modal-backdrop hidden">
-        <div class="modal-content">
-            <h3 style="color: var(--primary); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-                <i class="fa-solid fa-calendar-days"></i> प्रशिक्षण सत्र निर्धारण (Session Dates)
+<form onsubmit="handleSaveInstituteSettings(event)">
+<div class="input-group">
+<label>संस्थान का पूरा नाम:</label>
+<input id="setInstName" required="" type="text"/>
+</div>
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+<div class="input-group">
+<label>संस्थान कोड (MIS / DGT Code):</label>
+<input id="setInstCode" placeholder="उदा. PR08000123" type="text"/>
+</div>
+<div class="input-group">
+<label>जिला व राज्य:</label>
+<input id="setInstLocation" placeholder="उदा. भीलवाड़ा (राजस्थान)" type="text"/>
+</div>
+</div>
+<div class="input-group">
+<label>संस्थान लोगो (Logo Image URL):</label>
+<input id="setInstLogo" placeholder="https://example.com/logo.png (खाली छोड़ने पर डिफ़ॉल्ट आइकन रहेगा)" type="url"/>
+</div>
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+<div class="input-group">
+<label>अधीक्षक / प्राचार्य का नाम:</label>
+<input id="setSuperintendentName" placeholder="उदा. श्री आर. के. शर्मा" type="text"/>
+</div>
+<div class="input-group">
+<label>पदनाम (Designation):</label>
+<input id="setSuperintendentTitle" placeholder="उदा. अधीक्षक / उपनिदेशक" type="text"/>
+</div>
+</div>
+<div class="input-group">
+<label>डिजिटल हस्ताक्षर छवि URL (वैकल्पिक):</label>
+<input id="setSuperintendentSignUrl" placeholder="https://example.com/signature.png" type="url"/>
+</div>
+<div style="display: flex; gap: 10px; margin-top: 14px;">
+<button class="app-btn app-btn-primary" style="flex: 1;" type="submit"><i class="fa-solid fa-check"></i> सेटिंग्स सुरक्षित करें</button>
+<button class="app-btn app-btn-secondary" onclick="closeModal('instituteSettingsModal')" type="button">रद्द करें</button>
+</div>
+</form>
+</div>
+</div>
+<!-- Modal 0: Session Start & End Settings Modal -->
+<div class="modal-backdrop hidden" id="sessionConfigModal">
+<div class="modal-content">
+<h3 style="color: var(--primary); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+<i class="fa-solid fa-calendar-days"></i> प्रशिक्षण सत्र निर्धारण (Session Dates)
             </h3>
-            <form onsubmit="handleSaveSessionDates(event)">
-                <div class="input-group">
-                    <label>सत्र प्रारंभ तिथि (Session Start Date):</label>
-                    <input type="date" id="sessionStartDateInput" required>
-                </div>
-                <div class="input-group">
-                    <label>सत्र समाप्ति तिथि (Session End Date):</label>
-                    <input type="date" id="sessionEndDateInput" required>
-                </div>
-                <div style="display: flex; gap: 10px; margin-top: 14px;">
-                    <button type="submit" class="app-btn app-btn-primary" style="flex: 1;"><i class="fa-solid fa-check"></i> सुरक्षित करें</button>
-                    <button type="button" class="app-btn app-btn-secondary" onclick="closeModal('sessionConfigModal')">रद्द करें</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Modal A: Admin Annual Excel Export Modal -->
-    <div id="adminAnnualExcelModal" class="modal-backdrop hidden">
-        <div class="modal-content">
-            <h3 style="color: var(--admin); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-                <i class="fa-solid fa-file-excel" style="color: #166534;"></i> वार्षिक ट्रेड-वाइज़ परफॉर्मेंस रिपोर्ट (Excel)
+<form onsubmit="handleSaveSessionDates(event)">
+<div class="input-group">
+<label>सत्र प्रारंभ तिथि (Session Start Date):</label>
+<input id="sessionStartDateInput" required="" type="date"/>
+</div>
+<div class="input-group">
+<label>सत्र समाप्ति तिथि (Session End Date):</label>
+<input id="sessionEndDateInput" required="" type="date"/>
+</div>
+<div style="display: flex; gap: 10px; margin-top: 14px;">
+<button class="app-btn app-btn-primary" style="flex: 1;" type="submit"><i class="fa-solid fa-check"></i> सुरक्षित करें</button>
+<button class="app-btn app-btn-secondary" onclick="closeModal('sessionConfigModal')" type="button">रद्द करें</button>
+</div>
+</form>
+</div>
+</div>
+<!-- Modal A: Admin Annual Excel Export Modal -->
+<div class="modal-backdrop hidden" id="adminAnnualExcelModal">
+<div class="modal-content">
+<h3 style="color: var(--admin); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+<i class="fa-solid fa-file-excel" style="color: #166534;"></i> वार्षिक ट्रेड-वाइज़ परफॉर्मेंस रिपोर्ट (Excel)
             </h3>
-            <div class="input-group">
-                <label>कॉलेज चुनें:</label>
-                <select id="annualExportCollegeSelect" onchange="populateTradeDropdowns()"></select>
-            </div>
-            <div class="input-group">
-                <label>ट्रेड चुनें:</label>
-                <select id="annualExportTradeSelect"></select>
-            </div>
-            <div style="display: flex; gap: 10px; margin-top: 14px;">
-                <button type="button" class="app-btn app-btn-excel" style="flex: 1;" onclick="executeTradeAnnualExcelExport()">
-                    <i class="fa-solid fa-download"></i> एक्सेल डाउनलोड करें
+<div class="input-group">
+<label>कॉलेज चुनें:</label>
+<select id="annualExportCollegeSelect" onchange="populateTradeDropdowns()"></select>
+</div>
+<div class="input-group">
+<label>ट्रेड चुनें:</label>
+<select id="annualExportTradeSelect"></select>
+</div>
+<div style="display: flex; gap: 10px; margin-top: 14px;">
+<button class="app-btn app-btn-excel" onclick="executeTradeAnnualExcelExport()" style="flex: 1;" type="button">
+<i class="fa-solid fa-download"></i> एक्सेल डाउनलोड करें
                 </button>
-                <button type="button" class="app-btn app-btn-secondary" onclick="closeModal('adminAnnualExcelModal')">रद्द करें</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal B: Annual Report Card Modal -->
-    <div id="adminAnnualReportModal" class="modal-backdrop hidden">
-        <div class="modal-content" style="max-width: 860px; max-height: 90vh; overflow-y: auto;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1.5px solid var(--border-color); padding-bottom: 8px;">
-                <h3 id="reportModalHeading" style="color: var(--admin); display: flex; align-items: center; gap: 8px; font-size: 1.15rem;">
-                    <i class="fa-solid fa-file-pdf" style="color: #be123c;"></i> वार्षिक छात्र प्रोग्रेस रिपोर्ट कार्ड
+<button class="app-btn app-btn-secondary" onclick="closeModal('adminAnnualExcelModal')" type="button">रद्द करें</button>
+</div>
+</div>
+</div>
+<!-- Modal B: Annual Report Card Modal -->
+<div class="modal-backdrop hidden" id="adminAnnualReportModal">
+<div class="modal-content" style="max-width: 860px; max-height: 90vh; overflow-y: auto;">
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1.5px solid var(--border-color); padding-bottom: 8px;">
+<h3 id="reportModalHeading" style="color: var(--admin); display: flex; align-items: center; gap: 8px; font-size: 1.15rem;">
+<i class="fa-solid fa-file-pdf" style="color: #be123c;"></i> वार्षिक छात्र प्रोग्रेस रिपोर्ट कार्ड
                 </h3>
-                <button class="app-btn app-btn-secondary" style="padding: 4px 10px;" onclick="closeModal('adminAnnualReportModal')">✕</button>
-            </div>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 10px; margin-bottom: 16px; align-items: flex-end;">
-                <div class="input-group" style="margin-bottom: 0;">
-                    <label>कॉलेज चुनें:</label>
-                    <select id="reportCardCollegeSelect" onchange="populateStudentSelectForReport()"></select>
-                </div>
-                <div class="input-group" style="margin-bottom: 0;">
-                    <label>ट्रेड चुनें:</label>
-                    <select id="reportCardTradeSelect" onchange="populateStudentSelectForReport()"></select>
-                </div>
-                <div class="input-group" style="margin-bottom: 0;">
-                    <label>छात्र चुनें:</label>
-                    <select id="reportCardStudentSelect"></select>
-                </div>
-                <button type="button" class="app-btn app-btn-primary" style="height: 42px;" onclick="generateAnnualReportPreview()">
-                    <i class="fa-solid fa-eye"></i> देखें
+<button class="app-btn app-btn-secondary" onclick="closeModal('adminAnnualReportModal')" style="padding: 4px 10px;">✕</button>
+</div>
+<div style="display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 10px; margin-bottom: 16px; align-items: flex-end;">
+<div class="input-group" style="margin-bottom: 0;">
+<label>कॉलेज चुनें:</label>
+<select id="reportCardCollegeSelect" onchange="populateStudentSelectForReport()"></select>
+</div>
+<div class="input-group" style="margin-bottom: 0;">
+<label>ट्रेड चुनें:</label>
+<select id="reportCardTradeSelect" onchange="populateStudentSelectForReport()"></select>
+</div>
+<div class="input-group" style="margin-bottom: 0;">
+<label>छात्र चुनें:</label>
+<select id="reportCardStudentSelect"></select>
+</div>
+<button class="app-btn app-btn-primary" onclick="generateAnnualReportPreview()" style="height: 42px;" type="button">
+<i class="fa-solid fa-eye"></i> देखें
                 </button>
-            </div>
-
-            <div id="reportCardPreviewWrapper" class="hidden">
-                <div style="text-align: right; margin-bottom: 10px;" id="adminPdfDownloadBtnContainer">
-                    <button type="button" class="app-btn app-btn-pdf" onclick="downloadReportCardAsPDF()">
-                        <i class="fa-solid fa-file-arrow-down"></i> A4 PDF डाउनलोड करें
+</div>
+<div class="hidden" id="reportCardPreviewWrapper">
+<div id="adminPdfDownloadBtnContainer" style="text-align: right; margin-bottom: 10px;">
+<button class="app-btn app-btn-pdf" onclick="downloadReportCardAsPDF()" type="button">
+<i class="fa-solid fa-file-arrow-down"></i> A4 PDF डाउनलोड करें
                     </button>
-                </div>
-                <div id="printableProgressCard" class="printableProgressCard"></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Superintendent Account Manager Modal -->
-    <div id="superintendentManagerModal" class="modal-backdrop hidden">
-        <div class="modal-content" style="max-width:760px;max-height:90vh;overflow-y:auto;">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-                <h3 style="color:var(--admin);"><i class="fa-solid fa-user-tie"></i> कॉलेज अधीक्षक अकाउंट प्रबंधन</h3>
-                <button type="button" class="app-btn app-btn-secondary" onclick="closeModal('superintendentManagerModal')">✕</button>
-            </div>
-            <div style="background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;padding:10px 12px;border-radius:8px;font-size:.82rem;margin-bottom:12px;">ध्यान दें: यह मौजूदा पोर्टल के पुराने लॉगिन ढाँचे के अनुरूप प्रारंभिक सुविधा है। अभी पासवर्ड Firebase डेटा में सुरक्षित Authentication के रूप में नहीं हैं। वास्तविक उपयोग से पहले Firebase Authentication और कॉलेज-आधारित Database Rules लागू करना आवश्यक है।</div>
-            <form onsubmit="saveSuperintendentAccount(event)">
-                <input type="hidden" id="supEditIndex" value="">
-                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;">
-                    <div class="input-group"><label>कॉलेज</label><select id="supAccountCollege" required></select></div>
-                    <div class="input-group"><label>अधीक्षक का नाम</label><input id="supAccountName" required placeholder="नाम दर्ज करें"></div>
-                    <div class="input-group"><label>लॉगिन आईडी</label><input id="supAccountId" required autocomplete="off" placeholder="उदा. kotri_sup"></div>
-                    <div class="input-group"><label>पासवर्ड</label><input id="supAccountPass" type="password" autocomplete="new-password" placeholder="नया पासवर्ड"></div>
-                </div>
-                <p style="font-size:.8rem;color:#64748b;margin:0 0 10px;">नया अकाउंट बनाते समय पासवर्ड आवश्यक है। एडिट करते समय पासवर्ड खाली छोड़ने पर पुराना पासवर्ड रहेगा।</p>
-                <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
-                    <button type="submit" class="app-btn app-btn-primary"><i class="fa-solid fa-floppy-disk"></i> अकाउंट सेव करें</button>
-                    <button type="button" class="app-btn app-btn-secondary" onclick="resetSuperintendentForm()">नया फॉर्म</button>
-                </div>
-            </form>
-            <div class="table-shell"><table><thead><tr><th>कॉलेज</th><th>अधीक्षक</th><th>लॉगिन आईडी</th><th>स्थिति</th><th>कार्रवाई</th></tr></thead><tbody id="superintendentAccountsBody"></tbody></table></div>
-        </div>
-    </div>
-
-    <!-- Superintendent Login Modal -->
-    <div id="superintendentLoginModal" class="modal-backdrop hidden">
-        <div class="modal-content">
-            <h3 style="color:var(--admin);margin-bottom:12px;"><i class="fa-solid fa-user-tie"></i> अधीक्षक लॉगिन</h3>
-            <form onsubmit="handleSuperintendentLogin(event)" autocomplete="off">
-                <div class="input-group"><label>अपना कॉलेज चुनें</label><select id="supLoginCollege" required></select></div>
-                <div class="input-group"><label>अधीक्षक लॉगिन आईडी</label><input id="supLoginId" required autocomplete="username" placeholder="लॉगिन आईडी"></div>
-                <div class="input-group"><label>पासवर्ड</label><input id="supLoginPass" type="password" required autocomplete="current-password" placeholder="पासवर्ड"></div>
-                <div style="display:flex;gap:10px;margin-top:14px;"><button type="submit" class="app-btn app-btn-primary" style="flex:1;"><i class="fa-solid fa-lock-open"></i> लॉगिन</button><button type="button" class="app-btn app-btn-secondary" onclick="closeModal('superintendentLoginModal')">रद्द करें</button></div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Admin Login Modal -->
-    <div id="adminLoginModal" class="modal-backdrop hidden">
-        <div class="modal-content">
-            <h3 style="color: var(--admin); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-                <i class="fa-solid fa-shield-halved"></i> सुपर एडमिन लॉगिन
+</div>
+<div class="printableProgressCard" id="printableProgressCard"></div>
+</div>
+</div>
+</div>
+<!-- Superintendent Account Manager Modal -->
+<div class="modal-backdrop hidden" id="superintendentManagerModal">
+<div class="modal-content" style="max-width:760px;max-height:90vh;overflow-y:auto;">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+<h3 style="color:var(--admin);"><i class="fa-solid fa-user-tie"></i> कॉलेज अधीक्षक अकाउंट प्रबंधन</h3>
+<button class="app-btn app-btn-secondary" onclick="closeModal('superintendentManagerModal')" type="button">✕</button>
+</div>
+<div style="background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;padding:10px 12px;border-radius:8px;font-size:.82rem;margin-bottom:12px;">ध्यान दें: यह मौजूदा पोर्टल के पुराने लॉगिन ढाँचे के अनुरूप प्रारंभिक सुविधा है। अभी पासवर्ड Firebase डेटा में सुरक्षित Authentication के रूप में नहीं हैं। वास्तविक उपयोग से पहले Firebase Authentication और कॉलेज-आधारित Database Rules लागू करना आवश्यक है।</div>
+<form onsubmit="saveSuperintendentAccount(event)">
+<input id="supEditIndex" type="hidden" value=""/>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;">
+<div class="input-group"><label>कॉलेज</label><select id="supAccountCollege" required=""></select></div>
+<div class="input-group"><label>अधीक्षक का नाम</label><input id="supAccountName" placeholder="नाम दर्ज करें" required=""/></div>
+<div class="input-group"><label>लॉगिन आईडी</label><input autocomplete="off" id="supAccountId" placeholder="उदा. kotri_sup" required=""/></div>
+<div class="input-group"><label>पासवर्ड</label><input autocomplete="new-password" id="supAccountPass" placeholder="नया पासवर्ड" type="password"/></div>
+</div>
+<p style="font-size:.8rem;color:#64748b;margin:0 0 10px;">नया अकाउंट बनाते समय पासवर्ड आवश्यक है। एडिट करते समय पासवर्ड खाली छोड़ने पर पुराना पासवर्ड रहेगा।</p>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
+<button class="app-btn app-btn-primary" type="submit"><i class="fa-solid fa-floppy-disk"></i> अकाउंट सेव करें</button>
+<button class="app-btn app-btn-secondary" onclick="resetSuperintendentForm()" type="button">नया फॉर्म</button>
+</div>
+</form>
+<div class="table-shell"><table><thead><tr><th>कॉलेज</th><th>अधीक्षक</th><th>लॉगिन आईडी</th><th>स्थिति</th><th>कार्रवाई</th></tr></thead><tbody id="superintendentAccountsBody"></tbody></table></div>
+</div>
+</div>
+<!-- Superintendent Login Modal -->
+<div class="modal-backdrop hidden" id="superintendentLoginModal">
+<div class="modal-content">
+<h3 style="color:var(--admin);margin-bottom:12px;"><i class="fa-solid fa-user-tie"></i> अधीक्षक लॉगिन</h3>
+<form autocomplete="off" onsubmit="handleSuperintendentLogin(event)">
+<div class="input-group"><label>अपना कॉलेज चुनें</label><select id="supLoginCollege" required=""></select></div>
+<div class="input-group"><label>अधीक्षक लॉगिन आईडी</label><input autocomplete="username" id="supLoginId" placeholder="लॉगिन आईडी" required=""/></div>
+<div class="input-group"><label>पासवर्ड</label><input autocomplete="current-password" id="supLoginPass" placeholder="पासवर्ड" required="" type="password"/></div>
+<div style="display:flex;gap:10px;margin-top:14px;"><button class="app-btn app-btn-primary" style="flex:1;" type="submit"><i class="fa-solid fa-lock-open"></i> लॉगिन</button><button class="app-btn app-btn-secondary" onclick="closeModal('superintendentLoginModal')" type="button">रद्द करें</button></div>
+</form>
+</div>
+</div>
+<!-- Admin Login Modal -->
+<div class="modal-backdrop hidden" id="adminLoginModal">
+<div class="modal-content">
+<h3 style="color: var(--admin); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+<i class="fa-solid fa-shield-halved"></i> सुपर एडमिन लॉगिन
             </h3>
-            <form onsubmit="handleAdminLogin(event)" autocomplete="off">
-                <div class="input-group">
-                    <label>सुपर एडमिन आईडी</label>
-                    <input type="text" id="adminId" placeholder="एडमिन आईडी दर्ज करें" required autocomplete="off">
-                </div>
-                <div class="input-group">
-                    <label>पासवर्ड</label>
-                    <input type="password" id="adminPass" placeholder="पासवर्ड दर्ज करें" required autocomplete="current-password">
-                </div>
-                <div style="display: flex; gap: 10px; margin-top: 14px;">
-                    <button type="submit" class="app-btn app-btn-primary" style="flex: 1; padding: 10px;"><i class="fa-solid fa-lock-open"></i> लॉगिन</button>
-                    <button type="button" class="app-btn app-btn-secondary" onclick="closeModal('adminLoginModal')">रद्द करें</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Admin Change Credentials Modal -->
-    <div id="adminChangeCredModal" class="modal-backdrop hidden">
-        <div class="modal-content">
-            <h3 style="color: var(--admin); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-                <i class="fa-solid fa-key"></i> एडमिन आईडी व पासवर्ड बदलें
+<form autocomplete="off" onsubmit="handleAdminLogin(event)">
+<div class="input-group">
+<label>सुपर एडमिन आईडी</label>
+<input autocomplete="off" id="adminId" placeholder="एडमिन आईडी दर्ज करें" required="" type="text"/>
+</div>
+<div class="input-group">
+<label>पासवर्ड</label>
+<input autocomplete="current-password" id="adminPass" placeholder="पासवर्ड दर्ज करें" required="" type="password"/>
+</div>
+<div style="display: flex; gap: 10px; margin-top: 14px;">
+<button class="app-btn app-btn-primary" style="flex: 1; padding: 10px;" type="submit"><i class="fa-solid fa-lock-open"></i> लॉगिन</button>
+<button class="app-btn app-btn-secondary" onclick="closeModal('adminLoginModal')" type="button">रद्द करें</button>
+</div>
+</form>
+</div>
+</div>
+<!-- Admin Change Credentials Modal -->
+<div class="modal-backdrop hidden" id="adminChangeCredModal">
+<div class="modal-content">
+<h3 style="color: var(--admin); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+<i class="fa-solid fa-key"></i> एडमिन आईडी व पासवर्ड बदलें
             </h3>
-            <form onsubmit="handleSaveAdminCreds(event)" autocomplete="off">
-                <div class="input-group">
-                    <label>नई एडमिन आईडी</label>
-                    <input type="text" id="newAdminIdInput" required autocomplete="off">
-                </div>
-                <div class="input-group">
-                    <label>नया पासवर्ड</label>
-                    <input type="password" id="newAdminPassInput" required autocomplete="new-password">
-                </div>
-                <div style="display: flex; gap: 10px; margin-top: 14px;">
-                    <button type="submit" class="app-btn app-btn-primary" style="flex: 1; padding: 10px;"><i class="fa-solid fa-check"></i> सुरक्षित करें</button>
-                    <button type="button" class="app-btn app-btn-secondary" onclick="closeModal('adminChangeCredModal')">रद्द करें</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Add Trade Modal -->
-    <div id="addTradeModal" class="modal-backdrop hidden">
-        <div class="modal-content">
-            <h3 style="color: var(--primary); margin-bottom: 12px;"><i class="fa-solid fa-folder-plus"></i> नई ट्रेड जोड़ें</h3>
-            <div class="input-group">
-                <label>ट्रेड का नाम (उदा. COPA, Electrician, Fitter):</label>
-                <input type="text" id="newTradeName" placeholder="ट्रेड का नाम दर्ज करें" required autocomplete="off">
-            </div>
-            <div class="input-group">
-                <label>ट्रेड का प्रकार (Category):</label>
-                <select id="newTradeType">
-                    <option value="engineering">इंजीनियरिंग ट्रेड (Engineering - TT, TP, WCS, ED, ES)</option>
-                    <option value="non_engineering">नॉन-इंजीनियरिंग ट्रेड (Non-Engineering - TT, TP, ES)</option>
-                </select>
-            </div>
-            <div style="display: flex; gap: 10px;">
-                <button type="button" class="app-btn app-btn-primary" onclick="saveNewTrade()">सुरक्षित करें</button>
-                <button type="button" class="app-btn app-btn-secondary" onclick="closeModal('addTradeModal')">रद्द करें</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Add Instructor Modal -->
-    <div id="addInstructorModal" class="modal-backdrop hidden">
-        <div class="modal-content">
-            <h3 style="color: var(--primary); margin-bottom: 12px;"><i class="fa-solid fa-user-shield"></i> नया अनुदेशक जोड़ें (कॉलेज संबद्ध)</h3>
-            <form onsubmit="event.preventDefault(); saveNewInstructor();" autocomplete="off">
-                <div class="input-group">
-                    <label>संस्थान / कॉलेज चुनें:</label>
-                    <select id="instAssignCollege" required></select>
-                </div>
-                <div class="input-group">
-                    <label>ट्रेड चुनें:</label>
-                    <select id="instAssignTrade" required></select>
-                </div>
-                <div class="input-group">
-                    <label>अनुदेशक का पूरा नाम:</label>
-                    <input type="text" id="newInstName" placeholder="उदा. संजय जाजुन्दा" required autocomplete="off">
-                </div>
-                <div class="input-group">
-                    <label>अनुदेशक लॉगिन आईडी:</label>
-                    <input type="text" id="newInstId" placeholder="उदा. copa_inst" required autocomplete="off">
-                </div>
-                <div class="input-group">
-                    <label>पासवर्ड:</label>
-                    <input type="text" id="newInstPass" placeholder="पासवर्ड बनाएं" required autocomplete="new-password">
-                </div>
-                <div style="display: flex; gap: 10px;">
-                    <button type="submit" class="app-btn app-btn-primary">सुरक्षित करें</button>
-                    <button type="button" class="app-btn app-btn-secondary" onclick="closeModal('addInstructorModal')">रद्द करें</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Add Student Modal -->
-    <div id="addStudentModal" class="modal-backdrop hidden">
-        <div class="modal-content">
-            <h3 style="color: var(--primary); margin-bottom: 12px;"><i class="fa-solid fa-user-plus"></i> नया छात्र जोड़ें</h3>
-            <form onsubmit="saveNewStudent(event)" autocomplete="off">
-                <div class="input-group">
-                    <label>रोल नंबर:</label>
-                    <input type="number" id="newRoll" required placeholder="उदा. 1" min="1" autocomplete="off">
-                </div>
-                <div class="input-group">
-                    <label>छात्र का पूरा नाम:</label>
-                    <input type="text" id="newName" required placeholder="छात्र का नाम" autocomplete="off">
-                </div>
-                <div class="input-group">
-                    <label>छात्र की प्रवेश तिथि (Admission Date):</label>
-                    <input type="date" id="newAdmissionDate" required>
-                </div>
-                <div class="input-group">
-                    <label>छात्र लॉगिन आईडी (Student ID):</label>
-                    <input type="text" id="newStudentId" required placeholder="उदा. st101" autocomplete="off" autocapitalize="none">
-                </div>
-                <div class="input-group">
-                    <label>पासवर्ड:</label>
-                    <input type="text" id="newStudentPass" required placeholder="पासवर्ड बनाएं" autocomplete="new-password">
-                </div>
-                <div class="input-group">
-                    <label>पूर्व संचित कार्यदिवस (सत्र पूर्व यदि कोई हो):</label>
-                    <input type="number" id="newPastWorking" value="0" min="0" autocomplete="off">
-                </div>
-                <div class="input-group">
-                    <label>पूर्व संचित उपस्थिति (सत्र पूर्व यदि कोई हो):</label>
-                    <input type="number" id="newPastPresent" value="0" min="0" autocomplete="off">
-                </div>
-                <div style="display: flex; gap: 10px;">
-                    <button type="submit" class="app-btn app-btn-primary">सुरक्षित करें</button>
-                    <button type="button" class="app-btn app-btn-secondary" onclick="closeModal('addStudentModal')">रद्द करें</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Edit Student Modal -->
-    <div id="editStudentModal" class="modal-backdrop hidden">
-        <div class="modal-content">
-            <h3 style="color: var(--primary); margin-bottom: 12px;"><i class="fa-solid fa-user-pen"></i> छात्र विवरण संशोधित करें (Edit)</h3>
-            <form onsubmit="handleUpdateStudent(event)" autocomplete="off">
-                <input type="hidden" id="editOriginalRoll">
-                <div class="input-group">
-                    <label>रोल नंबर:</label>
-                    <input type="number" id="editRoll" required min="1" autocomplete="off">
-                </div>
-                <div class="input-group">
-                    <label>छात्र का पूरा नाम:</label>
-                    <input type="text" id="editName" required autocomplete="off">
-                </div>
-                <div class="input-group">
-                    <label>छात्र की प्रवेश तिथि (Admission Date):</label>
-                    <input type="date" id="editAdmissionDate" required>
-                </div>
-                <div class="input-group">
-                    <label>छात्र लॉगिन आईडी:</label>
-                    <input type="text" id="editStudentId" required autocomplete="off" autocapitalize="none">
-                </div>
-                <div class="input-group">
-                    <label>पासवर्ड:</label>
-                    <input type="text" id="editStudentPass" required autocomplete="new-password">
-                </div>
-                <div class="input-group">
-                    <label>पूर्व संचित कार्यदिवस:</label>
-                    <input type="number" id="editPastWorking" required min="0" autocomplete="off">
-                </div>
-                <div class="input-group">
-                    <label>पूर्व संचित उपस्थिति:</label>
-                    <input type="number" id="editPastPresent" required min="0" autocomplete="off">
-                </div>
-                <div style="display: flex; gap: 10px;">
-                    <button type="submit" class="app-btn app-btn-primary" style="flex:1;"><i class="fa-solid fa-check"></i> अपडेट करें</button>
-                    <button type="button" class="app-btn app-btn-secondary" onclick="closeModal('editStudentModal')">रद्द करें</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Student Passwords Modal -->
-    <div id="studentCredModal" class="modal-backdrop hidden">
-        <div class="modal-content" style="max-width: 760px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
-                <h3 style="color: var(--primary);"><i class="fa-solid fa-key"></i> छात्र सूची व क्रेडेंशियल प्रबंधन</h3>
-                <div style="display: flex; gap: 8px;">
-                    <button class="app-btn app-btn-excel" onclick="exportStudentMasterListToExcel()"><i class="fa-solid fa-file-excel"></i> मास्टर लिस्ट एक्सेल</button>
-                    <button class="app-btn app-btn-primary" onclick="closeModal('studentCredModal'); openModal('addStudentModal');">
-                        <i class="fa-solid fa-plus"></i> नया छात्र
+<form autocomplete="off" onsubmit="handleSaveAdminCreds(event)">
+<div class="input-group">
+<label>नई एडमिन आईडी</label>
+<input autocomplete="off" id="newAdminIdInput" required="" type="text"/>
+</div>
+<div class="input-group">
+<label>नया पासवर्ड</label>
+<input autocomplete="new-password" id="newAdminPassInput" required="" type="password"/>
+</div>
+<div style="display: flex; gap: 10px; margin-top: 14px;">
+<button class="app-btn app-btn-primary" style="flex: 1; padding: 10px;" type="submit"><i class="fa-solid fa-check"></i> सुरक्षित करें</button>
+<button class="app-btn app-btn-secondary" onclick="closeModal('adminChangeCredModal')" type="button">रद्द करें</button>
+</div>
+</form>
+</div>
+</div>
+<!-- Add Trade Modal -->
+<div class="modal-backdrop hidden" id="addTradeModal">
+<div class="modal-content">
+<h3 style="color: var(--primary); margin-bottom: 12px;"><i class="fa-solid fa-folder-plus"></i> नई ट्रेड जोड़ें</h3>
+<div class="input-group">
+<label>ट्रेड का नाम (उदा. COPA, Electrician, Fitter):</label>
+<input autocomplete="off" id="newTradeName" placeholder="ट्रेड का नाम दर्ज करें" required="" type="text"/>
+</div>
+<div class="input-group">
+<label>ट्रेड का प्रकार (Category):</label>
+<select id="newTradeType">
+<option value="engineering">इंजीनियरिंग ट्रेड (Engineering - TT, TP, WCS, ED, ES)</option>
+<option value="non_engineering">नॉन-इंजीनियरिंग ट्रेड (Non-Engineering - TT, TP, ES)</option>
+</select>
+</div>
+<div style="display: flex; gap: 10px;">
+<button class="app-btn app-btn-primary" onclick="saveNewTrade()" type="button">सुरक्षित करें</button>
+<button class="app-btn app-btn-secondary" onclick="closeModal('addTradeModal')" type="button">रद्द करें</button>
+</div>
+</div>
+</div>
+<!-- Add Instructor Modal -->
+<div class="modal-backdrop hidden" id="addInstructorModal">
+<div class="modal-content">
+<h3 style="color: var(--primary); margin-bottom: 12px;"><i class="fa-solid fa-user-shield"></i> नया अनुदेशक जोड़ें (कॉलेज संबद्ध)</h3>
+<form autocomplete="off" onsubmit="event.preventDefault(); saveNewInstructor();">
+<div class="input-group">
+<label>संस्थान / कॉलेज चुनें:</label>
+<select id="instAssignCollege" required=""></select>
+</div>
+<div class="input-group">
+<label>ट्रेड चुनें:</label>
+<select id="instAssignTrade" required=""></select>
+</div>
+<div class="input-group">
+<label>अनुदेशक का पूरा नाम:</label>
+<input autocomplete="off" id="newInstName" placeholder="उदा. संजय जाजुन्दा" required="" type="text"/>
+</div>
+<div class="input-group">
+<label>अनुदेशक लॉगिन आईडी:</label>
+<input autocomplete="off" id="newInstId" placeholder="उदा. copa_inst" required="" type="text"/>
+</div>
+<div class="input-group">
+<label>पासवर्ड:</label>
+<input autocomplete="new-password" id="newInstPass" placeholder="पासवर्ड बनाएं" required="" type="text"/>
+</div>
+<div style="display: flex; gap: 10px;">
+<button class="app-btn app-btn-primary" type="submit">सुरक्षित करें</button>
+<button class="app-btn app-btn-secondary" onclick="closeModal('addInstructorModal')" type="button">रद्द करें</button>
+</div>
+</form>
+</div>
+</div>
+<!-- Add Student Modal -->
+<div class="modal-backdrop hidden" id="addStudentModal">
+<div class="modal-content">
+<h3 style="color: var(--primary); margin-bottom: 12px;"><i class="fa-solid fa-user-plus"></i> नया छात्र जोड़ें</h3>
+<form autocomplete="off" onsubmit="saveNewStudent(event)">
+<div class="input-group">
+<label>रोल नंबर:</label>
+<input autocomplete="off" id="newRoll" min="1" placeholder="उदा. 1" required="" type="number"/>
+</div>
+<div class="input-group">
+<label>छात्र का पूरा नाम:</label>
+<input autocomplete="off" id="newName" placeholder="छात्र का नाम" required="" type="text"/>
+</div>
+<div class="input-group">
+<label>छात्र की प्रवेश तिथि (Admission Date):</label>
+<input id="newAdmissionDate" required="" type="date"/>
+</div>
+<div class="input-group">
+<label>छात्र लॉगिन आईडी (Student ID):</label>
+<input autocapitalize="none" autocomplete="off" id="newStudentId" placeholder="उदा. st101" required="" type="text"/>
+</div>
+<div class="input-group">
+<label>पासवर्ड:</label>
+<input autocomplete="new-password" id="newStudentPass" placeholder="पासवर्ड बनाएं" required="" type="text"/>
+</div>
+<div class="input-group">
+<label>पूर्व संचित कार्यदिवस (सत्र पूर्व यदि कोई हो):</label>
+<input autocomplete="off" id="newPastWorking" min="0" type="number" value="0"/>
+</div>
+<div class="input-group">
+<label>पूर्व संचित उपस्थिति (सत्र पूर्व यदि कोई हो):</label>
+<input autocomplete="off" id="newPastPresent" min="0" type="number" value="0"/>
+</div>
+<div style="display: flex; gap: 10px;">
+<button class="app-btn app-btn-primary" type="submit">सुरक्षित करें</button>
+<button class="app-btn app-btn-secondary" onclick="closeModal('addStudentModal')" type="button">रद्द करें</button>
+</div>
+</form>
+</div>
+</div>
+<!-- Edit Student Modal -->
+<div class="modal-backdrop hidden" id="editStudentModal">
+<div class="modal-content">
+<h3 style="color: var(--primary); margin-bottom: 12px;"><i class="fa-solid fa-user-pen"></i> छात्र विवरण संशोधित करें (Edit)</h3>
+<form autocomplete="off" onsubmit="handleUpdateStudent(event)">
+<input id="editOriginalRoll" type="hidden"/>
+<div class="input-group">
+<label>रोल नंबर:</label>
+<input autocomplete="off" id="editRoll" min="1" required="" type="number"/>
+</div>
+<div class="input-group">
+<label>छात्र का पूरा नाम:</label>
+<input autocomplete="off" id="editName" required="" type="text"/>
+</div>
+<div class="input-group">
+<label>छात्र की प्रवेश तिथि (Admission Date):</label>
+<input id="editAdmissionDate" required="" type="date"/>
+</div>
+<div class="input-group">
+<label>छात्र लॉगिन आईडी:</label>
+<input autocapitalize="none" autocomplete="off" id="editStudentId" required="" type="text"/>
+</div>
+<div class="input-group">
+<label>पासवर्ड:</label>
+<input autocomplete="new-password" id="editStudentPass" required="" type="text"/>
+</div>
+<div class="input-group">
+<label>पूर्व संचित कार्यदिवस:</label>
+<input autocomplete="off" id="editPastWorking" min="0" required="" type="number"/>
+</div>
+<div class="input-group">
+<label>पूर्व संचित उपस्थिति:</label>
+<input autocomplete="off" id="editPastPresent" min="0" required="" type="number"/>
+</div>
+<div style="display: flex; gap: 10px;">
+<button class="app-btn app-btn-primary" style="flex:1;" type="submit"><i class="fa-solid fa-check"></i> अपडेट करें</button>
+<button class="app-btn app-btn-secondary" onclick="closeModal('editStudentModal')" type="button">रद्द करें</button>
+</div>
+</form>
+</div>
+</div>
+<!-- Student Passwords Modal -->
+<div class="modal-backdrop hidden" id="studentCredModal">
+<div class="modal-content" style="max-width: 760px;">
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+<h3 style="color: var(--primary);"><i class="fa-solid fa-key"></i> छात्र सूची व क्रेडेंशियल प्रबंधन</h3>
+<div style="display: flex; gap: 8px;">
+<button class="app-btn app-btn-excel" onclick="exportStudentMasterListToExcel()"><i class="fa-solid fa-file-excel"></i> मास्टर लिस्ट एक्सेल</button>
+<button class="app-btn app-btn-primary" onclick="closeModal('studentCredModal'); openModal('addStudentModal');">
+<i class="fa-solid fa-plus"></i> नया छात्र
                     </button>
-                </div>
-            </div>
-            <div class="table-shell" style="max-height: 340px;">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>रोल</th>
-                            <th>नाम</th>
-                            <th>प्रवेश तिथि</th>
-                            <th>आईडी</th>
-                            <th>पासवर्ड</th>
-                            <th>कार्रवाई</th>
-                        </tr>
-                    </thead>
-                    <tbody id="studentCredBody"></tbody>
-                </table>
-            </div>
-            <div style="margin-top: 14px; text-align: right;">
-                <button type="button" class="app-btn app-btn-secondary" onclick="closeModal('studentCredModal')">बंद करें</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Daily Roll-Call Modal -->
-    <div id="todayRollCallModal" class="modal-backdrop hidden">
-        <div class="modal-content" style="max-width: 640px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1.5px solid var(--border-color); padding-bottom: 8px;">
-                <h3 style="color: var(--primary); font-size: 1.15rem;">
-                    <i class="fa-solid fa-clipboard-user"></i> आज की हाजिरी (Roll Call)
+</div>
+</div>
+<div class="table-shell" style="max-height: 340px;">
+<table>
+<thead>
+<tr>
+<th>रोल</th>
+<th>नाम</th>
+<th>प्रवेश तिथि</th>
+<th>आईडी</th>
+<th>पासवर्ड</th>
+<th>कार्रवाई</th>
+</tr>
+</thead>
+<tbody id="studentCredBody"></tbody>
+</table>
+</div>
+<div style="margin-top: 14px; text-align: right;">
+<button class="app-btn app-btn-secondary" onclick="closeModal('studentCredModal')" type="button">बंद करें</button>
+</div>
+</div>
+</div>
+<!-- Daily Roll-Call Modal -->
+<div class="modal-backdrop hidden" id="todayRollCallModal">
+<div class="modal-content" style="max-width: 640px;">
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1.5px solid var(--border-color); padding-bottom: 8px;">
+<h3 style="color: var(--primary); font-size: 1.15rem;">
+<i class="fa-solid fa-clipboard-user"></i> आज की हाजिरी (Roll Call)
                 </h3>
-                <span id="rcModalDateLabel" style="font-weight: 700; color: #2563eb; font-size: 0.9rem;"></span>
-            </div>
-            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px;">
+<span id="rcModalDateLabel" style="font-weight: 700; color: #2563eb; font-size: 0.9rem;"></span>
+</div>
+<p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px;">
                 उपस्थिति दर्ज करने हेतु बटन पर टैप करें (क्रम: <strong>- (खाली) ➔ P ➔ A ➔ L</strong>):
             </p>
-            <div class="table-shell" style="max-height: 380px;">
-                <table>
-                    <thead>
-                        <tr>
-                            <th style="width: 60px;">रोल</th>
-                            <th style="text-align: left; padding-left: 10px;">छात्र का नाम</th>
-                            <th style="width: 80px;">सुबह (M)</th>
-                            <th style="width: 80px;">शाम (E)</th>
-                        </tr>
-                    </thead>
-                    <tbody id="todayRollCallBody"></tbody>
-                </table>
-            </div>
-            <div style="display: flex; gap: 10px; margin-top: 16px;">
-                <button type="button" class="app-btn app-btn-primary" style="flex: 1; padding: 10px;" onclick="saveAndCloseRollCallModal()">
-                    <i class="fa-solid fa-check"></i> सुरक्षित करें
+<div class="table-shell" style="max-height: 380px;">
+<table>
+<thead>
+<tr>
+<th style="width: 60px;">रोल</th>
+<th style="text-align: left; padding-left: 10px;">छात्र का नाम</th>
+<th style="width: 80px;">सुबह (M)</th>
+<th style="width: 80px;">शाम (E)</th>
+</tr>
+</thead>
+<tbody id="todayRollCallBody"></tbody>
+</table>
+</div>
+<div style="display: flex; gap: 10px; margin-top: 16px;">
+<button class="app-btn app-btn-primary" onclick="saveAndCloseRollCallModal()" style="flex: 1; padding: 10px;" type="button">
+<i class="fa-solid fa-check"></i> सुरक्षित करें
                 </button>
-                <button type="button" class="app-btn app-btn-secondary" onclick="closeModal('todayRollCallModal')">बंद करें</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="toast" class="toast-bubble hidden"><i class="fa-solid fa-bell"></i> <span id="toastMsg">सूचना</span></div>
-
-    <footer>
-        <p><strong id="footerInstName">राजकीय औद्योगिक प्रशिक्षण संस्थान</strong> | मल्टी-कॉलेज समग्र छात्र मूल्यांकन प्रणाली</p>
-        <p style="margin-top: 4px; font-size: 0.8rem; color: #94a3b8;">
-            <i class="fa-solid fa-code"></i> डेवलपर: <strong>संजय जाजुन्दा</strong> (COPA इंस्ट्रक्टर)
+<button class="app-btn app-btn-secondary" onclick="closeModal('todayRollCallModal')" type="button">बंद करें</button>
+</div>
+</div>
+</div>
+<div class="toast-bubble hidden" id="toast"><i class="fa-solid fa-bell"></i> <span id="toastMsg">सूचना</span></div>
+<footer>
+<p><strong id="footerInstName">राजकीय औद्योगिक प्रशिक्षण संस्थान</strong> | मल्टी-कॉलेज समग्र छात्र मूल्यांकन प्रणाली</p>
+<p style="margin-top: 4px; font-size: 0.8rem; color: #94a3b8;">
+<i class="fa-solid fa-code"></i> डेवलपर: <strong>संजय जाजुन्दा</strong> (COPA इंस्ट्रक्टर)
         </p>
-    </footer>
-
-    <!-- JAVASCRIPT LOGIC -->
-    <script>
+</footer>
+<!-- JAVASCRIPT LOGIC -->
+<script>
         const firebaseConfig = {
             apiKey: "AIzaSyATDGOfhzQkOF56Q7f-bS7hVWnTeBl5cLU",
             authDomain: "iti-kotri.firebaseapp.com",
@@ -2086,15 +2000,16 @@
 
         function applyInstituteBranding() {
             const inst = getInstituteSettings();
-            document.title = `${inst.name} - मूल्यांकन पोर्टल`;
+            const displayInstituteName = currentCollegeId ? getCollegeName(currentCollegeId) : 'राजकीय औद्योगिक प्रशिक्षण संस्थान';
+            document.title = `${displayInstituteName} - मूल्यांकन पोर्टल`;
             const headerName = document.getElementById('headerInstituteName');
             const headerTag = document.getElementById('headerPortalTagline');
             const footerName = document.getElementById('footerInstName');
             const logoBox = document.getElementById('headerLogoContainer');
 
-            if (headerName) headerName.innerText = inst.name;
+            if (headerName) headerName.innerText = displayInstituteName;
             if (headerTag) headerTag.innerText = inst.tagline || "छात्र उपस्थिति, टेस्ट एवं प्रगति मूल्यांकन पोर्टल";
-            if (footerName) footerName.innerText = `${inst.name} (${inst.location || ''})`;
+            if (footerName) footerName.innerText = displayInstituteName;
 
             if (logoBox) {
                 if (inst.logoUrl && inst.logoUrl.trim() !== '') {
@@ -2520,8 +2435,19 @@
             }
         }
 
+
+        function applyCurrentCollegeBranding(){
+            const name=currentCollegeId?getCollegeName(currentCollegeId):'राजकीय औद्योगिक प्रशिक्षण संस्थान';
+            const h=document.getElementById('headerInstituteName');
+            const f=document.getElementById('footerInstName');
+            if(h) h.textContent=name;
+            if(f) f.textContent=name;
+            document.title=(name||'राजकीय औद्योगिक प्रशिक्षण संस्थान')+' - छात्र उपस्थिति एवं मूल्यांकन पोर्टल';
+        }
+
         function setupUIRoute() {
             document.getElementById('frontLoginSection').classList.add('hidden');
+            applyCurrentCollegeBranding();
             document.getElementById('adminNavBtn').classList.add('hidden');
             document.getElementById('superintendentNavBtn').classList.add('hidden');
             document.getElementById('authStatusPill').classList.remove('hidden');
@@ -2573,6 +2499,8 @@
             loggedInSuperintendent = null;
             loggedInInstructor = null;
             document.getElementById('frontLoginSection').classList.remove('hidden');
+            currentCollegeId=null;
+            applyCurrentCollegeBranding();
             document.getElementById('adminNavBtn').classList.remove('hidden');
             document.getElementById('superintendentNavBtn').classList.remove('hidden');
             document.getElementById('authStatusPill').classList.add('hidden');
