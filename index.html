@@ -720,7 +720,8 @@
 <button class="btn-admin-portal" id="adminNavBtn" onclick="openModal('adminLoginModal')">
 <i class="fa-solid fa-shield-halved"></i> सुपर एडमिन पोर्टल
             </button>
-<button class="app-btn app-btn-purple" id="superintendentNavBtn" onclick="openModal('superintendentLoginModal')">
+<button class="app-btn app-btn-success" id="groupInstructorNavBtn" onclick="openModal('groupInstructorLoginModal')"><i class="fa-solid fa-users-gear"></i> ग्रुप इंस्ट्रक्टर लॉगिन</button>
+            <button class="app-btn app-btn-purple" id="superintendentNavBtn" onclick="openModal('superintendentLoginModal')">
 <i class="fa-solid fa-user-tie"></i> अधीक्षक लॉगिन
             </button>
 <div class="user-status-pill hidden" id="authStatusPill">
@@ -860,7 +861,7 @@
 <button class="sup-nav-btn" data-view="instructors" onclick="switchSupView('instructors',this)"><i class="fa-solid fa-chalkboard-user"></i><span>अनुदेशक रिकॉर्ड</span></button>
 <button class="sup-nav-btn" data-view="inspection" onclick="switchSupView('inspection',this)"><i class="fa-solid fa-clipboard-check"></i><span>निरीक्षण रजिस्टर</span></button>
 <button class="sup-nav-btn" data-view="assets" onclick="switchSupView('assets',this)"><i class="fa-solid fa-screwdriver-wrench"></i><span>लैब / मशीनरी</span></button>
-<button class="sup-nav-btn" data-view="tasks" onclick="switchSupView('tasks',this)"><i class="fa-solid fa-list-check"></i><span>कार्य गतिविधियाँ</span></button>
+<button class="sup-nav-btn" data-view="tasks" onclick="switchSupView('tasks',this)"><i class="fa-solid fa-list-check"></i><span>कार्य गतिविधियाँ</span></button><button class="sup-nav-btn" data-view="groupTasks" onclick="switchSupView('groupTasks',this)"><i class="fa-solid fa-calendar-check"></i><span>ग्रुप इंस्ट्रक्टर टू-डू</span></button>
 <div class="sup-sidebar-foot">केवल अपने कॉलेज का डेटा</div>
 </aside>
 <div class="sup-main-content">
@@ -905,6 +906,10 @@
 <div class="glass-card sup-panel"><h3><i class="fa-solid fa-bullhorn"></i> विद्यार्थी सूचना जारी करें</h3><div class="sup-form-grid"><div class="input-group"><label>सूचना शीर्षक</label><input id="supNoticeTitle" placeholder="जैसे परीक्षा समय-सारणी"/></div><div class="input-group"><label>ट्रेड</label><select id="supNoticeTrade"><option value="ALL">सभी ट्रेड</option></select></div><div class="input-group"><label>सूचना</label><textarea id="supNoticeMessage" rows="2" placeholder="विद्यार्थियों के लिए सूचना लिखें"></textarea></div></div><button class="app-btn app-btn-primary" onclick="publishSupNotice()">सूचना प्रकाशित करें</button><div id="supNoticeHistory"></div></div>
 <div class="glass-card sup-panel"><h3>आवंटित कार्य</h3><div class="table-shell"><table><thead><tr><th>अनुदेशक</th><th>कार्य</th><th>अंतिम तारीख</th><th>प्राथमिकता</th><th>स्थिति</th><th>कार्रवाई</th></tr></thead><tbody id="supTaskHistory"></tbody></table></div></div>
 <div class="glass-card sup-panel"><h3>अनुदेशकों की जमा की गई गतिविधि रिपोर्ट</h3><div class="table-shell"><table><thead><tr><th>तारीख</th><th>अनुदेशक</th><th>गतिविधि</th><th>विद्यार्थी</th><th>विवरण</th><th>स्थिति</th><th>समीक्षा / कार्रवाई</th></tr></thead><tbody id="supActivityReports"></tbody></table></div></div>
+<div class="sup-view-panel hidden" id="supViewGroupTasks">
+<div class="glass-card sup-panel"><h3><i class="fa-solid fa-calendar-check"></i> अनिवार्य मासिक कार्य सूची</h3><p class="sup-help">निर्धारित तारीखों के अनुसार कार्य पूर्ण होने पर स्थिति अपडेट करें।</p><div class="sup-alert-grid" id="groupTaskSummary"></div><div id="groupTaskList"></div></div>
+<div class="glass-card sup-panel"><h3><i class="fa-solid fa-chalkboard-user"></i> आज कॉलेज आए अनुदेशक</h3><p class="sup-help">जिस ट्रेड की आज की कक्षा उपस्थिति में कम-से-कम एक विद्यार्थी की M/E उपस्थिति दर्ज है, उस ट्रेड के अनुदेशक को उपस्थित माना जाएगा।</p><div class="sup-alert-grid" id="groupInstructorAttendanceSummary"></div><div class="table-shell"><table><thead><tr><th>अनुदेशक</th><th>ट्रेड</th><th>आज की क्लास अटेंडेंस</th><th>स्थिति</th></tr></thead><tbody id="groupInstructorAttendanceBody"></tbody></table></div></div>
+</div>
 </div>
 </div>
 </div>
@@ -1529,6 +1534,22 @@
 </form>
 </div>
 </div>
+<!-- Group Instructor Login Modal -->
+<div class="modal-backdrop hidden" id="groupInstructorLoginModal"><div class="modal-content">
+<h3 style="color:#047857;margin-bottom:12px;"><i class="fa-solid fa-users-gear"></i> ग्रुप इंस्ट्रक्टर लॉगिन</h3>
+<form autocomplete="off" onsubmit="handleGroupInstructorLogin(event)">
+<div class="input-group"><label>कॉलेज चुनें</label><select id="groupLoginCollege" required></select></div>
+<div class="input-group"><label>लॉगिन आईडी</label><input id="groupLoginId" required autocomplete="username"></div>
+<div class="input-group"><label>पासवर्ड</label><input id="groupLoginPass" type="password" required autocomplete="current-password"></div>
+<div style="display:flex;gap:10px;margin-top:14px;"><button class="app-btn app-btn-success" style="flex:1" type="submit">लॉगिन</button><button class="app-btn app-btn-secondary" type="button" onclick="closeModal('groupInstructorLoginModal')">रद्द करें</button></div>
+</form></div></div>
+<div class="modal-backdrop hidden" id="groupInstructorManagerModal"><div class="modal-content" style="max-width:760px">
+<div style="display:flex;justify-content:space-between;align-items:center"><h3>ग्रुप इंस्ट्रक्टर अकाउंट प्रबंधन</h3><button class="app-btn app-btn-secondary" onclick="closeModal('groupInstructorManagerModal')">✕</button></div>
+<form onsubmit="saveGroupInstructorAccount(event)"><input id="groupEditIndex" type="hidden">
+<div class="sup-form-grid"><div class="input-group"><label>कॉलेज</label><select id="groupAccountCollege" required></select></div><div class="input-group"><label>नाम</label><input id="groupAccountName" required></div><div class="input-group"><label>लॉगिन आईडी</label><input id="groupAccountId" required></div><div class="input-group"><label>पासवर्ड</label><input id="groupAccountPass" type="password" placeholder="नया अकाउंट: आवश्यक"></div></div>
+<button class="app-btn app-btn-success" type="submit">अकाउंट सेव करें</button> <button class="app-btn app-btn-secondary" type="button" onclick="resetGroupInstructorForm()">नया फॉर्म</button></form>
+<div class="table-shell" style="margin-top:12px"><table><thead><tr><th>कॉलेज</th><th>नाम</th><th>आईडी</th><th>स्थिति</th><th>कार्रवाई</th></tr></thead><tbody id="groupInstructorAccountsBody"></tbody></table></div>
+</div></div>
 <!-- Admin Login Modal -->
 <div class="modal-backdrop hidden" id="adminLoginModal">
 <div class="modal-content">
@@ -2208,6 +2229,8 @@
         // ==================== SUPERINTENDENT ACCOUNTS & DASHBOARD ====================
         function ensureSuperintendentStore() {
             if (!Array.isArray(appData.superintendents)) appData.superintendents = [];
+                    if (!Array.isArray(appData.groupInstructors)) appData.groupInstructors = [];
+                    if (!Array.isArray(appData.groupInstructorTasks)) appData.groupInstructorTasks = [];
             return appData.superintendents;
         }
 
@@ -2294,6 +2317,27 @@
             showToast(`${getCollegeName(collegeId)} अधीक्षक लॉगिन सफल!`);
         }
 
+
+        // GROUP INSTRUCTOR ACCOUNTS AND MONTHLY WORKLIST
+        function ensureGroupInstructorStore(){if(!Array.isArray(appData.groupInstructors))appData.groupInstructors=[];return appData.groupInstructors;}
+        function populateGroupInstructorSelects(){const opts=getCollegesList().map(c=>`<option value="${supEscape(c.id)}">${supEscape(c.name)}</option>`).join('');['groupLoginCollege','groupAccountCollege'].forEach(id=>{const e=document.getElementById(id);if(e){const old=e.value;e.innerHTML=opts;if(old)e.value=old;}});}
+        function openGroupInstructorManager(){populateGroupInstructorSelects();renderGroupInstructorAccounts();resetGroupInstructorForm();openModal('groupInstructorManagerModal');}
+        function resetGroupInstructorForm(){['groupEditIndex','groupAccountName','groupAccountId','groupAccountPass'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});}
+        function saveGroupInstructorAccount(e){e.preventDefault();const a=ensureGroupInstructorStore(),raw=document.getElementById('groupEditIndex').value,idx=raw===''?-1:Number(raw),collegeId=document.getElementById('groupAccountCollege').value,name=document.getElementById('groupAccountName').value.trim(),id=document.getElementById('groupAccountId').value.trim(),pass=document.getElementById('groupAccountPass').value;if(!collegeId||!name||!id||(idx<0&&!pass)){alert('कॉलेज, नाम, आईडी और पासवर्ड भरें।');return;}if(a.some((x,i)=>String(x.id).toLowerCase()===id.toLowerCase()&&i!==idx)){alert('यह लॉगिन आईडी पहले से मौजूद है।');return;}const x=idx>=0?{...a[idx],collegeId,name,id}:{collegeId,name,id,pass,active:true,createdAt:new Date().toISOString()};if(pass)x.pass=pass;if(idx>=0)a[idx]=x;else a.push(x);syncWithFirebase();renderGroupInstructorAccounts();resetGroupInstructorForm();showToast('ग्रुप इंस्ट्रक्टर अकाउंट सेव हो गया।');}
+        function renderGroupInstructorAccounts(){const b=document.getElementById('groupInstructorAccountsBody');if(!b)return;const a=ensureGroupInstructorStore();b.innerHTML=a.length?a.map((x,i)=>`<tr><td>${supEscape(getCollegeName(x.collegeId))}</td><td>${supEscape(x.name)}</td><td>${supEscape(x.id)}</td><td>${x.active===false?'बंद':'सक्रिय'}</td><td><button class="app-btn app-btn-secondary" onclick="editGroupInstructorAccount(${i})">एडिट</button> <button class="app-btn app-btn-warning" onclick="toggleGroupInstructorAccount(${i})">${x.active===false?'चालू':'बंद'}</button> <button class="app-btn app-btn-danger" onclick="deleteGroupInstructorAccount(${i})">हटाएं</button></td></tr>`).join(''):'<tr><td colspan="5">अभी कोई ग्रुप इंस्ट्रक्टर अकाउंट नहीं है।</td></tr>';}
+        function editGroupInstructorAccount(i){const x=ensureGroupInstructorStore()[i];if(!x)return;document.getElementById('groupEditIndex').value=i;document.getElementById('groupAccountCollege').value=x.collegeId;document.getElementById('groupAccountName').value=x.name;document.getElementById('groupAccountId').value=x.id;document.getElementById('groupAccountPass').value='';}
+        function toggleGroupInstructorAccount(i){const x=ensureGroupInstructorStore()[i];if(!x)return;x.active=x.active===false;syncWithFirebase();renderGroupInstructorAccounts();}
+        function deleteGroupInstructorAccount(i){const x=ensureGroupInstructorStore()[i];if(!x||!confirm(`${x.name} का अकाउंट हटाएं?`))return;ensureGroupInstructorStore().splice(i,1);syncWithFirebase();renderGroupInstructorAccounts();}
+        function handleGroupInstructorLogin(e){e.preventDefault();const collegeId=document.getElementById('groupLoginCollege').value,id=document.getElementById('groupLoginId').value.trim(),pass=document.getElementById('groupLoginPass').value,x=ensureGroupInstructorStore().find(a=>a.collegeId===collegeId&&String(a.id).trim()===id&&String(a.pass)===pass&&a.active!==false);if(!x){alert('लॉगिन विवरण गलत हैं या अकाउंट बंद है।');return;}currentRole='groupInstructor';currentCollegeId=collegeId;currentTrade=null;loggedInSuperintendent=x;closeModal('groupInstructorLoginModal');setupUIRoute();showToast('ग्रुप इंस्ट्रक्टर लॉगिन सफल!');}
+        const GROUP_TASK_TEMPLATES=[
+        {key:'security_bill',title:'सिक्योरिटी गार्ड का बिल बनाना',from:1,to:10},{key:'cleaning_bill',title:'सफाई कर्मी का बिल बनाना',from:1,to:10},{key:'gst_return',title:'जीएसटी रिटर्न करना',from:1,to:10},{key:'tax',title:'टैक्स संबंधी कार्य',from:1,to:10},{key:'income_tax_return',title:'इनकम टैक्स रिटर्न करना',from:1,to:10},{key:'monthly_test',title:'मासिक टेस्ट की जानकारी / रिपोर्ट',from:1,to:10},{key:'section_inspection',title:'सेक्शन जाँच पत्र',from:1,to:10},{key:'warning_letter',title:'चेतावनी पत्र',from:1,to:10},{key:'telephone_bill',title:'टेलीफोन का बिल',from:10,to:20},{key:'electricity_bill',title:'बिजली का बिल',from:10,to:20},{key:'instructor_record',title:'अनुदेशक रिकॉर्ड अपडेट',from:1,to:31},{key:'training_record',title:'ट्रेनिंग रिकॉर्ड अपडेट (साप्ताहिक)',from:1,to:31,weekly:true}];
+        function groupDateParts(){const n=new Date();return {date:`${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`,month:`${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}`,day:n.getDate()};}
+        function groupWeekKey(){const n=new Date(),d=new Date(n.getFullYear(),n.getMonth(),n.getDate()),day=(d.getDay()+6)%7;d.setDate(d.getDate()-day);return d.toISOString().slice(0,10);}
+        function getGroupTaskRecord(key){const p=groupDateParts(),period=key==='training_record'?groupWeekKey():p.month;return (appData.groupInstructorTasks||[]).find(x=>x.collegeId===currentCollegeId&&x.key===key&&x.periodKey===period);}
+        function setGroupTaskStatus(key,status){if(!['groupInstructor','superintendent'].includes(currentRole)||!currentCollegeId)return;const p=groupDateParts(),period=key==='training_record'?groupWeekKey():p.month;let x=(appData.groupInstructorTasks||[]).find(v=>v.collegeId===currentCollegeId&&v.key===key&&v.periodKey===period);if(!x){x={id:'GIT'+Date.now(),collegeId:currentCollegeId,key,periodKey:period};appData.groupInstructorTasks.push(x);}x.status=status;x.updatedAt=new Date().toISOString();x.updatedBy=loggedInSuperintendent?.name||'';syncWithFirebase();renderGroupInstructorTasks();}
+        function renderGroupInstructorTasks(){const wrap=document.getElementById('groupTaskList');if(!wrap||!currentCollegeId)return;const p=groupDateParts();let done=0;wrap.innerHTML=GROUP_TASK_TEMPLATES.map(t=>{const x=getGroupTaskRecord(t.key),complete=x?.status==='पूर्ण';if(complete)done++;const windowText=t.weekly?'साप्ताहिक':t.from===1&&t.to===31?'मासिक':`${t.from} से ${t.to} तारीख`;const inWindow=t.from===1&&t.to===31?true:p.day>=t.from&&p.day<=t.to;return `<div class="sup-alert-item" style="margin:8px 0;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><div><strong style="font-size:1rem">${supEscape(t.title)}</strong><span>${windowText} · ${inWindow?'निर्धारित अवधि':'निर्धारित अवधि से बाहर'} · ${complete?'पूर्ण':'लंबित'}</span></div><button class="app-btn ${complete?'app-btn-secondary':'app-btn-success'}" onclick="setGroupTaskStatus('${t.key}','${complete?'लंबित':'पूर्ण'}')">${complete?'फिर लंबित करें':'पूर्ण चिह्नित करें'}</button></div>`;}).join('');const summary=document.getElementById('groupTaskSummary');if(summary)summary.innerHTML=`<div class="sup-alert-item"><strong>${done}</strong><span>पूर्ण कार्य</span></div><div class="sup-alert-item"><strong>${GROUP_TASK_TEMPLATES.length-done}</strong><span>लंबित कार्य</span></div><div class="sup-alert-item"><strong>${p.date}</strong><span>आज की तारीख</span></div>`;renderGroupInstructorAttendance();}
+        function renderGroupInstructorAttendance(){const p=groupDateParts(),body=document.getElementById('groupInstructorAttendanceBody');if(!body)return;const all=getSupCollegeInstructors(),rows=[];all.forEach(i=>{const root=appData.records?.[currentCollegeId]?.[i.trade]?.[p.month]||{};let count=0;getStudentList(currentCollegeId,i.trade).forEach(st=>{const sd=root[String(st.roll)]||{},dv=sd[String(p.day)]||{};if(['P','A','L'].includes(String(dv.M||''))||['P','A','L'].includes(String(dv.E||'')))count++;});rows.push({i,count});});const present=rows.filter(x=>x.count>0).length,summary=document.getElementById('groupInstructorAttendanceSummary');if(summary)summary.innerHTML=`<div class="sup-alert-item"><strong>${present}</strong><span>आज आए (क्लास अटेंडेंस दर्ज)</span></div><div class="sup-alert-item"><strong>${rows.length-present}</strong><span>अटेंडेंस दर्ज नहीं</span></div><div class="sup-alert-item"><strong>${rows.length}</strong><span>कुल अनुदेशक</span></div>`;body.innerHTML=rows.length?rows.map(x=>`<tr><td>${supEscape(x.i.name)}</td><td>${supEscape(x.i.trade)}</td><td>${x.count?'हाँ':'नहीं'}</td><td style="color:${x.count?'#15803d':'#b91c1c'};font-weight:700">${x.count?'उपस्थित':'अभी दर्ज नहीं'}</td></tr>`).join(''):'<tr><td colspan="4">कोई अनुदेशक दर्ज नहीं है।</td></tr>';}
+
         function ensureSupData() {
             if (!appData.superintendentData || typeof appData.superintendentData !== 'object') appData.superintendentData = {};
             const d=appData.superintendentData;
@@ -2303,15 +2347,17 @@
             if (!Array.isArray(d.auditLog)) d.auditLog=[];
             if (!Array.isArray(d.notices)) d.notices=[];
             if (!Array.isArray(d.assets)) d.assets=[];
+            if (!Array.isArray(appData.groupInstructorTasks)) appData.groupInstructorTasks=[];
             return d;
         }
         function supEscape(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
         function switchSupView(view,btn){
-            if(currentRole!=='superintendent')return;
+            if(!['superintendent','groupInstructor'].includes(currentRole))return;
             document.querySelectorAll('.sup-view-panel').forEach(el=>el.classList.add('hidden'));
             const panel=document.getElementById('supView'+view.charAt(0).toUpperCase()+view.slice(1)); if(panel)panel.classList.remove('hidden');
             document.querySelectorAll('.sup-nav-btn').forEach(el=>el.classList.toggle('active',el===btn));
             if(view==='performance'||view==='instructors'||view==='assets'||view==='tasks'||view==='inspection') renderSupOperationalViews();
+            if(view==='groupTasks') renderGroupInstructorTasks();
         }
         function getSupCollegeInstructors(){return getInstructorsList().filter(i=>(i.collegeId||'COL01')===currentCollegeId);}
         function getSupTradeStats(trade){
@@ -2327,7 +2373,7 @@
             ['supInspectionInstructor','supTaskInstructor'].forEach(id=>{const el=document.getElementById(id);if(el){const first=id==='supInspectionInstructor'?'<option value="">लागू नहीं</option>':'';el.innerHTML=first+opts;}});
         }
         function renderSuperintendentDashboard(){
-            if(currentRole!=='superintendent'||!currentCollegeId)return;
+            if(!['superintendent','groupInstructor'].includes(currentRole)||!currentCollegeId)return;
             ensureSupData();const cid=currentCollegeId;const trades=getTradesList();const instructors=getSupCollegeInstructors();let studentTotal=0,attendanceTotal=0;
             const tradeRows=[];trades.forEach(t=>{const students=getStudentList(cid,t);studentTotal+=students.length;const stats=getSupTradeStats(t);attendanceTotal+=stats.entries;const count=instructors.filter(i=>String(i.trade).trim()===t).length;if(students.length||count||stats.entries)tradeRows.push(`<tr><td><strong>${supEscape(t)}</strong></td><td>${isEnggTrade(t)?'इंजीनियरिंग':'नॉन-इंजीनियरिंग'}</td><td>${count}</td><td>${students.length}</td><td>${stats.entries}</td></tr>`);});
             document.getElementById('supCollegeBadge').innerText=getCollegeName(cid);document.getElementById('supSessionBadge').innerText=`सक्रिय सत्र: ${getSessionConfig().startDate} से ${getSessionConfig().endDate}`;
@@ -2335,10 +2381,10 @@
             document.getElementById('supTradeTableBody').innerHTML=tradeRows.length?tradeRows.join(''):'<tr><td colspan="5">इस कॉलेज में अभी ट्रेड डेटा उपलब्ध नहीं है।</td></tr>';
             const d=ensureSupData();const inspections=d.inspections.filter(x=>x.collegeId===cid);const openFindings=inspections.filter(x=>x.status==='सुधार आवश्यक'||x.status==='कार्यवाही जारी').length;const tasks=d.tasks.filter(x=>x.collegeId===cid);
             document.getElementById('supOverviewAlerts').innerHTML=`<div class="sup-alert-item"><strong>${inspections.length}</strong><span>कुल निरीक्षण</span></div><div class="sup-alert-item"><strong>${openFindings}</strong><span>सुधार लंबित</span></div><div class="sup-alert-item"><strong>${tasks.length}</strong><span>आवंटित कार्य</span></div><div class="sup-alert-item"><strong>${tasks.filter(t=>t.status==='पूर्ण').length}</strong><span>पूर्ण कार्य</span></div>`;
-            populateSupOperationalSelects();renderSupOperationalViews();
+            populateSupOperationalSelects();renderSupOperationalViews();if(currentRole==='groupInstructor')renderGroupInstructorTasks();
         }
         function renderSupOperationalViews(){
-            if(currentRole!=='superintendent'||!currentCollegeId)return;const cid=currentCollegeId;const ins=getSupCollegeInstructors();const d=ensureSupData();
+            if(!['superintendent','groupInstructor'].includes(currentRole)||!currentCollegeId)return;const cid=currentCollegeId;const ins=getSupCollegeInstructors();const d=ensureSupData();
             const rows=[];let max=1;
             ins.forEach(i=>{const stats=getSupTradeStats(i.trade);const evals=getSupEvalCount(i.trade);const ownReports=d.reports.filter(r=>r.collegeId===cid&&r.instructorId===i.id);const activityCount=ownReports.length;const ownTasks=d.tasks.filter(t=>t.collegeId===cid&&t.instructorId===i.id);const taskRate=ownTasks.length?Math.round(ownTasks.filter(t=>t.status==='पूर्ण').length/ownTasks.length*100):0;const reportRate=ownReports.length?Math.round(ownReports.filter(r=>r.status==='स्वीकृत').length/ownReports.length*100):0;const score=ownTasks.length||ownReports.length?Math.round((taskRate+reportRate)/((ownTasks.length?1:0)+(ownReports.length?1:0))):0;max=Math.max(max,score);const last=(ownTasks.concat(ownReports).sort((a,b)=>String(b.createdAt||'').localeCompare(String(a.createdAt||'')))[0]||{}).createdAt;
                 rows.push({i,stats,evals,activityCount,score,taskRate,reportRate,last});});
@@ -2351,14 +2397,14 @@
             const noticeHistory=document.getElementById('supNoticeHistory');if(noticeHistory){const ns=d.notices.filter(n=>n.collegeId===cid).sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt)));noticeHistory.innerHTML=ns.length?ns.map(n=>`<p>• <strong>${supEscape(n.title)}</strong> (${supEscape(n.trade==='ALL'?'सभी ट्रेड':n.trade)}) — ${supEscape(n.date||'')}</p>`).join(''):'<small>अभी कोई सूचना प्रकाशित नहीं हुई है।</small>'; }
             const reports=d.reports.filter(x=>x.collegeId===cid).sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt)));const rh=document.getElementById('supActivityReports');if(rh)rh.innerHTML=reports.length?reports.map(r=>`<tr><td><strong>${supEscape(r.period||'दैनिक')}</strong><br>${supEscape(r.date)}${r.endDate?' से '+supEscape(r.endDate):''}</td><td>${supEscape(r.instructorName)}</td><td>${supEscape(r.type)}</td><td>${Number(r.students)||0}</td><td>${supEscape(r.details)}${r.reviewComment?`<br><small>टिप्पणी: ${supEscape(r.reviewComment)}</small>`:''}</td><td>${supEscape(r.status||'जमा')}</td><td><button class="app-btn app-btn-success" onclick="reviewSupReport('${r.id}','approve')">स्वीकृत</button> <button class="app-btn app-btn-warning" onclick="reviewSupReport('${r.id}','return')">वापस भेजें</button></td></tr>`).join(''):'<tr><td colspan="7">अभी कोई गतिविधि रिपोर्ट जमा नहीं हुई है।</td></tr>';
         }
-        function publishSupNotice(){if(currentRole!=='superintendent'||!currentCollegeId)return;const title=document.getElementById('supNoticeTitle').value.trim(),message=document.getElementById('supNoticeMessage').value.trim(),trade=document.getElementById('supNoticeTrade').value;if(!title||!message){alert('सूचना का शीर्षक और विवरण दोनों भरें।');return;}ensureSupData().notices.push({id:'NOT'+Date.now(),collegeId:currentCollegeId,trade,title,message,date:new Date().toISOString().slice(0,10),createdAt:new Date().toISOString(),createdBy:loggedInSuperintendent?.name||''});syncWithFirebase();document.getElementById('supNoticeTitle').value='';document.getElementById('supNoticeMessage').value='';renderSupOperationalViews();showToast('विद्यार्थियों के लिए सूचना प्रकाशित हो गई।');}
+        function publishSupNotice(){if(!['superintendent','groupInstructor'].includes(currentRole)||!currentCollegeId)return;const title=document.getElementById('supNoticeTitle').value.trim(),message=document.getElementById('supNoticeMessage').value.trim(),trade=document.getElementById('supNoticeTrade').value;if(!title||!message){alert('सूचना का शीर्षक और विवरण दोनों भरें।');return;}ensureSupData().notices.push({id:'NOT'+Date.now(),collegeId:currentCollegeId,trade,title,message,date:new Date().toISOString().slice(0,10),createdAt:new Date().toISOString(),createdBy:loggedInSuperintendent?.name||''});syncWithFirebase();document.getElementById('supNoticeTitle').value='';document.getElementById('supNoticeMessage').value='';renderSupOperationalViews();showToast('विद्यार्थियों के लिए सूचना प्रकाशित हो गई।');}
 
         function addSupAudit(action, details, targetId=''){
             const d=ensureSupData();d.auditLog.push({id:'AUD'+Date.now(),collegeId:currentCollegeId,actor:loggedInSuperintendent?.name||'सुपर एडमिन',role:currentRole,action,details,targetId,at:new Date().toISOString()});
             if(d.auditLog.length>2000)d.auditLog=d.auditLog.slice(-2000);
         }
         function reviewSupReport(id, decision){
-            if(currentRole!=='superintendent'||!currentCollegeId)return;
+            if(!['superintendent','groupInstructor'].includes(currentRole)||!currentCollegeId)return;
             const r=ensureSupData().reports.find(x=>x.id===id&&x.collegeId===currentCollegeId);if(!r)return;
             if(!['जमा','दोबारा जमा','सुधार के बाद जमा'].includes(r.status||'जमा')){alert('यह रिपोर्ट पहले ही समीक्षा की जा चुकी है।');return;}
             const comment=prompt(decision==='approve'?'स्वीकृति टिप्पणी (वैकल्पिक) लिखें:':'सुधार के लिए स्पष्ट कारण / निर्देश लिखें:');
@@ -2374,13 +2420,13 @@
         }
 
         function saveSupInspection(){
-            if(currentRole!=='superintendent'||!currentCollegeId)return;const d=ensureSupData();const type=document.getElementById('supInspectionType').value;const instructorId=document.getElementById('supInspectionInstructor').value;const inst=getSupCollegeInstructors().find(x=>x.id===instructorId);const finding=document.getElementById('supInspectionFinding').value.trim();if(!finding){alert('निरीक्षण निष्कर्ष / जाँच विवरण लिखें।');return;}
+            if(!['superintendent','groupInstructor'].includes(currentRole)||!currentCollegeId)return;const d=ensureSupData();const type=document.getElementById('supInspectionType').value;const instructorId=document.getElementById('supInspectionInstructor').value;const inst=getSupCollegeInstructors().find(x=>x.id===instructorId);const finding=document.getElementById('supInspectionFinding').value.trim();if(!finding){alert('निरीक्षण निष्कर्ष / जाँच विवरण लिखें।');return;}
             const labels={instructor:'अनुदेशक रिकॉर्ड / कार्य',lab:'लैब निरीक्षण',machine:'मशीन / उपकरण',safety:'सुरक्षा व्यवस्था',general:'सामान्य निरीक्षण'};
             d.inspections.push({id:'INSP'+Date.now(),collegeId:currentCollegeId,date:document.getElementById('supInspectionDate').value||new Date().toISOString().slice(0,10),type,typeLabel:labels[type],instructorId,instructorName:inst?inst.name:'',location:document.getElementById('supInspectionLocation').value.trim(),finding,action:document.getElementById('supInspectionAction').value.trim(),status:document.getElementById('supInspectionStatus').value,createdBy:loggedInSuperintendent?.name||'',createdAt:new Date().toISOString()});
             addSupAudit('निरीक्षण दर्ज',`${labels[type]}: ${finding}`);syncWithFirebase();['supInspectionFinding','supInspectionAction','supInspectionLocation'].forEach(id=>document.getElementById(id).value='');renderSuperintendentDashboard();showToast('निरीक्षण रिकॉर्ड सेव हो गया।');
         }
         function updateSupInspectionStatus(id){const x=ensureSupData().inspections.find(v=>v.id===id&&v.collegeId===currentCollegeId);if(!x)return;const options=['सुधार आवश्यक','कार्यवाही जारी','संतोषजनक','पूर्ण'];const next=prompt('नई स्थिति लिखें: '+options.join(' / '),x.status);if(!next)return;if(!options.includes(next)){alert('कृपया सूची में से सही स्थिति लिखें।');return;}x.status=next;x.updatedAt=new Date().toISOString();syncWithFirebase();renderSuperintendentDashboard();}
-        function assignSupTask(){if(currentRole!=='superintendent'||!currentCollegeId)return;const id=document.getElementById('supTaskInstructor').value;const inst=getSupCollegeInstructors().find(x=>x.id===id);const title=document.getElementById('supTaskTitle').value.trim();if(!inst||!title){alert('अनुदेशक और कार्य विवरण भरें।');return;}ensureSupData().tasks.push({id:'TASK'+Date.now(),collegeId:currentCollegeId,instructorId:id,instructorName:inst.name,title,description:document.getElementById('supTaskDescription').value.trim(),due:document.getElementById('supTaskDue').value,priority:document.getElementById('supTaskPriority').value,status:'लंबित',createdAt:new Date().toISOString(),createdBy:loggedInSuperintendent?.name||''});addSupAudit('कार्य आवंटित',`${inst.name}: ${title}`);syncWithFirebase();['supTaskTitle','supTaskDescription','supTaskDue'].forEach(x=>document.getElementById(x).value='');renderSupOperationalViews();showToast('अनुदेशक को कार्य आवंटित हो गया।');}
+        function assignSupTask(){if(!['superintendent','groupInstructor'].includes(currentRole)||!currentCollegeId)return;const id=document.getElementById('supTaskInstructor').value;const inst=getSupCollegeInstructors().find(x=>x.id===id);const title=document.getElementById('supTaskTitle').value.trim();if(!inst||!title){alert('अनुदेशक और कार्य विवरण भरें।');return;}ensureSupData().tasks.push({id:'TASK'+Date.now(),collegeId:currentCollegeId,instructorId:id,instructorName:inst.name,title,description:document.getElementById('supTaskDescription').value.trim(),due:document.getElementById('supTaskDue').value,priority:document.getElementById('supTaskPriority').value,status:'लंबित',createdAt:new Date().toISOString(),createdBy:loggedInSuperintendent?.name||''});addSupAudit('कार्य आवंटित',`${inst.name}: ${title}`);syncWithFirebase();['supTaskTitle','supTaskDescription','supTaskDue'].forEach(x=>document.getElementById(x).value='');renderSupOperationalViews();showToast('अनुदेशक को कार्य आवंटित हो गया।');}
         function setSupTaskStatus(id){const t=ensureSupData().tasks.find(x=>x.id===id&&x.collegeId===currentCollegeId);if(!t)return;const next=prompt('कार्य की नई स्थिति लिखें: लंबित / प्रगति पर / पूर्ण',t.status);if(!next)return;if(!['लंबित','प्रगति पर','पूर्ण'].includes(next)){alert('अमान्य स्थिति।');return;}t.status=next;t.updatedAt=new Date().toISOString();syncWithFirebase();renderSupOperationalViews();}
 
         function exportSuperintendentSummary() {
@@ -2479,6 +2525,7 @@
             applyCurrentCollegeBranding();
             document.getElementById('adminNavBtn').classList.add('hidden');
             document.getElementById('superintendentNavBtn').classList.add('hidden');
+            const groupLoginBtn=document.getElementById('groupInstructorNavBtn');if(groupLoginBtn)groupLoginBtn.classList.add('hidden');
             document.getElementById('authStatusPill').classList.remove('hidden');
 
             document.getElementById('adminSection').classList.add('hidden');
@@ -2492,6 +2539,7 @@
                 populateCollegeDropdowns();
                 populateTradeDropdowns();
                 populateSuperintendentCollegeSelects();
+                populateGroupInstructorSelects();
                 updateAdminSessionBadge();
             } else if (currentRole === 'instructor') {
                 document.getElementById('instructorSection').classList.remove('hidden');
@@ -2505,9 +2553,9 @@
                 document.getElementById('evalTradeTypeBadge').innerText = isEngg ? 'इंजीनियरिंग' : 'नॉन-इंजीनियरिंग';
                 document.getElementById('roleLabel').innerHTML = `<i class="fa-solid fa-chalkboard-user"></i> ${currentTrade} (${colName})`;
                 switchInstructorTab('attendance');
-            } else if (currentRole === 'superintendent') {
+            } else if (currentRole === 'superintendent' || currentRole === 'groupInstructor') {
                 document.getElementById('superintendentSection').classList.remove('hidden');
-                document.getElementById('roleLabel').innerHTML = `<i class="fa-solid fa-user-tie"></i> अधीक्षक: ${loggedInSuperintendent.name}`;
+                document.getElementById('roleLabel').innerHTML = `<i class="fa-solid fa-user-tie"></i> ${currentRole==='groupInstructor'?'ग्रुप इंस्ट्रक्टर':'अधीक्षक'}: ${loggedInSuperintendent.name}`;
                 document.getElementById('supCollegeBadge').innerText = getCollegeName(currentCollegeId);
                 const dt=document.getElementById("supInspectionDate"); if(dt && !dt.value) dt.value=new Date().toISOString().slice(0,10);
                 switchSupView("overview",document.querySelector("[data-view=overview]"));
@@ -2532,6 +2580,7 @@
             applyCurrentCollegeBranding();
             document.getElementById('adminNavBtn').classList.remove('hidden');
             document.getElementById('superintendentNavBtn').classList.remove('hidden');
+            const groupLoginBtn=document.getElementById('groupInstructorNavBtn');if(groupLoginBtn)groupLoginBtn.classList.remove('hidden');
             document.getElementById('authStatusPill').classList.add('hidden');
             document.getElementById('adminSection').classList.add('hidden');
             document.getElementById('instructorSection').classList.add('hidden');
@@ -4109,6 +4158,7 @@
                     populateCollegeDropdowns();
                     populateTradeDropdowns();
                     populateSuperintendentCollegeSelects();
+                    populateGroupInstructorSelects();
                     updateAdminSessionBadge();
                     
                     if (currentRole === 'instructor') { 
@@ -4117,7 +4167,7 @@
                         renderStudentCredentialsModalTable();
                     }
                     if (currentRole === 'admin') renderAdminView();
-                    if (currentRole === 'superintendent') renderSuperintendentDashboard();
+                    if (currentRole === 'superintendent' || currentRole === 'groupInstructor') renderSuperintendentDashboard();
                     if (currentRole === 'student') renderStudentDashboard();
                 }
             });
