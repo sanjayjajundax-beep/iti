@@ -717,13 +717,9 @@
 </div>
 </div>
 <div class="header-actions">
-<button class="btn-admin-portal" id="adminNavBtn" onclick="openModal('adminLoginModal')">
-<i class="fa-solid fa-shield-halved"></i> सुपर एडमिन पोर्टल
-            </button>
-<button class="app-btn app-btn-success" id="groupInstructorNavBtn" onclick="openModal('groupInstructorLoginModal')"><i class="fa-solid fa-users-gear"></i> ग्रुप इंस्ट्रक्टर लॉगिन</button>
-            <button class="app-btn app-btn-purple" id="superintendentNavBtn" onclick="openModal('superintendentLoginModal')">
-<i class="fa-solid fa-user-tie"></i> अधीक्षक लॉगिन
-            </button>
+
+
+            
 <div class="user-status-pill hidden" id="authStatusPill">
 <span id="roleLabel"><i class="fa-solid fa-user"></i> लॉगिन</span>
 <button class="btn-logout" onclick="logout()"><i class="fa-solid fa-power-off"></i> बाहर आएं</button>
@@ -732,62 +728,26 @@
 </header>
 <!-- Main Container -->
 <main class="main-container">
-<!-- 1. FRONT LOGIN -->
+<!-- 1. SINGLE UNIFIED LOGIN -->
 <section id="frontLoginSection">
-<div class="login-wrapper">
-<!-- Instructor Login -->
-<div class="glass-card card-instructor">
-<div class="card-header-icon"><i class="fa-solid fa-chalkboard-user"></i></div>
-<h2 class="form-title">ट्रेड अनुदेशक लॉगिन</h2>
-<p class="form-subtitle">कॉलेज व ट्रेड चुनकर अपनी कक्षा का रिकॉर्ड संभालें</p>
-<form autocomplete="off" onsubmit="handleInstructorLogin(event)">
+<div class="login-wrapper" style="max-width:520px;grid-template-columns:minmax(0,1fr);">
+<div class="glass-card card-instructor" style="width:100%;">
+<div class="card-header-icon"><i class="fa-solid fa-right-to-bracket"></i></div>
+<h2 class="form-title">एकीकृत लॉगिन पोर्टल</h2>
+<form autocomplete="off" onsubmit="handleUnifiedLogin(event)">
 <div class="input-group">
-<label><i class="fa-solid fa-building-columns"></i> संस्थान / कॉलेज चुनें</label>
-<select id="loginInstCollege" required=""></select>
+<label for="unifiedLoginId"><i class="fa-solid fa-id-badge"></i> लॉगिन आईडी</label>
+<input autocomplete="username" id="unifiedLoginId" placeholder="अपनी लॉगिन आईडी दर्ज करें" required type="text"/>
 </div>
 <div class="input-group">
-<label><i class="fa-solid fa-layer-group"></i> ट्रेड का चयन करें</label>
-<select id="loginInstTrade" required=""></select>
+<label for="unifiedLoginPass"><i class="fa-solid fa-key"></i> पासवर्ड</label>
+<input autocomplete="current-password" id="unifiedLoginPass" placeholder="अपना पासवर्ड दर्ज करें" required type="password"/>
 </div>
-<div class="input-group">
-<label><i class="fa-solid fa-id-badge"></i> अनुदेशक आईडी</label>
-<input autocomplete="off" id="instId" placeholder="प्रदत्त लॉगिन आईडी" required="" type="text"/>
-</div>
-<div class="input-group">
-<label><i class="fa-solid fa-key"></i> पासवर्ड</label>
-<input autocomplete="current-password" id="instPass" placeholder="पासवर्ड दर्ज करें" required="" type="password"/>
-</div>
-<button class="btn-submit btn-inst-submit" type="submit">
-<i class="fa-solid fa-arrow-right-to-bracket"></i> अनुदेशक प्रवेश
-                        </button>
+<button class="btn-submit btn-inst-submit" type="submit"><i class="fa-solid fa-lock-open"></i> लॉगिन करें</button>
 </form>
+<div class="login-developer-credit" style="margin-top:42px;padding:18px 8px 4px;text-align:center;color:#17459a;font-weight:700;font-size:1rem;border-top:1px solid #d7e0ee;">
+डेवलपर संजय जाजुन्दा
 </div>
-<!-- Student Login -->
-<div class="glass-card card-student">
-<div class="card-header-icon"><i class="fa-solid fa-user-graduate"></i></div>
-<h2 class="form-title">प्रशिक्षु (Student) लॉगिन</h2>
-<p class="form-subtitle">अपना कॉलेज, ट्रेड व आईडी डालकर स्कोरकार्ड देखें</p>
-<form autocomplete="off" onsubmit="handleStudentLogin(event)">
-<div class="input-group">
-<label><i class="fa-solid fa-building-columns"></i> अपना कॉलेज चुनें</label>
-<select id="loginStudentCollege" required=""></select>
-</div>
-<div class="input-group">
-<label><i class="fa-solid fa-layer-group"></i> अपनी ट्रेड चुनें</label>
-<select id="loginStudentTrade" required=""></select>
-</div>
-<div class="input-group">
-<label><i class="fa-solid fa-id-card"></i> छात्र लॉगिन आईडी</label>
-<input autocomplete="off" id="studentLoginId" placeholder="उदा. st101" required="" type="text"/>
-</div>
-<div class="input-group">
-<label><i class="fa-solid fa-lock"></i> पासवर्ड</label>
-<input autocomplete="current-password" id="studentLoginPass" placeholder="पासवर्ड दर्ज करें" required="" type="password"/>
-</div>
-<button class="btn-submit btn-stud-submit" type="submit">
-<i class="fa-solid fa-chart-pie"></i> स्कोरकार्ड देखें
-                        </button>
-</form>
 </div>
 </div>
 </section>
@@ -1556,26 +1516,9 @@
 </div>
 </div>
 <!-- Superintendent Login Modal -->
-<div class="modal-backdrop hidden" id="superintendentLoginModal">
-<div class="modal-content">
-<h3 style="color:var(--admin);margin-bottom:12px;"><i class="fa-solid fa-user-tie"></i> अधीक्षक लॉगिन</h3>
-<form autocomplete="off" onsubmit="handleSuperintendentLogin(event)">
-<div class="input-group"><label>अपना कॉलेज चुनें</label><select id="supLoginCollege" required=""></select></div>
-<div class="input-group"><label>अधीक्षक लॉगिन आईडी</label><input autocomplete="username" id="supLoginId" placeholder="लॉगिन आईडी" required=""/></div>
-<div class="input-group"><label>पासवर्ड</label><input autocomplete="current-password" id="supLoginPass" placeholder="पासवर्ड" required="" type="password"/></div>
-<div style="display:flex;gap:10px;margin-top:14px;"><button class="app-btn app-btn-primary" style="flex:1;" type="submit"><i class="fa-solid fa-lock-open"></i> लॉगिन</button><button class="app-btn app-btn-secondary" onclick="closeModal('superintendentLoginModal')" type="button">रद्द करें</button></div>
-</form>
-</div>
-</div>
+
 <!-- Group Instructor Login Modal -->
-<div class="modal-backdrop hidden" id="groupInstructorLoginModal"><div class="modal-content">
-<h3 style="color:#047857;margin-bottom:12px;"><i class="fa-solid fa-users-gear"></i> ग्रुप इंस्ट्रक्टर लॉगिन</h3>
-<form autocomplete="off" onsubmit="handleGroupInstructorLogin(event)">
-<div class="input-group"><label>कॉलेज चुनें</label><select id="groupLoginCollege" required></select></div>
-<div class="input-group"><label>लॉगिन आईडी</label><input id="groupLoginId" required autocomplete="username"></div>
-<div class="input-group"><label>पासवर्ड</label><input id="groupLoginPass" type="password" required autocomplete="current-password"></div>
-<div style="display:flex;gap:10px;margin-top:14px;"><button class="app-btn app-btn-success" style="flex:1" type="submit">लॉगिन</button><button class="app-btn app-btn-secondary" type="button" onclick="closeModal('groupInstructorLoginModal')">रद्द करें</button></div>
-</form></div></div>
+
 <div class="modal-backdrop hidden" id="groupInstructorManagerModal"><div class="modal-content" style="max-width:760px">
 <div style="display:flex;justify-content:space-between;align-items:center"><h3>ग्रुप इंस्ट्रक्टर अकाउंट प्रबंधन</h3><button class="app-btn app-btn-secondary" onclick="closeModal('groupInstructorManagerModal')">✕</button></div>
 <form onsubmit="saveGroupInstructorAccount(event)"><input id="groupEditIndex" type="hidden">
@@ -1584,27 +1527,7 @@
 <div class="table-shell" style="margin-top:12px"><table><thead><tr><th>कॉलेज</th><th>नाम</th><th>आईडी</th><th>स्थिति</th><th>कार्रवाई</th></tr></thead><tbody id="groupInstructorAccountsBody"></tbody></table></div>
 </div></div>
 <!-- Admin Login Modal -->
-<div class="modal-backdrop hidden" id="adminLoginModal">
-<div class="modal-content">
-<h3 style="color: var(--admin); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-<i class="fa-solid fa-shield-halved"></i> सुपर एडमिन लॉगिन
-            </h3>
-<form autocomplete="off" onsubmit="handleAdminLogin(event)">
-<div class="input-group">
-<label>सुपर एडमिन आईडी</label>
-<input autocomplete="off" id="adminId" placeholder="एडमिन आईडी दर्ज करें" required="" type="text"/>
-</div>
-<div class="input-group">
-<label>पासवर्ड</label>
-<input autocomplete="current-password" id="adminPass" placeholder="पासवर्ड दर्ज करें" required="" type="password"/>
-</div>
-<div style="display: flex; gap: 10px; margin-top: 14px;">
-<button class="app-btn app-btn-primary" style="flex: 1; padding: 10px;" type="submit"><i class="fa-solid fa-lock-open"></i> लॉगिन</button>
-<button class="app-btn app-btn-secondary" onclick="closeModal('adminLoginModal')" type="button">रद्द करें</button>
-</div>
-</form>
-</div>
-</div>
+
 <!-- Admin Change Credentials Modal -->
 <div class="modal-backdrop hidden" id="adminChangeCredModal">
 <div class="modal-content">
@@ -2518,6 +2441,70 @@
 
         // ==================== AUTHENTICATION ====================
 
+        // One login endpoint for every account type. Role is derived from stored account records.
+        function handleUnifiedLogin(e) {
+            e.preventDefault();
+            const id = document.getElementById('unifiedLoginId').value.trim();
+            const pass = document.getElementById('unifiedLoginPass').value;
+            const matches = [];
+            const adminId = (appData.adminCreds && appData.adminCreds.id) ? String(appData.adminCreds.id) : 'superadmin';
+            const adminPass = (appData.adminCreds && appData.adminCreds.pass) ? String(appData.adminCreds.pass) : 'admin@123';
+            if (id === adminId && pass === adminPass) matches.push({role:'admin'});
+
+            ensureSuperintendentStore().forEach(a => {
+                if (a.active !== false && String(a.id).trim() === id && String(a.pass) === pass)
+                    matches.push({role:'superintendent', collegeId:a.collegeId, account:a});
+            });
+            ensureGroupInstructorStore().forEach(a => {
+                if (a.active !== false && String(a.id).trim() === id && String(a.pass) === pass)
+                    matches.push({role:'groupInstructor', collegeId:a.collegeId, account:a});
+            });
+            getInstructorsList().forEach(a => {
+                if (String(a.id).trim() === id && String(a.pass).trim() === pass)
+                    matches.push({role:'instructor', collegeId:a.collegeId || 'COL01', trade:String(a.trade||'').trim(), account:a});
+            });
+            (getCollegesList() || []).forEach(c => {
+                (Array.isArray(appData.trades) ? appData.trades : []).forEach(t => {
+                    getStudentList(c.id, t).forEach(st => {
+                        if (String(st.studentId).trim().toLowerCase() === id.toLowerCase() && String(st.password).trim() === pass)
+                            matches.push({role:'student', collegeId:c.id, trade:t, account:st});
+                    });
+                });
+            });
+
+            if (matches.length === 0) {
+                alert('लॉगिन आईडी या पासवर्ड गलत है। कृपया सही विवरण दर्ज करें।');
+                return;
+            }
+            if (matches.length > 1) {
+                alert('यह लॉगिन आईडी एक से अधिक अकाउंट में मिली है। कृपया एडमिन से अलग और यूनिक लॉगिन आईडी बनवाएँ।');
+                return;
+            }
+
+            const m = matches[0];
+            currentRole = m.role;
+            currentCollegeId = m.collegeId || null;
+            currentTrade = m.trade || null;
+            if (m.role === 'admin') {
+                loggedInStudent = null; loggedInSuperintendent = null; loggedInInstructor = null;
+                setupUIRoute(); renderAdminView(); updateAdminSessionBadge();
+                showToast('सुपर एडमिन लॉगिन सफल!');
+            } else if (m.role === 'instructor') {
+                loggedInInstructor = m.account;
+                setupUIRoute(); renderRegister(); renderEvaluationTable();
+                showToast(`${getCollegeName(currentCollegeId)} - ${currentTrade} अनुदेशक लॉगिन सफल!`);
+            } else if (m.role === 'student') {
+                loggedInStudent = m.account;
+                setupUIRoute();
+                showToast(`स्वागतम्, ${m.account.name}!`);
+            } else {
+                loggedInSuperintendent = m.account;
+                setupUIRoute();
+                showToast(`${m.role === 'groupInstructor' ? 'ग्रुप इंस्ट्रक्टर' : 'अधीक्षक'} लॉगिन सफल!`);
+            }
+            document.getElementById('unifiedLoginPass').value = '';
+        }
+
         function handleAdminLogin(e) {
             e.preventDefault();
             const id = document.getElementById('adminId').value.trim();
@@ -2602,9 +2589,6 @@
         function setupUIRoute() {
             document.getElementById('frontLoginSection').classList.add('hidden');
             applyCurrentCollegeBranding();
-            document.getElementById('adminNavBtn').classList.add('hidden');
-            document.getElementById('superintendentNavBtn').classList.add('hidden');
-            const groupLoginBtn=document.getElementById('groupInstructorNavBtn');if(groupLoginBtn)groupLoginBtn.classList.add('hidden');
             document.getElementById('authStatusPill').classList.remove('hidden');
 
             document.getElementById('adminSection').classList.add('hidden');
@@ -2663,12 +2647,11 @@
             loggedInStudent = null;
             loggedInSuperintendent = null;
             loggedInInstructor = null;
+            if (document.getElementById('unifiedLoginId')) document.getElementById('unifiedLoginId').value = '';
+            if (document.getElementById('unifiedLoginPass')) document.getElementById('unifiedLoginPass').value = '';
             document.getElementById('frontLoginSection').classList.remove('hidden');
             currentCollegeId=null;
             applyCurrentCollegeBranding();
-            document.getElementById('adminNavBtn').classList.remove('hidden');
-            document.getElementById('superintendentNavBtn').classList.remove('hidden');
-            const groupLoginBtn=document.getElementById('groupInstructorNavBtn');if(groupLoginBtn)groupLoginBtn.classList.remove('hidden');
             document.getElementById('authStatusPill').classList.add('hidden');
             document.getElementById('adminSection').classList.add('hidden');
             document.getElementById('instructorSection').classList.add('hidden');
