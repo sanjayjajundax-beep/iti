@@ -5293,7 +5293,17 @@ window.__itiLoginClick = async function(ev) {
       <div class="table-shell"><table><thead><tr><th>ट्रेड</th><th>अनुदेशक</th><th>विद्यार्थी</th><th>उपस्थिति रिकॉर्ड</th><th>मूल्यांकन रिकॉर्ड</th><th>गतिविधि रिपोर्ट</th></tr></thead><tbody id="supTradeCompareBody"></tbody></table></div>
       <h4 style="margin-top:16px">अनुदेशकवार तुलना</h4><div class="table-shell"><table><thead><tr><th>अनुदेशक</th><th>ट्रेड</th><th>विद्यार्थी</th><th>उपस्थिति</th><th>मूल्यांकन</th><th>रिपोर्ट</th><th>स्वीकृत</th></tr></thead><tbody id="supInstructorCompareBody"></tbody></table></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="app-btn app-btn-excel" onclick="exportMonthlyCollegeReport('xlsx')">मासिक कॉलेज रिपोर्ट Excel</button><button class="app-btn app-btn-danger" onclick="exportMonthlyCollegeReport('pdf')">मासिक कॉलेज रिपोर्ट PDF</button></div>
-      <label style="display:block;margin-top:10px">रिपोर्ट माह <input id="supReportMonth" type="month"></label></div>`);
+      <label style="display:block;margin-top:10px">रिपोर्ट माह <input id="supReportMonth" type="month"></label>
+      <div class="glass-card sup-panel" id="instructorMonthlyPerformancePanel" style="margin-top:16px;background:#f8fafc">
+        <h3><i class="fa-solid fa-file-pdf"></i> अनुदेशक की मासिक व्यक्तिगत प्रदर्शन रिपोर्ट</h3>
+        <p class="sup-help">महीना और अनुदेशक चुनकर उसकी गतिविधियों, कार्यों, रिपोर्ट, शिक्षण रिकॉर्ड और उपलब्ध उपस्थिति/मूल्यांकन का PDF प्राप्त करें।</p>
+        <div class="sup-form-grid">
+          <div class="input-group"><label for="giPerformanceMonth">रिपोर्ट का महीना</label><input id="giPerformanceMonth" type="month"></div>
+          <div class="input-group"><label for="giPerformanceInstructor">अनुदेशक चुनें</label><select id="giPerformanceInstructor"><option value="">अनुदेशक चुनें</option></select></div>
+        </div>
+        <button class="app-btn app-btn-danger" type="button" onclick="downloadInstructorMonthlyPerformancePDF()"><i class="fa-solid fa-file-pdf"></i> अनुदेशक प्रदर्शन PDF डाउनलोड करें</button>
+        <div id="giPerformanceReportHint" class="sup-help" style="margin-top:8px">रिपोर्ट बनाने के लिए महीना और अनुदेशक चुनें।</div>
+      </div></div>`);
     if(!$('supTimetablePanel')) $('supViewTasks').insertAdjacentHTML('beforeend',`<div class="glass-card sup-panel" id="supTimetablePanel"><h3>कक्षा समय-सारणी प्रकाशित करें</h3><div class="sup-form-grid"><div class="input-group"><label>ट्रेड</label><select id="supTtTrade"><option value="ALL">सभी ट्रेड</option></select></div><div class="input-group"><label>दिन</label><select id="supTtDay"><option>सोमवार</option><option>मंगलवार</option><option>बुधवार</option><option>गुरुवार</option><option>शुक्रवार</option><option>शनिवार</option></select></div><div class="input-group"><label>समय</label><input id="supTtTime" placeholder="10:00 - 11:00"></div><div class="input-group"><label>विषय / प्रैक्टिकल</label><input id="supTtSubject"></div><div class="input-group"><label>अनुदेशक</label><input id="supTtInstructor"></div></div><button class="app-btn app-btn-primary" onclick="publishCollegeTimetable()">समय-सारणी प्रकाशित करें</button></div>`);
     if(!$('supLeaveRequestsPanel')) $('supViewTasks').insertAdjacentHTML('beforeend',`<div class="glass-card sup-panel" id="supLeaveRequestsPanel"><h3>विद्यार्थी अवकाश आवेदन</h3><div class="table-shell"><table><thead><tr><th>विद्यार्थी</th><th>ट्रेड</th><th>अवधि</th><th>कारण</th><th>स्थिति</th><th>कार्रवाई</th></tr></thead><tbody id="supLeaveRequestsBody"></tbody></table></div></div>`);
     if(!$('instCompletionPanel')) $('instTabWork').insertAdjacentHTML('beforeend',`
@@ -5317,6 +5327,8 @@ window.__itiLoginClick = async function(ev) {
       const d=sd(),cid=currentCollegeId,month=$('supReportMonth')?.value||new Date().toISOString().slice(0,7);
       const tt=$('supTtTrade');if(tt&&tt.options.length<=1)tt.innerHTML='<option value="ALL">सभी ट्रेड</option>'+getTradesList().map(t=>`<option value="${esc(t)}">${esc(t)}</option>`).join('');
       const trades=getTradesList(),ins=getSupCollegeInstructors();
+      const pm=$('giPerformanceMonth');if(pm&&!pm.value)pm.value=month;
+      const pi=$('giPerformanceInstructor');if(pi){const selected=pi.value;pi.innerHTML='<option value="">अनुदेशक चुनें</option>'+ins.map(i=>`<option value="${esc(i.id)}">${esc(i.name)} — ${esc(i.trade)}</option>`).join('');if(ins.some(i=>String(i.id)===String(selected)))pi.value=selected;}
       if($('supTradeCompareBody'))$('supTradeCompareBody').innerHTML=trades.map(t=>{const st=getStudentList(cid,t),ac=attendanceCount(cid,t,month),rs=d.reports.filter(r=>r.collegeId===cid&&r.trade===t&&String(r.date||'').startsWith(month));return `<tr><td>${esc(t)}</td><td>${ins.filter(i=>i.trade===t).length}</td><td>${st.length}</td><td>${ac.entries}</td><td>${getSupEvalCount(t)}</td><td>${rs.length}</td></tr>`}).join('');
       if($('supInstructorCompareBody'))$('supInstructorCompareBody').innerHTML=ins.map(i=>{const ac=attendanceCount(cid,i.trade,month),rs=d.reports.filter(r=>r.collegeId===cid&&r.instructorId===i.id&&String(r.date||'').startsWith(month));return `<tr><td>${esc(i.name)}</td><td>${esc(i.trade)}</td><td>${getStudentList(cid,i.trade).length}</td><td>${ac.entries}</td><td>${getSupEvalCount(i.trade)}</td><td>${rs.length}</td><td>${rs.filter(r=>r.status==='स्वीकृत').length}</td></tr>`}).join('');
       if(currentRole==='superintendent'&&$('supLeaveRequestsBody'))$('supLeaveRequestsBody').innerHTML=d.leaveRequests.filter(x=>x.collegeId===cid).map(x=>`<tr><td>${esc(x.studentName)}</td><td>${esc(x.trade)}</td><td>${esc(x.from)} से ${esc(x.to)}</td><td>${esc(x.reason)}</td><td>${esc(x.status)}</td><td><button class="app-btn app-btn-success" onclick="reviewStudentLeave('${x.id}','स्वीकृत')">स्वीकृत</button> <button class="app-btn app-btn-warning" onclick="reviewStudentLeave('${x.id}','अस्वीकृत')">अस्वीकृत</button></td></tr>`).join('')||'<tr><td colspan="6">कोई आवेदन नहीं</td></tr>';
@@ -5339,7 +5351,91 @@ window.__itiLoginClick = async function(ev) {
   window.submitStudentLeave=function(){if(!collegeGuard('student'))return;const from=$('studentLeaveFrom').value,to=$('studentLeaveTo').value,reason=$('studentLeaveReason').value.trim();if(!from||!to||to<from||!reason){alert('सही तारीखें और अवकाश का कारण भरें।');return;}sd().leaveRequests.push({id:'LV'+Date.now(),collegeId:currentCollegeId,trade:currentTrade,studentId:String(loggedInStudent.studentId),studentName:loggedInStudent.name,from,to,reason,status:'लंबित',createdAt:new Date().toISOString()});syncWithFirebase();renderCompletionModules();showToast('अवकाश आवेदन अधीक्षक को भेजा गया।');};
   window.publishCollegeTimetable=function(){if(!collegeGuard('superintendent'))return;const subject=$('supTtSubject').value.trim(),time=$('supTtTime').value.trim();if(!subject||!time){alert('समय और विषय भरें।');return;}sd().timetables.push({id:'TT'+Date.now(),collegeId:currentCollegeId,trade:$('supTtTrade').value,day:$('supTtDay').value,time,subject,instructor:$('supTtInstructor').value.trim(),createdAt:new Date().toISOString()});syncWithFirebase();['supTtTime','supTtSubject','supTtInstructor'].forEach(id=>$(id).value='');renderCompletionModules();showToast('समय-सारणी प्रकाशित हुई।');};
   window.reviewStudentLeave=function(id,status){if(!collegeGuard('superintendent'))return;const x=sd().leaveRequests.find(v=>v.id===id&&v.collegeId===currentCollegeId);if(!x)return;x.status=status;x.reviewedAt=new Date().toISOString();x.reviewedBy=loggedInSuperintendent?.name||'';syncWithFirebase();renderCompletionModules();};
-  window.exportMonthlyCollegeReport=function(format){if(!['superintendent','groupInstructor'].includes(currentRole)||!currentCollegeId){alert('यह रिपोर्ट केवल अधीक्षक या ग्रुप इंस्ट्रक्टर डाउनलोड कर सकते हैं।');return;}const cid=currentCollegeId,month=$('supReportMonth')?.value||new Date().toISOString().slice(0,7),d=sd();const rows=[['कॉलेज',getCollegeName(cid)],['माह',month],[],['ट्रेड','अनुदेशक','विद्यार्थी','उपस्थिति एंट्री','मूल्यांकन रिकॉर्ड','गतिविधि रिपोर्ट']];getTradesList().forEach(t=>rows.push([t,getSupCollegeInstructors().filter(i=>i.trade===t).length,getStudentList(cid,t).length,attendanceCount(cid,t,month).entries,getSupEvalCount(t),d.reports.filter(r=>r.collegeId===cid&&r.trade===t&&String(r.date||'').startsWith(month)).length]));if(format==='xlsx'&&window.XLSX){const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(rows),'Monthly Progress');XLSX.writeFile(wb,`ITI_${cid}_${month}_Monthly_Progress.xlsx`);return;}if(format==='xlsx'&&!window.XLSX){alert('Excel लाइब्रेरी लोड नहीं हुई। इंटरनेट कनेक्शन जाँचें और पेज रीफ्रेश करके दोबारा प्रयास करें।');return;}if(format==='pdf'){const w=window.open('','_blank');if(!w){alert('PDF प्रिंट के लिए पॉपअप अनुमति दें।');return;}w.document.write(`<html><meta charset="utf-8"><title>मासिक कॉलेज प्रगति</title><style>body{font-family:Arial,sans-serif;padding:20px}table{border-collapse:collapse;width:100%}td,th{border:1px solid #555;padding:8px;text-align:left}h2{text-align:center}</style><h2>${esc(getCollegeName(cid))} — मासिक प्रगति रिपोर्ट (${month})</h2><table>${rows.map((r,i)=>'<tr>'+r.map(v=>`<${i===3?'th':'td'}>${esc(v??'')}</${i===3?'th':'td'}>`).join('')+'</tr>').join('')}</table><script>window.onload=()=>window.print()<\/script></html>`);w.document.close();return;}const csv='\\uFEFF'+rows.map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\\r\\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download=`ITI_${cid}_${month}_Monthly_Progress.csv`;a.click();};
+
+  function monthMatches(value,month){return String(value||'').slice(0,7)===month;}
+  function countMonthlyEvaluations(cid,trade,month){
+    const root=appData.evaluations?.[cid]?.[trade]?.[month]||{};let n=0;
+    const walk=o=>{if(!o||typeof o!=='object')return;Object.values(o).forEach(v=>{if(v&&typeof v==='object'){if(Object.keys(v).some(k=>['test1','test2','theory','practical','marks'].includes(String(k).toLowerCase())))n++;else walk(v);}})};
+    walk(root);return n;
+  }
+  function monthlyTradeAttendance(cid,trade,month){
+    const root=appData.records?.[cid]?.[trade]?.[month]||{};let present=0,absent=0,leave=0,entries=0,daysWithEntry=0;
+    Object.values(root).forEach(studentDays=>{
+      let studentHasEntry=false;
+      Object.values(studentDays||{}).forEach(status=>{
+        const v=String(status||'').toUpperCase();
+        if(['P','A','L'].includes(v)){entries++;studentHasEntry=true;if(v==='P')present++;else if(v==='A')absent++;else leave++;}
+      });
+      if(studentHasEntry)daysWithEntry++;
+    });
+    return {present,absent,leave,entries,daysWithEntry,percent:(present+absent)?Math.round(present/(present+absent)*100):0};
+  }
+  window.downloadInstructorMonthlyPerformancePDF=function(){
+    if(!['groupInstructor','superintendent'].includes(currentRole)||!currentCollegeId){alert('यह रिपोर्ट केवल ग्रुप इंस्ट्रक्टर / अधीक्षक डाउनलोड कर सकते हैं।');return;}
+    const month=$('giPerformanceMonth')?.value||'',id=$('giPerformanceInstructor')?.value||'';
+    if(!month||!/^\\d{4}-\\d{2}$/.test(month)){alert('कृपया रिपोर्ट का महीना चुनें।');return;}
+    const inst=getSupCollegeInstructors().find(i=>String(i.id)===String(id));
+    if(!inst){alert('कृपया सूची से अनुदेशक चुनें।');return;}
+    const d=sd(),cid=currentCollegeId,trade=inst.trade;
+    const own=(arr)=>arr.filter(x=>x.collegeId===cid&&String(x.instructorId)===String(inst.id));
+    const syllabus=own(d.syllabus).filter(x=>monthMatches(x.date,month));
+    const teaching=own(d.teachingRecords).filter(x=>monthMatches(x.date,month));
+    const weak=own(d.weakStudents).filter(x=>monthMatches(x.date||x.createdAt,month));
+    const reports=own(d.reports).filter(x=>monthMatches(x.date,month));
+    const tasks=own(d.tasks).filter(x=>monthMatches(x.createdAt,month));
+    const inspections=(d.inspections||[]).filter(x=>x.collegeId===cid&&String(x.instructorId||'')===String(inst.id)&&monthMatches(x.date,month));
+    const attendance=monthlyTradeAttendance(cid,trade,month);
+    const evaluations=countMonthlyEvaluations(cid,trade,month);
+    const completedTasks=tasks.filter(x=>x.status==='पूर्ण').length;
+    const approvedReports=reports.filter(x=>x.status==='स्वीकृत').length;
+    const avgSyllabus=syllabus.length?Math.round(syllabus.reduce((s,x)=>s+(Number(x.percent)||0),0)/syllabus.length):0;
+    const fmtDate=v=>{if(!v)return '-';const dt=new Date(v);return Number.isNaN(dt.getTime())?String(v):dt.toLocaleDateString('hi-IN');};
+    const detailRows=[];
+    syllabus.forEach(x=>detailRows.push(['पाठ्यक्रम प्रगति',fmtDate(x.date),x.topic||'-',`${Number(x.percent)||0}%`,x.note||'-']));
+    teaching.forEach(x=>detailRows.push([x.type||'शिक्षण रिकॉर्ड',fmtDate(x.date),x.subject||'-',`${Number(x.students)||0} विद्यार्थी`,x.kind||'-']));
+    weak.forEach(x=>detailRows.push(['कमजोर विद्यार्थी सुधार',fmtDate(x.date||x.createdAt),x.studentName||'-',x.area||'-',x.plan||'-']));
+    reports.forEach(x=>detailRows.push([`गतिविधि रिपोर्ट (${x.period||'दैनिक'})`,fmtDate(x.date),x.type||'-',`${Number(x.students)||0} विद्यार्थी`,`${x.details||'-'} · स्थिति: ${x.status||'जमा'}`]));
+    tasks.forEach(x=>detailRows.push(['आवंटित कार्य',fmtDate(x.createdAt),x.title||'-',x.status||'लंबित',x.description||'-']));
+    inspections.forEach(x=>detailRows.push(['निरीक्षण',fmtDate(x.date),x.typeLabel||x.type||'-',x.status||'-',`${x.finding||'-'} ${x.action?' | निर्देश: '+x.action:''}`]));
+    const summary=[
+      ['पाठ्यक्रम प्रगति रिकॉर्ड',syllabus.length],
+      ['पाठ्यक्रम की औसत प्रगति',syllabus.length?avgSyllabus+'%':'डेटा उपलब्ध नहीं'],
+      ['थ्योरी / प्रैक्टिकल रिकॉर्ड',teaching.length],
+      ['कमजोर विद्यार्थी सुधार योजना',weak.length],
+      ['जमा गतिविधि रिपोर्ट',reports.length],
+      ['स्वीकृत गतिविधि रिपोर्ट',approvedReports],
+      ['आवंटित कार्य',tasks.length],
+      ['पूर्ण किए गए कार्य',completedTasks],
+      ['निरीक्षण रिकॉर्ड',inspections.length],
+      ['मूल्यांकन रिकॉर्ड (ट्रेड स्तर)',evaluations],
+      ['उपस्थिति में दर्ज P / उपस्थित एंट्री (ट्रेड स्तर)',attendance.present],
+      ['उपस्थिति में दर्ज A / अनुपस्थित एंट्री (ट्रेड स्तर)',attendance.absent],
+      ['उपस्थिति में दर्ज L / अवकाश एंट्री (ट्रेड स्तर)',attendance.leave],
+      ['उपस्थिति प्रतिशत (ट्रेड स्तर)',attendance.percent+'%']
+    ];
+    const w=window.open('','_blank');
+    if(!w){alert('PDF बनाने के लिए ब्राउज़र में पॉपअप अनुमति दें।');return;}
+    const details=detailRows.length?detailRows.map(r=>'<tr>'+r.map(v=>`<td>${esc(v)}</td>`).join('')+'</tr>').join(''):'<tr><td colspan="5">इस महीने इस अनुदेशक की दिनांक सहित कोई गतिविधि दर्ज नहीं मिली।</td></tr>';
+    const summaryHtml=summary.map(r=>`<tr><th>${esc(r[0])}</th><td>${esc(r[1])}</td></tr>`).join('');
+    w.document.write(`<!doctype html><html lang="hi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(inst.name)} - मासिक प्रदर्शन ${esc(month)}</title><style>
+      @page{size:A4;margin:14mm}body{font-family:Arial,"Noto Sans Devanagari",sans-serif;color:#172033;font-size:12px;line-height:1.5}
+      h1,h2,h3{text-align:center;margin:5px 0}h1{font-size:20px;color:#173b75}h2{font-size:16px} .meta{display:flex;justify-content:space-between;gap:12px;border:1px solid #94a3b8;padding:9px;margin:14px 0}
+      table{width:100%;border-collapse:collapse;margin:8px 0 16px;page-break-inside:auto}tr{page-break-inside:avoid}th,td{border:1px solid #94a3b8;padding:6px;text-align:left;vertical-align:top}thead th{background:#e8eef8}
+      .note{font-size:10px;color:#475569;margin:5px 0 12px}.sign{display:flex;justify-content:space-between;margin-top:38px}.foot{margin-top:18px;border-top:1px solid #cbd5e1;padding-top:6px;font-size:10px;color:#64748b}
+      @media screen{body{max-width:850px;margin:20px auto;padding:12px}}
+    </style></head><body>
+      <h1>${esc(getCollegeName(cid))}</h1><h2>अनुदेशक मासिक गतिविधि एवं प्रदर्शन रिपोर्ट</h2>
+      <div class="meta"><div><b>अनुदेशक:</b> ${esc(inst.name)}<br><b>ट्रेड:</b> ${esc(trade||'-')}</div><div><b>रिपोर्ट माह:</b> ${esc(month)}<br><b>रिपोर्ट तारीख:</b> ${esc(new Date().toLocaleDateString('hi-IN'))}</div></div>
+      <h3 style="text-align:left">मासिक प्रदर्शन सारांश</h3><table><tbody>${summaryHtml}</tbody></table>
+      <p class="note">नोट: उपस्थिति और मूल्यांकन के आँकड़े ट्रेड स्तर के हैं, क्योंकि मौजूदा रिकॉर्ड में विद्यार्थी की उपस्थिति/मूल्यांकन को अलग-अलग अनुदेशक से जोड़ने का विवरण उपलब्ध नहीं है। व्यक्तिगत गतिविधियाँ नीचे अनुदेशक ID के आधार पर दिखाई गई हैं।</p>
+      <h3 style="text-align:left">महीने की गतिविधियों का विवरण</h3><table><thead><tr><th>गतिविधि</th><th>तारीख</th><th>विषय / कार्य</th><th>प्रगति / संख्या</th><th>टिप्पणी / विवरण</th></tr></thead><tbody>${details}</tbody></table>
+      <div class="sign"><span>ग्रुप इंस्ट्रक्टर के हस्ताक्षर: ______________</span><span>प्राचार्य / अधीक्षक: ______________</span></div>
+      <div class="foot">यह रिपोर्ट पोर्टल में उपलब्ध रिकॉर्ड के आधार पर स्वतः तैयार की गई है।</div>
+      <script>window.onload=()=>setTimeout(()=>window.print(),350)<\/script></body></html>`);
+    w.document.close();
+  };
+
+    window.exportMonthlyCollegeReport=function(format){if(!['superintendent','groupInstructor'].includes(currentRole)||!currentCollegeId){alert('यह रिपोर्ट केवल अधीक्षक या ग्रुप इंस्ट्रक्टर डाउनलोड कर सकते हैं।');return;}const cid=currentCollegeId,month=$('supReportMonth')?.value||new Date().toISOString().slice(0,7),d=sd();const rows=[['कॉलेज',getCollegeName(cid)],['माह',month],[],['ट्रेड','अनुदेशक','विद्यार्थी','उपस्थिति एंट्री','मूल्यांकन रिकॉर्ड','गतिविधि रिपोर्ट']];getTradesList().forEach(t=>rows.push([t,getSupCollegeInstructors().filter(i=>i.trade===t).length,getStudentList(cid,t).length,attendanceCount(cid,t,month).entries,getSupEvalCount(t),d.reports.filter(r=>r.collegeId===cid&&r.trade===t&&String(r.date||'').startsWith(month)).length]));if(format==='xlsx'&&window.XLSX){const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(rows),'Monthly Progress');XLSX.writeFile(wb,`ITI_${cid}_${month}_Monthly_Progress.xlsx`);return;}if(format==='xlsx'&&!window.XLSX){alert('Excel लाइब्रेरी लोड नहीं हुई। इंटरनेट कनेक्शन जाँचें और पेज रीफ्रेश करके दोबारा प्रयास करें।');return;}if(format==='pdf'){const w=window.open('','_blank');if(!w){alert('PDF प्रिंट के लिए पॉपअप अनुमति दें।');return;}w.document.write(`<html><meta charset="utf-8"><title>मासिक कॉलेज प्रगति</title><style>body{font-family:Arial,sans-serif;padding:20px}table{border-collapse:collapse;width:100%}td,th{border:1px solid #555;padding:8px;text-align:left}h2{text-align:center}</style><h2>${esc(getCollegeName(cid))} — मासिक प्रगति रिपोर्ट (${month})</h2><table>${rows.map((r,i)=>'<tr>'+r.map(v=>`<${i===3?'th':'td'}>${esc(v??'')}</${i===3?'th':'td'}>`).join('')+'</tr>').join('')}</table><script>window.onload=()=>window.print()<\/script></html>`);w.document.close();return;}const csv='\\uFEFF'+rows.map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\\r\\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download=`ITI_${cid}_${month}_Monthly_Progress.csv`;a.click();};
   window.downloadStudentMonthlyReport=function(){if(!collegeGuard('student'))return;const m=$('studentMonthSelector')?.value||new Date().toISOString().slice(0,7),content=$('studentSection')?.cloneNode(true);if(!content)return;content.querySelectorAll('button,input,select,textarea').forEach(x=>x.remove());const w=window.open('','_blank');if(!w){alert('प्रिंट के लिए पॉपअप अनुमति दें।');return;}w.document.write(`<html><meta charset="utf-8"><title>विद्यार्थी मासिक रिपोर्ट ${m}</title><style>body{font-family:Arial,sans-serif;padding:18px;color:#111}table{border-collapse:collapse;width:100%}td,th{border:1px solid #777;padding:5px;font-size:12px}.hidden{display:none!important}.student-vertical-nav-column{display:none!important}</style><h2>${esc(getCollegeName(currentCollegeId))} — मासिक विद्यार्थी प्रगति रिपोर्ट (${m})</h2>${content.innerHTML}</html>`);w.document.close();setTimeout(()=>w.print(),500);};
   const oldRenderSup=window.renderSuperintendentDashboard;window.renderSuperintendentDashboard=function(){oldRenderSup.apply(this,arguments);renderCompletionModules();};
   const oldRenderStudent=window.renderStudentDashboard;window.renderStudentDashboard=function(){oldRenderStudent.apply(this,arguments);renderCompletionModules();};
