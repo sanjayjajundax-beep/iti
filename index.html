@@ -14,6 +14,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <!-- Firebase SDK (Compat Version - Realtime Database) -->
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 <style>
         :root {
@@ -703,6 +704,82 @@
         .student-side-nav{display:flex;flex-direction:column;gap:7px;max-width:230px;float:left;margin:0 16px 16px 0}
         @media(max-width:760px){.role-sidebar-layout{grid-template-columns:108px minmax(0,1fr);gap:7px}.role-sidebar{top:75px;padding:6px;gap:5px;max-height:calc(100vh - 88px)}.role-side-heading{font-size:.72rem;padding:7px 3px 9px;line-height:1.25}.role-side-btn{font-size:.68rem!important;padding:9px 5px!important;min-height:38px;gap:5px!important;line-height:1.25}.role-side-btn i{width:14px;flex:0 0 14px}.role-dashboard-heading{padding:9px;font-size:.88rem}.student-side-nav{max-width:100%;float:none;margin:0 0 12px 0}}
 </style>
+
+<script>
+        // appData को Firebase/helper functions से पहले initialize करें ताकि TDZ error न आए.
+        let appData = {
+            adminCreds: { id: "superadmin", pass: "admin@123" },
+            superintendents: [],
+            superintendentData: { inspections: [], tasks: [], reports: [], auditLog: [], notices: [], assets: [] },
+            colleges: [
+                { id: "COL01", name: "राजकीय औद्योगिक प्रशिक्षण संस्थान, कोटड़ी" },
+                { id: "COL02", name: "राजकीय औद्योगिक प्रशिक्षण संस्थान, भीलवाड़ा" }
+            ],
+            instituteSettings: {
+                name: "राजकीय औद्योगिक प्रशिक्षण संस्थान, कोटड़ी",
+                code: "ITI-KOTRI-2026",
+                location: "कोटड़ी, भीलवाड़ा (राजस्थान)",
+                tagline: "छात्र उपस्थिति, टेस्ट एवं प्रगति मूल्यांकन पोर्टल",
+                logoUrl: "",
+                superintendentName: "श्री अधीक्षक महोदय",
+                superintendentTitle: "अधीक्षक / प्राचार्य",
+                superintendentSignUrl: ""
+            },
+            sessionConfig: {
+                startDate: "2026-08-10",
+                endDate: "2027-06-30"
+            },
+            freezeLocks: {}, 
+            archivedSessions: {},
+            trades: ["COPA", "Electrician", "Fitter"],
+            tradeTypes: {
+                "COPA": "non_engineering",
+                "Electrician": "engineering",
+                "Fitter": "engineering"
+            },
+            instructors: [
+                { id: "copa_inst", name: "संजय जाजुन्दा", pass: "copa123", trade: "COPA", collegeId: "COL01" },
+                { id: "elec_inst", name: "दिनेश सर (कोटड़ी)", pass: "elec123", trade: "Electrician", collegeId: "COL01" }
+            ],
+            students: {
+                "COL01": {
+                    "COPA": [
+                        { roll: "1", name: "राहुल शर्मा", admissionDate: "2026-08-10", studentId: "st101", password: "123", pastWorkingDays: 0, pastPresentDays: 0 },
+                        { roll: "2", name: "पूजा वर्मा", admissionDate: "2026-08-10", studentId: "st102", password: "123", pastWorkingDays: 0, pastPresentDays: 0 }
+                    ],
+                    "Electrician": [
+                        { roll: "1", name: "सुरेश गुर्जर", admissionDate: "2026-08-10", studentId: "el201", password: "123", pastWorkingDays: 0, pastPresentDays: 0 }
+                    ]
+                }
+            },
+            records: {},     
+            holidays: {},    
+            evaluations: {}, 
+            maxMarksConfig: {} 
+        };
+
+
+// Login tap diagnostic: this small independent handler runs even if the main app has an initialization error.
+window.__itiLoginClick = async function(ev) {
+  try {
+    if (ev && ev.preventDefault) ev.preventDefault();
+    var box = document.getElementById('loginDiagnosticMessage');
+    if (box) { box.style.color = '#1d4ed8'; box.textContent = 'बटन क्लिक हुआ — लॉगिन जाँच शुरू हो रही है…'; }
+    if (typeof window.handleUnifiedLogin !== 'function') {
+      if (box) { box.style.color = '#b91c1c'; box.textContent = 'त्रुटि: लॉगिन स्क्रिप्ट उपलब्ध नहीं है। पेज की JavaScript लोड नहीं हुई।'; }
+      return;
+    }
+    await window.handleUnifiedLogin({ preventDefault: function() {} });
+    if (box && box.textContent.indexOf('बटन क्लिक हुआ') === 0) {
+      box.style.color = '#15803d'; box.textContent = 'लॉगिन प्रक्रिया पूरी हुई।';
+    }
+  } catch (err) {
+    console.error('ITI login click error:', err);
+    var box = document.getElementById('loginDiagnosticMessage');
+    if (box) { box.style.color = '#b91c1c'; box.textContent = 'लॉगिन त्रुटि: ' + (err && err.message ? err.message : String(err)); }
+  }
+};
+</script>
 </head>
 <body>
 <!-- Header -->
@@ -734,7 +811,7 @@
 <div class="glass-card card-instructor" style="width:100%;">
 <div class="card-header-icon"><i class="fa-solid fa-right-to-bracket"></i></div>
 <h2 class="form-title">एकीकृत लॉगिन पोर्टल</h2>
-<form autocomplete="off" onsubmit="handleUnifiedLogin(event)">
+<form id="unifiedLoginForm" autocomplete="off" onsubmit="handleUnifiedLogin(event)" style="position:relative;z-index:10;pointer-events:auto;">
 <div class="input-group">
 <label for="unifiedLoginId"><i class="fa-solid fa-id-badge"></i> लॉगिन आईडी</label>
 <input autocomplete="username" id="unifiedLoginId" placeholder="अपनी लॉगिन आईडी दर्ज करें" required type="text"/>
@@ -743,7 +820,8 @@
 <label for="unifiedLoginPass"><i class="fa-solid fa-key"></i> पासवर्ड</label>
 <input autocomplete="current-password" id="unifiedLoginPass" placeholder="अपना पासवर्ड दर्ज करें" required type="password"/>
 </div>
-<button class="btn-submit btn-inst-submit" type="submit"><i class="fa-solid fa-lock-open"></i> लॉगिन करें</button>
+<button id="unifiedLoginButton" class="btn-submit btn-inst-submit" type="button" onclick="window.__itiLoginClick(event)" style="position:relative;z-index:20;pointer-events:auto;touch-action:manipulation;cursor:pointer;"><i class="fa-solid fa-lock-open"></i> लॉगिन करें</button>
+<div id="loginDiagnosticMessage" role="status" aria-live="polite" style="margin-top:10px;min-height:22px;text-align:center;font-size:13px;font-weight:700;color:#b91c1c;"></div>
 </form>
 <div class="login-developer-credit" style="margin-top:42px;padding:18px 8px 4px;text-align:center;color:#17459a;font-weight:700;font-size:1rem;border-top:1px solid #d7e0ee;">
 डेवलपर संजय जाजुन्दा
@@ -1769,59 +1847,15 @@
             measurementId: "G-EKQGGRV69Y"
         };
 
+        // एकमात्र Firebase: iti-kotri — सभी कॉलेज और सभी ट्रेड का डेटा यहीं से पढ़ा/लिखा जाएगा।
         firebase.initializeApp(firebaseConfig);
         const rtdb = firebase.database();
+        // लॉगिन से पहले iti-kotri Firebase का अकाउंट डेटा आने की प्रतीक्षा करें।
+        let legacyCloudReady = false;
+        let legacyCloudError = null;
+        let resolveLegacyCloudReady;
+        const legacyCloudReadyPromise = new Promise(resolve => { resolveLegacyCloudReady = resolve; });
 
-        let appData = {
-            adminCreds: { id: "superadmin", pass: "admin@123" },
-            superintendents: [],
-            superintendentData: { inspections: [], tasks: [], reports: [], auditLog: [], notices: [], assets: [] },
-            colleges: [
-                { id: "COL01", name: "राजकीय औद्योगिक प्रशिक्षण संस्थान, कोटड़ी" },
-                { id: "COL02", name: "राजकीय औद्योगिक प्रशिक्षण संस्थान, भीलवाड़ा" }
-            ],
-            instituteSettings: {
-                name: "राजकीय औद्योगिक प्रशिक्षण संस्थान, कोटड़ी",
-                code: "ITI-KOTRI-2026",
-                location: "कोटड़ी, भीलवाड़ा (राजस्थान)",
-                tagline: "छात्र उपस्थिति, टेस्ट एवं प्रगति मूल्यांकन पोर्टल",
-                logoUrl: "",
-                superintendentName: "श्री अधीक्षक महोदय",
-                superintendentTitle: "अधीक्षक / प्राचार्य",
-                superintendentSignUrl: ""
-            },
-            sessionConfig: {
-                startDate: "2026-08-10",
-                endDate: "2027-06-30"
-            },
-            freezeLocks: {}, 
-            archivedSessions: {},
-            trades: ["COPA", "Electrician", "Fitter"],
-            tradeTypes: {
-                "COPA": "non_engineering",
-                "Electrician": "engineering",
-                "Fitter": "engineering"
-            },
-            instructors: [
-                { id: "copa_inst", name: "संजय जाजुन्दा", pass: "copa123", trade: "COPA", collegeId: "COL01" },
-                { id: "elec_inst", name: "दिनेश सर (कोटड़ी)", pass: "elec123", trade: "Electrician", collegeId: "COL01" }
-            ],
-            students: {
-                "COL01": {
-                    "COPA": [
-                        { roll: "1", name: "राहुल शर्मा", admissionDate: "2026-08-10", studentId: "st101", password: "123", pastWorkingDays: 0, pastPresentDays: 0 },
-                        { roll: "2", name: "पूजा वर्मा", admissionDate: "2026-08-10", studentId: "st102", password: "123", pastWorkingDays: 0, pastPresentDays: 0 }
-                    ],
-                    "Electrician": [
-                        { roll: "1", name: "सुरेश गुर्जर", admissionDate: "2026-08-10", studentId: "el201", password: "123", pastWorkingDays: 0, pastPresentDays: 0 }
-                    ]
-                }
-            },
-            records: {},     
-            holidays: {},    
-            evaluations: {}, 
-            maxMarksConfig: {} 
-        };
 
         let currentRole = null;
         let currentCollegeId = null;
@@ -2442,70 +2476,97 @@
         // ==================== AUTHENTICATION ====================
 
         // One login endpoint for every account type. Role is derived from stored account records.
-        function handleUnifiedLogin(e) {
-            e.preventDefault();
+        async function handleUnifiedLogin(e) {
+            if (e && typeof e.preventDefault === 'function') e.preventDefault();
+            const loginButton = document.getElementById('unifiedLoginButton');
+            if (loginButton) loginButton.disabled = true;
             const id = document.getElementById('unifiedLoginId').value.trim();
             const pass = document.getElementById('unifiedLoginPass').value;
-            const matches = [];
-            const adminId = (appData.adminCreds && appData.adminCreds.id) ? String(appData.adminCreds.id) : 'superadmin';
-            const adminPass = (appData.adminCreds && appData.adminCreds.pass) ? String(appData.adminCreds.pass) : 'admin@123';
-            if (id === adminId && pass === adminPass) matches.push({role:'admin'});
 
-            ensureSuperintendentStore().forEach(a => {
-                if (a.active !== false && String(a.id).trim() === id && String(a.pass) === pass)
-                    matches.push({role:'superintendent', collegeId:a.collegeId, account:a});
-            });
-            ensureGroupInstructorStore().forEach(a => {
-                if (a.active !== false && String(a.id).trim() === id && String(a.pass) === pass)
-                    matches.push({role:'groupInstructor', collegeId:a.collegeId, account:a});
-            });
-            getInstructorsList().forEach(a => {
-                if (String(a.id).trim() === id && String(a.pass).trim() === pass)
-                    matches.push({role:'instructor', collegeId:a.collegeId || 'COL01', trade:String(a.trade||'').trim(), account:a});
-            });
-            (getCollegesList() || []).forEach(c => {
-                (Array.isArray(appData.trades) ? appData.trades : []).forEach(t => {
-                    getStudentList(c.id, t).forEach(st => {
-                        if (String(st.studentId).trim().toLowerCase() === id.toLowerCase() && String(st.password).trim() === pass)
-                            matches.push({role:'student', collegeId:c.id, trade:t, account:st});
+            try {
+                // सभी भूमिकाओं सहित Admin का लॉगिन भी केवल iti-kotri के डेटा से होगा।
+                if (!legacyCloudReady) {
+                    await Promise.race([
+                        legacyCloudReadyPromise,
+                        new Promise((_, reject) => setTimeout(() => reject(new Error('iti-kotri Firebase के अकाउंट डेटा का इंतज़ार समय पूरा हुआ।')), 10000))
+                    ]);
+                }
+                if (legacyCloudError) throw legacyCloudError;
+
+                const matches = [];
+                const adminId = (appData.adminCreds && appData.adminCreds.id) ? String(appData.adminCreds.id) : 'superadmin';
+                const adminPass = (appData.adminCreds && appData.adminCreds.pass) ? String(appData.adminCreds.pass) : 'admin@123';
+                if (id === adminId && pass === adminPass) {
+                    currentRole = 'admin';
+                    currentCollegeId = null;
+                    currentTrade = null;
+                    loggedInStudent = null;
+                    loggedInSuperintendent = null;
+                    loggedInInstructor = null;
+                    setupUIRoute();
+                    renderAdminView();
+                    updateAdminSessionBadge();
+                    document.getElementById('unifiedLoginPass').value = '';
+                    showToast('iti-kotri Firebase से Admin लॉगिन सफल!');
+                    return;
+                }
+                ensureSuperintendentStore().forEach(a => {
+                    if (a.active !== false && String(a.id).trim() === id && String(a.pass) === pass)
+                        matches.push({role:'superintendent', collegeId:a.collegeId, account:a});
+                });
+                ensureGroupInstructorStore().forEach(a => {
+                    if (a.active !== false && String(a.id).trim() === id && String(a.pass) === pass)
+                        matches.push({role:'groupInstructor', collegeId:a.collegeId, account:a});
+                });
+                getInstructorsList().forEach(a => {
+                    if (String(a.id).trim() === id && String(a.pass).trim() === pass)
+                        matches.push({role:'instructor', collegeId:a.collegeId || 'COL01', trade:String(a.trade||'').trim(), account:a});
+                });
+                (getCollegesList() || []).forEach(c => {
+                    (Array.isArray(appData.trades) ? appData.trades : []).forEach(t => {
+                        getStudentList(c.id, t).forEach(st => {
+                            if (String(st.studentId).trim().toLowerCase() === id.toLowerCase() && String(st.password).trim() === pass)
+                                matches.push({role:'student', collegeId:c.id, trade:t, account:st});
+                        });
                     });
                 });
-            });
 
-            if (matches.length === 0) {
-                alert('लॉगिन आईडी या पासवर्ड गलत है। कृपया सही विवरण दर्ज करें।');
-                return;
-            }
-            if (matches.length > 1) {
-                alert('यह लॉगिन आईडी एक से अधिक अकाउंट में मिली है। कृपया एडमिन से अलग और यूनिक लॉगिन आईडी बनवाएँ।');
-                return;
-            }
+                if (matches.length === 0) {
+                    alert('लॉगिन आईडी या पासवर्ड गलत है। कृपया सही विवरण दर्ज करें।');
+                    return;
+                }
+                if (matches.length > 1) {
+                    alert('यह लॉगिन आईडी एक से अधिक अकाउंट में मिली है। कृपया एडमिन से अलग और यूनिक लॉगिन आईडी बनवाएँ।');
+                    return;
+                }
 
-            const m = matches[0];
-            currentRole = m.role;
-            currentCollegeId = m.collegeId || null;
-            currentTrade = m.trade || null;
-            if (m.role === 'admin') {
-                loggedInStudent = null; loggedInSuperintendent = null; loggedInInstructor = null;
-                setupUIRoute(); renderAdminView(); updateAdminSessionBadge();
-                showToast('सुपर एडमिन लॉगिन सफल!');
-            } else if (m.role === 'instructor') {
-                loggedInInstructor = m.account;
-                setupUIRoute(); renderRegister(); renderEvaluationTable();
-                showToast(`${getCollegeName(currentCollegeId)} - ${currentTrade} अनुदेशक लॉगिन सफल!`);
-            } else if (m.role === 'student') {
-                loggedInStudent = m.account;
-                setupUIRoute();
-                showToast(`स्वागतम्, ${m.account.name}!`);
-            } else {
-                loggedInSuperintendent = m.account;
-                setupUIRoute();
-                showToast(`${m.role === 'groupInstructor' ? 'ग्रुप इंस्ट्रक्टर' : 'अधीक्षक'} लॉगिन सफल!`);
+                const m = matches[0];
+                currentRole = m.role;
+                currentCollegeId = m.collegeId || null;
+                currentTrade = m.trade || null;
+                if (m.role === 'instructor') {
+                    loggedInInstructor = m.account;
+                    setupUIRoute(); renderRegister(); renderEvaluationTable();
+                    showToast(`${getCollegeName(currentCollegeId)} - ${currentTrade} अनुदेशक लॉगिन सफल!`);
+                } else if (m.role === 'student') {
+                    loggedInStudent = m.account;
+                    setupUIRoute();
+                    showToast(`स्वागतम्, ${m.account.name}!`);
+                } else {
+                    loggedInSuperintendent = m.account;
+                    setupUIRoute();
+                    showToast(`${m.role === 'groupInstructor' ? 'ग्रुप इंस्ट्रक्टर' : 'अधीक्षक'} लॉगिन सफल!`);
+                }
+                document.getElementById('unifiedLoginPass').value = '';
+            } catch (err) {
+                console.error('Unified login error:', err);
+                alert('लॉगिन में समस्या: ' + (err.message || err));
+            } finally {
+                if (loginButton) loginButton.disabled = false;
             }
-            document.getElementById('unifiedLoginPass').value = '';
         }
 
-        function handleAdminLogin(e) {
+        async function handleAdminLogin(e) {
             e.preventDefault();
             const id = document.getElementById('adminId').value.trim();
             const pass = document.getElementById('adminPass').value.trim();
@@ -4207,12 +4268,12 @@
 
         function saveLocalCache() {
             try {
-                localStorage.setItem('multi_iti_rtdb_cache', JSON.stringify(appData));
+                localStorage.setItem('multi_iti_rtdb_cache_iti_kotri_only_v1', JSON.stringify(appData));
             } catch(e) {}
         }
 
         function loadLocalCache() {
-            const data = localStorage.getItem('multi_iti_rtdb_cache');
+            const data = localStorage.getItem('multi_iti_rtdb_cache_iti_kotri_only_v1');
             if (data) {
                 try { 
                     const parsed = JSON.parse(data);
@@ -4224,6 +4285,7 @@
         }
 
         function listenToCloudData() {
+            // एकमात्र iti-kotri Firebase से सभी कॉलेज/ट्रेड का पूरा डेटा
             rtdb.ref('portal_data').on('value', (snapshot) => {
                 const cloudVal = snapshot.val();
                 if (cloudVal) {
@@ -4270,17 +4332,24 @@
                     if (currentRole === 'superintendent' || currentRole === 'groupInstructor') renderSuperintendentDashboard();
                     if (currentRole === 'student') renderStudentDashboard();
                 }
+                legacyCloudReady = true;
+                resolveLegacyCloudReady(true);
+            }, (error) => {
+                legacyCloudError = error || new Error('iti-kotri Firebase से डेटा पढ़ने में समस्या।');
+                legacyCloudReady = true;
+                resolveLegacyCloudReady(false);
             });
         }
 
         async function syncWithFirebase() {
             saveLocalCache();
             try {
+                // पूरा डेटा — COPA सहित — केवल iti-kotri Firebase में सेव करें।
                 await rtdb.ref('portal_data').set(appData);
-                showToast("Firebase Cloud पर डेटा सुरक्षित हो गया!");
+                showToast("iti-kotri Firebase पर पूरा डेटा सुरक्षित हो गया!");
             } catch (e) {
-                console.error("Firebase error", e);
-                showToast("लोकल सुरक्षित हुआ, Firebase सिंक में त्रुटि!");
+                console.error("Firebase sync error", e);
+                showToast("लोकल सुरक्षित हुआ, Firebase सिंक में त्रुटि! Rules/Auth जाँचें।");
             }
         }
 
