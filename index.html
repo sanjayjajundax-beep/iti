@@ -5385,6 +5385,8 @@ window.__itiLoginClick = async function(ev) {
     const tasks=own(d.tasks).filter(x=>monthMatches(x.createdAt,month));
     const inspections=(d.inspections||[]).filter(x=>x.collegeId===cid&&String(x.instructorId||'')===String(inst.id)&&monthMatches(x.date,month));
     const attendance=monthlyTradeAttendance(cid,trade,month);
+    const tradeStudentCount=getStudentList(cid,trade).length;
+    const attendanceMarked=attendance.present+attendance.absent+attendance.leave;
     const evaluations=countMonthlyEvaluations(cid,trade,month);
     const completedTasks=tasks.filter(x=>x.status==='पूर्ण').length;
     const approvedReports=reports.filter(x=>x.status==='स्वीकृत').length;
@@ -5407,11 +5409,13 @@ window.__itiLoginClick = async function(ev) {
       ['आवंटित कार्य',tasks.length],
       ['पूर्ण किए गए कार्य',completedTasks],
       ['निरीक्षण रिकॉर्ड',inspections.length],
-      ['मूल्यांकन रिकॉर्ड (ट्रेड स्तर)',evaluations],
-      ['उपस्थिति में दर्ज P / उपस्थित एंट्री (ट्रेड स्तर)',attendance.present],
-      ['उपस्थिति में दर्ज A / अनुपस्थित एंट्री (ट्रेड स्तर)',attendance.absent],
-      ['उपस्थिति में दर्ज L / अवकाश एंट्री (ट्रेड स्तर)',attendance.leave],
-      ['उपस्थिति प्रतिशत (ट्रेड स्तर)',attendance.percent+'%']
+      ['मूल्यांकन रिकॉर्ड (पूरे ट्रेड के)',evaluations],
+      ['ट्रेड में कुल विद्यार्थी',tradeStudentCount],
+      ['इस महीने सुबह + शाम मिलाकर दर्ज कुल हाजिरी',attendanceMarked],
+      ['उपस्थित दर्ज शिफ्ट (P)',attendance.present],
+      ['अनुपस्थित दर्ज शिफ्ट (A)',attendance.absent],
+      ['अवकाश दर्ज शिफ्ट (L)',attendance.leave],
+      ['ट्रेड की उपस्थिति दर',attendance.percent+'%']
     ];
     const w=window.open('','_blank');
     if(!w){alert('PDF बनाने के लिए ब्राउज़र में पॉपअप अनुमति दें।');return;}
@@ -5427,7 +5431,7 @@ window.__itiLoginClick = async function(ev) {
       <h1>${esc(getCollegeName(cid))}</h1><h2>अनुदेशक मासिक गतिविधि एवं प्रदर्शन रिपोर्ट</h2>
       <div class="meta"><div><b>अनुदेशक:</b> ${esc(inst.name)}<br><b>ट्रेड:</b> ${esc(trade||'-')}</div><div><b>रिपोर्ट माह:</b> ${esc(month)}<br><b>रिपोर्ट तारीख:</b> ${esc(new Date().toLocaleDateString('hi-IN'))}</div></div>
       <h3 style="text-align:left">मासिक प्रदर्शन सारांश</h3><table><tbody>${summaryHtml}</tbody></table>
-      <p class="note">नोट: उपस्थिति और मूल्यांकन के आँकड़े ट्रेड स्तर के हैं, क्योंकि मौजूदा रिकॉर्ड में विद्यार्थी की उपस्थिति/मूल्यांकन को अलग-अलग अनुदेशक से जोड़ने का विवरण उपलब्ध नहीं है। व्यक्तिगत गतिविधियाँ नीचे अनुदेशक ID के आधार पर दिखाई गई हैं।</p>
+      <p class="note">महत्वपूर्ण: ऊपर उपस्थिति के आँकड़े चुने गए अनुदेशक की व्यक्तिगत हाजिरी नहीं हैं; ये उसके ट्रेड के सभी विद्यार्थियों की पूरे महीने की सुबह और शाम की दर्ज शिफ्टों का कुल योग हैं। P = उपस्थित शिफ्ट, A = अनुपस्थित शिफ्ट और L = अवकाश शिफ्ट। उपस्थिति दर = P ÷ (P + A); अवकाश (L) को प्रतिशत की गणना से अलग रखा गया है। व्यक्तिगत गतिविधियाँ नीचे चुने गए अनुदेशक की ID के आधार पर दिखाई गई हैं।</p>
       <h3 style="text-align:left">महीने की गतिविधियों का विवरण</h3><table><thead><tr><th>गतिविधि</th><th>तारीख</th><th>विषय / कार्य</th><th>प्रगति / संख्या</th><th>टिप्पणी / विवरण</th></tr></thead><tbody>${details}</tbody></table>
       <div class="sign"><span>ग्रुप इंस्ट्रक्टर के हस्ताक्षर: ______________</span><span>प्राचार्य / अधीक्षक: ______________</span></div>
       <div class="foot">यह रिपोर्ट पोर्टल में उपलब्ध रिकॉर्ड के आधार पर स्वतः तैयार की गई है।</div>
