@@ -5373,7 +5373,7 @@ window.__itiLoginClick = async function(ev) {
   window.downloadInstructorMonthlyPerformancePDF=function(){
     if(!['groupInstructor','superintendent'].includes(currentRole)||!currentCollegeId){alert('यह रिपोर्ट केवल ग्रुप इंस्ट्रक्टर / अधीक्षक डाउनलोड कर सकते हैं।');return;}
     const month=$('giPerformanceMonth')?.value||'',id=$('giPerformanceInstructor')?.value||'';
-    if(!month||!/^\\d{4}-\\d{2}$/.test(month)){alert('कृपया रिपोर्ट का महीना चुनें।');return;}
+    if(!month||! /^\d{4}-\d{2}$/.test(month)){alert('कृपया रिपोर्ट का महीना चुनें।');return;}
     const inst=getSupCollegeInstructors().find(i=>String(i.id)===String(id));
     if(!inst){alert('कृपया सूची से अनुदेशक चुनें।');return;}
     const d=sd(),cid=currentCollegeId,trade=inst.trade;
