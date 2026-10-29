@@ -2463,20 +2463,37 @@ window.__itiLoginClick = async function(ev) {
         }
 
         function ensureSupData() {
-            // पुराने Firebase रिकॉर्ड में नए मॉड्यूल की arrays मौजूद न हों तो सुरक्षित defaults दें।
-            if (!appData || typeof appData !== 'object') appData = {};
-            if (!appData.superintendentData || typeof appData.superintendentData !== 'object' || Array.isArray(appData.superintendentData)) appData.superintendentData = {};
+            if (!appData.superintendentData || typeof appData.superintendentData !== 'object' || Array.isArray(appData.superintendentData)) {
+                appData.superintendentData = {};
+            }
             const d = appData.superintendentData;
+
+            // Firebase Realtime Database sparse arrays can arrive as keyed objects.
+            // Convert them without discarding their saved records.
+            const keepList = value => {
+                if (Array.isArray(value)) return value;
+                if (value && typeof value === 'object') return Object.keys(value).map(key => value[key]);
+                return [];
+            };
+
+            // All collections consumed by the group-instructor / superintendent
+            // operational dashboard must exist before any renderer calls .filter().
             [
-                'inspections', 'tasks', 'reports', 'requests', 'auditLog', 'notices', 'assets',
-                'syllabus', 'teachingRecords', 'weeklyPrograms', 'weakStudents', 'leaveRequests', 'timetables'
-            ].forEach(key => {
-                if (!Array.isArray(d[key])) d[key] = [];
-            });
-            if (!Array.isArray(appData.groupInstructorTasks)) appData.groupInstructorTasks = [];
-            if (!Array.isArray(appData.groupInstructorCustomTasks)) appData.groupInstructorCustomTasks = [];
-            if (!appData.students || typeof appData.students !== 'object' || Array.isArray(appData.students)) appData.students = {};
-            if (!appData.records || typeof appData.records !== 'object' || Array.isArray(appData.records)) appData.records = {};
+                'inspections',
+                'tasks',
+                'reports',
+                'requests',
+                'auditLog',
+                'notices',
+                'assets',
+                'syllabus',
+                'teachingRecords',
+                'weeklyPrograms',
+                'weakStudents'
+            ].forEach(key => { d[key] = keepList(d[key]); });
+
+            appData.groupInstructorTasks = keepList(appData.groupInstructorTasks);
+            appData.groupInstructorCustomTasks = keepList(appData.groupInstructorCustomTasks);
             return d;
         }
         function supEscape(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
@@ -2490,7 +2507,7 @@ window.__itiLoginClick = async function(ev) {
             if(view==='groupTasks') renderGroupInstructorTasks();
             if(view==='requests') renderSupervisorRequests();
         }
-        function getSupCollegeInstructors(){const list=getInstructorsList();return (Array.isArray(list)?list:[]).filter(i=>i&&(i.collegeId||'COL01')===currentCollegeId);}
+        function getSupCollegeInstructors(){return getInstructorsList().filter(i=>(i.collegeId||'COL01')===currentCollegeId);}
         function getSupDayAttendanceStats(cid,trade,parts){
             const p=parts||groupDateParts();
             const root=appData.records?.[cid]?.[trade]?.[p.month]||{};
