@@ -2177,6 +2177,7 @@ window.__itiLoginClick = async function(ev) {
             populateSuperintendentCollegeSelects();
             updateAdminSessionBadge();
             listenToCloudData();
+            listenToSeparateNoticePaths();
 
             const today = new Date();
             const defaultMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
@@ -2433,7 +2434,26 @@ window.__itiLoginClick = async function(ev) {
             const noticeHistory=document.getElementById('supNoticeHistory');if(noticeHistory){const ns=d.notices.filter(n=>n.collegeId===cid).sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt)));noticeHistory.innerHTML=ns.length?ns.map(n=>`<p>• <strong>${supEscape(n.title)}</strong> (${supEscape(n.trade==='ALL'?'सभी ट्रेड':n.trade)}) — ${supEscape(n.date||'')}</p>`).join(''):'<small>अभी कोई सूचना प्रकाशित नहीं हुई है।</small>'; }
             const reports=d.reports.filter(x=>x.collegeId===cid).sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt)));const rh=document.getElementById('supActivityReports');if(rh)rh.innerHTML=reports.length?reports.map(r=>`<tr><td><strong>${supEscape(r.period||'दैनिक')}</strong><br>${supEscape(r.date)}${r.endDate?' से '+supEscape(r.endDate):''}</td><td>${supEscape(r.instructorName)}</td><td>${supEscape(r.type)}</td><td>${Number(r.students)||0}</td><td>${supEscape(r.details)}${r.reviewComment?`<br><small>टिप्पणी: ${supEscape(r.reviewComment)}</small>`:''}</td><td>${supEscape(r.status||'जमा')}</td><td><button class="app-btn app-btn-success" onclick="reviewSupReport('${r.id}','approve')">स्वीकृत</button> <button class="app-btn app-btn-warning" onclick="reviewSupReport('${r.id}','return')">वापस भेजें</button></td></tr>`).join(''):'<tr><td colspan="7">अभी कोई गतिविधि रिपोर्ट जमा नहीं हुई है।</td></tr>';
         }
-        function publishSupNotice(){if(!['superintendent','groupInstructor'].includes(currentRole)||!currentCollegeId)return;const title=document.getElementById('supNoticeTitle').value.trim(),message=document.getElementById('supNoticeMessage').value.trim(),trade=document.getElementById('supNoticeTrade').value;if(!title||!message){alert('सूचना का शीर्षक और विवरण दोनों भरें।');return;}ensureSupData().notices.push({id:'NOT'+Date.now(),collegeId:currentCollegeId,trade,title,message,date:new Date().toISOString().slice(0,10),createdAt:new Date().toISOString(),createdBy:loggedInSuperintendent?.name||''});syncWithFirebase();document.getElementById('supNoticeTitle').value='';document.getElementById('supNoticeMessage').value='';renderSupOperationalViews();showToast('विद्यार्थियों के लिए सूचना प्रकाशित हो गई।');}
+        async function publishSupNotice(){
+            if(!['superintendent','groupInstructor'].includes(currentRole)||!currentCollegeId)return;
+            const title=document.getElementById('supNoticeTitle').value.trim();
+            const message=document.getElementById('supNoticeMessage').value.trim();
+            const trade=document.getElementById('supNoticeTrade').value;
+            if(!title||!message){alert('सूचना का शीर्षक और विवरण दोनों भरें।');return;}
+            const notice={id:'NOT'+Date.now(),collegeId:currentCollegeId,trade,title,message,date:new Date().toISOString().slice(0,10),createdAt:new Date().toISOString(),createdBy:loggedInSuperintendent?.name||''};
+            try {
+                await savePortalNoticeToFirebase('student_notices', notice);
+                ensureSupData().notices.push(notice);
+                saveLocalCache();
+                document.getElementById('supNoticeTitle').value='';
+                document.getElementById('supNoticeMessage').value='';
+                renderSupOperationalViews();
+                showToast('विद्यार्थियों के लिए सूचना अलग Firebase पाथ पर प्रकाशित हो गई।');
+            } catch(error) {
+                console.error('Notice publish error:', error);
+                alert('सूचना प्रकाशित नहीं हुई। Firebase Rules / इंटरनेट जाँचें।');
+            }
+        }
 
         function addSupAudit(action, details, targetId=''){
             const d=ensureSupData();d.auditLog.push({id:'AUD'+Date.now(),collegeId:currentCollegeId,actor:loggedInSuperintendent?.name||'सुपर एडमिन',role:currentRole,action,details,targetId,at:new Date().toISOString()});
@@ -4284,12 +4304,84 @@ window.__itiLoginClick = async function(ev) {
             }
         }
 
+        // सूचनाएँ मुख्य portal_data से अलग, अपने-अपने Firebase पाथ पर रहेंगी।
+        // संरचना: portal_information/student_notices/{collegeId}/{noticeId}
+        //          portal_information/instructor_notices/{collegeId}/{noticeId}
+        function safeFirebaseKey(value) {
+            return String(value || '').replace(/[.#$\[\]\/]/g, '_').trim() || 'unknown';
+        }
+
+        async function savePortalNoticeToFirebase(type, notice) {
+            const allowed = ['student_notices', 'instructor_notices'];
+            if (!allowed.includes(type) || !notice || !notice.collegeId || !notice.id) {
+                throw new Error('सूचना का प्रकार, कॉलेज और ID आवश्यक हैं।');
+            }
+            const collegeKey = safeFirebaseKey(notice.collegeId);
+            const noticeKey = safeFirebaseKey(notice.id);
+            await rtdb.ref(`portal_information/${type}/${collegeKey}/${noticeKey}`).set(notice);
+            return notice;
+        }
+
+        function listenToSeparateNoticePaths() {
+            rtdb.ref('portal_information/student_notices').on('value', snapshot => {
+                const all = snapshot.val() || {};
+                const notices = [];
+                Object.keys(all).forEach(collegeId => {
+                    const group = all[collegeId] || {};
+                    Object.keys(group).forEach(id => {
+                        const item = group[id];
+                        if (item && typeof item === 'object') notices.push({...item, id: item.id || id, collegeId: item.collegeId || collegeId});
+                    });
+                });
+                if (!appData.superintendentData || typeof appData.superintendentData !== 'object') appData.superintendentData = {};
+                appData.superintendentData.notices = notices;
+                saveLocalCache();
+                if (currentRole === 'student') renderStudentDashboard();
+                if (currentRole === 'superintendent' || currentRole === 'groupInstructor') renderSupOperationalViews();
+            }, error => console.error('Student notice listener error:', error));
+
+            rtdb.ref('portal_information/instructor_notices').on('value', snapshot => {
+                const all = snapshot.val() || {};
+                const notices = [];
+                Object.keys(all).forEach(collegeId => {
+                    const group = all[collegeId] || {};
+                    Object.keys(group).forEach(id => {
+                        const item = group[id];
+                        if (item && typeof item === 'object') notices.push({...item, id: item.id || id, collegeId: item.collegeId || collegeId});
+                    });
+                });
+                appData.instructorNotices = notices;
+                saveLocalCache();
+                if (currentRole === 'instructor') renderInstructorWorkPanel();
+            }, error => console.error('Instructor notice listener error:', error));
+        }
+
+        async function migrateLegacyStudentNotices(legacyNotices) {
+            if (!Array.isArray(legacyNotices) || !legacyNotices.length) return;
+            const target = rtdb.ref('portal_information/student_notices');
+            const existing = await target.once('value');
+            if (existing.exists()) return; // नए पाथ में डेटा है तो उसे कभी overwrite नहीं करें।
+            const updates = {};
+            legacyNotices.forEach((notice, index) => {
+                if (!notice || !notice.collegeId) return;
+                const cid = safeFirebaseKey(notice.collegeId);
+                const nid = safeFirebaseKey(notice.id || `LEGACY_${Date.now()}_${index}`);
+                updates[`${cid}/${nid}`] = notice;
+            });
+            if (Object.keys(updates).length) await target.update(updates);
+        }
+
         function listenToCloudData() {
-            // एकमात्र iti-kotri Firebase से सभी कॉलेज/ट्रेड का पूरा डेटा
+            // मुख्य रिकॉर्ड portal_data में; सूचनाएँ अलग portal_information पाथ में।
             rtdb.ref('portal_data').on('value', (snapshot) => {
                 const cloudVal = snapshot.val();
                 if (cloudVal) {
+                    const legacyNotices = cloudVal.superintendentData && Array.isArray(cloudVal.superintendentData.notices)
+                        ? cloudVal.superintendentData.notices.slice() : [];
                     appData = cloudVal;
+                    if (!appData.superintendentData || typeof appData.superintendentData !== 'object') appData.superintendentData = {};
+                    appData.superintendentData.notices = appData.superintendentData.notices || [];
+                    migrateLegacyStudentNotices(legacyNotices).catch(err => console.error('Legacy notice migration error:', err));
                     
                     if (!appData.colleges || !Array.isArray(appData.colleges) || appData.colleges.length === 0) {
                         appData.colleges = [
@@ -4344,12 +4436,17 @@ window.__itiLoginClick = async function(ev) {
         async function syncWithFirebase() {
             saveLocalCache();
             try {
-                // पूरा डेटा — COPA सहित — केवल iti-kotri Firebase में सेव करें।
-                await rtdb.ref('portal_data').set(appData);
-                showToast("iti-kotri Firebase पर पूरा डेटा सुरक्षित हो गया!");
+                // सूचना रिकॉर्ड portal_information में रहते हैं; portal_data में दोबारा नहीं लिखें।
+                const payload = JSON.parse(JSON.stringify(appData));
+                if (payload.superintendentData) delete payload.superintendentData.notices;
+                delete payload.instructorNotices;
+                await rtdb.ref('portal_data').set(payload);
+                showToast("मुख्य डेटा Firebase पर सुरक्षित हो गया!");
+                return true;
             } catch (e) {
                 console.error("Firebase sync error", e);
                 showToast("लोकल सुरक्षित हुआ, Firebase सिंक में त्रुटि! Rules/Auth जाँचें।");
+                return false;
             }
         }
 
