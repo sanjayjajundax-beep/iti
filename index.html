@@ -944,6 +944,15 @@ window.__itiLoginClick = async function(ev) {
 </div>
 <div class="sup-view-panel hidden" id="supViewTasks">
 <div class="glass-card sup-panel"><h3><i class="fa-solid fa-list-check"></i> अनुदेशक कार्य गतिविधियाँ</h3><div class="sup-form-grid"><div class="input-group"><label>अनुदेशक</label><select id="supTaskInstructor"></select></div><div class="input-group"><label>कार्य / गतिविधि</label><input id="supTaskTitle" placeholder="जैसे प्रैक्टिकल रिकॉर्ड अपडेट करना"/></div><div class="input-group"><label>अंतिम तारीख</label><input id="supTaskDue" type="date"/></div><div class="input-group"><label>प्राथमिकता</label><select id="supTaskPriority"><option>सामान्य</option><option>महत्वपूर्ण</option><option>अति आवश्यक</option></select></div><div class="input-group"><label>विवरण</label><textarea id="supTaskDescription" placeholder="कार्य का विवरण" rows="2"></textarea></div></div><button class="app-btn app-btn-primary" onclick="assignSupTask()"><i class="fa-solid fa-paper-plane"></i> कार्य आवंटित करें</button></div>
+<div class="glass-card sup-panel"><h3><i class="fa-solid fa-bullhorn"></i> अनुदेशक सूचना जारी करें</h3>
+<div class="sup-form-grid">
+<div class="input-group"><label>सूचना शीर्षक</label><input id="supInstructorNoticeTitle" maxlength="180" placeholder="जैसे आवश्यक बैठक / प्रशिक्षण सूचना"/></div>
+<div class="input-group"><label>ट्रेड</label><select id="supInstructorNoticeTrade"><option value="ALL">सभी ट्रेड</option></select></div>
+<div class="input-group"><label>सूचना विवरण</label><textarea id="supInstructorNoticeMessage" rows="3" maxlength="5000" placeholder="अनुदेशकों के लिए सूचना लिखें"></textarea></div>
+<div class="input-group"><label>इमेज का HTTPS लिंक (वैकल्पिक)</label><input id="supInstructorNoticeImage" type="url" placeholder="https://...jpg या PNG"/><small>इमेज पहले से किसी सार्वजनिक HTTPS लिंक पर उपलब्ध होनी चाहिए।</small></div>
+</div>
+<button class="app-btn app-btn-primary" type="button" onclick="publishInstructorNotice()"><i class="fa-solid fa-paper-plane"></i> अनुदेशक सूचना प्रकाशित करें</button>
+<div id="supInstructorNoticeHistory" style="margin-top:12px"></div></div>
 <div class="glass-card sup-panel"><h3><i class="fa-solid fa-bullhorn"></i> विद्यार्थी सूचना जारी करें</h3><div class="sup-form-grid"><div class="input-group"><label>सूचना शीर्षक</label><input id="supNoticeTitle" placeholder="जैसे परीक्षा समय-सारणी"/></div><div class="input-group"><label>ट्रेड</label><select id="supNoticeTrade"><option value="ALL">सभी ट्रेड</option></select></div><div class="input-group"><label>सूचना</label><textarea id="supNoticeMessage" rows="2" placeholder="विद्यार्थियों के लिए सूचना लिखें"></textarea></div></div><button class="app-btn app-btn-primary" onclick="publishSupNotice()">सूचना प्रकाशित करें</button><div id="supNoticeHistory"></div></div>
 <div class="glass-card sup-panel"><h3>आवंटित कार्य</h3><div class="table-shell"><table><thead><tr><th>अनुदेशक</th><th>कार्य</th><th>अंतिम तारीख</th><th>प्राथमिकता</th><th>स्थिति</th><th>कार्रवाई</th></tr></thead><tbody id="supTaskHistory"></tbody></table></div></div>
 <div class="glass-card sup-panel"><h3>अनुदेशकों की जमा की गई गतिविधि रिपोर्ट</h3><div class="table-shell"><table><thead><tr><th>तारीख</th><th>अनुदेशक</th><th>गतिविधि</th><th>विद्यार्थी</th><th>विवरण</th><th>स्थिति</th><th>समीक्षा / कार्रवाई</th></tr></thead><tbody id="supActivityReports"></tbody></table></div></div>
@@ -1033,6 +1042,12 @@ window.__itiLoginClick = async function(ev) {
 </table>
 </div>
 </div><div class="hidden" id="instTabWork">
+<div class="glass-card" style="padding:18px;margin-bottom:14px;">
+<h3 style="color:var(--primary);margin-bottom:10px;"><i class="fa-solid fa-bell"></i> संस्थान / अधीक्षक की सूचनाएँ</h3>
+<p class="sup-help">आपके कॉलेज और ट्रेड के लिए जारी वर्तमान तथा पुरानी सभी सूचनाएँ यहाँ उपलब्ध रहेंगी। पहले से डाउनलोड सूचनाएँ ऑफलाइन भी खुलेंगी।</p>
+<div id="instructorNoticeList"><span class="sup-help">सूचनाएँ लोड हो रही हैं…</span></div>
+</div>
+
 <div class="glass-card" style="padding:18px;margin-bottom:14px;">
 <h3 style="color:var(--primary);margin-bottom:12px;"><i class="fa-solid fa-list-check"></i> अधीक्षक द्वारा सौंपे गए कार्य</h3>
 <div class="table-shell"><table><thead><tr><th>कार्य</th><th>अंतिम तारीख</th><th>प्राथमिकता</th><th>स्थिति</th><th>कार्रवाई</th></tr></thead><tbody id="instAssignedTasksBody"></tbody></table></div>
@@ -2431,7 +2446,7 @@ window.__itiLoginClick = async function(ev) {
             const ih=document.getElementById('supInspectionHistory');if(ih)ih.innerHTML=inspections.length?inspections.map(x=>`<tr><td>${supEscape(x.date)}</td><td>${supEscape(x.typeLabel)}</td><td>${supEscape(x.instructorName||x.location||'-')}</td><td>${supEscape(x.finding)}</td><td>${supEscape(x.action||'-')}</td><td>${supEscape(x.status)}</td><td><button class="app-btn app-btn-secondary" onclick="updateSupInspectionStatus('${x.id}')">स्थिति बदलें</button></td></tr>`).join(''):'<tr><td colspan="7">अभी निरीक्षण रिकॉर्ड नहीं है।</td></tr>';
             const asset=d.inspections.filter(x=>x.collegeId===cid&&(x.type==='lab'||x.type==='machine'||x.type==='safety'));const as=document.getElementById('supAssetSummary');if(as)as.innerHTML=`<div class="sup-asset-item"><strong>${asset.filter(x=>x.type==='lab').length}</strong><span>लैब निरीक्षण</span></div><div class="sup-asset-item"><strong>${asset.filter(x=>x.type==='machine').length}</strong><span>मशीन / उपकरण निरीक्षण</span></div><div class="sup-asset-item"><strong>${asset.filter(x=>x.type==='safety').length}</strong><span>सुरक्षा निरीक्षण</span></div><div class="sup-asset-item"><strong>${asset.filter(x=>x.status==='सुधार आवश्यक'||x.status==='कार्यवाही जारी').length}</strong><span>लंबित सुधार</span></div>`;
             const tasks=d.tasks.filter(x=>x.collegeId===cid).sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt)));const th=document.getElementById('supTaskHistory');if(th)th.innerHTML=tasks.length?tasks.map(t=>`<tr><td>${supEscape(t.instructorName)}</td><td>${supEscape(t.title)}<br><small>${supEscape(t.description||'')}</small></td><td>${supEscape(t.due||'-')}</td><td>${supEscape(t.priority)}</td><td>${supEscape(t.status)}</td><td><button class="app-btn app-btn-warning" onclick="setSupTaskStatus('${t.id}')">स्थिति बदलें</button></td></tr>`).join(''):'<tr><td colspan="6">अभी कोई कार्य आवंटित नहीं है।</td></tr>';
-            const noticeHistory=document.getElementById('supNoticeHistory');if(noticeHistory){const ns=d.notices.filter(n=>n.collegeId===cid).sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt)));noticeHistory.innerHTML=ns.length?ns.map(n=>`<p>• <strong>${supEscape(n.title)}</strong> (${supEscape(n.trade==='ALL'?'सभी ट्रेड':n.trade)}) — ${supEscape(n.date||'')}</p>`).join(''):'<small>अभी कोई सूचना प्रकाशित नहीं हुई है।</small>'; }
+            const instNoticeTrade=document.getElementById('supInstructorNoticeTrade');if(instNoticeTrade&&instNoticeTrade.options.length<=1)instNoticeTrade.innerHTML='<option value="ALL">सभी ट्रेड</option>'+getTradesList().map(t=>`<option value="${supEscape(t)}">${supEscape(t)}</option>`).join('');renderSupInstructorNoticeHistory(); const noticeHistory=document.getElementById('supNoticeHistory');if(noticeHistory){const ns=d.notices.filter(n=>n.collegeId===cid).sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt)));noticeHistory.innerHTML=ns.length?ns.map(n=>`<p>• <strong>${supEscape(n.title)}</strong> (${supEscape(n.trade==='ALL'?'सभी ट्रेड':n.trade)}) — ${supEscape(n.date||'')}</p>`).join(''):'<small>अभी कोई सूचना प्रकाशित नहीं हुई है।</small>'; }
             const reports=d.reports.filter(x=>x.collegeId===cid).sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt)));const rh=document.getElementById('supActivityReports');if(rh)rh.innerHTML=reports.length?reports.map(r=>`<tr><td><strong>${supEscape(r.period||'दैनिक')}</strong><br>${supEscape(r.date)}${r.endDate?' से '+supEscape(r.endDate):''}</td><td>${supEscape(r.instructorName)}</td><td>${supEscape(r.type)}</td><td>${Number(r.students)||0}</td><td>${supEscape(r.details)}${r.reviewComment?`<br><small>टिप्पणी: ${supEscape(r.reviewComment)}</small>`:''}</td><td>${supEscape(r.status||'जमा')}</td><td><button class="app-btn app-btn-success" onclick="reviewSupReport('${r.id}','approve')">स्वीकृत</button> <button class="app-btn app-btn-warning" onclick="reviewSupReport('${r.id}','return')">वापस भेजें</button></td></tr>`).join(''):'<tr><td colspan="7">अभी कोई गतिविधि रिपोर्ट जमा नहीं हुई है।</td></tr>';
         }
         async function publishSupNotice(){
@@ -2506,12 +2521,15 @@ window.__itiLoginClick = async function(ev) {
             try {
                 // सभी भूमिकाओं सहित Admin का लॉगिन भी केवल iti-kotri के डेटा से होगा।
                 if (!legacyCloudReady) {
-                    await Promise.race([
-                        legacyCloudReadyPromise,
-                        new Promise((_, reject) => setTimeout(() => reject(new Error('iti-kotri Firebase के अकाउंट डेटा का इंतज़ार समय पूरा हुआ।')), 10000))
-                    ]);
+                    try {
+                        await Promise.race([legacyCloudReadyPromise,
+                            new Promise((_, reject) => setTimeout(() => reject(new Error('iti-kotri Firebase के अकाउंट डेटा का इंतज़ार समय पूरा हुआ।')), 10000))]);
+                    } catch(cloudWaitError) {
+                        if (!indexedDbCacheAvailable) throw cloudWaitError;
+                        showToast('इंटरनेट उपलब्ध नहीं — मोबाइल में सेव डेटा से लॉगिन जाँच रहे हैं।');
+                    }
                 }
-                if (legacyCloudError) throw legacyCloudError;
+                if (legacyCloudError && !indexedDbCacheAvailable) throw legacyCloudError;
 
                 const matches = [];
                 const adminId = (appData.adminCreds && appData.adminCreds.id) ? String(appData.adminCreds.id) : 'superadmin';
@@ -2771,8 +2789,46 @@ window.__itiLoginClick = async function(ev) {
         }
 
         function toggleActivityPeriodFields(){const period=document.getElementById('instActivityPeriod')?.value||'दैनिक';const wrap=document.getElementById('instActivityEndWrap');if(wrap)wrap.style.display=period==='दैनिक'?'none':'block';}
+        async function publishInstructorNotice(){
+            if(!['superintendent','groupInstructor'].includes(currentRole)||!currentCollegeId)return;
+            const title=document.getElementById('supInstructorNoticeTitle')?.value.trim()||'';
+            const message=document.getElementById('supInstructorNoticeMessage')?.value.trim()||'';
+            const trade=document.getElementById('supInstructorNoticeTrade')?.value||'ALL';
+            const imageUrl=document.getElementById('supInstructorNoticeImage')?.value.trim()||'';
+            if(!title||!message){alert('सूचना का शीर्षक और विवरण भरें।');return;}
+            if(imageUrl&&!/^https:\/\//i.test(imageUrl)){alert('इमेज लिंक HTTPS से शुरू होना चाहिए।');return;}
+            const notice={id:'INSTNOT'+Date.now(),collegeId:currentCollegeId,trade,title,message,imageUrl,
+                date:new Date().toISOString().slice(0,10),createdAt:new Date().toISOString(),
+                createdBy:loggedInSuperintendent?.name||'अधिकारी'};
+            try{
+                await savePortalNoticeToFirebase('instructor_notices',notice);
+                if(!Array.isArray(appData.instructorNotices))appData.instructorNotices=[];
+                appData.instructorNotices=appData.instructorNotices.filter(n=>n.id!==notice.id).concat(notice);
+                saveLocalCache();renderSupInstructorNoticeHistory();
+                ['supInstructorNoticeTitle','supInstructorNoticeMessage','supInstructorNoticeImage'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+                showToast('अनुदेशक सूचना प्रकाशित हो गई।');
+            }catch(error){console.error('Instructor notice publish:',error);alert('सूचना प्रकाशित नहीं हुई। इंटरनेट और Firebase Rules जाँचें।');}
+        }
+        function renderSupInstructorNoticeHistory(){
+            const host=document.getElementById('supInstructorNoticeHistory');if(!host)return;
+            const list=(appData.instructorNotices||[]).filter(n=>n.collegeId===currentCollegeId)
+                .sort((a,b)=>String(b.createdAt||'').localeCompare(String(a.createdAt||'')));
+            host.innerHTML=list.length?'<strong>प्रकाशित सूचना इतिहास</strong>'+list.map(n=>`<div style="padding:8px 0;border-bottom:1px solid #e2e8f0"><b>${supEscape(n.title)}</b> · ${supEscape(n.trade==='ALL'?'सभी ट्रेड':n.trade)} · ${supEscape(n.date||'')}</div>`).join(''):'<small>अभी कोई अनुदेशक सूचना प्रकाशित नहीं हुई है।</small>';
+        }
+        function renderInstructorNotices(){
+            if(currentRole!=='instructor'||!loggedInInstructor)return;
+            const host=document.getElementById('instructorNoticeList');if(!host)return;
+            const list=(appData.instructorNotices||[]).filter(n=>n.collegeId===currentCollegeId&&(n.trade==='ALL'||n.trade===currentTrade))
+                .sort((a,b)=>String(b.createdAt||'').localeCompare(String(a.createdAt||'')));
+            host.innerHTML=list.length?list.map(n=>`<article style="padding:12px 0;border-bottom:1px solid var(--border-color)">
+                <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><strong>${supEscape(n.title||'सूचना')}</strong><small>${supEscape(n.date||'')}</small></div>
+                <p style="margin-top:6px;white-space:pre-wrap">${supEscape(n.message||'')}</p>
+                ${n.imageUrl?`<a href="${supEscape(n.imageUrl)}" target="_blank" rel="noopener noreferrer"><img src="${supEscape(n.imageUrl)}" alt="सूचना इमेज" loading="lazy" style="display:block;max-width:100%;max-height:420px;object-fit:contain;margin-top:10px;border:1px solid #e2e8f0;border-radius:8px" onerror="this.style.display='none'"></a>`:''}
+                <small style="color:#64748b">जारीकर्ता: ${supEscape(n.createdBy||'संस्थान')}</small></article>`).join(''):'<p class="sup-help">अभी आपके ट्रेड के लिए कोई सूचना उपलब्ध नहीं है।</p>';
+        }
+
         function renderInstructorWorkPanel(){
-            if(currentRole!=='instructor'||!loggedInInstructor)return;const d=ensureSupData();const tasks=d.tasks.filter(t=>t.collegeId===currentCollegeId&&t.instructorId===loggedInInstructor.id);const body=document.getElementById('instAssignedTasksBody');if(body)body.innerHTML=tasks.length?tasks.map(t=>`<tr><td>${supEscape(t.title)}<br><small>${supEscape(t.description||'')}</small></td><td>${supEscape(t.due||'-')}</td><td>${supEscape(t.priority)}</td><td>${supEscape(t.status)}</td><td>${t.status==='पूर्ण'?'—':`<button class="app-btn app-btn-success" onclick="completeInstructorTask('${t.id}')">पूर्ण करें</button>`}</td></tr>`).join(''):'<tr><td colspan="5">अधीक्षक ने अभी कोई कार्य नहीं दिया है।</td></tr>';
+            if(currentRole!=='instructor'||!loggedInInstructor)return;renderInstructorNotices();const d=ensureSupData();const tasks=d.tasks.filter(t=>t.collegeId===currentCollegeId&&t.instructorId===loggedInInstructor.id);const body=document.getElementById('instAssignedTasksBody');if(body)body.innerHTML=tasks.length?tasks.map(t=>`<tr><td>${supEscape(t.title)}<br><small>${supEscape(t.description||'')}</small></td><td>${supEscape(t.due||'-')}</td><td>${supEscape(t.priority)}</td><td>${supEscape(t.status)}</td><td>${t.status==='पूर्ण'?'—':`<button class="app-btn app-btn-success" onclick="completeInstructorTask('${t.id}')">पूर्ण करें</button>`}</td></tr>`).join(''):'<tr><td colspan="5">अधीक्षक ने अभी कोई कार्य नहीं दिया है।</td></tr>';
             renderInstructorRequestHistory();const reports=d.reports.filter(r=>r.collegeId===currentCollegeId&&r.instructorId===loggedInInstructor.id).slice().reverse();const hist=document.getElementById('instActivityHistory');if(hist)hist.innerHTML=reports.length?'<strong>मेरी हाल की रिपोर्ट</strong><ul style="padding-left:20px;margin-top:7px;">'+reports.slice(0,12).map(r=>`<li>${supEscape(r.period||'दैनिक')} · ${supEscape(r.date)}${r.endDate?' से '+supEscape(r.endDate):''} — ${supEscape(r.type)} (${supEscape(r.status||'जमा')})${r.reviewComment?`<br><small>अधीक्षक टिप्पणी: ${supEscape(r.reviewComment)}</small>`:''}${r.status==='सुधार हेतु वापस'?` <button class="app-btn app-btn-warning" onclick="resubmitReturnedReport('${r.id}')">सुधार करके दोबारा भेजें</button>`:''}</li>`).join('')+'</ul>':'<span style="color:#64748b;font-size:.84rem;">अभी कोई रिपोर्ट जमा नहीं की गई है।</span>';
         }
         function completeInstructorTask(id){if(currentRole!=='instructor'||!loggedInInstructor)return;const t=ensureSupData().tasks.find(x=>x.id===id&&x.collegeId===currentCollegeId&&x.instructorId===loggedInInstructor.id);if(!t)return;t.status='पूर्ण';t.completedAt=new Date().toISOString();t.completedBy=loggedInInstructor.name;syncWithFirebase();renderInstructorWorkPanel();showToast('कार्य पूर्ण चिह्नित हो गया।');}
@@ -4286,10 +4342,45 @@ window.__itiLoginClick = async function(ev) {
 
         // ==================== COMMON STORAGE & REALTIME CLOUD ====================
 
-        function saveLocalCache() {
+        // IndexedDB durable offline cache; localStorage is retained as a fallback.
+        const ITI_CACHE_DB = 'iti_kotri_offline_cache_v1';
+        let indexedDbCacheLoaded = false;
+        let indexedDbCacheAvailable = false;
+        function openItiCacheDB() {
+            return new Promise((resolve, reject) => {
+                if (!('indexedDB' in window)) return reject(new Error('IndexedDB उपलब्ध नहीं है'));
+                const req = indexedDB.open(ITI_CACHE_DB, 1);
+                req.onupgradeneeded = () => { if (!req.result.objectStoreNames.contains('app')) req.result.createObjectStore('app'); };
+                req.onsuccess = () => resolve(req.result);
+                req.onerror = () => reject(req.error);
+            });
+        }
+        async function saveIndexedDbCache() {
             try {
-                localStorage.setItem('multi_iti_rtdb_cache_iti_kotri_only_v1', JSON.stringify(appData));
-            } catch(e) {}
+                const db = await openItiCacheDB();
+                await new Promise((resolve, reject) => {
+                    const tx = db.transaction('app', 'readwrite');
+                    tx.objectStore('app').put({data:appData,savedAt:new Date().toISOString(),version:1}, 'portal_snapshot');
+                    tx.oncomplete = resolve; tx.onerror = () => reject(tx.error); tx.onabort = () => reject(tx.error);
+                });
+                db.close(); indexedDbCacheAvailable = true;
+            } catch(e) { console.warn('IndexedDB cache save:', e); }
+        }
+        async function loadIndexedDbCache() {
+            try {
+                const db = await openItiCacheDB();
+                const record = await new Promise((resolve, reject) => {
+                    const tx = db.transaction('app', 'readonly'), req = tx.objectStore('app').get('portal_snapshot');
+                    req.onsuccess = () => resolve(req.result || null); req.onerror = () => reject(req.error);
+                });
+                db.close();
+                if(record && record.data && typeof record.data === 'object'){appData=record.data;indexedDbCacheAvailable=true;}
+            } catch(e) { console.warn('IndexedDB cache load:', e); }
+            finally { indexedDbCacheLoaded = true; }
+        }
+        function saveLocalCache() {
+            try { localStorage.setItem('multi_iti_rtdb_cache_iti_kotri_only_v1', JSON.stringify(appData)); } catch(e) {}
+            saveIndexedDbCache();
         }
 
         function loadLocalCache() {
