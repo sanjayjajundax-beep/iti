@@ -824,7 +824,7 @@ window.__itiLoginClick = async function(ev) {
 <div id="loginDiagnosticMessage" role="status" aria-live="polite" style="margin-top:10px;min-height:22px;text-align:center;font-size:13px;font-weight:700;color:#b91c1c;"></div>
 </form>
 <div class="login-developer-credit" style="margin-top:42px;padding:18px 8px 4px;text-align:center;color:#17459a;font-weight:700;font-size:1rem;border-top:1px solid #d7e0ee;">
-Developer Sanjay Jajunda
+डेवलपर संजय जाजुन्दा
 </div>
 </div>
 </div>
@@ -3545,8 +3545,19 @@ Developer Sanjay Jajunda
             thead.innerHTML = headerTop + headerSub;
 
             const conf = getSessionConfig();
+            let sessionWorkingDaysToDate = 0;
+            const sessionStart = new Date((conf.startDate || `${year}-01-01`) + 'T00:00:00');
+            const selectedMonthEnd = new Date(year, monthIndex + 1, 0);
+            const sessionCountEnd = selectedMonthEnd < today ? selectedMonthEnd : today;
+            for (let dayCursor = new Date(sessionStart); dayCursor <= sessionCountEnd; dayCursor.setDate(dayCursor.getDate() + 1)) {
+                if (!isDateInSession(dayCursor) || dayCursor.getDay() === 0) continue;
+                const cursorMonth = `${dayCursor.getFullYear()}-${String(dayCursor.getMonth() + 1).padStart(2, '0')}`;
+                const cursorDay = dayCursor.getDate();
+                const cursorHolidays = (appData.holidays?.[currentCollegeId]?.[currentTrade]?.[cursorMonth] || []).map(Number);
+                if (!cursorHolidays.includes(cursorDay)) sessionWorkingDaysToDate++;
+            }
             document.getElementById('workingDaysSummary').innerHTML = 
-                `<i class="fa-solid fa-calendar-check"></i> सत्र कार्यदिवस (आज तक): <strong>${maxWorkingDays} दिन</strong> | रविवार: ${sundayCount} | अवकाश: ${holidayCount} <span style="color:#64748b; font-size:0.75rem;">(सत्र: ${conf.startDate} से ${conf.endDate})</span>`;
+                `<i class="fa-solid fa-calendar-check"></i> सत्र कार्यदिवस (चुने हुए महीने तक): <strong>${sessionWorkingDaysToDate} दिन</strong> | इस माह रविवार: ${sundayCount} | इस माह अवकाश: ${holidayCount} <span style="color:#64748b; font-size:0.75rem;">(सत्र: ${conf.startDate} से ${conf.endDate})</span>`;
 
             const tbody = document.getElementById('attendanceBody');
             tbody.innerHTML = '';
@@ -3614,10 +3625,43 @@ Developer Sanjay Jajunda
                 }
 
                 const monthPct = studentMonthWorkingDays > 0 ? ((evePresentCount / studentMonthWorkingDays) * 100).toFixed(1) : 0;
+
+                // संचित योग: सत्र शुरू होने से चुने हुए महीने (आज तक) के सभी महीनों का योग।
+                // पुराने सत्र का pastWorkingDays/pastPresentDays अलग से जोड़ा जाता है।
                 const pastW = parseInt(student.pastWorkingDays) || 0;
                 const pastP = parseInt(student.pastPresentDays) || 0;
-                const overallW = pastW + studentMonthWorkingDays;
-                const overallP = pastP + evePresentCount;
+                const sessionStartMonth = (conf.startDate || `${year}-01-01`).substring(0, 7);
+                let cumulativeWorkingDays = 0;
+                let cumulativePresentDays = 0;
+                let cumulativeMonth = sessionStartMonth;
+
+                while (cumulativeMonth <= monthVal) {
+                    const [cy, cm] = cumulativeMonth.split('-').map(Number);
+                    const daysInCumulativeMonth = new Date(cy, cm, 0).getDate();
+                    const monthRecords = appData.records?.[currentCollegeId]?.[currentTrade]?.[cumulativeMonth] || {};
+                    const monthHolidayList = (
+                        appData.holidays?.[currentCollegeId]?.[currentTrade]?.[cumulativeMonth] || []
+                    ).map(Number);
+
+                    for (let cd = 1; cd <= daysInCumulativeMonth; cd++) {
+                        const cumulativeDate = new Date(cy, cm - 1, cd);
+                        cumulativeDate.setHours(0, 0, 0, 0);
+                        if (cumulativeDate > today) break;
+                        if (!isDateInSession(cumulativeDate) || !isDateAfterAdmission(cumulativeDate, student)) continue;
+                        if (cumulativeDate.getDay() === 0 || monthHolidayList.includes(cd)) continue;
+
+                        cumulativeWorkingDays++;
+                        const dayRecord = monthRecords[sRoll] || {};
+                        if ((dayRecord[`${cd}_e`] || '-') === 'P') cumulativePresentDays++;
+                    }
+
+                    const nextYear = cm === 12 ? cy + 1 : cy;
+                    const nextMonth = cm === 12 ? 1 : cm + 1;
+                    cumulativeMonth = `${nextYear}-${String(nextMonth).padStart(2, '0')}`;
+                }
+
+                const overallW = pastW + cumulativeWorkingDays;
+                const overallP = pastP + cumulativePresentDays;
                 const overallPct = overallW > 0 ? ((overallP / overallW) * 100).toFixed(1) : 0;
 
                 const getBadge = (p) => p >= 75 ? 'pct-high' : (p >= 60 ? 'pct-mid' : 'pct-low');
