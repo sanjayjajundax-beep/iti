@@ -1038,6 +1038,15 @@ window.__itiLoginClick = async function(ev) {
 <button class="app-btn app-btn-dark" onclick="syncWithFirebase()"><i class="fa-solid fa-cloud-arrow-up"></i> Firebase सेव करें</button>
 </div>
 </div>
+<div id="sessionalRubricNotice" style="margin:10px 0;padding:12px 14px;border:1px solid #f0c36d;border-left:5px solid #d97706;border-radius:9px;background:#fffbeb;color:#78350f;">
+<strong style="display:block;margin-bottom:6px;">📌 अनुदेशक हेतु सत्रीय अंक निर्धारण — H1 / H2</strong>
+<div style="font-size:0.82rem;line-height:1.65;">
+<b>H1:</b> सत्र प्रारंभ से जनवरी तक &nbsp; | &nbsp; <b>H2:</b> फरवरी से सत्र समाप्ति तक। दोनों भागों के अंक अलग-अलग बनेंगे और प्रत्येक भाग में उस अवधि के सभी मासिक मूल्यांकनों का औसत लिया जाएगा।<br>
+<b>प्रायोगिक रिकॉर्ड (50):</b> A+ उत्कृष्ट = 48/50 · A पूर्ण = 44/50 · B सुधार अपेक्षित = 36/50 · C अपूर्ण = 28/50।<br>
+<b>सैद्धांतिक डायरी / नोट्स (30):</b> नियमित = 27.5/30 · अनियमित = 21/30 · जाँच लंबित = 15/30।<br>
+<b>गतिविधि / अनुशासन (10):</b> उत्कृष्ट / सक्रिय = 9.5/10 · संतोषजनक / सामान्य = 7.5/10 · सुधार जरूरी / उदासीन = 5/10।<br>
+<b>अन्य घटक:</b> प्रायोगिक टेस्ट 30 अंक, सैद्धांतिक टेस्ट 50 अंक और उपस्थिति 10 अंक — संबंधित H1/H2 अवधि के आँकड़ों से।
+</div></div>
 <div class="max-marks-banner">
 <div style="font-weight: 700; color: #1e3a8a; font-size: 0.88rem;">
 <i class="fa-solid fa-sliders"></i> इस माह के टेस्ट का विषयवार पूर्णांक (Max Marks) सेट करें:
@@ -4202,7 +4211,20 @@ window.__itiLoginClick = async function(ev) {
             let sumTTObt = 0, sumTTMax = 0;
             let sumTPObt = 0, sumTPMax = 0;
             
-            let lastRecStatus = '-', lastDiaryStatus = '-', lastDisc = '-', lastAct = '-';
+            // H1: सत्र प्रारंभ से जनवरी तक; H2: फरवरी से सत्र समाप्ति तक।
+            const halfStats = {
+                H1: { months: 0, present: 0, working: 0, ttObt: 0, ttMax: 0, tpObt: 0, tpMax: 0, rec: [], diary: [], activity: [] },
+                H2: { months: 0, present: 0, working: 0, ttObt: 0, ttMax: 0, tpObt: 0, tpMax: 0, rec: [], diary: [], activity: [] }
+            };
+            const allRecScores = [], allDiaryScores = [], allActivityScores = [];
+            const scoreRecord = v => ({'A+':48, 'A':44, 'B':36, 'C':28}[v] ?? null);
+            const scoreDiary = v => ({'नियमित':27.5, 'अनियमित':21, 'लंबित':15}[v] ?? null);
+            const scoreActivity = (disc, act) => {
+                if (disc === 'उत्कृष्ट' || act === 'सक्रिय') return 9.5;
+                if (disc === 'संतोषजनक' || act === 'सामान्य') return 7.5;
+                if (disc === 'सुधार जरूरी' || act === 'उदासीन') return 5;
+                return null;
+            };
 
             let monthsTableRows = '';
             const today = new Date();
@@ -4248,6 +4270,9 @@ window.__itiLoginClick = async function(ev) {
 
                 yearlyPortalW += mWorking;
                 yearlyPortalP += mPresent;
+                const halfKey = (parseInt(mVal.split('-')[1], 10) >= 2 && parseInt(mVal.split('-')[1], 10) <= 6) ? 'H2' : 'H1';
+                halfStats[halfKey].working += mWorking;
+                halfStats[halfKey].present += mPresent;
 
                 const mAttPct = mWorking > 0 ? ((mPresent / mWorking) * 100).toFixed(1) : "0.0";
 
@@ -4307,13 +4332,20 @@ window.__itiLoginClick = async function(ev) {
 
                     totalObt += mTotalObt;
                     totalMax += mTotalMM;
+                    halfStats[halfKey].months++;
+                    halfStats[halfKey].ttObt += tt;
+                    halfStats[halfKey].ttMax += mmTT;
+                    halfStats[halfKey].tpObt += tp;
+                    halfStats[halfKey].tpMax += mmTP;
                 }
 
                 if (sEval) {
-                    if (sEval.recStatus) lastRecStatus = sEval.recStatus;
-                    if (sEval.diaryStatus) lastDiaryStatus = sEval.diaryStatus;
-                    if (sEval.disc) lastDisc = sEval.disc;
-                    if (sEval.act) lastAct = sEval.act;
+                    const rScore = scoreRecord(sEval.recStatus);
+                    const dScore = scoreDiary(sEval.diaryStatus);
+                    const aScore = scoreActivity(sEval.disc, sEval.act);
+                    if (rScore !== null) { allRecScores.push(rScore); halfStats[halfKey].rec.push(rScore); }
+                    if (dScore !== null) { allDiaryScores.push(dScore); halfStats[halfKey].diary.push(dScore); }
+                    if (aScore !== null) { allActivityScores.push(aScore); halfStats[halfKey].activity.push(aScore); }
                 }
 
                 let enggCols = '';
@@ -4362,21 +4394,31 @@ window.__itiLoginClick = async function(ev) {
                 ttTestWeightScore = ((totalObt / totalMax) * 50).toFixed(1);
             }
 
-            let pracWorkScore = 0.0;
-            if (lastRecStatus === 'A+') pracWorkScore = 48.0;
-            else if (lastRecStatus === 'A') pracWorkScore = 44.0;
-            else if (lastRecStatus === 'B') pracWorkScore = 36.0;
-            else if (lastRecStatus === 'C') pracWorkScore = 28.0;
+            // पूरे सत्र के उपलब्ध मासिक मूल्यांकनों का औसत (केवल अंतिम माह नहीं)।
+            const average = arr => arr.length ? arr.reduce((a,b)=>a+b,0) / arr.length : 0;
+            const pracWorkScore = average(allRecScores).toFixed(1);
+            const notesScore = average(allDiaryScores).toFixed(1);
+            const activityScore = average(allActivityScores).toFixed(1);
 
-            let notesScore = 0.0;
-            if (lastDiaryStatus === 'नियमित') notesScore = 27.5;
-            else if (lastDiaryStatus === 'अनियमित') notesScore = 21.0;
-            else if (lastDiaryStatus === 'लंबित') notesScore = 15.0;
-
-            let activityScore = 0.0;
-            if (lastDisc === 'उत्कृष्ट' || lastAct === 'सक्रिय') activityScore = 9.5;
-            else if (lastDisc === 'संतोषजनक' || lastAct === 'सामान्य') activityScore = 7.5;
-            else if (lastDisc === 'सुधार जरूरी' || lastAct === 'उदासीन') activityScore = 5.0;
+            const halfScore = h => {
+                const attPct = h.working > 0 ? (h.present / h.working) * 100 : 0;
+                const attendance = attPct * 0.10;
+                const practicalTest = h.tpMax > 0 ? (h.tpObt / h.tpMax) * 30 : 0;
+                const theoryTest = h.ttMax > 0 ? (h.ttObt / h.ttMax) * 50 : 0;
+                return {
+                    practical: (average(h.rec) + practicalTest + attendance + average(h.activity)).toFixed(1),
+                    theory: (average(h.diary) + theoryTest + attendance + average(h.activity)).toFixed(1),
+                    rec: average(h.rec).toFixed(1),
+                    diary: average(h.diary).toFixed(1),
+                    activity: average(h.activity).toFixed(1),
+                    attendance: attendance.toFixed(1),
+                    practicalTest: practicalTest.toFixed(1),
+                    theoryTest: theoryTest.toFixed(1),
+                    attendancePct: attPct.toFixed(1)
+                };
+            };
+            const h1Score = halfScore(halfStats.H1);
+            const h2Score = halfScore(halfStats.H2);
 
             const totalPracticalSessional = (parseFloat(pracWorkScore) + parseFloat(tpTestWeightScore) + parseFloat(attWeightScore) + parseFloat(activityScore)).toFixed(1);
             const totalTheorySessional = (parseFloat(notesScore) + parseFloat(ttTestWeightScore) + parseFloat(attWeightScore) + parseFloat(activityScore)).toFixed(1);
@@ -4443,6 +4485,25 @@ window.__itiLoginClick = async function(ev) {
                             ${monthsTableRows || '<tr><td colspan="10">कोई रिकॉर्ड उपलब्ध नहीं है</td></tr>'}
                         </tbody>
                     </table>
+                </div>
+
+                <div style="margin:10px 0 12px;padding:9px;border:1px solid #cbd5e1;border-radius:8px;background:#f8fafc;">
+                    <h3 style="margin:0 0 8px;color:#1e3a8a;font-size:0.95rem;">H1 / H2 अर्धवार्षिक सत्रीय मूल्यांकन</h3>
+                    <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;">
+                        <div style="border:1px solid #bfdbfe;border-radius:6px;padding:8px;background:#eff6ff;">
+                            <b>H1 — सत्र प्रारंभ से जनवरी</b>
+                            <div>प्रायोगिक: <b>${h1Score.practical}/100</b></div>
+                            <div>सैद्धांतिक: <b>${h1Score.theory}/100</b></div>
+                            <small>मासिक मूल्यांकन: ${halfStats.H1.rec.length} · उपस्थिति: ${h1Score.attendancePct}%</small>
+                        </div>
+                        <div style="border:1px solid #99f6e4;border-radius:6px;padding:8px;background:#f0fdfa;">
+                            <b>H2 — फरवरी से सत्र समाप्ति</b>
+                            <div>प्रायोगिक: <b>${h2Score.practical}/100</b></div>
+                            <div>सैद्धांतिक: <b>${h2Score.theory}/100</b></div>
+                            <small>मासिक मूल्यांकन: ${halfStats.H2.rec.length} · उपस्थिति: ${h2Score.attendancePct}%</small>
+                        </div>
+                    </div>
+                    <div style="font-size:0.72rem;color:#475569;margin-top:6px;">प्रत्येक H1/H2 में संबंधित अवधि के उपलब्ध मासिक मूल्यांकनों का औसत लिया गया है। H1: अगस्त–जनवरी; H2: फरवरी–जून।</div>
                 </div>
 
                 <div style="font-size: 0.82rem; font-weight: 700; margin-bottom: 5px; color: #831843;">
