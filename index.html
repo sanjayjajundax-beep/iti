@@ -5367,18 +5367,17 @@ window.__itiLoginClick = async function(ev) {
       <h3><i class="fa-solid fa-calendar-week"></i> साप्ताहिक पाठ्यक्रम प्रगति एवं शिक्षण रिकॉर्ड</h3>
       <p class="sup-help">हर सप्ताह एक ही रिपोर्ट जमा करें। सप्ताह क्रमांक और तारीखें भरें, फिर प्रत्येक दिन का थ्योरी और प्रैक्टिकल सिलेबस अलग-अलग दर्ज करें।</p>
       <div class="sup-form-grid" style="margin-top:12px">
-        <div class="input-group"><label for="instWeekNo">सप्ताह क्रमांक (Week No.) *</label><input id="instWeekNo" type="number" min="1" step="1" placeholder="जैसे 1"></div>
+        <div class="input-group"><label for="instWeekNo">सप्ताह क्रमांक (Week No.) *</label><select id="instWeekNo"><option value="">सप्ताह चुनें</option><option value="1">सप्ताह 1</option><option value="2">सप्ताह 2</option><option value="3">सप्ताह 3</option><option value="4">सप्ताह 4</option><option value="5">सप्ताह 5</option><option value="6">सप्ताह 6</option><option value="7">सप्ताह 7</option><option value="8">सप्ताह 8</option><option value="9">सप्ताह 9</option><option value="10">सप्ताह 10</option><option value="11">सप्ताह 11</option><option value="12">सप्ताह 12</option><option value="13">सप्ताह 13</option><option value="14">सप्ताह 14</option><option value="15">सप्ताह 15</option><option value="16">सप्ताह 16</option><option value="17">सप्ताह 17</option><option value="18">सप्ताह 18</option><option value="19">सप्ताह 19</option><option value="20">सप्ताह 20</option><option value="21">सप्ताह 21</option><option value="22">सप्ताह 22</option><option value="23">सप्ताह 23</option><option value="24">सप्ताह 24</option><option value="25">सप्ताह 25</option><option value="26">सप्ताह 26</option><option value="27">सप्ताह 27</option><option value="28">सप्ताह 28</option><option value="29">सप्ताह 29</option><option value="30">सप्ताह 30</option><option value="31">सप्ताह 31</option><option value="32">सप्ताह 32</option><option value="33">सप्ताह 33</option><option value="34">सप्ताह 34</option><option value="35">सप्ताह 35</option><option value="36">सप्ताह 36</option><option value="37">सप्ताह 37</option><option value="38">सप्ताह 38</option><option value="39">सप्ताह 39</option><option value="40">सप्ताह 40</option><option value="41">सप्ताह 41</option><option value="42">सप्ताह 42</option><option value="43">सप्ताह 43</option><option value="44">सप्ताह 44</option><option value="45">सप्ताह 45</option><option value="46">सप्ताह 46</option><option value="47">सप्ताह 47</option><option value="48">सप्ताह 48</option><option value="49">सप्ताह 49</option><option value="50">सप्ताह 50</option><option value="51">सप्ताह 51</option><option value="52">सप्ताह 52</option></select></div>
         <div class="input-group"><label for="instWeekFrom">सप्ताह शुरू (From) *</label><input id="instWeekFrom" type="date" onchange="renderWeeklyProgramDays()"></div>
         <div class="input-group"><label for="instWeekTo">सप्ताह समाप्त (To) *</label><input id="instWeekTo" type="date" onchange="renderWeeklyProgramDays()"></div>
         <div class="input-group"><label>ट्रेड</label><input id="instWeeklyTrade" value="" disabled></div>
       </div>
       <div id="instWeeklyDaysHost" style="margin-top:14px"><p class="sup-help">दिनवार थ्योरी और प्रैक्टिकल भरने के लिए सप्ताह की शुरू और समाप्त तारीख चुनें।</p></div>
       <h4 style="margin-top:16px">सप्ताह के प्रैक्टिकल / कार्य का विवरण</h4>
+      <p class="sup-help">कार्य दिवस और अवकाश सप्ताह की तारीखों तथा दैनिक उपस्थिति रजिस्टर के अनुसार अपने आप गिने जाएँगे।</p>
       <div class="sup-form-grid">
         <div class="input-group"><label for="instWeekJobNo">Practical Exercise / Job No.</label><input id="instWeekJobNo" placeholder="जैसे Job No. 01"></div>
         <div class="input-group"><label for="instWeekMaterial">आवश्यक सामग्री</label><textarea id="instWeekMaterial" rows="2" placeholder="सामग्री का नाम या No Material Required"></textarea></div>
-        <div class="input-group"><label for="instWeekQuality">Quality of Work / कार्य की गुणवत्ता</label><textarea id="instWeekQuality" rows="2" placeholder="कार्य का अपेक्षित परिणाम / गुणवत्ता"></textarea></div>
-        <div class="input-group"><label for="instWeekMethod">Method of Work / कार्य विधि</label><textarea id="instWeekMethod" rows="2" placeholder="कार्य करने की विधि / मुख्य चरण"></textarea></div>
         <div class="input-group"><label for="instWeekTime">Time Allotted</label><input id="instWeekTime" placeholder="जैसे 5 घंटे"></div>
         <div class="input-group"><label for="instWeekNote">अनुदेशक टिप्पणी</label><textarea id="instWeekNote" rows="2" placeholder="सप्ताह की विशेष टिप्पणी"></textarea></div>
       </div>
@@ -5413,9 +5412,9 @@ window.__itiLoginClick = async function(ev) {
         <td>${esc(x.from||'-')} से ${esc(x.to||'-')}</td><td>${esc(x.workingDays??'-')}</td>
         <td><details><summary>दिनवार विवरण देखें</summary>
           ${Array.isArray(x.days)?x.days.map(day=>`<div style="padding:7px 0;border-bottom:1px solid #ddd"><b>${esc(day.dayName||'')} (${esc(day.date||'')})</b>${day.off?'<p>अवकाश / कक्षा नहीं</p>':`<p><b>थ्योरी:</b> ${esc(day.theory||'-')}</p><p><b>प्रैक्टिकल:</b> ${esc(day.practical||'-')}</p>`}</div>`).join(''):''}
-          <p><b>Job No.:</b> ${esc(x.jobNo||'-')} · <b>सामग्री:</b> ${esc(x.material||'-')}</p>
-          <p><b>गुणवत्ता:</b> ${esc(x.quality||'-')}</p><p><b>कार्य विधि:</b> ${esc(x.method||'-')}</p>
-          <p><b>समय:</b> ${esc(x.timeAllotted||'-')} · <b>टिप्पणी:</b> ${esc(x.note||'-')}</p>
+          <p><b>प्रैक्टिकल कार्य दिवस:</b> ${esc(x.workingDays??'-')} · <b>अवकाश:</b> ${esc(x.holidayDays??'-')}</p>
+          <p><b>Job No.:</b> ${esc(x.jobNo||'-')} · <b>आवश्यक सामग्री:</b> ${esc(x.material||'-')}</p>
+          <p><b>Time Allotted:</b> ${esc(x.timeAllotted||'-')} · <b>अनुदेशक टिप्पणी:</b> ${esc(x.note||'-')}</p>
         </details></td></tr>`).join(''):'<tr><td colspan="6">अभी किसी ट्रेड के अनुदेशक ने साप्ताहिक रिकॉर्ड जमा नहीं किया है।</td></tr>';
     }
     if(currentRole==='instructor'&&loggedInInstructor){
@@ -5447,20 +5446,26 @@ window.__itiLoginClick = async function(ev) {
     const start=new Date(from+'T00:00:00'),end=new Date(to+'T00:00:00');
     const span=Math.round((end-start)/86400000)+1;
     if(!Number.isFinite(span)||span<1||span>7){host.innerHTML='<p style="color:#b91c1c">सप्ताह की अवधि 1 से 7 दिन के बीच रखें और समाप्ति तारीख शुरू तारीख के बाद रखें।</p>';return;}
-    let rows='';
+    let rows='',holidayCount=0;
     for(let i=0;i<span;i++){
       const dt=new Date(start);dt.setDate(start.getDate()+i);
       const iso=`${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
       const dayName=WEEKDAY_HI[dt.getDay()];
       const holiday=getWeeklyAttendanceHoliday(iso);
+      if(holiday.off)holidayCount++;
       rows+=`<tr style="${holiday.off?'background:#f3e8ff;':''}">
-        <td style="min-width:125px"><b>${dayName}</b><br><small>${iso.split('-').reverse().join('-')}</small>${holiday.off?`<br><span style="color:#7e22ce;font-weight:700">${esc(holiday.reason)}</span>`:''}</td>
-        <td><textarea id="instWeekTheory_${i}" rows="2" maxlength="1200" style="width:100%;min-width:180px" placeholder="${holiday.off?'अवकाश — भरना आवश्यक नहीं':'विषय / टॉपिक'}" ${holiday.off?'disabled':''}></textarea></td>
-        <td><textarea id="instWeekPractical_${i}" rows="2" maxlength="1200" style="width:100%;min-width:180px" placeholder="${holiday.off?'अवकाश — भरना आवश्यक नहीं':'प्रैक्टिकल कार्य'}" ${holiday.off?'disabled':''}></textarea></td>
+        <td style="text-align:center">${i+1}</td>
+        <td style="min-width:95px"><b>${dayName}</b></td>
+        <td style="min-width:105px"><b>${iso.split('-').reverse().join('-')}</b>${holiday.off?`<br><span style="color:#7e22ce;font-weight:700">${esc(holiday.reason)}</span>`:''}</td>
+        <td><textarea id="instWeekTheory_${i}" rows="2" maxlength="1200" style="width:100%;min-width:180px" placeholder="${holiday.off?'अवकाश — भरना आवश्यक नहीं':'उस दिन का थ्योरी टाइटल / विषय'}" ${holiday.off?'disabled':''}></textarea></td>
+        <td><textarea id="instWeekPractical_${i}" rows="2" maxlength="1200" style="width:100%;min-width:180px" placeholder="${holiday.off?'अवकाश — भरना आवश्यक नहीं':'उस दिन का प्रैक्टिकल टाइटल / कार्य'}" ${holiday.off?'disabled':''}></textarea></td>
       </tr>`;
     }
-    host.innerHTML=`<div class="table-shell"><table style="width:100%;border-collapse:collapse"><thead><tr><th>दिन / तारीख</th><th>थ्योरी सिलेबस</th><th>प्रैक्टिकल सिलेबस</th></tr></thead><tbody>${rows}</tbody></table></div><p class="sup-help" style="margin-top:8px">बैंगनी रंग में दिखने वाली तारीखें दैनिक उपस्थिति रजिस्टर से स्वतः अवकाश ली गई हैं।</p>`;
+    const workingDays=span-holidayCount;
+    host.innerHTML=`<div style="display:flex;gap:10px;flex-wrap:wrap;margin:8px 0 12px"><div class="glass-card" style="padding:9px 14px"><b>कुल सप्ताह के दिन:</b> ${span}</div><div class="glass-card" style="padding:9px 14px"><b>अवकाश:</b> ${holidayCount}</div><div class="glass-card" style="padding:9px 14px"><b>प्रैक्टिकल कार्य दिवस:</b> ${workingDays}</div></div><div class="table-shell"><table style="width:100%;border-collapse:collapse"><thead><tr><th>क्रम संख्या</th><th>दिन</th><th>दिनांक</th><th>थ्योरी टाइटल / विषय</th><th>प्रैक्टिकल टाइटल / कार्य</th></tr></thead><tbody>${rows}</tbody></table></div><p class="sup-help" style="margin-top:8px">बैंगनी रंग में दिखने वाली तारीखें दैनिक उपस्थिति रजिस्टर से स्वतः अवकाश ली गई हैं।</p>`;
     host.dataset.span=String(span);
+    host.dataset.holidays=String(holidayCount);
+    host.dataset.workingDays=String(workingDays);
   };
   window.saveInstructorWeeklyProgram=function(){
     if(!collegeGuard('instructor'))return;
@@ -5480,25 +5485,23 @@ window.__itiLoginClick = async function(ev) {
       if(!off&&!theory&&!practical){alert(`${WEEKDAY_HI[dt.getDay()]} (${date}) के लिए थ्योरी या प्रैक्टिकल सिलेबस भरें।`);return;}
       days.push({date,dayName:WEEKDAY_HI[dt.getDay()],theory,practical,off,holidaySource:off?'दैनिक उपस्थिति रजिस्टर':''});
     }
-    const workingDays=days.filter(d=>!d.off).length;
+    const workingDays=days.filter(d=>!d.off).length,holidayDays=days.filter(d=>d.off).length;
     if(!workingDays){alert('कम-से-कम एक कार्य दिवस का सिलेबस दर्ज करें।');return;}
     const d=sd(),record={
       id:'WPR'+Date.now()+'_'+Math.random().toString(36).slice(2,7),
       kind:'साप्ताहिक पाठ्यक्रम एवं शिक्षण रिकॉर्ड',
       collegeId:currentCollegeId,instructorId:loggedInInstructor.id,
       instructorName:loggedInInstructor.name,trade:currentTrade,
-      weekNo,from,to,workingDays,days,
+      weekNo,from,to,workingDays,holidayDays,days,
       jobNo:$('instWeekJobNo')?.value.trim()||'',
       material:$('instWeekMaterial')?.value.trim()||'',
-      quality:$('instWeekQuality')?.value.trim()||'',
-      method:$('instWeekMethod')?.value.trim()||'',
       timeAllotted:$('instWeekTime')?.value.trim()||'',
       note:$('instWeekNote')?.value.trim()||'',
       createdAt:new Date().toISOString()
     };
     d.weeklyPrograms.push(record);
     syncWithFirebase();renderCompletionModules();
-    ['instWeekNo','instWeekFrom','instWeekTo','instWeekJobNo','instWeekMaterial','instWeekQuality','instWeekMethod','instWeekTime','instWeekNote'].forEach(id=>{const el=$(id);if(el)el.value='';});
+    ['instWeekNo','instWeekFrom','instWeekTo','instWeekJobNo','instWeekMaterial','instWeekTime','instWeekNote'].forEach(id=>{const el=$(id);if(el)el.value='';});
     if($('instWeeklyDaysHost')){$('instWeeklyDaysHost').dataset.span='';$('instWeeklyDaysHost').innerHTML='<p class="sup-help">अगले सप्ताह का रिकॉर्ड दर्ज करने के लिए तारीखें चुनें।</p>';}
     showToast('साप्ताहिक पाठ्यक्रम एवं शिक्षण रिकॉर्ड सेव हो गया।');
   };
