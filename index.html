@@ -928,6 +928,19 @@ window.__itiLoginClick = async function(ev) {
 </div>
 <div class="sup-view-panel hidden" id="supViewInstructors">
 <div class="glass-card sup-panel"><h3><i class="fa-solid fa-chalkboard-user"></i> अनुदेशक रिकॉर्ड की जाँच</h3><div class="table-shell"><table><thead><tr><th>अनुदेशक</th><th>ट्रेड</th><th>विद्यार्थी</th><th>उपस्थिति एंट्री</th><th>मूल्यांकन रिकॉर्ड</th><th>अंतिम गतिविधि</th></tr></thead><tbody id="supInstructorTableBody"></tbody></table></div></div>
+<div class="glass-card sup-panel" id="supInstructorSubmissionPanel">
+  <h3><i class="fa-solid fa-folder-open"></i> सभी ट्रेड के अनुदेशकों द्वारा जमा किए गए रिकॉर्ड</h3>
+  <p class="sup-help">यहाँ प्रत्येक ट्रेड के अनुदेशक की पाठ्यक्रम प्रगति, थ्योरी / प्रैक्टिकल शिक्षण रिकॉर्ड, दिनवार साप्ताहिक पाठ्यक्रम, दैनिक / साप्ताहिक / मासिक गतिविधि रिपोर्ट और कमजोर विद्यार्थी सुधार योजना एक साथ दिखाई जाएगी।</p>
+  <div class="sup-form-grid" style="margin-bottom:12px">
+    <div class="input-group"><label for="giRecordTradeFilter">ट्रेड के अनुसार</label><select id="giRecordTradeFilter" onchange="renderInstructorSubmissionMonitor()"><option value="ALL">सभी ट्रेड</option></select></div>
+    <div class="input-group"><label for="giRecordTypeFilter">रिकॉर्ड का प्रकार</label><select id="giRecordTypeFilter" onchange="renderInstructorSubmissionMonitor()"><option value="ALL">सभी रिकॉर्ड</option><option value="weekly">साप्ताहिक पाठ्यक्रम</option><option value="syllabus">पाठ्यक्रम प्रगति</option><option value="teaching">थ्योरी / प्रैक्टिकल शिक्षण</option><option value="activity">दैनिक / साप्ताहिक / मासिक गतिविधि</option><option value="weak">कमजोर विद्यार्थी सुधार योजना</option></select></div>
+  </div>
+  <div class="sup-alert-grid" id="giInstructorRecordSummary"></div>
+  <h4 style="margin-top:14px">अनुदेशकवार रिकॉर्ड स्थिति</h4>
+  <div class="table-shell"><table><thead><tr><th>अनुदेशक</th><th>ट्रेड</th><th>पाठ्यक्रम</th><th>शिक्षण</th><th>साप्ताहिक</th><th>गतिविधि रिपोर्ट</th><th>सुधार योजना</th><th>कुल</th></tr></thead><tbody id="giInstructorRecordSummaryBody"></tbody></table></div>
+  <h4 style="margin-top:16px">जमा किए गए रिकॉर्ड का पूरा विवरण</h4>
+  <div class="table-shell"><table><thead><tr><th>तारीख / अवधि</th><th>ट्रेड</th><th>अनुदेशक</th><th>रिकॉर्ड</th><th>विवरण</th><th>स्थिति</th></tr></thead><tbody id="giInstructorRecordDetailBody"></tbody></table></div>
+</div>
 </div>
 <div class="sup-view-panel hidden" id="supViewInspection">
 <div class="glass-card sup-panel"><h3><i class="fa-solid fa-clipboard-check"></i> नया निरीक्षण दर्ज करें</h3>
@@ -2086,6 +2099,56 @@ window.__itiLoginClick = async function(ev) {
             return dateObj >= new Date(admDateStr + "T00:00:00");
         }
 
+        // पूरे सक्रिय सत्र की संचित उपस्थिति: हर महीने के Firebase रिकॉर्ड को पढ़कर
+        // वर्तमान तारीख तक वास्तविक कार्यदिवस और शाम की P उपस्थिति गिनें।
+        function calculateSessionCumulativeAttendance(collegeId, trade, student, todayObj) {
+            const conf = getSessionConfig();
+            const sessionStart = new Date(conf.startDate + "T00:00:00");
+            const sessionEnd = new Date(conf.endDate + "T00:00:00");
+            const today = new Date(todayObj || new Date());
+            today.setHours(0, 0, 0, 0);
+            const cutoff = today < sessionEnd ? today : sessionEnd;
+            const admissionDate = new Date(((student && student.admissionDate) || conf.startDate) + "T00:00:00");
+            const firstDate = admissionDate > sessionStart ? admissionDate : sessionStart;
+
+            if (firstDate > cutoff) return { present: 0, working: 0, percent: 0 };
+
+            let present = 0;
+            let working = 0;
+            const recordsByMonth = (appData.records && appData.records[collegeId] && appData.records[collegeId][trade]) || {};
+            const holidaysByMonth = (appData.holidays && appData.holidays[collegeId] && appData.holidays[collegeId][trade]) || {};
+            const roll = String(student.roll).trim();
+
+            const cursor = new Date(firstDate);
+            cursor.setDate(1);
+            while (cursor <= cutoff) {
+                const year = cursor.getFullYear();
+                const monthIndex = cursor.getMonth();
+                const monthVal = `${year}-${String(monthIndex + 1).padStart(2, '0')}`;
+                const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
+                const monthRecords = recordsByMonth[monthVal] || {};
+                const studentMonthRecord = monthRecords[roll] || monthRecords[student.roll] || {};
+                const holidayDays = (holidaysByMonth[monthVal] || []).map(Number);
+
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const dateObj = new Date(year, monthIndex, day);
+                    if (dateObj < firstDate || dateObj > cutoff || dateObj < sessionStart || dateObj > sessionEnd) continue;
+                    if (dateObj.getDay() === 0 || holidayDays.includes(day)) continue;
+
+                    working++;
+                    // मासिक योग की तरह एक दिन की उपस्थिति शाम (E) कॉलम की P स्थिति से गिनी जाती है।
+                    if (studentMonthRecord[`${day}_e`] === 'P') present++;
+                }
+                cursor.setMonth(cursor.getMonth() + 1);
+            }
+
+            return {
+                present,
+                working,
+                percent: working > 0 ? Number(((present / working) * 100).toFixed(1)) : 0
+            };
+        }
+
         function isMonthLocked(collegeId, trade, monthVal) {
             if (!appData.freezeLocks) return false;
             return !!appData.freezeLocks[`${collegeId}_${trade}_${monthVal}`];
@@ -2403,6 +2466,7 @@ window.__itiLoginClick = async function(ev) {
             const panel=document.getElementById('supView'+view.charAt(0).toUpperCase()+view.slice(1)); if(panel)panel.classList.remove('hidden');
             document.querySelectorAll('.sup-nav-btn').forEach(el=>el.classList.toggle('active',el===btn));
             if(view==='performance'||view==='instructors'||view==='assets'||view==='tasks'||view==='inspection') renderSupOperationalViews();
+            if(view==='instructors'&&typeof window.renderInstructorSubmissionMonitor==='function')window.renderInstructorSubmissionMonitor();
             if(view==='groupTasks') renderGroupInstructorTasks();
             if(view==='requests') renderSupervisorRequests();
         }
@@ -3604,11 +3668,12 @@ window.__itiLoginClick = async function(ev) {
                 }
 
                 const monthPct = studentMonthWorkingDays > 0 ? ((evePresentCount / studentMonthWorkingDays) * 100).toFixed(1) : 0;
-                const pastW = parseInt(student.pastWorkingDays) || 0;
-                const pastP = parseInt(student.pastPresentDays) || 0;
-                const overallW = pastW + studentMonthWorkingDays;
-                const overallP = pastP + evePresentCount;
-                const overallPct = overallW > 0 ? ((overallP / overallW) * 100).toFixed(1) : 0;
+                // संचित योग में pastWorkingDays snapshot पर निर्भर न रहें;
+                // सत्र प्रारंभ से आज तक के सभी माह के attendance records जोड़ें।
+                const cumulative = calculateSessionCumulativeAttendance(currentCollegeId, currentTrade, student, today);
+                const overallW = cumulative.working;
+                const overallP = cumulative.present;
+                const overallPct = cumulative.percent.toFixed(1);
 
                 const getBadge = (p) => p >= 75 ? 'pct-high' : (p >= 60 ? 'pct-mid' : 'pct-low');
 
@@ -5395,6 +5460,44 @@ window.__itiLoginClick = async function(ev) {
     Object.values(root).forEach(days=>Object.values(days||{}).forEach(v=>{if(['P','A','L','H','-'].includes(String(v))){entries++;if(v==='P')p++;if(v==='A')a++;}}));
     return {p,a,entries};
   }
+  window.renderInstructorSubmissionMonitor=function(){
+    if(!['groupInstructor','superintendent'].includes(currentRole)||!currentCollegeId)return;
+    const d=sd(),cid=currentCollegeId,allInstructors=getSupCollegeInstructors();
+    const tradeSel=$('giRecordTradeFilter'),typeSel=$('giRecordTypeFilter');
+    if(tradeSel){const keep=tradeSel.value||'ALL';const trades=getTradesList();tradeSel.innerHTML='<option value="ALL">सभी ट्रेड</option>'+trades.map(t=>`<option value="${esc(t)}">${esc(t)}</option>`).join('');tradeSel.value=trades.includes(keep)?keep:'ALL';}
+    const selectedTrade=tradeSel?.value||'ALL',selectedType=typeSel?.value||'ALL';
+    const records=[];
+    const add=(arr,kind,label,dateFn,detailFn,statusFn)=>{
+      (Array.isArray(arr)?arr:[]).filter(x=>x&&x.collegeId===cid).forEach(x=>{
+        const trade=String(x.trade||allInstructors.find(i=>i.id===x.instructorId)?.trade||'');
+        if(selectedTrade!=='ALL'&&trade!==selectedTrade)return;
+        if(selectedType!=='ALL'&&selectedType!==kind)return;
+        const inst=allInstructors.find(i=>String(i.id)===String(x.instructorId));
+        records.push({date:dateFn(x),trade,instructor:x.instructorName||inst?.name||'अनुदेशक',kind:label,detail:detailFn(x),status:statusFn(x),createdAt:x.createdAt||x.date||x.from||''});
+      });
+    };
+    add(d.syllabus,'syllabus','पाठ्यक्रम प्रगति',x=>x.date||'-',x=>`<b>${esc(x.topic||'विषय नहीं दिया')}</b><br>प्रगति: ${esc(x.percent??'-')}%${x.note?'<br>टिप्पणी: '+esc(x.note):''}`,x=>'जमा');
+    add(d.teachingRecords,'teaching','थ्योरी / प्रैक्टिकल शिक्षण',x=>x.date||'-',x=>`<b>${esc(x.type||'शिक्षण')}</b> — ${esc(x.subject||'-')}<br>शामिल विद्यार्थी: ${esc(x.students??0)}`,x=>'जमा');
+    add(d.weeklyPrograms,'weekly','साप्ताहिक पाठ्यक्रम',x=>`सप्ताह ${esc(x.weekNo||'-')}<br>${esc(x.from||'-')} से ${esc(x.to||'-')}`,x=>{
+      const days=Array.isArray(x.days)?x.days.map(day=>`<div style="padding:5px 0;border-bottom:1px solid #e2e8f0"><b>${esc(day.dayName||'')} (${esc(day.date||'')})</b>${day.off?'<br><span style="color:#b45309">अवकाश / कक्षा नहीं</span>':`<br>थ्योरी: ${esc(day.theory||'-')}<br>प्रैक्टिकल: ${esc(day.practical||'-')}`}</div>`).join(''):'दिनवार विवरण उपलब्ध नहीं';
+      return `<details><summary>दिनवार सिलेबस देखें</summary>${days}<p>कार्य दिवस: ${esc(x.workingDays??'-')} · अवकाश: ${esc(x.holidayDays??'-')}</p><p>Job No.: ${esc(x.jobNo||'-')} · सामग्री: ${esc(x.material||'-')}</p><p>समय: ${esc(x.timeAllotted||'-')} · टिप्पणी: ${esc(x.note||'-')}</p></details>`;
+    },x=>'जमा');
+    add(d.reports,'activity','गतिविधि रिपोर्ट',x=>`${esc(x.period||'दैनिक')}<br>${esc(x.date||'-')}${x.endDate?' से '+esc(x.endDate):''}`,x=>`<b>${esc(x.type||'-')}</b><br>${esc(x.details||'-')}<br>शामिल विद्यार्थी: ${esc(x.students??0)}${x.reviewComment?'<br>समीक्षा: '+esc(x.reviewComment):''}`,x=>x.status||'जमा');
+    add(d.weakStudents,'weak','कमजोर विद्यार्थी सुधार योजना',x=>`${esc(x.date||'-')}${x.review?' / समीक्षा: '+esc(x.review):''}`,x=>`विद्यार्थी: <b>${esc(x.studentName||'-')}</b><br>कमजोरी: ${esc(x.area||'-')}<br>योजना: ${esc(x.plan||'-')}`,x=>x.status||'जमा');
+    records.sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt)));
+    const count=k=>records.filter(x=>x.kind===k).length;
+    const summary=$('giInstructorRecordSummary');if(summary)summary.innerHTML=`<div class="sup-alert-item"><strong>${records.length}</strong><span>कुल जमा रिकॉर्ड</span></div><div class="sup-alert-item"><strong>${count('साप्ताहिक पाठ्यक्रम')}</strong><span>साप्ताहिक पाठ्यक्रम</span></div><div class="sup-alert-item"><strong>${count('पाठ्यक्रम प्रगति')}</strong><span>पाठ्यक्रम प्रगति</span></div><div class="sup-alert-item"><strong>${count('थ्योरी / प्रैक्टिकल शिक्षण')}</strong><span>शिक्षण रिकॉर्ड</span></div><div class="sup-alert-item"><strong>${count('गतिविधि रिपोर्ट')}</strong><span>दैनिक / साप्ताहिक / मासिक रिपोर्ट</span></div><div class="sup-alert-item"><strong>${count('कमजोर विद्यार्थी सुधार योजना')}</strong><span>सुधार योजना</span></div>`;
+    const byInstructor=allInstructors.filter(i=>selectedTrade==='ALL'||String(i.trade)===selectedTrade).map(i=>{
+      const own=records.filter(r=>r.instructor=== (i.name||i.id) && r.trade===i.trade);
+      // Name/ID matching fallback for duplicate instructor names is resolved from original record ids below.
+      const ownRaw=[...d.syllabus,...d.teachingRecords,...d.weeklyPrograms,...d.reports,...d.weakStudents].filter(x=>x&&x.collegeId===cid&&String(x.instructorId)===String(i.id)&&(selectedTrade==='ALL'||String(x.trade||i.trade)===selectedTrade));
+      const n=k=>ownRaw.filter(x=>k==='activity'?d.reports.includes(x):k==='weekly'?d.weeklyPrograms.includes(x):k==='syllabus'?d.syllabus.includes(x):k==='teaching'?d.teachingRecords.includes(x):d.weakStudents.includes(x)).length;
+      return {i,syllabus:n('syllabus'),teaching:n('teaching'),weekly:n('weekly'),activity:n('activity'),weak:n('weak'),total:ownRaw.length};
+    });
+    const sb=$('giInstructorRecordSummaryBody');if(sb)sb.innerHTML=byInstructor.length?byInstructor.map(x=>`<tr><td>${esc(x.i.name||x.i.id)}</td><td>${esc(x.i.trade||'-')}</td><td>${x.syllabus}</td><td>${x.teaching}</td><td>${x.weekly}</td><td>${x.activity}</td><td>${x.weak}</td><td><b>${x.total}</b></td></tr>`).join(''):'<tr><td colspan="8">इस कॉलेज में अनुदेशक सूची उपलब्ध नहीं है।</td></tr>';
+    const db=$('giInstructorRecordDetailBody');if(db)db.innerHTML=records.length?records.map(r=>`<tr><td>${r.date}</td><td>${esc(r.trade||'-')}</td><td>${esc(r.instructor)}</td><td><b>${esc(r.kind)}</b></td><td>${r.detail}</td><td>${esc(r.status||'-')}</td></tr>`).join(''):'<tr><td colspan="6">चयन के अनुसार अभी कोई रिकॉर्ड जमा नहीं हुआ है।</td></tr>';
+  };
+
   window.renderCompletionModules=function(){
     if(currentRole==='superintendent'&&currentCollegeId){
       const d=sd(),cid=currentCollegeId,month=$('supReportMonth')?.value||new Date().toISOString().slice(0,7);
@@ -5417,6 +5520,7 @@ window.__itiLoginClick = async function(ev) {
           <p><b>Time Allotted:</b> ${esc(x.timeAllotted||'-')} · <b>अनुदेशक टिप्पणी:</b> ${esc(x.note||'-')}</p>
         </details></td></tr>`).join(''):'<tr><td colspan="6">अभी किसी ट्रेड के अनुदेशक ने साप्ताहिक रिकॉर्ड जमा नहीं किया है।</td></tr>';
     }
+    if(typeof window.renderInstructorSubmissionMonitor==='function')window.renderInstructorSubmissionMonitor();
     if(currentRole==='instructor'&&loggedInInstructor){
       const d=sd();if($('instWeeklyTrade'))$('instWeeklyTrade').value=currentTrade||'';if($('instWeekFrom')?.value&&$('instWeekTo')?.value)renderWeeklyProgramDays();const sel=$('instWeakStudent');if(sel){sel.innerHTML=getStudentList(currentCollegeId,currentTrade).map(st=>`<option value="${esc(st.studentId)}">${esc(st.name)} (${esc(st.roll||st.studentId)})</option>`).join('')}
       const records=[...d.syllabus.filter(x=>x.collegeId===currentCollegeId&&x.instructorId===loggedInInstructor.id),...d.teachingRecords.filter(x=>x.collegeId===currentCollegeId&&x.instructorId===loggedInInstructor.id),...d.weeklyPrograms.filter(x=>x.collegeId===currentCollegeId&&x.instructorId===loggedInInstructor.id),...d.weakStudents.filter(x=>x.collegeId===currentCollegeId&&x.instructorId===loggedInInstructor.id)];
