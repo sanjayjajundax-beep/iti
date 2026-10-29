@@ -2934,7 +2934,8 @@ window.__itiLoginClick = async function(ev) {
         function giMetric(label,value,sub){return `<div class="gi-new-kpi"><span>${label}</span><strong>${value}</strong>${sub?`<small class="gi-new-muted">${sub}</small>`:''}</div>`;}
         function renderGroupInstructorDashboard(){
             if(currentRole!=='groupInstructor'||!currentCollegeId)return;
-            const cid=currentCollegeId,p=groupDateParts(),trades=getTradesList(),ins=getSupCollegeInstructors(),d=sd();
+            const cid=currentCollegeId,p=groupDateParts(),trades=getTradesList(),ins=getSupCollegeInstructors(),d=ensureSupData();
+            ['syllabus','weakStudents','teachingRecords','weeklyPrograms','leaveRequests','timetables'].forEach(k=>{if(!Array.isArray(d[k]))d[k]=[];});
             const dateLabel=new Date().toLocaleDateString('hi-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
             const put=(id,v)=>{const e=document.getElementById(id);if(e)e.innerHTML=v;};
             put('giNewWelcome',`नमस्ते, ${supEscape(loggedInSuperintendent?.name||'ग्रुप इंस्ट्रक्टर')}`);put('giNewCollege',supEscape(getCollegeName(cid)));put('giNewDate',dateLabel);
