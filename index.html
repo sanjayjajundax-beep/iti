@@ -824,7 +824,7 @@ window.__itiLoginClick = async function(ev) {
 <div id="loginDiagnosticMessage" role="status" aria-live="polite" style="margin-top:10px;min-height:22px;text-align:center;font-size:13px;font-weight:700;color:#b91c1c;"></div>
 </form>
 <div class="login-developer-credit" style="margin-top:42px;padding:18px 8px 4px;text-align:center;color:#17459a;font-weight:700;font-size:1rem;border-top:1px solid #d7e0ee;">
-Developer संजय जाजुन्दा
+डेवलपर संजय जाजुन्दा
 </div>
 </div>
 </div>
@@ -855,7 +855,7 @@ Developer संजय जाजुन्दा
 <i class="fa-solid fa-file-excel"></i> वार्षिक Excel
                     </button><button class="role-side-btn app-btn-pdf app-btn" onclick="openAdminAnnualReportModal()">
 <i class="fa-solid fa-file-pdf"></i> वार्षिक प्रोग्रेस (PDF)
-                    </button><button class="app-btn-primary app-btn role-side-btn" onclick="openModal('addTradeModal')"><i class="fa-solid fa-plus"></i> नई ट्रेड</button><button class="role-side-btn app-btn-secondary app-btn" onclick="openModal('addInstructorModal')"><i class="fa-solid fa-user-shield"></i> नया अनुदेशक</button><button class="role-side-btn app-btn-warning app-btn" onclick="openAdminCredModal()"><i class="fa-solid fa-key"></i> एडमिन क्रेडेंशियल</button><button class="role-side-btn app-btn app-btn-success" onclick="syncWithFirebase()"><i class="fa-solid fa-cloud-arrow-up"></i> Firebase सेव करें</button></aside><div class="role-main"><div class="role-dashboard-heading">
+                    </button><button class="app-btn-primary app-btn role-side-btn" onclick="openModal('addTradeModal')"><i class="fa-solid fa-plus"></i> नई ट्रेड</button><button class="role-side-btn app-btn-secondary app-btn" onclick="openModal('addInstructorModal')"><i class="fa-solid fa-user-shield"></i> नया अनुदेशक</button><button class="role-side-btn app-btn-warning app-btn" onclick="openAdminCredModal()"><i class="fa-solid fa-key"></i> एडमिन क्रेडेंशियल</button><button class="role-side-btn app-btn app-btn-danger" onclick="openUserDataResetModal()"><i class="fa-solid fa-user-slash"></i> यूजर का डेटा रीसेट करें</button><button class="role-side-btn app-btn app-btn-success" onclick="syncWithFirebase()"><i class="fa-solid fa-cloud-arrow-up"></i> Firebase सेव करें</button></aside><div class="role-main"><div class="role-dashboard-heading">
 <h2 style="font-size: 1.15rem; color: var(--admin);"><i class="fa-solid fa-sliders"></i> केंद्रीय मल्टी-कॉलेज एडमिन नियंत्रण कक्ष</h2>
 </div><div class="admin-quick-bar">
 <div style="display: flex; align-items: center; gap: 10px;">
@@ -5641,7 +5641,41 @@ Developer संजय जाजुन्दा
       <h3 style="text-align:left">महीने की गतिविधियों का विवरण</h3><table><thead><tr><th>गतिविधि</th><th>तारीख</th><th>विषय / कार्य</th><th>प्रगति / संख्या</th><th>टिप्पणी / विवरण</th></tr></thead><tbody>${details}</tbody></table>
       <div class="sign"><span>ग्रुप इंस्ट्रक्टर के हस्ताक्षर: ______________</span><span>प्राचार्य / अधीक्षक: ______________</span></div>
       <div class="foot">यह रिपोर्ट पोर्टल में उपलब्ध रिकॉर्ड के आधार पर स्वतः तैयार की गई है।</div>
-      <script>window.onload=()=>setTimeout(()=>window.print(),350)<\/script></body></html>`);
+      <script>window.onload=()=>setTimeout(()=>window.print(),350)<\/script>
+<div class="modal-backdrop hidden" id="userDataResetModal">
+  <div class="modal-content" style="max-width:620px;">
+    <h3 style="color:#b91c1c;margin-bottom:10px;"><i class="fa-solid fa-triangle-exclamation"></i> यूजर डेटा रीसेट</h3>
+    <p style="font-size:.88rem;line-height:1.6;margin-bottom:12px;">
+      चुने गए यूजर का कामकाजी डेटा हटेगा/रीसेट होगा। उसका लॉगिन अकाउंट, लॉगिन ID और पासवर्ड नहीं हटेंगे।
+    </p>
+    <div class="input-group">
+      <label for="resetTargetRole">यूजर का प्रकार</label>
+      <select id="resetTargetRole" onchange="populateUserDataResetTargets()">
+        <option value="instructor">अनुदेशक</option>
+        <option value="groupInstructor">ग्रुप इंस्ट्रक्टर</option>
+        <option value="superintendent">अधीक्षक</option>
+      </select>
+    </div>
+    <div class="input-group">
+      <label for="resetTargetUser">यूजर चुनें</label>
+      <select id="resetTargetUser"></select>
+    </div>
+    <div id="resetTargetScope" style="background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:10px;font-size:.82rem;line-height:1.6;margin-bottom:12px;"></div>
+    <div class="input-group">
+      <label for="resetConfirmText">पुष्टि के लिए नीचे <b>RESET</b> लिखें</label>
+      <input id="resetConfirmText" autocomplete="off" placeholder="RESET"/>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;">
+      <button class="app-btn app-btn-secondary" onclick="closeModal('userDataResetModal')">रद्द करें</button>
+      <button class="app-btn app-btn-danger" id="executeUserDataResetBtn" onclick="executeUserDataReset()"><i class="fa-solid fa-trash"></i> चुने हुए यूजर का डेटा साफ करें</button>
+    </div>
+    <p style="font-size:.75rem;color:#64748b;margin-top:12px;">
+      सावधानी: पुराने रिकॉर्ड में निर्माता की ID सेव नहीं है तो सिस्टम केवल स्पष्ट रूप से पहचाने जा सकने वाले रिकॉर्ड ही हटाएगा। साझा कॉलेज डेटा को अंधाधुंध नहीं मिटाया जाएगा।
+    </p>
+  </div>
+</div>
+
+</body></html>`);
     w.document.close();
   };
 
@@ -5653,6 +5687,101 @@ Developer संजय जाजुन्दा
   document.addEventListener('DOMContentLoaded',()=>{inject();const mo=$('supReportMonth');if(mo)mo.value=new Date().toISOString().slice(0,7);});
   const oldRoute=window.setupUIRoute; if(oldRoute)window.setupUIRoute=function(){oldRoute.apply(this,arguments);setTimeout(()=>{inject();renderCompletionModules();},0);};
 })();
+
+// ================= ADMIN: INDIVIDUAL USER DATA RESET =================
+function openUserDataResetModal(){
+  if(currentRole!=='admin'){alert('यह सुविधा केवल सुपर एडमिन के लिए है।');return;}
+  populateUserDataResetTargets();
+  const c=document.getElementById('resetConfirmText');if(c)c.value='';
+  openModal('userDataResetModal');
+}
+function populateUserDataResetTargets(){
+  const role=document.getElementById('resetTargetRole')?.value||'instructor';
+  const sel=document.getElementById('resetTargetUser');if(!sel)return;
+  let list=[];
+  if(role==='instructor') list=(appData.instructors||[]).map((x,i)=>({x,i,label:`${x.name||''} — ${x.trade||''} — ${getCollegeName(x.collegeId||'COL01')} (${x.id})`}));
+  if(role==='groupInstructor') list=(appData.groupInstructors||[]).map((x,i)=>({x,i,label:`${x.name||''} — ${getCollegeName(x.collegeId)} (${x.id})`}));
+  if(role==='superintendent') list=(appData.superintendents||[]).map((x,i)=>({x,i,label:`${x.name||''} — ${getCollegeName(x.collegeId)} (${x.id})`}));
+  sel.innerHTML=list.length?list.map(o=>`<option value="${o.i}">${supEscape(o.label)}</option>`).join(''):'<option value="">कोई अकाउंट उपलब्ध नहीं</option>';
+  const info=document.getElementById('resetTargetScope');
+  if(info) info.innerHTML=role==='instructor'
+    ? 'रीसेट में इस अनुदेशक के कॉलेज/ट्रेड की उपस्थिति, मूल्यांकन और पूर्णांक सेटिंग हटेंगी; उसकी जोड़ी हुई छात्र सूची और अनुदेशक लॉगिन अकाउंट सुरक्षित रहेंगे। उसके जमा किए गतिविधि-रिपोर्ट/अनुरोध भी हटेंगे।'
+    : 'रीसेट में चुने गए अधिकारी द्वारा बनाए गए निरीक्षण, आवंटित कार्य, सूचना, ग्रुप To-Do प्रविष्टियाँ और संबंधित ऑडिट प्रविष्टियाँ हटेंगी। अन्य यूजर का डेटा और लॉगिन अकाउंट सुरक्षित रहेंगे।';
+}
+async function executeUserDataReset(){
+  if(currentRole!=='admin'){alert('अनुमति नहीं है।');return;}
+  const role=document.getElementById('resetTargetRole')?.value||'';
+  const raw=document.getElementById('resetTargetUser')?.value;
+  if(raw===''||raw==null){alert('पहले यूजर चुनें।');return;}
+  const idx=Number(raw);
+  const account=role==='instructor'?(appData.instructors||[])[idx]:role==='groupInstructor'?(appData.groupInstructors||[])[idx]:(appData.superintendents||[])[idx];
+  if(!account){alert('चुना गया अकाउंट नहीं मिला।');return;}
+  const typed=document.getElementById('resetConfirmText')?.value.trim();
+  if(typed!=='RESET'){alert('रीसेट करने के लिए RESET लिखना जरूरी है।');return;}
+  const roleLabel={instructor:'अनुदेशक',groupInstructor:'ग्रुप इंस्ट्रक्टर',superintendent:'अधीक्षक'}[role];
+  const name=String(account.name||'').trim(), uid=String(account.id||account.uid||'').trim();
+  if(!confirm(`${name} (${roleLabel}) का डेटा स्थायी रूप से साफ करना है? लॉगिन अकाउंट सुरक्षित रहेगा। पहले Firebase JSON बैकअप डाउनलोड होना चाहिए।`))return;
+  const btn=document.getElementById('executeUserDataResetBtn');if(btn)btn.disabled=true;
+  try{
+    const d=ensureSupData();
+    const sameCollege=x=>x&&String(x.collegeId||'')===String(account.collegeId||'');
+    const sameActor=(x)=>{
+      if(!x)return false;
+      const idMatch=uid&&(String(x.createdById||x.actorId||x.updatedById||'')===uid);
+      const nameMatch=name&&String(x.createdBy||x.actor||x.updatedBy||x.completedBy||'').trim()===name;
+      const roleMatch=!x.createdByRole||x.createdByRole===role;
+      const actorRoleMatch=!x.role||x.role===role;
+      return !!(idMatch||(nameMatch&&roleMatch&&actorRoleMatch&&sameCollege(x)));
+    };
+    if(role==='instructor'){
+      const cid=String(account.collegeId||'COL01'), trade=String(account.trade||'');
+      // Attendance, evaluations and marks configuration are stored by college/trade,
+      // not by author; this trade's instructor is its data owner in this portal.
+      if(appData.records?.[cid])delete appData.records[cid][trade];
+      if(appData.evaluations?.[cid])delete appData.evaluations[cid][trade];
+      if(appData.maxMarksConfig?.[cid])delete appData.maxMarksConfig[cid][trade];
+      d.reports=d.reports.filter(x=>!(sameCollege(x)&&String(x.instructorId||'')===uid));
+      d.requests=d.requests.filter(x=>!(sameCollege(x)&&String(x.instructorId||'')===uid));
+      // Keep task assignments but clear this instructor's completion state.
+      d.tasks.forEach(t=>{if(sameCollege(t)&&String(t.instructorId||'')===uid){t.status='लंबित';delete t.completedAt;delete t.completedBy;}});
+    }else{
+      d.inspections=d.inspections.filter(x=>!sameActor(x));
+      d.tasks=d.tasks.filter(x=>!sameActor(x));
+      d.auditLog=d.auditLog.filter(x=>!sameActor(x));
+      d.assets=d.assets.filter(x=>!sameActor(x));
+      d.notices=d.notices.filter(x=>!sameActor(x));
+      if(Array.isArray(appData.instructorNotices))appData.instructorNotices=appData.instructorNotices.filter(x=>!sameActor(x));
+      if(Array.isArray(appData.groupInstructorCustomTasks))appData.groupInstructorCustomTasks=appData.groupInstructorCustomTasks.filter(x=>!sameActor(x));
+      if(Array.isArray(appData.groupInstructorTasks))appData.groupInstructorTasks=appData.groupInstructorTasks.filter(x=>!(sameCollege(x)&&String(x.updatedBy||'').trim()===name));
+    }
+    // Separate Firebase notice paths: remove only notices clearly authored by this account.
+    if(role!=='instructor'){
+      const paths=['portal_information/student_notices','portal_information/instructor_notices'];
+      for(const path of paths){
+        const ref=rtdb.ref(path), snap=await ref.once('value'), tree=snap.val()||{}, updates={};
+        Object.keys(tree).forEach(collegeKey=>{
+          Object.keys(tree[collegeKey]||{}).forEach(noticeKey=>{
+            const n=tree[collegeKey][noticeKey];
+            if(n&&String(n.createdBy||'').trim()===name&&String(n.collegeId||account.collegeId)===String(account.collegeId)){
+              updates[`${collegeKey}/${noticeKey}`]=null;
+            }
+          });
+        });
+        if(Object.keys(updates).length)await ref.update(updates);
+      }
+    }
+    saveLocalCache();
+    const saved=await syncWithFirebase();
+    if(!saved)throw new Error('मुख्य डेटा Firebase पर सेव नहीं हो पाया।');
+    closeModal('userDataResetModal');
+    if(typeof renderAdminView==='function')renderAdminView();
+    alert(`${name} का उपलब्ध पहचान योग्य डेटा साफ कर दिया गया है। लॉगिन अकाउंट सुरक्षित है।`);
+  }catch(err){
+    console.error('User data reset failed:',err);
+    alert('रीसेट पूरा नहीं हो सका। Firebase कनेक्शन/Rules जाँचें। कोई सफलता संदेश नहीं दिया गया है। त्रुटि: '+(err.message||err));
+  }finally{if(btn)btn.disabled=false;}
+}
+
 </script>
 
 </body>
