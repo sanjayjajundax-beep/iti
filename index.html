@@ -2475,6 +2475,13 @@ window.__itiLoginClick = async function(ev) {
             if (!Array.isArray(d.auditLog)) d.auditLog=[];
             if (!Array.isArray(d.notices)) d.notices=[];
             if (!Array.isArray(d.assets)) d.assets=[];
+            // नए रिपोर्ट/शिक्षण मॉड्यूल के ऐरे पुराने Firebase डेटा में मौजूद न हों तो सुरक्षित डिफॉल्ट दें।
+            if (!Array.isArray(d.syllabus)) d.syllabus=[];
+            if (!Array.isArray(d.teachingRecords)) d.teachingRecords=[];
+            if (!Array.isArray(d.weeklyPrograms)) d.weeklyPrograms=[];
+            if (!Array.isArray(d.weakStudents)) d.weakStudents=[];
+            if (!Array.isArray(d.leaveRequests)) d.leaveRequests=[];
+            if (!Array.isArray(d.timetables)) d.timetables=[];
             if (!Array.isArray(appData.groupInstructorTasks)) appData.groupInstructorTasks=[];
             if (!Array.isArray(appData.groupInstructorCustomTasks)) appData.groupInstructorCustomTasks=[];
             return d;
