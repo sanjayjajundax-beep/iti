@@ -1042,7 +1042,7 @@ window.__itiLoginClick = async function(ev) {
 <div id="sessionalRubricNotice" style="margin:10px 0;padding:12px 14px;border:1px solid #f0c36d;border-left:5px solid #d97706;border-radius:9px;background:#fffbeb;color:#78350f;">
 <strong style="display:block;margin-bottom:6px;">📌 अनुदेशक हेतु सत्रीय अंक निर्धारण — H1 / H2</strong>
 <div style="font-size:0.82rem;line-height:1.65;">
-<b>H1:</b> सत्र प्रारंभ से जनवरी तक &nbsp; | &nbsp; <b>H2:</b> फरवरी से सत्र समाप्ति तक। दोनों भागों के अंक अलग-अलग बनेंगे और प्रत्येक भाग में उस अवधि के सभी मासिक मूल्यांकनों का औसत लिया जाएगा।<br>
+<span id="sessionalRubricPeriodText"><b>H1:</b> सत्र की पहली आधी अवधि &nbsp; | &nbsp; <b>H2:</b> सत्र की दूसरी आधी अवधि।</span> दोनों भागों के अंक अलग-अलग बनेंगे और प्रत्येक भाग में उस अवधि के सभी मासिक मूल्यांकनों का औसत लिया जाएगा।<br>
 <b>प्रायोगिक रिकॉर्ड (50):</b> A+ उत्कृष्ट = 48/50 · A पूर्ण = 44/50 · B सुधार अपेक्षित = 36/50 · C अपूर्ण = 28/50।<br>
 <b>सैद्धांतिक डायरी / नोट्स (30):</b> नियमित = 27.5/30 · अनियमित = 21/30 · जाँच लंबित = 15/30।<br>
 <b>गतिविधि / अनुशासन (10):</b> उत्कृष्ट / सक्रिय = 9.5/10 · संतोषजनक / सामान्य = 7.5/10 · सुधार जरूरी / उदासीन = 5/10।<br>
@@ -2091,6 +2091,43 @@ window.__itiLoginClick = async function(ev) {
                 appData.sessionConfig = { startDate: "2026-08-10", endDate: "2027-06-30" };
             }
             return appData.sessionConfig;
+        }
+
+        // सत्र की कुल अवधि को दिनों के आधार पर दो लगभग बराबर हिस्सों में बाँटें।
+        // मासिक रिकॉर्ड उस हिस्से में जाएगा जिसमें उस महीने की 15 तारीख आती है।
+        // पहले/अंतिम अधूरे महीने में 15 तारीख सत्र से बाहर हो तो निकटतम सत्र-तिथि ली जाएगी।
+        function getSessionHalfInfo() {
+            const conf = getSessionConfig();
+            const start = new Date(conf.startDate + 'T00:00:00');
+            const end = new Date(conf.endDate + 'T00:00:00');
+            const dayMs = 24 * 60 * 60 * 1000;
+            const totalDays = Math.floor((Date.UTC(end.getFullYear(), end.getMonth(), end.getDate()) - Date.UTC(start.getFullYear(), start.getMonth(), start.getDate())) / dayMs) + 1;
+            const h1Days = Math.ceil(totalDays / 2);
+            const split = new Date(start.getFullYear(), start.getMonth(), start.getDate() + h1Days - 1);
+            const h2Start = new Date(split.getFullYear(), split.getMonth(), split.getDate() + 1);
+            const fmt = d => `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+            return { start, end, split, h2Start, totalDays, h1Days, h2Days: totalDays - h1Days,
+                h1Label: `${fmt(start)} से ${fmt(split)}`,
+                h2Label: totalDays > h1Days ? `${fmt(h2Start)} से ${fmt(end)}` : 'लागू नहीं' };
+        }
+
+        function getMonthHalfKey(monthValue) {
+            const { start, end, split } = getSessionHalfInfo();
+            const parts = String(monthValue).split('-');
+            const year = Number(parts[0]), month = Number(parts[1]);
+            if (!year || !month) return 'H1';
+            // महीने की 15 तारीख प्रतिनिधि तिथि है; आंशिक माह में इसे सत्र सीमा तक सीमित करें।
+            let representative = new Date(year, month - 1, 15);
+            if (representative < start) representative = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+            if (representative > end) representative = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+            return representative <= split ? 'H1' : 'H2';
+        }
+
+        function updateSessionalRubricNotice() {
+            const el = document.getElementById('sessionalRubricPeriodText');
+            if (!el) return;
+            const info = getSessionHalfInfo();
+            el.innerHTML = `<b>H1:</b> ${info.h1Label} &nbsp; | &nbsp; <b>H2:</b> ${info.h2Label}। दोनों भागों के अंक अलग-अलग बनेंगे। प्रत्येक महीने का रिकॉर्ड उस भाग में जाएगा जिसमें उस महीने की 15 तारीख आती है।`;
         }
 
         function isDateInSession(dateObj) {
@@ -3639,7 +3676,8 @@ window.__itiLoginClick = async function(ev) {
             syncWithFirebase();
             closeModal('sessionConfigModal');
             updateAdminSessionBadge();
-            if (currentRole === 'instructor') renderRegister();
+            updateSessionalRubricNotice();
+            if (currentRole === 'instructor') { renderRegister(); renderEvaluationTable(); }
             showToast("प्रशिक्षण सत्र अवधि सुरक्षित कर दी गई!");
         }
 
@@ -3883,6 +3921,7 @@ window.__itiLoginClick = async function(ev) {
         }
 
         function renderEvaluationTable() {
+            updateSessionalRubricNotice();
             if (!currentCollegeId || !currentTrade) return;
             let monthVal = document.getElementById('evalSelectedMonth')?.value;
             if (!monthVal) {
@@ -4212,7 +4251,7 @@ window.__itiLoginClick = async function(ev) {
             let sumTTObt = 0, sumTTMax = 0;
             let sumTPObt = 0, sumTPMax = 0;
             
-            // H1: सत्र प्रारंभ से जनवरी तक; H2: फरवरी से सत्र समाप्ति तक।
+            // H1/H2 की सीमा एडमिन द्वारा निर्धारित सत्र की कुल अवधि से स्वतः निकलेगी।
             const halfStats = {
                 H1: { months: 0, present: 0, working: 0, ttObt: 0, ttMax: 0, tpObt: 0, tpMax: 0, rec: [], diary: [], activity: [] },
                 H2: { months: 0, present: 0, working: 0, ttObt: 0, ttMax: 0, tpObt: 0, tpMax: 0, rec: [], diary: [], activity: [] }
@@ -4271,7 +4310,7 @@ window.__itiLoginClick = async function(ev) {
 
                 yearlyPortalW += mWorking;
                 yearlyPortalP += mPresent;
-                const halfKey = (parseInt(mVal.split('-')[1], 10) >= 2 && parseInt(mVal.split('-')[1], 10) <= 6) ? 'H2' : 'H1';
+                const halfKey = getMonthHalfKey(mVal);
                 halfStats[halfKey].working += mWorking;
                 halfStats[halfKey].present += mPresent;
 
@@ -4492,19 +4531,19 @@ window.__itiLoginClick = async function(ev) {
                     <h3 style="margin:0 0 8px;color:#1e3a8a;font-size:0.95rem;">H1 / H2 अर्धवार्षिक सत्रीय मूल्यांकन</h3>
                     <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;">
                         <div style="border:1px solid #bfdbfe;border-radius:6px;padding:8px;background:#eff6ff;">
-                            <b>H1 — सत्र प्रारंभ से जनवरी</b>
+                            <b>H1 — ${getSessionHalfInfo().h1Label}</b>
                             <div>प्रायोगिक: <b>${h1Score.practical}/100</b></div>
                             <div>सैद्धांतिक: <b>${h1Score.theory}/100</b></div>
                             <small>मासिक मूल्यांकन: ${halfStats.H1.rec.length} · उपस्थिति: ${h1Score.attendancePct}%</small>
                         </div>
                         <div style="border:1px solid #99f6e4;border-radius:6px;padding:8px;background:#f0fdfa;">
-                            <b>H2 — फरवरी से सत्र समाप्ति</b>
+                            <b>H2 — ${getSessionHalfInfo().h2Label}</b>
                             <div>प्रायोगिक: <b>${h2Score.practical}/100</b></div>
                             <div>सैद्धांतिक: <b>${h2Score.theory}/100</b></div>
                             <small>मासिक मूल्यांकन: ${halfStats.H2.rec.length} · उपस्थिति: ${h2Score.attendancePct}%</small>
                         </div>
                     </div>
-                    <div style="font-size:0.72rem;color:#475569;margin-top:6px;">प्रत्येक H1/H2 में संबंधित अवधि के उपलब्ध मासिक मूल्यांकनों का औसत लिया गया है। H1: अगस्त–जनवरी; H2: फरवरी–जून।</div>
+                    <div style="font-size:0.72rem;color:#475569;margin-top:6px;">प्रत्येक H1/H2 में संबंधित अवधि के उपलब्ध मासिक मूल्यांकनों का औसत लिया गया है। मासिक रिकॉर्ड का विभाजन महीने की 15 तारीख के आधार पर होता है।</div>
                 </div>
 
                 <div style="font-size: 0.82rem; font-weight: 700; margin-bottom: 5px; color: #831843;">
