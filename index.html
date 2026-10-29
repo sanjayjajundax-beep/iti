@@ -916,6 +916,11 @@ window.__itiLoginClick = async function(ev) {
 </div>
 <div class="glass-card sup-panel"><h3><i class="fa-solid fa-layer-group"></i> विभाग / ट्रेड की स्थिति — आज की उपस्थिति</h3><p class="sup-help">आज उपस्थित में उस विद्यार्थी को गिना गया है जिसकी सुबह (M) या शाम (E) में P दर्ज है।</p><div class="table-shell"><table><thead><tr><th>ट्रेड</th><th>प्रकार</th><th>अनुदेशक</th><th>कुल विद्यार्थी</th><th>आज उपस्थित</th><th>आज उपस्थिति %</th><th>कुल उपस्थिति रिकॉर्ड</th></tr></thead><tbody id="supTradeTableBody"></tbody></table></div></div>
 <div class="glass-card sup-panel"><h3><i class="fa-solid fa-chart-column"></i> कॉलेज की कार्य स्थिति</h3><div class="sup-alert-grid" id="supOverviewAlerts"></div></div>
+<div class="glass-card sup-panel" id="supWeeklyProgramPanel">
+  <h3><i class="fa-solid fa-calendar-week"></i> सभी ट्रेड के साप्ताहिक पाठ्यक्रम एवं शिक्षण रिकॉर्ड</h3>
+  <p class="sup-help">यहाँ सभी ट्रेड के अनुदेशकों द्वारा जमा किए गए सप्ताहवार रिकॉर्ड और प्रत्येक दिन का थ्योरी / प्रैक्टिकल सिलेबस देखा जा सकता है।</p>
+  <div class="table-shell"><table><thead><tr><th>सप्ताह</th><th>ट्रेड</th><th>अनुदेशक</th><th>अवधि</th><th>कार्य दिवस</th><th>विवरण</th></tr></thead><tbody id="supWeeklyProgramBody"></tbody></table></div>
+</div>
 <div class="glass-card sup-panel hidden" id="groupInstructorMonitoringPanel"><h3><i class="fa-solid fa-user-check"></i> ग्रुप इंस्ट्रक्टर निगरानी रिपोर्ट</h3><p class="sup-help">यहाँ ग्रुप इंस्ट्रक्टर द्वारा दर्ज निरीक्षण, निरीक्षण की स्थिति और To-Do कार्यों की प्रगति दिखाई जाएगी।</p><div class="sup-alert-grid" id="groupMonitoringSummary"></div><h4>ग्रुप इंस्ट्रक्टर के निरीक्षण</h4><div class="table-shell"><table><thead><tr><th>तारीख</th><th>निरीक्षणकर्ता</th><th>प्रकार / स्थान</th><th>निष्कर्ष</th><th>सुधार निर्देश</th><th>स्थिति</th></tr></thead><tbody id="groupMonitoringInspectionBody"></tbody></table></div><h4 style="margin-top:18px">ग्रुप इंस्ट्रक्टर के कार्यों की स्थिति</h4><div class="table-shell"><table><thead><tr><th>कार्य</th><th>अंतिम तारीख</th><th>स्थिति</th><th>टिप्पणी</th></tr></thead><tbody id="groupMonitoringTaskBody"></tbody></table></div></div>
 </div>
 <div class="sup-view-panel hidden" id="supViewPerformance">
@@ -5343,7 +5348,7 @@ window.__itiLoginClick = async function(ev) {
 (function(){
   const $=id=>document.getElementById(id);
   const esc=v=>typeof supEscape==='function'?supEscape(v):String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  function sd(){const d=ensureSupData();['syllabus','weakStudents','teachingRecords','leaveRequests','timetables'].forEach(k=>{if(!Array.isArray(d[k]))d[k]=[]});return d;}
+  function sd(){const d=ensureSupData();['syllabus','weakStudents','teachingRecords','weeklyPrograms','leaveRequests','timetables'].forEach(k=>{if(!Array.isArray(d[k]))d[k]=[]});return d;}
   function collegeGuard(role){return currentRole===role&&!!currentCollegeId;}
   function inject(){
     if(!$('supViewPerformance'))return;
@@ -5358,11 +5363,29 @@ window.__itiLoginClick = async function(ev) {
     if(!$('supTimetablePanel')) $('supViewTasks').insertAdjacentHTML('beforeend',`<div class="glass-card sup-panel" id="supTimetablePanel"><h3>कक्षा समय-सारणी प्रकाशित करें</h3><div class="sup-form-grid"><div class="input-group"><label>ट्रेड</label><select id="supTtTrade"><option value="ALL">सभी ट्रेड</option></select></div><div class="input-group"><label>दिन</label><select id="supTtDay"><option>सोमवार</option><option>मंगलवार</option><option>बुधवार</option><option>गुरुवार</option><option>शुक्रवार</option><option>शनिवार</option></select></div><div class="input-group"><label>समय</label><input id="supTtTime" placeholder="10:00 - 11:00"></div><div class="input-group"><label>विषय / प्रैक्टिकल</label><input id="supTtSubject"></div><div class="input-group"><label>अनुदेशक</label><input id="supTtInstructor"></div></div><button class="app-btn app-btn-primary" onclick="publishCollegeTimetable()">समय-सारणी प्रकाशित करें</button></div>`);
     if(!$('supLeaveRequestsPanel')) $('supViewTasks').insertAdjacentHTML('beforeend',`<div class="glass-card sup-panel" id="supLeaveRequestsPanel"><h3>विद्यार्थी अवकाश आवेदन</h3><div class="table-shell"><table><thead><tr><th>विद्यार्थी</th><th>ट्रेड</th><th>अवधि</th><th>कारण</th><th>स्थिति</th><th>कार्रवाई</th></tr></thead><tbody id="supLeaveRequestsBody"></tbody></table></div></div>`);
     if(!$('instCompletionPanel')) $('instTabWork').insertAdjacentHTML('beforeend',`
-      <div class="glass-card" id="instCompletionPanel" style="padding:18px;margin-top:14px"><h3>पाठ्यक्रम प्रगति एवं शिक्षण रिकॉर्ड</h3>
-      <div class="sup-form-grid"><div class="input-group"><label>पाठ / यूनिट</label><input id="instSyllabusTopic" placeholder="यूनिट / अध्याय का नाम"></div><div class="input-group"><label>कुल पाठ्यक्रम (%)</label><input id="instSyllabusPct" type="number" min="0" max="100" placeholder="जैसे 35"></div><div class="input-group"><label>स्थिति / टिप्पणी</label><input id="instSyllabusNote" placeholder="पूरा हुआ / शेष विषय"></div><div class="input-group"><label>शिक्षण प्रकार</label><select id="instTeachType"><option>थ्योरी क्लास</option><option>प्रैक्टिकल</option></select></div><div class="input-group"><label>तारीख</label><input id="instTeachDate" type="date"></div><div class="input-group"><label>विषय / प्रयोग</label><input id="instTeachSubject" placeholder="आज पढ़ाया / कराया गया"></div><div class="input-group"><label>कक्षा में शामिल विद्यार्थी</label><input id="instTeachCount" type="number" min="0"></div></div>
-      <button class="app-btn app-btn-primary" onclick="saveInstructorSyllabus()">पाठ्यक्रम प्रगति सेव करें</button> <button class="app-btn app-btn-success" onclick="saveInstructorTeachingRecord()">थ्योरी / प्रैक्टिकल रिकॉर्ड सेव करें</button>
-      <h4 style="margin-top:14px">कमजोर विद्यार्थी एवं सुधार योजना</h4><div class="sup-form-grid"><div class="input-group"><label>विद्यार्थी</label><select id="instWeakStudent"></select></div><div class="input-group"><label>कमजोरी / विषय</label><input id="instWeakArea" placeholder="किस विषय में सहायता चाहिए"></div><div class="input-group"><label>सुधार योजना</label><textarea id="instWeakPlan" rows="2" placeholder="अतिरिक्त अभ्यास / मार्गदर्शन"></textarea></div><div class="input-group"><label>अगली समीक्षा तारीख</label><input id="instWeakReview" type="date"></div></div><button class="app-btn app-btn-warning" onclick="saveWeakStudentPlan()">सुधार रिकॉर्ड सेव करें</button>
-      <div id="instCompletionHistory" style="margin-top:12px"></div></div>`);
+      <div class="glass-card" id="instCompletionPanel" style="padding:18px;margin-top:14px">
+      <h3><i class="fa-solid fa-calendar-week"></i> साप्ताहिक पाठ्यक्रम प्रगति एवं शिक्षण रिकॉर्ड</h3>
+      <p class="sup-help">हर सप्ताह एक ही रिपोर्ट जमा करें। सप्ताह क्रमांक और तारीखें भरें, फिर प्रत्येक दिन का थ्योरी और प्रैक्टिकल सिलेबस अलग-अलग दर्ज करें।</p>
+      <div class="sup-form-grid" style="margin-top:12px">
+        <div class="input-group"><label for="instWeekNo">सप्ताह क्रमांक (Week No.) *</label><input id="instWeekNo" type="number" min="1" step="1" placeholder="जैसे 1"></div>
+        <div class="input-group"><label for="instWeekFrom">सप्ताह शुरू (From) *</label><input id="instWeekFrom" type="date" onchange="renderWeeklyProgramDays()"></div>
+        <div class="input-group"><label for="instWeekTo">सप्ताह समाप्त (To) *</label><input id="instWeekTo" type="date" onchange="renderWeeklyProgramDays()"></div>
+        <div class="input-group"><label>ट्रेड</label><input id="instWeeklyTrade" value="" disabled></div>
+      </div>
+      <div id="instWeeklyDaysHost" style="margin-top:14px"><p class="sup-help">दिनवार थ्योरी और प्रैक्टिकल भरने के लिए सप्ताह की शुरू और समाप्त तारीख चुनें।</p></div>
+      <h4 style="margin-top:16px">सप्ताह के प्रैक्टिकल / कार्य का विवरण</h4>
+      <div class="sup-form-grid">
+        <div class="input-group"><label for="instWeekJobNo">Practical Exercise / Job No.</label><input id="instWeekJobNo" placeholder="जैसे Job No. 01"></div>
+        <div class="input-group"><label for="instWeekMaterial">आवश्यक सामग्री</label><textarea id="instWeekMaterial" rows="2" placeholder="सामग्री का नाम या No Material Required"></textarea></div>
+        <div class="input-group"><label for="instWeekQuality">Quality of Work / कार्य की गुणवत्ता</label><textarea id="instWeekQuality" rows="2" placeholder="कार्य का अपेक्षित परिणाम / गुणवत्ता"></textarea></div>
+        <div class="input-group"><label for="instWeekMethod">Method of Work / कार्य विधि</label><textarea id="instWeekMethod" rows="2" placeholder="कार्य करने की विधि / मुख्य चरण"></textarea></div>
+        <div class="input-group"><label for="instWeekTime">Time Allotted</label><input id="instWeekTime" placeholder="जैसे 5 घंटे"></div>
+        <div class="input-group"><label for="instWeekNote">अनुदेशक टिप्पणी</label><textarea id="instWeekNote" rows="2" placeholder="सप्ताह की विशेष टिप्पणी"></textarea></div>
+      </div>
+      <button class="app-btn app-btn-primary" style="margin-top:12px" onclick="saveInstructorWeeklyProgram()"><i class="fa-solid fa-cloud-arrow-up"></i> साप्ताहिक रिकॉर्ड सबमिट करें</button>
+      <div id="instCompletionHistory" style="margin-top:14px"></div>
+      <h4 style="margin-top:18px">कमजोर विद्यार्थी एवं सुधार योजना</h4><div class="sup-form-grid"><div class="input-group"><label>विद्यार्थी</label><select id="instWeakStudent"></select></div><div class="input-group"><label>कमजोरी / विषय</label><input id="instWeakArea" placeholder="किस विषय में सहायता चाहिए"></div><div class="input-group"><label>सुधार योजना</label><textarea id="instWeakPlan" rows="2" placeholder="अतिरिक्त अभ्यास / मार्गदर्शन"></textarea></div><div class="input-group"><label>अगली समीक्षा तारीख</label><input id="instWeakReview" type="date"></div></div><button class="app-btn app-btn-warning" onclick="saveWeakStudentPlan()">सुधार रिकॉर्ड सेव करें</button>
+      </div>`);
     if(!$('studentExtraPanel')) $('studentSection').insertAdjacentHTML('beforeend',`
       <div class="glass-card" id="studentExtraPanel" style="padding:16px;margin:14px 0"><h3>विद्यार्थी सेवाएँ</h3><h4>अवकाश आवेदन</h4><div class="sup-form-grid"><div class="input-group"><label>प्रारंभ तारीख</label><input id="studentLeaveFrom" type="date"></div><div class="input-group"><label>अंतिम तारीख</label><input id="studentLeaveTo" type="date"></div><div class="input-group"><label>अवकाश का कारण</label><textarea id="studentLeaveReason" rows="2"></textarea></div></div><button class="app-btn app-btn-primary" onclick="submitStudentLeave()">अवकाश आवेदन भेजें</button><div id="studentLeaveHistory" style="margin-top:10px"></div>
       <h4 style="margin-top:18px">कक्षा समय-सारणी</h4><div id="studentTimetable">समय-सारणी संस्थान द्वारा प्रकाशित होने पर यहाँ दिखेगी।</div>
@@ -5382,10 +5405,23 @@ window.__itiLoginClick = async function(ev) {
       if($('supInstructorCompareBody'))$('supInstructorCompareBody').innerHTML=ins.map(i=>{const ac=attendanceCount(cid,i.trade,month),rs=d.reports.filter(r=>r.collegeId===cid&&r.instructorId===i.id&&String(r.date||'').startsWith(month));return `<tr><td>${esc(i.name)}</td><td>${esc(i.trade)}</td><td>${getStudentList(cid,i.trade).length}</td><td>${ac.entries}</td><td>${getSupEvalCount(i.trade)}</td><td>${rs.length}</td><td>${rs.filter(r=>r.status==='स्वीकृत').length}</td></tr>`}).join('');
       if($('supLeaveRequestsBody'))$('supLeaveRequestsBody').innerHTML=d.leaveRequests.filter(x=>x.collegeId===cid).map(x=>`<tr><td>${esc(x.studentName)}</td><td>${esc(x.trade)}</td><td>${esc(x.from)} से ${esc(x.to)}</td><td>${esc(x.reason)}</td><td>${esc(x.status)}</td><td><button class="app-btn app-btn-success" onclick="reviewStudentLeave('${x.id}','स्वीकृत')">स्वीकृत</button> <button class="app-btn app-btn-warning" onclick="reviewStudentLeave('${x.id}','अस्वीकृत')">अस्वीकृत</button></td></tr>`).join('')||'<tr><td colspan="6">कोई आवेदन नहीं</td></tr>';
     }
+    if(['groupInstructor','superintendent'].includes(currentRole)&&currentCollegeId){
+      const weekly=sd().weeklyPrograms.filter(x=>x.collegeId===currentCollegeId).slice().sort((a,b)=>String(b.from||'').localeCompare(String(a.from||''))||Number(b.weekNo||0)-Number(a.weekNo||0));
+      const body=$('supWeeklyProgramBody');
+      if(body)body.innerHTML=weekly.length?weekly.map(x=>`<tr>
+        <td>सप्ताह ${esc(x.weekNo||'-')}</td><td>${esc(x.trade||'-')}</td><td>${esc(x.instructorName||'-')}</td>
+        <td>${esc(x.from||'-')} से ${esc(x.to||'-')}</td><td>${esc(x.workingDays??'-')}</td>
+        <td><details><summary>दिनवार विवरण देखें</summary>
+          ${Array.isArray(x.days)?x.days.map(day=>`<div style="padding:7px 0;border-bottom:1px solid #ddd"><b>${esc(day.dayName||'')} (${esc(day.date||'')})</b>${day.off?'<p>अवकाश / कक्षा नहीं</p>':`<p><b>थ्योरी:</b> ${esc(day.theory||'-')}</p><p><b>प्रैक्टिकल:</b> ${esc(day.practical||'-')}</p>`}</div>`).join(''):''}
+          <p><b>Job No.:</b> ${esc(x.jobNo||'-')} · <b>सामग्री:</b> ${esc(x.material||'-')}</p>
+          <p><b>गुणवत्ता:</b> ${esc(x.quality||'-')}</p><p><b>कार्य विधि:</b> ${esc(x.method||'-')}</p>
+          <p><b>समय:</b> ${esc(x.timeAllotted||'-')} · <b>टिप्पणी:</b> ${esc(x.note||'-')}</p>
+        </details></td></tr>`).join(''):'<tr><td colspan="6">अभी किसी ट्रेड के अनुदेशक ने साप्ताहिक रिकॉर्ड जमा नहीं किया है।</td></tr>';
+    }
     if(currentRole==='instructor'&&loggedInInstructor){
-      const d=sd();const sel=$('instWeakStudent');if(sel){sel.innerHTML=getStudentList(currentCollegeId,currentTrade).map(st=>`<option value="${esc(st.studentId)}">${esc(st.name)} (${esc(st.roll||st.studentId)})</option>`).join('')}
-      const records=[...d.syllabus.filter(x=>x.collegeId===currentCollegeId&&x.instructorId===loggedInInstructor.id),...d.teachingRecords.filter(x=>x.collegeId===currentCollegeId&&x.instructorId===loggedInInstructor.id),...d.weakStudents.filter(x=>x.collegeId===currentCollegeId&&x.instructorId===loggedInInstructor.id)];
-      if($('instCompletionHistory'))$('instCompletionHistory').innerHTML=records.slice(-20).reverse().map(x=>`<div style="padding:7px;border-bottom:1px solid #ddd"><b>${esc(x.kind||x.type||'रिकॉर्ड')}</b> · ${esc(x.topic||x.subject||x.studentName||'')} · ${esc(x.note||x.plan||x.percent||'')}</div>`).join('')||'अभी कोई अतिरिक्त रिकॉर्ड नहीं।';
+      const d=sd();if($('instWeeklyTrade'))$('instWeeklyTrade').value=currentTrade||'';if($('instWeekFrom')?.value&&$('instWeekTo')?.value)renderWeeklyProgramDays();const sel=$('instWeakStudent');if(sel){sel.innerHTML=getStudentList(currentCollegeId,currentTrade).map(st=>`<option value="${esc(st.studentId)}">${esc(st.name)} (${esc(st.roll||st.studentId)})</option>`).join('')}
+      const records=[...d.syllabus.filter(x=>x.collegeId===currentCollegeId&&x.instructorId===loggedInInstructor.id),...d.teachingRecords.filter(x=>x.collegeId===currentCollegeId&&x.instructorId===loggedInInstructor.id),...d.weeklyPrograms.filter(x=>x.collegeId===currentCollegeId&&x.instructorId===loggedInInstructor.id),...d.weakStudents.filter(x=>x.collegeId===currentCollegeId&&x.instructorId===loggedInInstructor.id)];
+      if($('instCompletionHistory'))$('instCompletionHistory').innerHTML=records.slice(-20).reverse().map(x=>`<div style="padding:9px;border-bottom:1px solid #ddd"><b>${esc(x.kind||x.type||'रिकॉर्ड')}</b> · ${esc(x.weekNo?'सप्ताह '+x.weekNo+' ('+x.from+' से '+x.to+')':(x.topic||x.subject||x.studentName||''))} · ${esc(x.note||x.plan||x.percent||'')} ${x.days?`<details style="margin-top:6px"><summary>दिनवार सिलेबस देखें</summary>${x.days.map(d=>`<p><b>${esc(d.dayName)} (${esc(d.date)})</b><br>थ्योरी: ${esc(d.theory||'-')}<br>प्रैक्टिकल: ${esc(d.practical||'-')}${d.off?' · अवकाश':''}</p>`).join('')}</details>`:''}</div>`).join('')||'अभी कोई अतिरिक्त रिकॉर्ड नहीं।';
     }
     if(currentRole==='student'&&loggedInStudent){
       const d=sd();const req=d.leaveRequests.filter(x=>x.collegeId===currentCollegeId&&x.studentId===String(loggedInStudent.studentId));
@@ -5393,6 +5429,78 @@ window.__itiLoginClick = async function(ev) {
       const tt=d.timetables.filter(x=>x.collegeId===currentCollegeId&&(x.trade==='ALL'||x.trade===currentTrade));
       if($('studentTimetable'))$('studentTimetable').innerHTML=tt.map(x=>`<p><b>${esc(x.day)} ${esc(x.time)}</b> · ${esc(x.subject)} · ${esc(x.instructor||'')}</p>`).join('')||'समय-सारणी अभी प्रकाशित नहीं है।';
     }
+  };
+  const WEEKDAY_HI=['रविवार','सोमवार','मंगलवार','बुधवार','गुरुवार','शुक्रवार','शनिवार'];
+  function getWeeklyAttendanceHoliday(dateIso){
+    const dt=new Date(dateIso+'T00:00:00');
+    if(!Number.isFinite(dt.getTime()))return {off:false,reason:''};
+    if(dt.getDay()===0)return {off:true,reason:'रविवार — दैनिक उपस्थिति रजिस्टर'};
+    const monthVal=dateIso.slice(0,7),dayNo=Number(dateIso.slice(8,10));
+    const holidays=(appData.holidays&&appData.holidays[currentCollegeId]&&appData.holidays[currentCollegeId][currentTrade]&&appData.holidays[currentCollegeId][currentTrade][monthVal])||[];
+    if(holidays.map(Number).includes(dayNo))return {off:true,reason:'दैनिक उपस्थिति रजिस्टर में अवकाश'};
+    return {off:false,reason:''};
+  }
+  window.renderWeeklyProgramDays=function(){
+    const host=$('instWeeklyDaysHost');if(!host)return;
+    const from=$('instWeekFrom')?.value||'',to=$('instWeekTo')?.value||'';
+    if(!from||!to){host.innerHTML='<p class="sup-help">दिनवार सिलेबस दिखाने के लिए सप्ताह की दोनों तारीखें चुनें।</p>';return;}
+    const start=new Date(from+'T00:00:00'),end=new Date(to+'T00:00:00');
+    const span=Math.round((end-start)/86400000)+1;
+    if(!Number.isFinite(span)||span<1||span>7){host.innerHTML='<p style="color:#b91c1c">सप्ताह की अवधि 1 से 7 दिन के बीच रखें और समाप्ति तारीख शुरू तारीख के बाद रखें।</p>';return;}
+    let rows='';
+    for(let i=0;i<span;i++){
+      const dt=new Date(start);dt.setDate(start.getDate()+i);
+      const iso=`${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
+      const dayName=WEEKDAY_HI[dt.getDay()];
+      const holiday=getWeeklyAttendanceHoliday(iso);
+      rows+=`<tr style="${holiday.off?'background:#f3e8ff;':''}">
+        <td style="min-width:125px"><b>${dayName}</b><br><small>${iso.split('-').reverse().join('-')}</small>${holiday.off?`<br><span style="color:#7e22ce;font-weight:700">${esc(holiday.reason)}</span>`:''}</td>
+        <td><textarea id="instWeekTheory_${i}" rows="2" maxlength="1200" style="width:100%;min-width:180px" placeholder="${holiday.off?'अवकाश — भरना आवश्यक नहीं':'विषय / टॉपिक'}" ${holiday.off?'disabled':''}></textarea></td>
+        <td><textarea id="instWeekPractical_${i}" rows="2" maxlength="1200" style="width:100%;min-width:180px" placeholder="${holiday.off?'अवकाश — भरना आवश्यक नहीं':'प्रैक्टिकल कार्य'}" ${holiday.off?'disabled':''}></textarea></td>
+      </tr>`;
+    }
+    host.innerHTML=`<div class="table-shell"><table style="width:100%;border-collapse:collapse"><thead><tr><th>दिन / तारीख</th><th>थ्योरी सिलेबस</th><th>प्रैक्टिकल सिलेबस</th></tr></thead><tbody>${rows}</tbody></table></div><p class="sup-help" style="margin-top:8px">बैंगनी रंग में दिखने वाली तारीखें दैनिक उपस्थिति रजिस्टर से स्वतः अवकाश ली गई हैं।</p>`;
+    host.dataset.span=String(span);
+  };
+  window.saveInstructorWeeklyProgram=function(){
+    if(!collegeGuard('instructor'))return;
+    const weekNo=Number($('instWeekNo')?.value),from=$('instWeekFrom')?.value||'',to=$('instWeekTo')?.value||'';
+    if(!Number.isInteger(weekNo)||weekNo<1||!from||!to||to<from){alert('सप्ताह क्रमांक और सही From / To तारीखें भरें।');return;}
+    const start=new Date(from+'T00:00:00'),end=new Date(to+'T00:00:00'),span=Math.round((end-start)/86400000)+1;
+    if(span<1||span>7){alert('एक सप्ताह की अवधि अधिकतम 7 दिन हो सकती है।');return;}
+    if(!$('instWeeklyDaysHost')?.dataset.span||Number($('instWeeklyDaysHost').dataset.span)!==span)renderWeeklyProgramDays();
+    const days=[];
+    for(let i=0;i<span;i++){
+      const dt=new Date(start);dt.setDate(start.getDate()+i);
+      const date=`${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
+      const holiday=getWeeklyAttendanceHoliday(date);
+      const off=holiday.off;
+      const theory=off?'':($(`instWeekTheory_${i}`)?.value.trim()||'');
+      const practical=off?'':($(`instWeekPractical_${i}`)?.value.trim()||'');
+      if(!off&&!theory&&!practical){alert(`${WEEKDAY_HI[dt.getDay()]} (${date}) के लिए थ्योरी या प्रैक्टिकल सिलेबस भरें।`);return;}
+      days.push({date,dayName:WEEKDAY_HI[dt.getDay()],theory,practical,off,holidaySource:off?'दैनिक उपस्थिति रजिस्टर':''});
+    }
+    const workingDays=days.filter(d=>!d.off).length;
+    if(!workingDays){alert('कम-से-कम एक कार्य दिवस का सिलेबस दर्ज करें।');return;}
+    const d=sd(),record={
+      id:'WPR'+Date.now()+'_'+Math.random().toString(36).slice(2,7),
+      kind:'साप्ताहिक पाठ्यक्रम एवं शिक्षण रिकॉर्ड',
+      collegeId:currentCollegeId,instructorId:loggedInInstructor.id,
+      instructorName:loggedInInstructor.name,trade:currentTrade,
+      weekNo,from,to,workingDays,days,
+      jobNo:$('instWeekJobNo')?.value.trim()||'',
+      material:$('instWeekMaterial')?.value.trim()||'',
+      quality:$('instWeekQuality')?.value.trim()||'',
+      method:$('instWeekMethod')?.value.trim()||'',
+      timeAllotted:$('instWeekTime')?.value.trim()||'',
+      note:$('instWeekNote')?.value.trim()||'',
+      createdAt:new Date().toISOString()
+    };
+    d.weeklyPrograms.push(record);
+    syncWithFirebase();renderCompletionModules();
+    ['instWeekNo','instWeekFrom','instWeekTo','instWeekJobNo','instWeekMaterial','instWeekQuality','instWeekMethod','instWeekTime','instWeekNote'].forEach(id=>{const el=$(id);if(el)el.value='';});
+    if($('instWeeklyDaysHost')){$('instWeeklyDaysHost').dataset.span='';$('instWeeklyDaysHost').innerHTML='<p class="sup-help">अगले सप्ताह का रिकॉर्ड दर्ज करने के लिए तारीखें चुनें।</p>';}
+    showToast('साप्ताहिक पाठ्यक्रम एवं शिक्षण रिकॉर्ड सेव हो गया।');
   };
   window.saveInstructorSyllabus=function(){if(!collegeGuard('instructor'))return;const topic=$('instSyllabusTopic').value.trim(),pct=Number($('instSyllabusPct').value);if(!topic||!Number.isFinite(pct)||pct<0||pct>100){alert('पाठ का नाम और 0 से 100 तक प्रगति प्रतिशत भरें।');return;}sd().syllabus.push({id:'SYL'+Date.now(),kind:'पाठ्यक्रम',collegeId:currentCollegeId,instructorId:loggedInInstructor.id,instructorName:loggedInInstructor.name,trade:currentTrade,topic,percent:pct,note:$('instSyllabusNote').value.trim(),date:new Date().toISOString().slice(0,10)});syncWithFirebase();renderCompletionModules();showToast('पाठ्यक्रम प्रगति सेव हुई।');};
   window.saveInstructorTeachingRecord=function(){if(!collegeGuard('instructor'))return;const subject=$('instTeachSubject').value.trim();if(!subject){alert('विषय / प्रयोग लिखें।');return;}sd().teachingRecords.push({id:'TR'+Date.now(),kind:'शिक्षण रिकॉर्ड',type:$('instTeachType').value,subject,date:$('instTeachDate').value||new Date().toISOString().slice(0,10),students:Number($('instTeachCount').value)||0,collegeId:currentCollegeId,instructorId:loggedInInstructor.id,instructorName:loggedInInstructor.name,trade:currentTrade});syncWithFirebase();renderCompletionModules();showToast('थ्योरी / प्रैक्टिकल रिकॉर्ड सेव हुआ।');};
