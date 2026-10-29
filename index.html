@@ -703,6 +703,26 @@
         .instructor-role-layout .role-side-btn{font-size:.86rem}
         .student-side-nav{display:flex;flex-direction:column;gap:7px;max-width:230px;float:left;margin:0 16px 16px 0}
         @media(max-width:760px){.role-sidebar-layout{grid-template-columns:108px minmax(0,1fr);gap:7px}.role-sidebar{top:75px;padding:6px;gap:5px;max-height:calc(100vh - 88px)}.role-side-heading{font-size:.72rem;padding:7px 3px 9px;line-height:1.25}.role-side-btn{font-size:.68rem!important;padding:9px 5px!important;min-height:38px;gap:5px!important;line-height:1.25}.role-side-btn i{width:14px;flex:0 0 14px}.role-dashboard-heading{padding:9px;font-size:.88rem}.student-side-nav{max-width:100%;float:none;margin:0 0 12px 0}}
+
+/* Dedicated Group Instructor dashboard */
+.gi-new-shell{display:grid;grid-template-columns:220px minmax(0,1fr);gap:14px;max-width:1500px;margin:0 auto;padding:10px}
+.gi-new-side{background:#10243e;color:#fff;border-radius:16px;padding:14px;align-self:start;position:sticky;top:12px}
+.gi-new-side h3{font-size:1.05rem;margin:5px 4px 14px}.gi-new-nav{display:flex;flex-direction:column;gap:7px}
+.gi-new-nav button{border:0;border-radius:10px;background:transparent;color:#dbeafe;text-align:left;padding:11px 10px;font-weight:700;display:flex;gap:9px;align-items:center;cursor:pointer}
+.gi-new-nav button.active,.gi-new-nav button:hover{background:#2563eb;color:#fff}
+.gi-new-content{min-width:0}.gi-new-top{background:linear-gradient(120deg,#12345b,#2563eb);color:#fff;border-radius:16px;padding:18px;margin-bottom:13px;display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}
+.gi-new-top h2{margin:0 0 5px;font-size:1.25rem}.gi-new-top p{margin:0;color:#dbeafe;font-size:.88rem}
+.gi-new-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px;margin-bottom:13px}
+.gi-new-kpi{background:#fff;border:1px solid #e2e8f0;border-radius:13px;padding:14px;box-shadow:0 2px 8px #0f172a0a;min-width:0}
+.gi-new-kpi span{display:block;color:#64748b;font-size:.82rem;font-weight:700}.gi-new-kpi strong{display:block;font-size:1.65rem;color:#0f172a;margin-top:4px}
+.gi-new-card{background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:15px;margin-bottom:13px;min-width:0}.gi-new-card h3{font-size:1.02rem;color:#16365c;margin:0 0 10px}.gi-new-muted{color:#64748b;font-size:.82rem}
+.gi-new-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px}.gi-new-progress{height:9px;background:#e2e8f0;border-radius:99px;overflow:hidden}.gi-new-progress>i{display:block;height:100%;background:#2563eb;border-radius:99px}
+.gi-new-table{overflow:auto;width:100%}.gi-new-table table{min-width:650px;width:100%;border-collapse:collapse}.gi-new-table th,.gi-new-table td{padding:9px;border-bottom:1px solid #e2e8f0;text-align:left;font-size:.84rem}.gi-new-table th{background:#f1f5f9;color:#334155;white-space:nowrap}
+.gi-new-tag{display:inline-block;padding:4px 8px;border-radius:99px;background:#eff6ff;color:#1d4ed8;font-size:.75rem;font-weight:800}.gi-new-tag.warn{background:#fff7ed;color:#c2410c}.gi-new-tag.good{background:#ecfdf5;color:#047857}
+.gi-new-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.gi-new-actions button{border:0;border-radius:9px;padding:9px 12px;font-weight:700;cursor:pointer;background:#1d4ed8;color:white}
+.gi-new-panel.hidden{display:none!important}
+@media(max-width:760px){.gi-new-shell{grid-template-columns:1fr;padding:7px}.gi-new-side{position:static;padding:9px}.gi-new-side h3{margin:3px 4px 8px}.gi-new-nav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}.gi-new-nav button{font-size:.77rem;padding:9px 7px;line-height:1.2}.gi-new-top{padding:14px}.gi-new-top h2{font-size:1.05rem}.gi-new-kpi{padding:11px}.gi-new-kpi strong{font-size:1.4rem}}
+
 </style>
 
 <script>
@@ -891,6 +911,34 @@ window.__itiLoginClick = async function(ev) {
 </table>
 </div>
 </div></div></div></section>
+
+<!-- Dedicated Group Instructor Dashboard -->
+<section class="hidden" id="groupInstructorSection">
+ <div class="gi-new-shell">
+  <aside class="gi-new-side"><h3><i class="fa-solid fa-layer-group"></i> ग्रुप इंस्ट्रक्टर</h3><nav class="gi-new-nav">
+   <button class="active" data-gi-view="home" onclick="switchGroupInstructorView('home',this)"><i class="fa-solid fa-gauge-high"></i> डैशबोर्ड</button>
+   <button data-gi-view="attendance" onclick="switchGroupInstructorView('attendance',this)"><i class="fa-solid fa-calendar-check"></i> आज की उपस्थिति</button>
+   <button data-gi-view="performance" onclick="switchGroupInstructorView('performance',this)"><i class="fa-solid fa-chart-line"></i> अनुदेशक प्रदर्शन</button>
+   <button data-gi-view="records" onclick="switchGroupInstructorView('records',this)"><i class="fa-solid fa-folder-open"></i> रिकॉर्ड / रिपोर्ट</button>
+   <button data-gi-view="inspection" onclick="switchGroupInstructorView('inspection',this)"><i class="fa-solid fa-clipboard-check"></i> निरीक्षण</button>
+   <button data-gi-view="tasks" onclick="switchGroupInstructorView('tasks',this)"><i class="fa-solid fa-list-check"></i> मेरी टू-डू सूची</button>
+   <button data-gi-view="notices" onclick="switchGroupInstructorView('notices',this)"><i class="fa-solid fa-bullhorn"></i> सूचनाएँ</button>
+   <button data-gi-view="requests" onclick="switchGroupInstructorView('requests',this)"><i class="fa-solid fa-inbox"></i> अनुरोध</button>
+  </nav></aside>
+  <main class="gi-new-content">
+   <header class="gi-new-top"><div><h2 id="giNewWelcome">ग्रुप इंस्ट्रक्टर डैशबोर्ड</h2><p><span id="giNewCollege">कॉलेज</span> · <span id="giNewDate"></span></p></div><div class="gi-new-actions"><button onclick="renderGroupInstructorDashboard()"><i class="fa-solid fa-rotate"></i> रीफ्रेश</button><button onclick="exportSuperintendentSummary()"><i class="fa-solid fa-file-excel"></i> रिपोर्ट डाउनलोड</button></div></header>
+   <section class="gi-new-panel" id="giPanelHome"><div class="gi-new-kpis" id="giHomeKpis"></div><div class="gi-new-card"><h3>ट्रेडवार आज की स्थिति</h3><div class="gi-new-table"><table><thead><tr><th>ट्रेड</th><th>विद्यार्थी</th><th>उपस्थित</th><th>अनुपस्थित</th><th>अवकाश</th><th>आंशिक / अधूरी</th><th>उपस्थिति %</th></tr></thead><tbody id="giHomeTradeRows"></tbody></table></div></div><div class="gi-new-grid"><div class="gi-new-card"><h3>लंबित कार्य</h3><div id="giHomeTaskSummary"></div></div><div class="gi-new-card"><h3>हाल की गतिविधियाँ</h3><div id="giHomeRecent"></div></div></div></section>
+   <section class="gi-new-panel hidden" id="giPanelAttendance"><div class="gi-new-kpis" id="giAttendanceKpis"></div><div class="gi-new-card"><h3>सुबह और शाम की अलग-अलग उपस्थिति</h3><p class="gi-new-muted">दिन की स्थिति तभी पूर्ण मानी जाएगी जब सुबह और शाम दोनों सत्र दर्ज हों। एक सत्र दर्ज होने या दोनों सत्रों में अलग स्थिति होने पर उसे आंशिक / अधूरी में दिखाया जाएगा।</p><div class="gi-new-table"><table><thead><tr><th>ट्रेड</th><th>कुल विद्यार्थी</th><th>सुबह P/A/L</th><th>शाम P/A/L</th><th>दिन की स्थिति</th><th>अभी दर्ज नहीं</th><th>कार्यवाही</th></tr></thead><tbody id="giAttendanceRows"></tbody></table></div></div></section>
+   <section class="gi-new-panel hidden" id="giPanelPerformance"><div class="gi-new-card"><h3>अनुदेशक प्रदर्शन — उपलब्ध रिकॉर्ड के आधार पर</h3><p class="gi-new-muted">अलग-अलग ट्रेड की उपस्थिति को हर अनुदेशक के नाम पर दोहराया नहीं गया है। प्रदर्शन स्कोर में केवल उपलब्ध और मापे जा सकने वाले घटक शामिल हैं; अनुपलब्ध डेटा को शून्य नहीं माना जाता।</p><div id="giPerformanceRows"></div></div></section>
+   <section class="gi-new-panel hidden" id="giPanelRecords"><div class="gi-new-card"><h3>अनुदेशक रिकॉर्ड स्थिति</h3><div class="gi-new-table"><table><thead><tr><th>अनुदेशक</th><th>ट्रेड</th><th>पाठ्यक्रम</th><th>शिक्षण</th><th>साप्ताहिक</th><th>गतिविधि रिपोर्ट</th><th>सुधार योजना</th><th>कुल</th></tr></thead><tbody id="giRecordRows"></tbody></table></div><div class="gi-new-actions"><button onclick="openLegacyGroupModule('instructors')">पूरा रिकॉर्ड / समीक्षा खोलें</button></div></div></section>
+   <section class="gi-new-panel hidden" id="giPanelInspection"><div class="gi-new-card"><h3>निरीक्षण और सुधार स्थिति</h3><div id="giInspectionSummary" class="gi-new-grid"></div><div class="gi-new-table"><table><thead><tr><th>तारीख</th><th>प्रकार</th><th>स्थान / अनुदेशक</th><th>निष्कर्ष</th><th>सुधार स्थिति</th></tr></thead><tbody id="giInspectionRows"></tbody></table></div><div class="gi-new-actions"><button onclick="openLegacyGroupModule('inspection')">नया निरीक्षण / विस्तृत प्रबंधन</button><button onclick="openLegacyGroupModule('assets')">लैब / मशीनरी रिकॉर्ड</button></div></div></section>
+   <section class="gi-new-panel hidden" id="giPanelTasks"><div class="gi-new-card"><h3>मेरी टू-डू सूची</h3><div id="giTaskSummary"></div><div class="gi-new-actions"><button onclick="openLegacyGroupModule('groupTasks')">टू-डू सूची और नया कार्य खोलें</button><button onclick="openLegacyGroupModule('tasks')">अनुदेशक कार्य आवंटन खोलें</button></div></div></section>
+   <section class="gi-new-panel hidden" id="giPanelNotices"><div class="gi-new-card"><h3>कॉलेज की सूचनाएँ</h3><div id="giNoticeRows"></div><div class="gi-new-actions"><button onclick="openLegacyGroupModule('tasks')">सूचना प्रकाशित करें</button></div></div></section>
+   <section class="gi-new-panel hidden" id="giPanelRequests"><div class="gi-new-card"><h3>अनुदेशक अनुरोध / अनुमति</h3><div id="giRequestSummary"></div><div class="gi-new-actions"><button onclick="openLegacyGroupModule('requests')">अनुरोध देखें और जवाब दें</button></div></div></section>
+  </main>
+ </div>
+</section>
+
 <!-- 3. SUPERINTENDENT DASHBOARD -->
 <section class="hidden" id="superintendentSection">
 <div class="sup-layout">
@@ -2866,6 +2914,64 @@ window.__itiLoginClick = async function(ev) {
             document.title=(name||'राजकीय औद्योगिक प्रशिक्षण संस्थान')+' - छात्र उपस्थिति एवं मूल्यांकन पोर्टल';
         }
 
+
+        // ===== Dedicated Group Instructor dashboard (keeps existing Firebase schema) =====
+        function switchGroupInstructorView(view,btn){
+            document.querySelectorAll('#groupInstructorSection .gi-new-panel').forEach(x=>x.classList.add('hidden'));
+            const panel=document.getElementById('giPanel'+view.charAt(0).toUpperCase()+view.slice(1));if(panel)panel.classList.remove('hidden');
+            document.querySelectorAll('#groupInstructorSection .gi-new-nav button').forEach(x=>x.classList.toggle('active',x===btn));
+        }
+        function giAttendanceStats(trade,parts){
+            const p=parts||groupDateParts(), students=getStudentList(currentCollegeId,trade), root=appData.records?.[currentCollegeId]?.[trade]?.[p.month]||{};
+            const out={total:students.length,fullPresent:0,fullAbsent:0,leave:0,partial:0,unmarked:0,m:{P:0,A:0,L:0},e:{P:0,A:0,L:0}};
+            students.forEach(st=>{const r=root[String(st.roll).trim()]||{},m=String(r[p.day+'_m']||'-').toUpperCase(),e=String(r[p.day+'_e']||'-').toUpperCase();
+                if(['P','A','L'].includes(m))out.m[m]++;if(['P','A','L'].includes(e))out.e[e]++;
+                if(m==='P'&&e==='P')out.fullPresent++;else if(m==='A'&&e==='A')out.fullAbsent++;else if(m==='L'&&e==='L')out.leave++;else if(m==='-'&&e==='-')out.unmarked++;else out.partial++;
+            });
+            out.complete=out.fullPresent+out.fullAbsent+out.leave;out.percent=out.complete?Math.round(out.fullPresent/out.complete*100):null;return out;
+        }
+        function giPct(n,d){return d?Math.round(n/d*100):null;}
+        function giMetric(label,value,sub){return `<div class="gi-new-kpi"><span>${label}</span><strong>${value}</strong>${sub?`<small class="gi-new-muted">${sub}</small>`:''}</div>`;}
+        function renderGroupInstructorDashboard(){
+            if(currentRole!=='groupInstructor'||!currentCollegeId)return;
+            const cid=currentCollegeId,p=groupDateParts(),trades=getTradesList(),ins=getSupCollegeInstructors(),d=sd();
+            const dateLabel=new Date().toLocaleDateString('hi-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+            const put=(id,v)=>{const e=document.getElementById(id);if(e)e.innerHTML=v;};
+            put('giNewWelcome',`नमस्ते, ${supEscape(loggedInSuperintendent?.name||'ग्रुप इंस्ट्रक्टर')}`);put('giNewCollege',supEscape(getCollegeName(cid)));put('giNewDate',dateLabel);
+            let totals={students:0,p:0,a:0,l:0,partial:0,unmarked:0,complete:0},tradeData=[];
+            trades.forEach(t=>{const a=giAttendanceStats(t,p);tradeData.push({trade:t,...a});totals.students+=a.total;totals.p+=a.fullPresent;totals.a+=a.fullAbsent;totals.l+=a.leave;totals.partial+=a.partial;totals.unmarked+=a.unmarked;totals.complete+=a.complete;});
+            const pct=giPct(totals.p,totals.complete),task=getGroupTaskOverview();
+            put('giHomeKpis',[giMetric('कुल ट्रेड',trades.length),giMetric('कुल अनुदेशक',ins.length),giMetric('कुल नामांकित विद्यार्थी',totals.students),giMetric('आज पूर्ण उपस्थित',totals.p),giMetric('आज पूर्ण अनुपस्थित',totals.a),giMetric('आज अवकाश',totals.l),giMetric('आंशिक / अधूरी एंट्री',totals.partial),giMetric('पूर्ण रिकॉर्ड पर उपस्थिति',pct===null?'—':pct+'%'),giMetric('लंबित कार्य',task.pending),giMetric('समय-सीमा पार कार्य',task.overdue) ].join(''));
+            put('giHomeTradeRows',tradeData.map(x=>`<tr><td><b>${supEscape(x.trade)}</b></td><td>${x.total}</td><td>${x.fullPresent}</td><td>${x.fullAbsent}</td><td>${x.leave}</td><td>${x.partial}</td><td>${x.percent===null?'—':x.percent+'%'}</td></tr>`).join('')||'<tr><td colspan="7">ट्रेड डेटा उपलब्ध नहीं।</td></tr>');
+            put('giHomeTaskSummary',`<p><b>${task.pending}</b> लंबित · <b style="color:#b91c1c">${task.overdue}</b> समय-सीमा पार · <b>${task.doneThisMonth}</b> इस महीने पूर्ण</p>`);
+            const recent=d.inspections.filter(x=>x.collegeId===cid).sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))).slice(0,4);
+            put('giHomeRecent',recent.length?recent.map(x=>`<p><b>${supEscape(x.typeLabel||x.type||'निरीक्षण')}</b> — ${supEscape(x.date||'')} · ${supEscape(x.status||'दर्ज')}</p>`).join(''):'<span class="gi-new-muted">अभी कोई हाल की निरीक्षण गतिविधि नहीं।</span>');
+            put('giAttendanceKpis',[giMetric('पूर्ण उपस्थित',totals.p),giMetric('पूर्ण अनुपस्थित',totals.a),giMetric('अवकाश',totals.l),giMetric('आंशिक / अधूरी',totals.partial),giMetric('बिल्कुल दर्ज नहीं',totals.unmarked)].join(''));
+            put('giAttendanceRows',tradeData.map(x=>`<tr><td><b>${supEscape(x.trade)}</b></td><td>${x.total}</td><td>${x.m.P}/${x.m.A}/${x.m.L}</td><td>${x.e.P}/${x.e.A}/${x.e.L}</td><td>${x.fullPresent} उपस्थित · ${x.fullAbsent} अनुपस्थित · ${x.leave} अवकाश</td><td>${x.unmarked}</td><td><span class="gi-new-tag ${x.unmarked||x.partial?'warn':'good'}">${x.unmarked||x.partial?'जाँच आवश्यक':'पूर्ण'}</span></td></tr>`).join('')||'<tr><td colspan="7">डेटा उपलब्ध नहीं।</td></tr>');
+            // Performance components are instructor-owned records; trade-level attendance is shown separately, never attributed as an individual instructor score.
+            const perf=ins.map(i=>{const reports=d.reports.filter(x=>x.collegeId===cid&&String(x.instructorId)===String(i.id)),sy=d.syllabus.filter(x=>x.collegeId===cid&&String(x.instructorId)===String(i.id)),teach=d.teachingRecords.filter(x=>x.collegeId===cid&&String(x.instructorId)===String(i.id)),weekly=d.weeklyPrograms.filter(x=>x.collegeId===cid&&String(x.instructorId)===String(i.id)),weak=d.weakStudents.filter(x=>x.collegeId===cid&&String(x.instructorId)===String(i.id)),tasks=d.tasks.filter(x=>x.collegeId===cid&&String(x.instructorId)===String(i.id));
+                const comps=[];if(sy.length)comps.push({name:'पाठ्यक्रम प्रगति',weight:25,val:sy.reduce((n,x)=>n+(Number(x.percent)||0),0)/sy.length});if(reports.length)comps.push({name:'रिपोर्ट स्वीकृति',weight:20,val:reports.filter(x=>x.status==='स्वीकृत').length/reports.length*100});if(teach.length||weekly.length||weak.length)comps.push({name:'शिक्षण / शैक्षणिक रिकॉर्ड',weight:25,val:Math.min(100,(teach.length+weekly.length+weak.length)*10)});if(tasks.length)comps.push({name:'कार्य पूर्णता',weight:15,val:tasks.filter(x=>x.status==='पूर्ण').length/tasks.length*100});
+                const w=comps.reduce((n,x)=>n+x.weight,0),score=w?Math.round(comps.reduce((n,x)=>n+x.val*x.weight,0)/w):null;
+                return {i,comps,score,sy:sy.length,teach:teach.length,weekly:weekly.length,weak:weak.length,reports:reports.length,tasks:tasks.length};});
+            put('giPerformanceRows',perf.map(x=>`<div style="padding:12px 0;border-bottom:1px solid #e2e8f0"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><b>${supEscape(x.i.name)} <small class="gi-new-muted">(${supEscape(x.i.trade)})</small></b><b>${x.score===null?'पर्याप्त डेटा नहीं':x.score+'%'} </b></div>${x.score===null?'<p class="gi-new-muted">अभी स्कोर निकालने लायक रिकॉर्ड उपलब्ध नहीं है।</p>':`<div class="gi-new-progress"><i style="width:${x.score}%"></i></div>`}<small class="gi-new-muted">पाठ्यक्रम ${x.sy} · शिक्षण ${x.teach} · साप्ताहिक ${x.weekly} · सुधार योजना ${x.weak} · रिपोर्ट ${x.reports} · आवंटित कार्य ${x.tasks}</small><div class="gi-new-muted">${x.comps.map(c=>`${c.name}: ${Math.round(c.val)}%`).join(' · ')||'स्कोर घटक उपलब्ध नहीं'}</div></div>`).join('')||'अनुदेशक रिकॉर्ड उपलब्ध नहीं।');
+            put('giRecordRows',perf.map(x=>`<tr><td>${supEscape(x.i.name)}</td><td>${supEscape(x.i.trade)}</td><td>${x.sy}</td><td>${x.teach}</td><td>${x.weekly}</td><td>${x.reports}</td><td>${x.weak}</td><td>${x.sy+x.teach+x.weekly+x.reports+x.weak}</td></tr>`).join('')||'<tr><td colspan="8">रिकॉर्ड उपलब्ध नहीं।</td></tr>');
+            const inspections=d.inspections.filter(x=>x.collegeId===cid).sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
+            const openFix=inspections.filter(x=>['सुधार आवश्यक','कार्यवाही जारी'].includes(x.status)).length;
+            put('giInspectionSummary',[giMetric('कुल निरीक्षण',inspections.length),giMetric('सुधार लंबित',openFix),giMetric('पूर्ण / संतोषजनक',inspections.filter(x=>['पूर्ण','संतोषजनक'].includes(x.status)).length)].join(''));
+            put('giInspectionRows',inspections.slice(0,30).map(x=>`<tr><td>${supEscape(x.date||'-')}</td><td>${supEscape(x.typeLabel||x.type||'-')}</td><td>${supEscape(x.instructorName||x.location||'-')}</td><td>${supEscape(x.finding||'-')}</td><td><span class="gi-new-tag ${openFix?'warn':'good'}">${supEscape(x.status||'दर्ज')}</span></td></tr>`).join('')||'<tr><td colspan="5">अभी निरीक्षण रिकॉर्ड नहीं।</td></tr>');
+            put('giTaskSummary',`<div class="gi-new-kpis">${giMetric('लंबित',task.pending)}${giMetric('समय-सीमा पार',task.overdue)}${giMetric('इस महीने पूर्ण',task.doneThisMonth)}</div><p class="gi-new-muted">निर्धारित मासिक / साप्ताहिक कार्य और आपके अतिरिक्त कार्य मौजूदा To-Do रिकॉर्ड से लिए गए हैं।</p>`);
+            const notices=d.notices.filter(x=>x.collegeId===cid).sort((a,b)=>String(b.createdAt||'').localeCompare(String(a.createdAt||''))).slice(0,20);
+            put('giNoticeRows',notices.length?notices.map(n=>`<div style="padding:10px 0;border-bottom:1px solid #e2e8f0"><b>${supEscape(n.title)}</b> <span class="gi-new-tag">${supEscape(n.trade==='ALL'?'सभी ट्रेड':n.trade||'')}</span><p>${supEscape(n.message)}</p><small class="gi-new-muted">${supEscape(n.date||'')}</small></div>`).join(''):'अभी कोई सूचना नहीं।');
+            const req=d.requests.filter(x=>x.collegeId===cid),pending=req.filter(x=>['नया अनुरोध','विचाराधीन','अधिक जानकारी मांगी'].includes(x.status)).length;
+            put('giRequestSummary',`<div class="gi-new-kpis">${giMetric('कुल अनुरोध',req.length)}${giMetric('लंबित अनुरोध',pending)}</div>`);
+        }
+        function openLegacyGroupModule(view){
+            if(currentRole!=='groupInstructor')return;
+            document.getElementById('groupInstructorSection')?.classList.add('hidden');document.getElementById('superintendentSection')?.classList.remove('hidden');
+            const btn=document.querySelector(`#superintendentSection [data-view="${view}"]`);switchSupView(view,btn);
+            const back=document.getElementById('groupInstructorBackToNew');if(!back){const bar=document.querySelector('#superintendentSection .sup-topbar');if(bar){const b=document.createElement('button');b.id='groupInstructorBackToNew';b.className='app-btn app-btn-secondary';b.textContent='नए डैशबोर्ड पर लौटें';b.onclick=()=>{document.getElementById('superintendentSection').classList.add('hidden');document.getElementById('groupInstructorSection').classList.remove('hidden');renderGroupInstructorDashboard();};bar.querySelector('.controls-right')?.prepend(b);}}
+        }
+
         function setupUIRoute() {
             document.getElementById('frontLoginSection').classList.add('hidden');
             applyCurrentCollegeBranding();
@@ -2875,6 +2981,7 @@ window.__itiLoginClick = async function(ev) {
             document.getElementById('instructorSection').classList.add('hidden');
             document.getElementById('studentSection').classList.add('hidden');
             document.getElementById('superintendentSection').classList.add('hidden');
+            document.getElementById('groupInstructorSection')?.classList.add('hidden');
 
             if (currentRole === 'admin') {
                 document.getElementById('adminSection').classList.remove('hidden');
@@ -2896,7 +3003,12 @@ window.__itiLoginClick = async function(ev) {
                 document.getElementById('evalTradeTypeBadge').innerText = isEngg ? 'इंजीनियरिंग' : 'नॉन-इंजीनियरिंग';
                 document.getElementById('roleLabel').innerHTML = `<i class="fa-solid fa-chalkboard-user"></i> ${currentTrade} (${colName})`;
                 switchInstructorTab('attendance');
-            } else if (currentRole === 'superintendent' || currentRole === 'groupInstructor') {
+            } else if (currentRole === 'groupInstructor') {
+                document.getElementById('groupInstructorSection')?.classList.remove('hidden');
+                document.getElementById('roleLabel').innerHTML = `<i class="fa-solid fa-layer-group"></i> ग्रुप इंस्ट्रक्टर: ${supEscape(loggedInSuperintendent?.name||'')}`;
+                switchGroupInstructorView('home',document.querySelector('#groupInstructorSection [data-gi-view="home"]'));
+                renderGroupInstructorDashboard();
+            } else if (currentRole === 'superintendent') {
                 document.getElementById('superintendentSection').classList.remove('hidden');
                 document.getElementById('roleLabel').innerHTML = `<i class="fa-solid fa-user-tie"></i> ${currentRole==='groupInstructor'?'ग्रुप इंस्ट्रक्टर':'अधीक्षक'}: ${loggedInSuperintendent.name}`;
                 document.getElementById('supCollegeBadge').innerText = getCollegeName(currentCollegeId);
@@ -4585,7 +4697,8 @@ window.__itiLoginClick = async function(ev) {
                         renderStudentCredentialsModalTable();
                     }
                     if (currentRole === 'admin') renderAdminView();
-                    if (currentRole === 'superintendent' || currentRole === 'groupInstructor') renderSuperintendentDashboard();
+                    if (currentRole === 'superintendent') renderSuperintendentDashboard();
+                    if (currentRole === 'groupInstructor') renderGroupInstructorDashboard();
                     if (currentRole === 'student') renderStudentDashboard();
                 }
                 legacyCloudReady = true;
