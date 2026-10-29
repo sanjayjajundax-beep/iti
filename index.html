@@ -824,7 +824,7 @@ window.__itiLoginClick = async function(ev) {
 <div id="loginDiagnosticMessage" role="status" aria-live="polite" style="margin-top:10px;min-height:22px;text-align:center;font-size:13px;font-weight:700;color:#b91c1c;"></div>
 </form>
 <div class="login-developer-credit" style="margin-top:42px;padding:18px 8px 4px;text-align:center;color:#17459a;font-weight:700;font-size:1rem;border-top:1px solid #d7e0ee;">
-Developer Sanjay Jajunda
+डेवलपर संजय जाजुन्दा
 </div>
 </div>
 </div>
@@ -5642,38 +5642,7 @@ Developer Sanjay Jajunda
       <div class="sign"><span>ग्रुप इंस्ट्रक्टर के हस्ताक्षर: ______________</span><span>प्राचार्य / अधीक्षक: ______________</span></div>
       <div class="foot">यह रिपोर्ट पोर्टल में उपलब्ध रिकॉर्ड के आधार पर स्वतः तैयार की गई है।</div>
       <script>window.onload=()=>setTimeout(()=>window.print(),350)<\/script>
-<div class="modal-backdrop hidden" id="userDataResetModal">
-  <div class="modal-content" style="max-width:620px;">
-    <h3 style="color:#b91c1c;margin-bottom:10px;"><i class="fa-solid fa-triangle-exclamation"></i> यूजर डेटा रीसेट</h3>
-    <p style="font-size:.88rem;line-height:1.6;margin-bottom:12px;">
-      चुने गए यूजर का कामकाजी डेटा हटेगा/रीसेट होगा। उसका लॉगिन अकाउंट, लॉगिन ID और पासवर्ड नहीं हटेंगे।
-    </p>
-    <div class="input-group">
-      <label for="resetTargetRole">यूजर का प्रकार</label>
-      <select id="resetTargetRole" onchange="populateUserDataResetTargets()">
-        <option value="instructor">अनुदेशक</option>
-        <option value="groupInstructor">ग्रुप इंस्ट्रक्टर</option>
-        <option value="superintendent">अधीक्षक</option>
-      </select>
-    </div>
-    <div class="input-group">
-      <label for="resetTargetUser">यूजर चुनें</label>
-      <select id="resetTargetUser"></select>
-    </div>
-    <div id="resetTargetScope" style="background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:10px;font-size:.82rem;line-height:1.6;margin-bottom:12px;"></div>
-    <div class="input-group">
-      <label for="resetConfirmText">पुष्टि के लिए नीचे <b>RESET</b> लिखें</label>
-      <input id="resetConfirmText" autocomplete="off" placeholder="RESET"/>
-    </div>
-    <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;">
-      <button class="app-btn app-btn-secondary" onclick="closeModal('userDataResetModal')">रद्द करें</button>
-      <button class="app-btn app-btn-danger" id="executeUserDataResetBtn" onclick="executeUserDataReset()"><i class="fa-solid fa-trash"></i> चुने हुए यूजर का डेटा साफ करें</button>
-    </div>
-    <p style="font-size:.75rem;color:#64748b;margin-top:12px;">
-      सावधानी: पुराने रिकॉर्ड में निर्माता की ID सेव नहीं है तो सिस्टम केवल स्पष्ट रूप से पहचाने जा सकने वाले रिकॉर्ड ही हटाएगा। साझा कॉलेज डेटा को अंधाधुंध नहीं मिटाया जाएगा।
-    </p>
-  </div>
-</div>
+
 
 </body></html>`);
     w.document.close();
@@ -5784,5 +5753,37 @@ async function executeUserDataReset(){
 
 </script>
 
+<div class="modal-backdrop hidden" id="userDataResetModal">
+  <div class="modal-content" style="max-width:620px;">
+    <h3 style="color:#b91c1c;margin-bottom:10px;"><i class="fa-solid fa-triangle-exclamation"></i> यूजर डेटा रीसेट</h3>
+    <p style="font-size:.88rem;line-height:1.6;margin-bottom:12px;">
+      चुने गए यूजर का कामकाजी डेटा हटेगा/रीसेट होगा। उसका लॉगिन अकाउंट, लॉगिन ID और पासवर्ड नहीं हटेंगे।
+    </p>
+    <div class="input-group">
+      <label for="resetTargetRole">यूजर का प्रकार</label>
+      <select id="resetTargetRole" onchange="populateUserDataResetTargets()">
+        <option value="instructor">अनुदेशक</option>
+        <option value="groupInstructor">ग्रुप इंस्ट्रक्टर</option>
+        <option value="superintendent">अधीक्षक</option>
+      </select>
+    </div>
+    <div class="input-group">
+      <label for="resetTargetUser">यूजर चुनें</label>
+      <select id="resetTargetUser"></select>
+    </div>
+    <div id="resetTargetScope" style="background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:10px;font-size:.82rem;line-height:1.6;margin-bottom:12px;"></div>
+    <div class="input-group">
+      <label for="resetConfirmText">पुष्टि के लिए नीचे <b>RESET</b> लिखें</label>
+      <input id="resetConfirmText" autocomplete="off" placeholder="RESET"/>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;">
+      <button class="app-btn app-btn-secondary" onclick="closeModal('userDataResetModal')">रद्द करें</button>
+      <button class="app-btn app-btn-danger" id="executeUserDataResetBtn" onclick="executeUserDataReset()"><i class="fa-solid fa-trash"></i> चुने हुए यूजर का डेटा साफ करें</button>
+    </div>
+    <p style="font-size:.75rem;color:#64748b;margin-top:12px;">
+      सावधानी: पुराने रिकॉर्ड में निर्माता की ID सेव नहीं है तो सिस्टम केवल स्पष्ट रूप से पहचाने जा सकने वाले रिकॉर्ड ही हटाएगा। साझा कॉलेज डेटा को अंधाधुंध नहीं मिटाया जाएगा।
+    </p>
+  </div>
+</div>
 </body>
 </html>
