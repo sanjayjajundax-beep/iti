@@ -2637,7 +2637,7 @@ window.__itiLoginClick = async function(ev) {
                 const score=components.length?Math.round(components.reduce((a,b)=>a+b,0)/components.length):0;
                 const lastItems=ownReports.concat(ownSyllabus,ownTeaching,ownWeekly,ownWeak,ownTasks);
                 const lastItem=lastItems.sort((a,b)=>String(b.createdAt||b.date||b.from||'').localeCompare(String(a.createdAt||a.date||a.from||'')))[0]||{};
-                rows.push({i,stats:tradeStats,evals,submissionCount,ownReports,ownSyllabus,ownTeaching,ownWeekly,ownWeak,score,taskRate,reportRate,attendancePct,syllabusPct,last:lastItem.createdAt||lastItem.date||lastItem.from||''});
+                rows.push({i,stats:tradeStats,evals,submissionCount,ownReports,ownTasks,ownSyllabus,ownTeaching,ownWeekly,ownWeak,score,taskRate,reportRate,attendancePct,syllabusPct,last:lastItem.createdAt||lastItem.date||lastItem.from||''});
             });
             const body=document.getElementById('supInstructorTableBody');
             if(body)body.innerHTML=rows.length?rows.map(x=>`<tr><td>${supEscape(x.i.name||'-')}</td><td>${supEscape(x.i.trade||'-')}</td>
