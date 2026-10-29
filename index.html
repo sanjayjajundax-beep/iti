@@ -703,19 +703,6 @@
         .instructor-role-layout .role-side-btn{font-size:.86rem}
         .student-side-nav{display:flex;flex-direction:column;gap:7px;max-width:230px;float:left;margin:0 16px 16px 0}
         @media(max-width:760px){.role-sidebar-layout{grid-template-columns:108px minmax(0,1fr);gap:7px}.role-sidebar{top:75px;padding:6px;gap:5px;max-height:calc(100vh - 88px)}.role-side-heading{font-size:.72rem;padding:7px 3px 9px;line-height:1.25}.role-side-btn{font-size:.68rem!important;padding:9px 5px!important;min-height:38px;gap:5px!important;line-height:1.25}.role-side-btn i{width:14px;flex:0 0 14px}.role-dashboard-heading{padding:9px;font-size:.88rem}.student-side-nav{max-width:100%;float:none;margin:0 0 12px 0}}
-
-        @media(max-width:760px){
-          #superintendentSection .sup-layout{display:block!important}
-          #superintendentSection .sup-sidebar{position:static!important;width:100%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-bottom:10px}
-          #superintendentSection .sup-side-heading,#superintendentSection .sup-sidebar-foot{grid-column:1/-1}
-          #superintendentSection .sup-nav-btn{min-width:0;padding:9px 7px;font-size:.76rem;line-height:1.2}
-          #superintendentSection .sup-main-content{min-width:0;width:100%}
-          #superintendentSection .sup-topbar{display:block!important}
-          #superintendentSection .sup-topbar .controls-right{display:flex;flex-wrap:wrap;margin-top:8px}
-          #superintendentSection .sup-topbar .app-btn{flex:1 1 120px}
-          #superintendentSection .table-shell{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
-          #superintendentSection .sup-chart-row{grid-template-columns:minmax(90px,1fr) minmax(90px,2fr) 42px;gap:6px}
-        }
 </style>
 
 <script>
@@ -925,7 +912,7 @@ window.__itiLoginClick = async function(ev) {
 <div class="admin-quick-bar" style="margin-bottom:14px;"><strong>केवल आपके कॉलेज का डेटा दिखाया जा रहा है।</strong><span id="supSessionBadge" style="font-weight:700;color:#1d4ed8;">सक्रिय सत्र: -</span></div>
 <div class="sup-view-panel" id="supViewOverview">
 <div class="dashboard-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px;">
-<div class="glass-card sup-metric"><div>कुल ट्रेड</div><strong id="supTradeCount">0</strong></div><div class="glass-card sup-metric"><div>कुल अनुदेशक</div><strong id="supInstructorCount">0</strong></div><div class="glass-card sup-metric"><div>कुल विद्यार्थी (नामांकित)</div><strong id="supStudentCount">0</strong></div><div class="glass-card sup-metric"><div>आज उपस्थित विद्यार्थी</div><strong id="supPresentTodayCount">0</strong></div><div class="glass-card sup-metric"><div>आज अनुपस्थित विद्यार्थी</div><strong id="supAbsentTodayCount">0</strong></div><div class="glass-card sup-metric"><div>आज उपस्थिति प्रतिशत</div><strong id="supPresentTodayPercent">0%</strong></div><div class="glass-card sup-metric"><div>आज अवकाश (दोनों सत्र)</div><strong id="supLeaveTodayCount">0</strong></div><div class="glass-card sup-metric"><div>आंशिक / अलग स्थिति</div><strong id="supPartialTodayCount">0</strong></div><div class="glass-card sup-metric"><div>दोनों सत्र दर्ज नहीं</div><strong id="supUnmarkedTodayCount">0</strong></div><div class="glass-card sup-metric"><div>लंबित कार्य</div><strong id="supPendingWorkCount">0</strong></div><div class="glass-card sup-metric" id="supOverdueWorkMetric" style="border:2px solid #dc2626"><div style="color:#b91c1c">समय-सीमा पार अलर्ट</div><strong id="supOverdueWorkCount" style="color:#b91c1c">0</strong></div>
+<div class="glass-card sup-metric"><div>कुल ट्रेड</div><strong id="supTradeCount">0</strong></div><div class="glass-card sup-metric"><div>कुल अनुदेशक</div><strong id="supInstructorCount">0</strong></div><div class="glass-card sup-metric"><div>कुल विद्यार्थी (नामांकित)</div><strong id="supStudentCount">0</strong></div><div class="glass-card sup-metric"><div>आज उपस्थित विद्यार्थी</div><strong id="supPresentTodayCount">0</strong></div><div class="glass-card sup-metric"><div>आज अनुपस्थित विद्यार्थी</div><strong id="supAbsentTodayCount">0</strong></div><div class="glass-card sup-metric"><div>आज उपस्थिति प्रतिशत</div><strong id="supPresentTodayPercent">0%</strong></div><div class="glass-card sup-metric"><div>लंबित कार्य</div><strong id="supPendingWorkCount">0</strong></div><div class="glass-card sup-metric" id="supOverdueWorkMetric" style="border:2px solid #dc2626"><div style="color:#b91c1c">समय-सीमा पार अलर्ट</div><strong id="supOverdueWorkCount" style="color:#b91c1c">0</strong></div>
 </div>
 <div class="glass-card sup-panel"><h3><i class="fa-solid fa-layer-group"></i> विभाग / ट्रेड की स्थिति — आज की उपस्थिति</h3><p class="sup-help">आज की गणना दैनिक रजिस्टर के वास्तविक दिन_m और दिन_e रिकॉर्ड से होती है। जिस विद्यार्थी के किसी सत्र में P है उसे उपस्थित, P न होने पर A दर्ज है तो अनुपस्थित गिना जाता है।</p><div class="table-shell"><table><thead><tr><th>ट्रेड</th><th>प्रकार</th><th>अनुदेशक</th><th>कुल विद्यार्थी</th><th>आज उपस्थित</th><th>आज अनुपस्थित</th><th>आज उपस्थिति %</th><th>कुल उपस्थिति रिकॉर्ड</th></tr></thead><tbody id="supTradeTableBody"></tbody></table></div></div>
 <div class="glass-card sup-panel"><h3><i class="fa-solid fa-chart-column"></i> कॉलेज की कार्य स्थिति</h3><div class="sup-alert-grid" id="supOverviewAlerts"></div></div>
@@ -937,7 +924,7 @@ window.__itiLoginClick = async function(ev) {
 <div class="glass-card sup-panel hidden" id="groupInstructorMonitoringPanel"><h3><i class="fa-solid fa-user-check"></i> ग्रुप इंस्ट्रक्टर निगरानी रिपोर्ट</h3><p class="sup-help">यहाँ ग्रुप इंस्ट्रक्टर द्वारा दर्ज निरीक्षण, निरीक्षण की स्थिति और To-Do कार्यों की प्रगति दिखाई जाएगी।</p><div class="sup-alert-grid" id="groupMonitoringSummary"></div><h4>ग्रुप इंस्ट्रक्टर के निरीक्षण</h4><div class="table-shell"><table><thead><tr><th>तारीख</th><th>निरीक्षणकर्ता</th><th>प्रकार / स्थान</th><th>निष्कर्ष</th><th>सुधार निर्देश</th><th>स्थिति</th></tr></thead><tbody id="groupMonitoringInspectionBody"></tbody></table></div><h4 style="margin-top:18px">ग्रुप इंस्ट्रक्टर के कार्यों की स्थिति</h4><div class="table-shell"><table><thead><tr><th>कार्य</th><th>अंतिम तारीख</th><th>स्थिति</th><th>टिप्पणी</th></tr></thead><tbody id="groupMonitoringTaskBody"></tbody></table></div></div>
 </div>
 <div class="sup-view-panel hidden" id="supViewPerformance">
-<div class="glass-card sup-panel"><h3><i class="fa-solid fa-chart-line"></i> अनुदेशक प्रदर्शन ग्राफ</h3><p class="sup-help">प्रत्येक अनुदेशक के अपने रिकॉर्ड के आधार पर पाठ्यक्रम प्रगति, रिपोर्ट स्वीकृति और आवंटित कार्य पूर्णता अलग-अलग दिखाई जाती है। जिस घटक का रिकॉर्ड उपलब्ध नहीं है, वहाँ डैश (—) दिखेगा। ट्रेड की विद्यार्थी उपस्थिति अलग रिपोर्ट है।</p><div class="sup-chart-list" id="supPerformanceChart"></div></div>
+<div class="glass-card sup-panel"><h3><i class="fa-solid fa-chart-line"></i> अनुदेशक प्रदर्शन ग्राफ</h3><p class="sup-help">ग्राफ मौजूदा उपस्थिति रिकॉर्ड, मूल्यांकन डेटा और दर्ज निरीक्षण/कार्य गतिविधियों पर आधारित है। जहाँ डेटा उपलब्ध नहीं है, वहाँ शून्य दिखेगा।</p><div class="sup-chart-list" id="supPerformanceChart"></div></div>
 </div>
 <div class="sup-view-panel hidden" id="supViewInstructors">
 <div class="glass-card sup-panel"><h3><i class="fa-solid fa-chalkboard-user"></i> अनुदेशक रिकॉर्ड की जाँच</h3><div class="table-shell"><table><thead><tr><th>अनुदेशक</th><th>ट्रेड</th><th>विद्यार्थी</th><th>उपस्थिति एंट्री</th><th>मूल्यांकन रिकॉर्ड</th><th>जमा किए गए रिकॉर्ड</th><th>अंतिम गतिविधि</th></tr></thead><tbody id="supInstructorTableBody"></tbody></table></div></div>
@@ -975,14 +962,14 @@ window.__itiLoginClick = async function(ev) {
 </div>
 <div class="sup-view-panel hidden" id="supViewTasks">
 <div class="glass-card sup-panel"><h3><i class="fa-solid fa-list-check"></i> अनुदेशक कार्य गतिविधियाँ</h3><div class="sup-form-grid"><div class="input-group"><label>अनुदेशक</label><select id="supTaskInstructor"></select></div><div class="input-group"><label>कार्य / गतिविधि</label><input id="supTaskTitle" placeholder="जैसे प्रैक्टिकल रिकॉर्ड अपडेट करना"/></div><div class="input-group"><label>अंतिम तारीख</label><input id="supTaskDue" type="date"/></div><div class="input-group"><label>प्राथमिकता</label><select id="supTaskPriority"><option>सामान्य</option><option>महत्वपूर्ण</option><option>अति आवश्यक</option></select></div><div class="input-group"><label>विवरण</label><textarea id="supTaskDescription" placeholder="कार्य का विवरण" rows="2"></textarea></div></div><button class="app-btn app-btn-primary" onclick="assignSupTask()"><i class="fa-solid fa-paper-plane"></i> कार्य आवंटित करें</button></div>
-<div class="glass-card sup-panel"><h3><i class="fa-solid fa-bullhorn"></i> विद्यार्थी सूचना जारी करें</h3><div class="sup-form-grid"><div class="input-group"><label>सूचना शीर्षक</label><input id="supNoticeTitle" placeholder="जैसे परीक्षा समय-सारणी"/></div><div class="input-group"><label>ट्रेड</label><select id="supNoticeTrade"><option value="ALL">सभी ट्रेड</option></select></div><div class="input-group"><label>सूचना</label><textarea id="supNoticeMessage" rows="2" placeholder="विद्यार्थियों के लिए सूचना लिखें"></textarea></div><div class="input-group"><label>फोटो / PDF संलग्न करें (वैकल्पिक, अधिकतम 1 MB)</label><input id="supNoticeAttachment" type="file" accept="image/*,application/pdf"></div></div><button class="app-btn app-btn-primary" onclick="publishSupNotice()">सूचना प्रकाशित करें</button><div id="supNoticeHistory"></div></div>
+<div class="glass-card sup-panel"><h3><i class="fa-solid fa-bullhorn"></i> विद्यार्थी सूचना जारी करें</h3><div class="sup-form-grid"><div class="input-group"><label>सूचना शीर्षक</label><input id="supNoticeTitle" placeholder="जैसे परीक्षा समय-सारणी"/></div><div class="input-group"><label>ट्रेड</label><select id="supNoticeTrade"><option value="ALL">सभी ट्रेड</option></select></div><div class="input-group"><label>सूचना</label><textarea id="supNoticeMessage" rows="2" placeholder="विद्यार्थियों के लिए सूचना लिखें"></textarea></div></div><button class="app-btn app-btn-primary" onclick="publishSupNotice()">सूचना प्रकाशित करें</button><div id="supNoticeHistory"></div></div>
 <div class="glass-card sup-panel"><h3>आवंटित कार्य</h3><div class="table-shell"><table><thead><tr><th>अनुदेशक</th><th>कार्य</th><th>अंतिम तारीख</th><th>प्राथमिकता</th><th>स्थिति</th><th>कार्रवाई</th></tr></thead><tbody id="supTaskHistory"></tbody></table></div></div>
 <div class="glass-card sup-panel"><h3>अनुदेशकों की जमा की गई गतिविधि रिपोर्ट</h3><div class="table-shell"><table><thead><tr><th>तारीख</th><th>अनुदेशक</th><th>गतिविधि</th><th>विद्यार्थी</th><th>विवरण</th><th>स्थिति</th><th>समीक्षा / कार्रवाई</th></tr></thead><tbody id="supActivityReports"></tbody></table></div></div>
 </div>
 <div class="sup-view-panel hidden" id="supViewGroupTasks">
 <div class="glass-card sup-panel"><h3><i class="fa-solid fa-calendar-check"></i> मेरी टू-डू सूची</h3><p class="sup-help" id="groupTodoHelp">निर्धारित कार्यों के साथ आप अपने अतिरिक्त काम भी जोड़ सकते हैं।</p><div class="sup-alert-grid" id="groupTaskSummary"></div><div id="groupTaskList"></div></div>
 <div class="glass-card sup-panel" id="groupCustomTaskFormPanel"><h3><i class="fa-solid fa-plus-circle"></i> अपना नया काम जोड़ें</h3><div class="sup-form-grid"><div class="input-group"><label for="groupCustomTaskTitle">काम का नाम</label><input id="groupCustomTaskTitle" type="text" maxlength="140" placeholder="जैसे स्टॉक रजिस्टर अपडेट करना" /></div><div class="input-group"><label for="groupCustomTaskDue">अंतिम तारीख (वैकल्पिक)</label><input id="groupCustomTaskDue" type="date" /></div><div class="input-group"><label for="groupCustomTaskNote">विवरण (वैकल्पिक)</label><input id="groupCustomTaskNote" type="text" maxlength="300" placeholder="काम से जुड़ी जानकारी" /></div></div><button class="app-btn app-btn-primary" type="button" onclick="addGroupCustomTask()"><i class="fa-solid fa-plus"></i> काम जोड़ें</button><p class="sup-help">आपके जोड़े हुए काम इसी कॉलेज की ग्रुप इंस्ट्रक्टर To-Do सूची में सेव रहेंगे।</p></div>
-<div class="glass-card sup-panel"><h3><i class="fa-solid fa-chalkboard-user"></i> आज कॉलेज आए अनुदेशक</h3><p class="sup-help">यहाँ ट्रेडवार सुबह और शाम की उपस्थिति अलग दिखाई जाएगी। पूरे दिन की स्थिति तभी तय होगी जब दोनों सत्रों में एक जैसी स्थिति दर्ज हो।</p><div class="sup-alert-grid" id="groupInstructorAttendanceSummary"></div><div class="table-shell"><table><thead><tr><th>ट्रेड</th><th>संबंधित अनुदेशक</th><th>सुबह / शाम उपस्थिति</th><th>दिन की स्थिति</th></tr></thead><tbody id="groupInstructorAttendanceBody"></tbody></table></div></div>
+<div class="glass-card sup-panel"><h3><i class="fa-solid fa-chalkboard-user"></i> आज कॉलेज आए अनुदेशक</h3><p class="sup-help">यहाँ प्रत्येक ट्रेड में आज दर्ज M/E उपस्थिति के अनुसार उपस्थित, अनुपस्थित और अवकाश विद्यार्थियों की संख्या दिखाई जाएगी।</p><div class="sup-alert-grid" id="groupInstructorAttendanceSummary"></div><div class="table-shell"><table><thead><tr><th>अनुदेशक</th><th>ट्रेड</th><th>आज की क्लास अटेंडेंस</th><th>स्थिति</th></tr></thead><tbody id="groupInstructorAttendanceBody"></tbody></table></div></div>
 </div>
 <div class="sup-view-panel hidden" id="supViewRequests">
 <div class="glass-card sup-panel"><h3><i class="fa-solid fa-inbox"></i> अनुदेशकों से प्राप्त अनुमति / कार्यवाही अनुरोध</h3><p class="sup-help">ग्रुप इंस्ट्रक्टर और अधीक्षक अनुरोध की समीक्षा कर निर्णय, टिप्पणी और की गई कार्रवाई दर्ज कर सकते हैं। अनुदेशक को जवाब उसके डैशबोर्ड पर दिखेगा।</p><div class="sup-alert-grid" id="supRequestSummary"></div><div id="supRequestInbox"></div></div>
@@ -2457,33 +2444,39 @@ window.__itiLoginClick = async function(ev) {
         }
         function todayCompare(a,b){return String(a).localeCompare(String(b));}
         function renderGroupInstructorAttendance(){
-            const p=groupDateParts(),body=document.getElementById('groupInstructorAttendanceBody');if(!body)return;
-            const trades=getTradesList(),rows=trades.map(trade=>({trade,instructors:getSupCollegeInstructors().filter(i=>String(i.trade).trim()===String(trade).trim()),...getSupDayAttendanceStats(currentCollegeId,trade,p)})).filter(x=>x.total||x.instructors.length);
+            const p=groupDateParts(),body=document.getElementById('groupInstructorAttendanceBody');
+            if(!body)return;
+            const all=getSupCollegeInstructors(),rows=[];
+            all.forEach(i=>rows.push({i,...getSupDayAttendanceStats(currentCollegeId,i.trade,p)}));
+            const attended=rows.filter(x=>x.marked>0).length;
             const summary=document.getElementById('groupInstructorAttendanceSummary');
-            const sum=k=>rows.reduce((n,x)=>n+x[k],0);
-            if(summary)summary.innerHTML=`<div class="sup-alert-item"><strong>${sum('present')}</strong><span>दोनों सत्र उपस्थित</span></div><div class="sup-alert-item"><strong>${sum('absent')}</strong><span>दोनों सत्र अनुपस्थित</span></div><div class="sup-alert-item"><strong>${sum('leave')}</strong><span>दोनों सत्र अवकाश</span></div><div class="sup-alert-item"><strong>${sum('partial')}</strong><span>आंशिक / अलग स्थिति</span></div><div class="sup-alert-item"><strong>${sum('unmarked')}</strong><span>दोनों सत्र दर्ज नहीं</span></div>`;
-            body.innerHTML=rows.length?rows.map(x=>`<tr><td><strong>${supEscape(x.trade)}</strong></td><td>${x.instructors.map(i=>supEscape(i.name)).join(', ')||'—'}</td><td>सुबह P/A/L: ${x.morning.P}/${x.morning.A}/${x.morning.L}<br>शाम P/A/L: ${x.evening.P}/${x.evening.A}/${x.evening.L}</td><td>${x.present} उपस्थित · ${x.absent} अनुपस्थित · ${x.leave} अवकाश · ${x.partial} आंशिक</td><td style="font-weight:700;color:${x.unmarked||x.partial?'#b45309':'#15803d'}">${x.unmarked||x.partial?'जाँच आवश्यक':'दोनों सत्र दर्ज'}</td></tr>`).join(''):'<tr><td colspan="5">इस कॉलेज में ट्रेड / विद्यार्थी रिकॉर्ड उपलब्ध नहीं है।</td></tr>';
+            if(summary)summary.innerHTML=
+                `<div class="sup-alert-item"><strong>${attended}</strong><span>क्लास अटेंडेंस दर्ज करने वाले ट्रेड</span></div>
+                 <div class="sup-alert-item"><strong>${rows.length-attended}</strong><span>अटेंडेंस दर्ज नहीं</span></div>
+                 <div class="sup-alert-item"><strong>${rows.reduce((n,x)=>n+x.present,0)}</strong><span>आज उपस्थित विद्यार्थी</span></div>
+                 <div class="sup-alert-item"><strong>${rows.reduce((n,x)=>n+x.absent,0)}</strong><span>आज अनुपस्थित विद्यार्थी</span></div>`;
+            body.innerHTML=rows.length?rows.map(x=>
+                `<tr><td>${supEscape(x.i.name)}</td><td>${supEscape(x.i.trade)}</td>
+                 <td>${x.marked?`उपस्थित ${x.present} · अनुपस्थित ${x.absent} · अवकाश ${x.leave}`:'नहीं'}</td>
+                 <td style="color:${x.marked?'#15803d':'#b91c1c'};font-weight:700">${x.marked?'आज की उपस्थिति दर्ज':'अभी दर्ज नहीं'}</td></tr>`
+            ).join(''):'<tr><td colspan="4">कोई अनुदेशक दर्ज नहीं है।</td></tr>';
         }
 
         function ensureSupData() {
-            if (!appData.superintendentData || typeof appData.superintendentData !== 'object') appData.superintendentData = {};
-            const d=appData.superintendentData;
-            if (!Array.isArray(d.inspections)) d.inspections=[];
-            if (!Array.isArray(d.tasks)) d.tasks=[];
-            if (!Array.isArray(d.reports)) d.reports=[];
-            if (!Array.isArray(d.requests)) d.requests=[];
-            if (!Array.isArray(d.auditLog)) d.auditLog=[];
-            if (!Array.isArray(d.notices)) d.notices=[];
-            if (!Array.isArray(d.assets)) d.assets=[];
-            // नए रिपोर्ट/शिक्षण मॉड्यूल के ऐरे पुराने Firebase डेटा में मौजूद न हों तो सुरक्षित डिफॉल्ट दें।
-            if (!Array.isArray(d.syllabus)) d.syllabus=[];
-            if (!Array.isArray(d.teachingRecords)) d.teachingRecords=[];
-            if (!Array.isArray(d.weeklyPrograms)) d.weeklyPrograms=[];
-            if (!Array.isArray(d.weakStudents)) d.weakStudents=[];
-            if (!Array.isArray(d.leaveRequests)) d.leaveRequests=[];
-            if (!Array.isArray(d.timetables)) d.timetables=[];
-            if (!Array.isArray(appData.groupInstructorTasks)) appData.groupInstructorTasks=[];
-            if (!Array.isArray(appData.groupInstructorCustomTasks)) appData.groupInstructorCustomTasks=[];
+            // पुराने Firebase रिकॉर्ड में नए मॉड्यूल की arrays मौजूद न हों तो सुरक्षित defaults दें।
+            if (!appData || typeof appData !== 'object') appData = {};
+            if (!appData.superintendentData || typeof appData.superintendentData !== 'object' || Array.isArray(appData.superintendentData)) appData.superintendentData = {};
+            const d = appData.superintendentData;
+            [
+                'inspections', 'tasks', 'reports', 'requests', 'auditLog', 'notices', 'assets',
+                'syllabus', 'teachingRecords', 'weeklyPrograms', 'weakStudents', 'leaveRequests', 'timetables'
+            ].forEach(key => {
+                if (!Array.isArray(d[key])) d[key] = [];
+            });
+            if (!Array.isArray(appData.groupInstructorTasks)) appData.groupInstructorTasks = [];
+            if (!Array.isArray(appData.groupInstructorCustomTasks)) appData.groupInstructorCustomTasks = [];
+            if (!appData.students || typeof appData.students !== 'object' || Array.isArray(appData.students)) appData.students = {};
+            if (!appData.records || typeof appData.records !== 'object' || Array.isArray(appData.records)) appData.records = {};
             return d;
         }
         function supEscape(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
@@ -2497,22 +2490,21 @@ window.__itiLoginClick = async function(ev) {
             if(view==='groupTasks') renderGroupInstructorTasks();
             if(view==='requests') renderSupervisorRequests();
         }
-        function getSupCollegeInstructors(){return getInstructorsList().filter(i=>(i.collegeId||'COL01')===currentCollegeId);}
+        function getSupCollegeInstructors(){const list=getInstructorsList();return (Array.isArray(list)?list:[]).filter(i=>i&&(i.collegeId||'COL01')===currentCollegeId);}
         function getSupDayAttendanceStats(cid,trade,parts){
-            const p=parts||groupDateParts(),root=appData.records?.[cid]?.[trade]?.[p.month]||{};
-            let present=0,absent=0,leave=0,partial=0,marked=0,unmarked=0;
-            const morning={P:0,A:0,L:0,unmarked:0},evening={P:0,A:0,L:0,unmarked:0};
+            const p=parts||groupDateParts();
+            const root=appData.records?.[cid]?.[trade]?.[p.month]||{};
+            let present=0,absent=0,leave=0,marked=0,unmarked=0,sessionPresent=0,sessionAbsent=0;
             getStudentList(cid,trade).forEach(st=>{
                 const row=root[String(st.roll).trim()]||{};
-                const m=String(row[`${p.day}_m`]||'-').toUpperCase(),e=String(row[`${p.day}_e`]||'-').toUpperCase();
-                morning[['P','A','L'].includes(m)?m:'unmarked']++; evening[['P','A','L'].includes(e)?e:'unmarked']++;
-                const validM=['P','A','L'].includes(m),validE=['P','A','L'].includes(e);
-                if(validM||validE)marked++;else unmarked++;
-                // पूरे दिन की स्थिति तभी तय होगी जब दोनों सत्र दर्ज हों और एक ही स्थिति हो।
-                if(validM&&validE&&m===e){if(m==='P')present++;else if(m==='A')absent++;else leave++;}
-                else if(validM||validE)partial++;
+                const vals=[String(row[`${p.day}_m`]||'-').toUpperCase(),String(row[`${p.day}_e`]||'-').toUpperCase()];
+                const hasP=vals.includes('P'),hasA=vals.includes('A'),hasL=vals.includes('L');
+                if(hasP)present++;else if(hasA)absent++;else if(hasL)leave++;else unmarked++;
+                if(vals.some(v=>['P','A','L'].includes(v)))marked++;
+                sessionPresent+=vals.filter(v=>v==='P').length;
+                sessionAbsent+=vals.filter(v=>v==='A').length;
             });
-            return {present,absent,leave,partial,marked,unmarked,morning,evening,sessionPresent:morning.P+evening.P,sessionAbsent:morning.A+evening.A,total:getStudentList(cid,trade).length};
+            return {present,absent,leave,marked,unmarked,sessionPresent,sessionAbsent,total:getStudentList(cid,trade).length};
         }
         function getSupTradeStats(trade){
             const months=(appData.records&&appData.records[currentCollegeId]&&appData.records[currentCollegeId][trade])||{};let entries=0,present=0,absent=0;
@@ -2530,12 +2522,12 @@ window.__itiLoginClick = async function(ev) {
             if(!['superintendent','groupInstructor'].includes(currentRole)||!currentCollegeId)return;
             ensureSupData();
             const cid=currentCollegeId,trades=getTradesList(),instructors=getSupCollegeInstructors();
-            let studentTotal=0,presentToday=0,absentToday=0,leaveToday=0,partialToday=0,unmarkedToday=0;
+            let studentTotal=0,presentToday=0,absentToday=0;
             const todayParts=groupDateParts(),tradeRows=[];
             trades.forEach(t=>{
                 const students=getStudentList(cid,t);studentTotal+=students.length;
                 const dayStats=getSupDayAttendanceStats(cid,t,todayParts);
-                presentToday+=dayStats.present;absentToday+=dayStats.absent;leaveToday+=dayStats.leave;partialToday+=dayStats.partial;unmarkedToday+=dayStats.unmarked;
+                presentToday+=dayStats.present;absentToday+=dayStats.absent;
                 const tradePercent=dayStats.present+dayStats.absent?
                     Math.round(dayStats.present/(dayStats.present+dayStats.absent)*100):0;
                 const stats=getSupTradeStats(t),count=instructors.filter(i=>String(i.trade).trim()===t).length;
@@ -2545,14 +2537,14 @@ window.__itiLoginClick = async function(ev) {
                      <td><strong>${dayStats.absent}</strong></td><td><strong>${tradePercent}%</strong></td><td>${stats.entries}</td></tr>`
                 );
             });
-            const presentPercent=presentToday+absentToday+trades.reduce((n,t)=>n+getSupDayAttendanceStats(cid,t,todayParts).leave,0)?
-                Math.round(presentToday/(presentToday+absentToday+trades.reduce((n,t)=>n+getSupDayAttendanceStats(cid,t,todayParts).leave,0))*100):0;
+            const presentPercent=presentToday+absentToday?
+                Math.round(presentToday/(presentToday+absentToday)*100):0;
             const setText=(id,value)=>{const el=document.getElementById(id);if(el)el.innerText=value;};
             setText('supCollegeBadge',getCollegeName(cid));
             setText('supSessionBadge',`सक्रिय सत्र: ${getSessionConfig().startDate} से ${getSessionConfig().endDate}`);
             setText('supTradeCount',trades.length);setText('supInstructorCount',instructors.length);
             setText('supStudentCount',studentTotal);setText('supPresentTodayCount',presentToday);
-            setText('supAbsentTodayCount',absentToday);setText('supPresentTodayPercent',presentPercent+'%');setText('supLeaveTodayCount',leaveToday);setText('supPartialTodayCount',partialToday);setText('supUnmarkedTodayCount',unmarkedToday);
+            setText('supAbsentTodayCount',absentToday);setText('supPresentTodayPercent',presentPercent+'%');
             const workStats=getGroupTaskOverview();
             setText('supPendingWorkCount',workStats.pending);setText('supOverdueWorkCount',workStats.overdue);
             const overdueMetric=document.getElementById('supOverdueWorkMetric');
@@ -2614,16 +2606,18 @@ window.__itiLoginClick = async function(ev) {
                 const ownWeekly=d.weeklyPrograms.filter(x=>x.collegeId===cid&&String(x.instructorId)===String(i.id));
                 const ownWeak=d.weakStudents.filter(x=>x.collegeId===cid&&String(x.instructorId)===String(i.id));
                 const submissionCount=ownReports.length+ownSyllabus.length+ownTeaching.length+ownWeekly.length+ownWeak.length;
-                const attendancePct=null; // छात्र उपस्थिति ट्रेड स्तर की है; इसे किसी एक अनुदेशक का व्यक्तिगत स्कोर नहीं मानते।
+                const attendancePct=tradeStats.present+tradeStats.absent?
+                    Math.round(tradeStats.present/(tradeStats.present+tradeStats.absent)*100):0;
                 const syllabusPct=ownSyllabus.length?
                     Math.round(ownSyllabus.reduce((n,x)=>n+(Number(x.percent)||0),0)/ownSyllabus.length):0;
                 const taskRate=ownTasks.length?Math.round(ownTasks.filter(t=>t.status==='पूर्ण').length/ownTasks.length*100):0;
                 const reportRate=ownReports.length?Math.round(ownReports.filter(r=>r.status==='स्वीकृत').length/ownReports.length*100):0;
                 const components=[];
+                if(tradeStats.present+tradeStats.absent)components.push(attendancePct);
                 if(ownSyllabus.length)components.push(syllabusPct);
                 if(ownReports.length)components.push(reportRate);
                 if(ownTasks.length)components.push(taskRate);
-                const score=components.length?Math.round(components.reduce((a,b)=>a+b,0)/components.length):null;
+                const score=components.length?Math.round(components.reduce((a,b)=>a+b,0)/components.length):0;
                 const lastItems=ownReports.concat(ownSyllabus,ownTeaching,ownWeekly,ownWeak,ownTasks);
                 const lastItem=lastItems.sort((a,b)=>String(b.createdAt||b.date||b.from||'').localeCompare(String(a.createdAt||a.date||a.from||'')))[0]||{};
                 rows.push({i,stats:tradeStats,evals,submissionCount,ownReports,ownSyllabus,ownTeaching,ownWeekly,ownWeak,score,taskRate,reportRate,attendancePct,syllabusPct,last:lastItem.createdAt||lastItem.date||lastItem.from||''});
@@ -2634,7 +2628,14 @@ window.__itiLoginClick = async function(ev) {
                 <td>${x.submissionCount} जमा रिकॉर्ड</td><td>${x.last?new Date(x.last).toLocaleDateString('hi-IN'):'अभी कोई रिकॉर्ड दर्ज नहीं'}</td></tr>`
             ).join(''):'<tr><td colspan="7">अनुदेशक रिकॉर्ड उपलब्ध नहीं हैं।</td></tr>';
             const chart=document.getElementById('supPerformanceChart');
-            if(chart)chart.innerHTML=rows.length?rows.map(x=>{const metrics=[['पाठ्यक्रम प्रगति',x.ownSyllabus.length?x.syllabusPct:null],['रिपोर्ट स्वीकृति',x.ownReports.length?x.reportRate:null],['आवंटित कार्य पूर्णता',x.ownTasks.length?x.taskRate:null]];return `<div style="padding:12px 0;border-bottom:1px solid #e2e8f0"><strong>${supEscape(x.i.name||x.i.id)} — ${supEscape(x.i.trade||'')}</strong><div class="sup-help">व्यक्तिगत स्कोर: ${x.score===null?'पर्याप्त रिकॉर्ड उपलब्ध नहीं':x.score+'%'} · जमा रिकॉर्ड ${x.submissionCount} · शिक्षण ${x.ownTeaching.length} · साप्ताहिक ${x.ownWeekly.length} · सुधार योजना ${x.ownWeak.length}</div>${metrics.map(([label,val])=>`<div class="sup-chart-row"><strong>${label}</strong><div class="sup-chart-track"><div class="sup-chart-fill" style="width:${val===null?0:Math.max(0,Math.min(100,val))}%"></div></div><span class="sup-chart-value">${val===null?'—':val+'%'}</span></div>`).join('')}<small class="sup-help">विद्यार्थी उपस्थिति ${supEscape(x.i.trade)} ट्रेड के स्तर पर अलग दिखाई जाती है; इसे व्यक्तिगत अनुदेशक स्कोर में नहीं जोड़ा गया है।</small></div>`;}).join(''):'<p>अभी प्रदर्शन ग्राफ के लिए अनुदेशक डेटा उपलब्ध नहीं है।';
+            if(chart)chart.innerHTML=rows.length?rows.map(x=>`<div class="sup-chart-row">
+                <strong>${supEscape(x.i.name||x.i.id)}</strong><div class="sup-chart-track"><div class="sup-chart-fill" style="width:${x.score}%"></div></div>
+                <span class="sup-chart-value">${x.score}%</span></div>
+                <div style="font-size:.78rem;color:#64748b;margin:-9px 0 10px 0;">
+                ${supEscape(x.i.trade)} · उपस्थिति ${x.attendancePct}% · पाठ्यक्रम प्रगति ${x.syllabusPct}% ·
+                गतिविधि रिपोर्ट ${x.ownReports.length} · साप्ताहिक ${x.ownWeekly.length} · शिक्षण ${x.ownTeaching.length} ·
+                सुधार योजना ${x.ownWeak.length} · मूल्यांकन ${x.evals}</div>`
+            ).join(''):'<p>अभी प्रदर्शन ग्राफ के लिए अनुदेशक डेटा उपलब्ध नहीं है।';
             const inspections=d.inspections.filter(x=>x.collegeId===cid).sort((a,b)=>String(b.date).localeCompare(String(a.date)));
             const ih=document.getElementById('supInspectionHistory');
             if(ih)ih.innerHTML=inspections.length?inspections.map(x=>`<tr><td>${supEscape(x.date)}</td><td>${supEscape(x.typeLabel)}</td><td>${supEscape(x.instructorName||x.location||'-')}</td><td>${supEscape(x.finding)}</td><td>${supEscape(x.action||'-')}</td><td>${supEscape(x.status)}</td><td><button class="app-btn app-btn-secondary" onclick="updateSupInspectionStatus('${x.id}')">स्थिति बदलें</button></td></tr>`).join(''):'<tr><td colspan="7">अभी निरीक्षण रिकॉर्ड नहीं है।</td></tr>';
@@ -2649,12 +2650,12 @@ window.__itiLoginClick = async function(ev) {
             if(th)th.innerHTML=tasks.length?tasks.map(t=>`<tr><td>${supEscape(t.instructorName)}</td><td>${supEscape(t.title)}<br><small>${supEscape(t.description||'')}</small></td><td>${supEscape(t.due||'-')}</td><td>${supEscape(t.priority)}</td><td>${supEscape(t.status)}</td><td><button class="app-btn app-btn-warning" onclick="setSupTaskStatus('${t.id}')">स्थिति बदलें</button></td></tr>`).join(''):'<tr><td colspan="6">अभी कोई कार्य आवंटित नहीं है।</td></tr>';
             const noticeHistory=document.getElementById('supNoticeHistory');
             if(noticeHistory){const ns=d.notices.filter(n=>n.collegeId===cid).sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt)));
-                noticeHistory.innerHTML=ns.length?ns.map(n=>`<p>• <strong>${supEscape(n.title)}</strong> (${supEscape(n.trade==='ALL'?'सभी ट्रेड':n.trade)}) — ${supEscape(n.date||'')}${n.attachment?` · <a href="${n.attachment.dataUrl}" target="_blank" rel="noopener">${supEscape(n.attachment.type==='application/pdf'?'PDF खोलें':'फोटो देखें')}</a>`:''}</p>`).join(''):'<small>अभी कोई सूचना प्रकाशित नहीं हुई है।</small>';}
+                noticeHistory.innerHTML=ns.length?ns.map(n=>`<p>• <strong>${supEscape(n.title)}</strong> (${supEscape(n.trade==='ALL'?'सभी ट्रेड':n.trade)}) — ${supEscape(n.date||'')}</p>`).join(''):'<small>अभी कोई सूचना प्रकाशित नहीं हुई है।</small>';}
             const reports=d.reports.filter(x=>x.collegeId===cid).sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt)));
             const rh=document.getElementById('supActivityReports');
             if(rh)rh.innerHTML=reports.length?reports.map(r=>`<tr><td><strong>${supEscape(r.period||'दैनिक')}</strong><br>${supEscape(r.date)}${r.endDate?' से '+supEscape(r.endDate):''}</td><td>${supEscape(r.instructorName)}</td><td>${supEscape(r.type)}</td><td>${Number(r.students)||0}</td><td>${supEscape(r.details)}${r.reviewComment?`<br><small>टिप्पणी: ${supEscape(r.reviewComment)}</small>`:''}</td><td>${supEscape(r.status||'जमा')}</td><td><button class="app-btn app-btn-success" onclick="reviewSupReport('${r.id}','approve')">स्वीकृत</button> <button class="app-btn app-btn-warning" onclick="reviewSupReport('${r.id}','return')">वापस भेजें</button></td></tr>`).join(''):'<tr><td colspan="7">अभी कोई गतिविधि रिपोर्ट जमा नहीं हुई है।</td></tr>';
         }
-        async function publishSupNotice(){if(!['superintendent','groupInstructor'].includes(currentRole)||!currentCollegeId)return;const title=document.getElementById('supNoticeTitle').value.trim(),message=document.getElementById('supNoticeMessage').value.trim(),trade=document.getElementById('supNoticeTrade').value,file=document.getElementById('supNoticeAttachment')?.files?.[0];if(!title||!message){alert('सूचना का शीर्षक और विवरण दोनों भरें।');return;}if(file&&file.size>1024*1024){alert('फोटो / PDF 1 MB से छोटी रखें ताकि Firebase डेटा सुरक्षित रूप से सिंक हो सके।');return;}let attachment=null;if(file){attachment=await new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve({name:file.name,type:file.type,dataUrl:r.result});r.onerror=reject;r.readAsDataURL(file);});}ensureSupData().notices.push({id:'NOT'+Date.now(),collegeId:currentCollegeId,trade,title,message,attachment,date:new Date().toISOString().slice(0,10),createdAt:new Date().toISOString(),createdBy:loggedInSuperintendent?.name||''});syncWithFirebase();document.getElementById('supNoticeTitle').value='';document.getElementById('supNoticeMessage').value='';if(document.getElementById('supNoticeAttachment'))document.getElementById('supNoticeAttachment').value='';renderSupOperationalViews();showToast('विद्यार्थियों के लिए सूचना प्रकाशित हो गई।');}
+        function publishSupNotice(){if(!['superintendent','groupInstructor'].includes(currentRole)||!currentCollegeId)return;const title=document.getElementById('supNoticeTitle').value.trim(),message=document.getElementById('supNoticeMessage').value.trim(),trade=document.getElementById('supNoticeTrade').value;if(!title||!message){alert('सूचना का शीर्षक और विवरण दोनों भरें।');return;}ensureSupData().notices.push({id:'NOT'+Date.now(),collegeId:currentCollegeId,trade,title,message,date:new Date().toISOString().slice(0,10),createdAt:new Date().toISOString(),createdBy:loggedInSuperintendent?.name||''});syncWithFirebase();document.getElementById('supNoticeTitle').value='';document.getElementById('supNoticeMessage').value='';renderSupOperationalViews();showToast('विद्यार्थियों के लिए सूचना प्रकाशित हो गई।');}
 
         function addSupAudit(action, details, targetId=''){
             const d=ensureSupData();d.auditLog.push({id:'AUD'+Date.now(),collegeId:currentCollegeId,actor:loggedInSuperintendent?.name||'सुपर एडमिन',role:currentRole,action,details,targetId,at:new Date().toISOString()});
@@ -2906,10 +2907,6 @@ window.__itiLoginClick = async function(ev) {
                 const isGroup=currentRole==='groupInstructor';
                 // दोनों भूमिकाओं को सभी संचालन मॉड्यूल दिखें; अधीक्षक को To-Do निगरानी भी मिले।
                 document.querySelectorAll('#superintendentSection .sup-nav-btn').forEach(btn=>btn.classList.remove('hidden'));
-                // भूमिका के अनुसार संवेदनशील प्रशासनिक नियंत्रण अलग रखें।
-                const leavePanel=document.getElementById('supLeaveRequestsPanel');if(leavePanel)leavePanel.classList.toggle('hidden',isGroup);
-                const timetablePanel=document.getElementById('supTimetablePanel');if(timetablePanel)timetablePanel.classList.toggle('hidden',isGroup);
-                document.querySelectorAll('#superintendentSection [data-superintendent-only="true"]').forEach(el=>el.classList.toggle('hidden',isGroup));
                 const todoLabel=document.getElementById('groupTodoNavLabel');
                 if(todoLabel)todoLabel.textContent=isGroup?'मेरी टू-डू सूची':'ग्रुप इंस्ट्रक्टर To-Do निगरानी';
                 const todoHeading=document.querySelector('#supViewGroupTasks h3');
@@ -4617,7 +4614,7 @@ window.__itiLoginClick = async function(ev) {
 
         // ==================== STUDENT DASHBOARD & NAV ====================
 
-        function renderStudentNotices(){const el=document.getElementById('studentNoticeList');if(!el)return;const notices=ensureSupData().notices.filter(n=>n.collegeId===currentCollegeId&&(n.trade==='ALL'||n.trade===currentTrade)).sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt)));el.innerHTML=notices.length?notices.map(n=>`<div style="padding:9px 0;border-bottom:1px solid var(--border-color)"><strong>${supEscape(n.title)}</strong><div>${supEscape(n.message)}</div><small>${supEscape(n.date||'')}</small>${n.attachment?`<div style="margin-top:7px"><a href="${n.attachment.dataUrl}" target="_blank" rel="noopener">${supEscape(n.attachment.type==='application/pdf'?'📄 PDF खोलें':'🖼️ फोटो देखें')}</a>${n.attachment.type&&n.attachment.type.startsWith('image/')?`<div><img src="${n.attachment.dataUrl}" alt="सूचना फोटो" style="max-width:100%;max-height:260px;object-fit:contain;margin-top:6px;border-radius:8px"></div>`:''}</div>`:''}</div>`).join(''):'अभी कोई सूचना उपलब्ध नहीं है।';}
+        function renderStudentNotices(){const el=document.getElementById('studentNoticeList');if(!el)return;const notices=ensureSupData().notices.filter(n=>n.collegeId===currentCollegeId&&(n.trade==='ALL'||n.trade===currentTrade)).sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt)));el.innerHTML=notices.length?notices.map(n=>`<div style="padding:9px 0;border-bottom:1px solid var(--border-color)"><strong>${supEscape(n.title)}</strong><div>${supEscape(n.message)}</div><small>${supEscape(n.date||'')}</small></div>`).join(''):'अभी कोई सूचना उपलब्ध नहीं है।';}
 
         function renderStudentDashboard() {
             if (!loggedInStudent || !currentCollegeId || !currentTrade) return;
@@ -5553,7 +5550,7 @@ window.__itiLoginClick = async function(ev) {
       <div class="glass-card sup-panel" id="supComparisonPanel"><h3>ट्रेड एवं अनुदेशक तुलनात्मक प्रदर्शन</h3>
       <p class="sup-help">तुलना उपलब्ध उपस्थिति, मूल्यांकन और जमा गतिविधि रिकॉर्ड पर आधारित है। यह प्रशासनिक संकेतक है, परीक्षा परिणाम का विकल्प नहीं।</p>
       <div class="table-shell"><table><thead><tr><th>ट्रेड</th><th>अनुदेशक</th><th>विद्यार्थी</th><th>उपस्थिति रिकॉर्ड</th><th>मूल्यांकन रिकॉर्ड</th><th>गतिविधि रिपोर्ट</th></tr></thead><tbody id="supTradeCompareBody"></tbody></table></div>
-      <h4 style="margin-top:16px">अनुदेशकवार तुलना</h4><div class="table-shell"><table><thead><tr><th>अनुदेशक</th><th>ट्रेड</th><th>विद्यार्थी</th><th>ट्रेड स्तर उपस्थिति*</th><th>ट्रेड मूल्यांकन*</th><th>अनुदेशक रिपोर्ट</th><th>स्वीकृत रिपोर्ट</th></tr></thead><tbody id="supInstructorCompareBody"></tbody></table></div>
+      <h4 style="margin-top:16px">अनुदेशकवार तुलना</h4><div class="table-shell"><table><thead><tr><th>अनुदेशक</th><th>ट्रेड</th><th>विद्यार्थी</th><th>उपस्थिति</th><th>मूल्यांकन</th><th>रिपोर्ट</th><th>स्वीकृत</th></tr></thead><tbody id="supInstructorCompareBody"></tbody></table></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="app-btn app-btn-excel" onclick="exportMonthlyCollegeReport('xlsx')">मासिक कॉलेज रिपोर्ट Excel</button><button class="app-btn app-btn-danger" onclick="exportMonthlyCollegeReport('pdf')">मासिक कॉलेज रिपोर्ट PDF</button></div>
       <label style="display:block;margin-top:10px">रिपोर्ट माह <input id="supReportMonth" type="month"></label></div>`);
     if(!$('supTimetablePanel')) $('supViewTasks').insertAdjacentHTML('beforeend',`<div class="glass-card sup-panel" id="supTimetablePanel"><h3>कक्षा समय-सारणी प्रकाशित करें</h3><div class="sup-form-grid"><div class="input-group"><label>ट्रेड</label><select id="supTtTrade"><option value="ALL">सभी ट्रेड</option></select></div><div class="input-group"><label>दिन</label><select id="supTtDay"><option>सोमवार</option><option>मंगलवार</option><option>बुधवार</option><option>गुरुवार</option><option>शुक्रवार</option><option>शनिवार</option></select></div><div class="input-group"><label>समय</label><input id="supTtTime" placeholder="10:00 - 11:00"></div><div class="input-group"><label>विषय / प्रैक्टिकल</label><input id="supTtSubject"></div><div class="input-group"><label>अनुदेशक</label><input id="supTtInstructor"></div></div><button class="app-btn app-btn-primary" onclick="publishCollegeTimetable()">समय-सारणी प्रकाशित करें</button></div>`);
@@ -5746,7 +5743,7 @@ window.__itiLoginClick = async function(ev) {
   window.submitStudentLeave=function(){if(!collegeGuard('student'))return;const from=$('studentLeaveFrom').value,to=$('studentLeaveTo').value,reason=$('studentLeaveReason').value.trim();if(!from||!to||to<from||!reason){alert('सही तारीखें और अवकाश का कारण भरें।');return;}sd().leaveRequests.push({id:'LV'+Date.now(),collegeId:currentCollegeId,trade:currentTrade,studentId:String(loggedInStudent.studentId),studentName:loggedInStudent.name,from,to,reason,status:'लंबित',createdAt:new Date().toISOString()});syncWithFirebase();renderCompletionModules();showToast('अवकाश आवेदन अधीक्षक को भेजा गया।');};
   window.publishCollegeTimetable=function(){if(!collegeGuard('superintendent'))return;const subject=$('supTtSubject').value.trim(),time=$('supTtTime').value.trim();if(!subject||!time){alert('समय और विषय भरें।');return;}sd().timetables.push({id:'TT'+Date.now(),collegeId:currentCollegeId,trade:$('supTtTrade').value,day:$('supTtDay').value,time,subject,instructor:$('supTtInstructor').value.trim(),createdAt:new Date().toISOString()});syncWithFirebase();['supTtTime','supTtSubject','supTtInstructor'].forEach(id=>$(id).value='');renderCompletionModules();showToast('समय-सारणी प्रकाशित हुई।');};
   window.reviewStudentLeave=function(id,status){if(!collegeGuard('superintendent'))return;const x=sd().leaveRequests.find(v=>v.id===id&&v.collegeId===currentCollegeId);if(!x)return;x.status=status;x.reviewedAt=new Date().toISOString();x.reviewedBy=loggedInSuperintendent?.name||'';syncWithFirebase();renderCompletionModules();};
-  window.exportMonthlyCollegeReport=function(format){if(!['superintendent','groupInstructor'].includes(currentRole)||!currentCollegeId)return;const cid=currentCollegeId,month=$('supReportMonth')?.value||new Date().toISOString().slice(0,7),d=sd();const rows=[['कॉलेज',getCollegeName(cid)],['माह',month],[],['ट्रेड','अनुदेशक','विद्यार्थी','उपस्थिति एंट्री','मूल्यांकन रिकॉर्ड','गतिविधि रिपोर्ट']];getTradesList().forEach(t=>rows.push([t,getSupCollegeInstructors().filter(i=>i.trade===t).length,getStudentList(cid,t).length,attendanceCount(cid,t,month).entries,getSupEvalCount(t),d.reports.filter(r=>r.collegeId===cid&&r.trade===t&&String(r.date||'').startsWith(month)).length]));if(format==='xlsx'&&window.XLSX){const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(rows),'Monthly Progress');XLSX.writeFile(wb,`ITI_${cid}_${month}_Monthly_Progress.xlsx`);return;}if(format==='pdf'){const w=window.open('','_blank');if(!w){alert('PDF प्रिंट के लिए पॉपअप अनुमति दें।');return;}w.document.write(`<html><meta charset="utf-8"><title>मासिक कॉलेज प्रगति</title><style>body{font-family:Arial,sans-serif;padding:20px}table{border-collapse:collapse;width:100%}td,th{border:1px solid #555;padding:8px;text-align:left}h2{text-align:center}</style><h2>${esc(getCollegeName(cid))} — मासिक प्रगति रिपोर्ट (${month})</h2><table>${rows.map((r,i)=>'<tr>'+r.map(v=>`<${i===3?'th':'td'}>${esc(v??'')}</${i===3?'th':'td'}>`).join('')+'</tr>').join('')}</table><script>window.onload=()=>window.print()<\/script></html>`);w.document.close();return;}const csv='\\uFEFF'+rows.map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\\r\\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download=`ITI_${cid}_${month}_Monthly_Progress.csv`;a.click();};
+  window.exportMonthlyCollegeReport=function(format){if(!collegeGuard('superintendent'))return;const cid=currentCollegeId,month=$('supReportMonth')?.value||new Date().toISOString().slice(0,7),d=sd();const rows=[['कॉलेज',getCollegeName(cid)],['माह',month],[],['ट्रेड','अनुदेशक','विद्यार्थी','उपस्थिति एंट्री','मूल्यांकन रिकॉर्ड','गतिविधि रिपोर्ट']];getTradesList().forEach(t=>rows.push([t,getSupCollegeInstructors().filter(i=>i.trade===t).length,getStudentList(cid,t).length,attendanceCount(cid,t,month).entries,getSupEvalCount(t),d.reports.filter(r=>r.collegeId===cid&&r.trade===t&&String(r.date||'').startsWith(month)).length]));if(format==='xlsx'&&window.XLSX){const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(rows),'Monthly Progress');XLSX.writeFile(wb,`ITI_${cid}_${month}_Monthly_Progress.xlsx`);return;}if(format==='pdf'){const w=window.open('','_blank');if(!w){alert('PDF प्रिंट के लिए पॉपअप अनुमति दें।');return;}w.document.write(`<html><meta charset="utf-8"><title>मासिक कॉलेज प्रगति</title><style>body{font-family:Arial,sans-serif;padding:20px}table{border-collapse:collapse;width:100%}td,th{border:1px solid #555;padding:8px;text-align:left}h2{text-align:center}</style><h2>${esc(getCollegeName(cid))} — मासिक प्रगति रिपोर्ट (${month})</h2><table>${rows.map((r,i)=>'<tr>'+r.map(v=>`<${i===3?'th':'td'}>${esc(v??'')}</${i===3?'th':'td'}>`).join('')+'</tr>').join('')}</table><script>window.onload=()=>window.print()<\/script></html>`);w.document.close();return;}const csv='\\uFEFF'+rows.map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\\r\\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download=`ITI_${cid}_${month}_Monthly_Progress.csv`;a.click();};
   window.downloadStudentMonthlyReport=function(){if(!collegeGuard('student'))return;const m=$('studentMonthSelector')?.value||new Date().toISOString().slice(0,7),content=$('studentSection')?.cloneNode(true);if(!content)return;content.querySelectorAll('button,input,select,textarea').forEach(x=>x.remove());const w=window.open('','_blank');if(!w){alert('प्रिंट के लिए पॉपअप अनुमति दें।');return;}w.document.write(`<html><meta charset="utf-8"><title>विद्यार्थी मासिक रिपोर्ट ${m}</title><style>body{font-family:Arial,sans-serif;padding:18px;color:#111}table{border-collapse:collapse;width:100%}td,th{border:1px solid #777;padding:5px;font-size:12px}.hidden{display:none!important}.student-vertical-nav-column{display:none!important}</style><h2>${esc(getCollegeName(currentCollegeId))} — मासिक विद्यार्थी प्रगति रिपोर्ट (${m})</h2>${content.innerHTML}</html>`);w.document.close();setTimeout(()=>w.print(),500);};
   const oldRenderSup=window.renderSuperintendentDashboard;window.renderSuperintendentDashboard=function(){oldRenderSup.apply(this,arguments);renderCompletionModules();};
   const oldRenderStudent=window.renderStudentDashboard;window.renderStudentDashboard=function(){oldRenderStudent.apply(this,arguments);renderCompletionModules();};
