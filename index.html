@@ -3165,11 +3165,19 @@ window.__itiLoginClick = async function(ev) {
                 const status = account.active
                     ? '<span style="color:#15803d;font-weight:700;">सक्रिय</span>'
                     : '<span style="color:#b91c1c;font-weight:700;">बंद</span>';
-                const action = account.type === 'अनुदेशक'
-                    ? `<i class="fa-solid fa-pen-to-square action-icon action-edit" title="एडिट करें" onclick="openEditInstructorModal(${account.instructorIndex})"></i>
+                const accountIndex = Number(account.key.split('_').pop());
+                let action = '<span style="color:#64748b;">—</span>';
+                if (account.type === 'अनुदेशक') {
+                    action = `<i class="fa-solid fa-pen-to-square action-icon action-edit" title="एडिट करें" onclick="openEditInstructorModal(${account.instructorIndex})"></i>
                        <i class="fa-solid fa-key action-icon action-key" title="पासवर्ड बदलें" onclick="openResetPasswordModal(${account.instructorIndex})"></i>
-                       <i class="fa-solid fa-trash action-icon action-del" title="हटाएं" onclick="removeInstructor(${account.instructorIndex})"></i>`
-                    : '<span style="color:#64748b;">—</span>';
+                       <i class="fa-solid fa-trash action-icon action-del" title="हटाएं" onclick="removeInstructor(${account.instructorIndex});renderAdminView();"></i>`;
+                } else if (account.type === 'अधीक्षक') {
+                    action = `<button class="app-btn app-btn-secondary" style="padding:4px 7px;margin:2px;" onclick="adminEditSuperintendent(${accountIndex})">एडिट</button>
+                       <button class="app-btn app-btn-danger" style="padding:4px 7px;margin:2px;" onclick="adminDeleteSuperintendent(${accountIndex})">हटाएं</button>`;
+                } else if (account.type === 'ग्रुप इंस्ट्रक्टर') {
+                    action = `<button class="app-btn app-btn-secondary" style="padding:4px 7px;margin:2px;" onclick="adminEditGroupInstructor(${accountIndex})">एडिट</button>
+                       <button class="app-btn app-btn-danger" style="padding:4px 7px;margin:2px;" onclick="adminDeleteGroupInstructor(${accountIndex})">हटाएं</button>`;
+                }
 
                 return `<tr>
                     <td><strong>${idx + 1}</strong></td>
@@ -3185,6 +3193,24 @@ window.__itiLoginClick = async function(ev) {
                     <td>${status}<div style="margin-top:4px;">${action}</div></td>
                 </tr>`;
             }).join('');
+        }
+
+        // सुपर एडमिन सूची से अधीक्षक / ग्रुप इंस्ट्रक्टर अकाउंट एडिट या डिलीट करने के शॉर्टकट।
+        function adminEditSuperintendent(index) {
+            openSuperintendentManager();
+            editSuperintendentAccount(index);
+        }
+        function adminDeleteSuperintendent(index) {
+            deleteSuperintendentAccount(index);
+            renderAdminView();
+        }
+        function adminEditGroupInstructor(index) {
+            openGroupInstructorManager();
+            editGroupInstructorAccount(index);
+        }
+        function adminDeleteGroupInstructor(index) {
+            deleteGroupInstructorAccount(index);
+            renderAdminView();
         }
 
         function toggleSinglePassword(key) {
