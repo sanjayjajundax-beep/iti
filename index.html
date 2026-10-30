@@ -879,12 +879,12 @@ window.__itiLoginClick = async function(ev) {
 <tr>
 <th>क्र.सं.</th>
 <th>कॉलेज (संस्थान)</th>
-<th>ट्रेड का नाम</th>
-<th>प्रकार (Category)</th>
-<th>अनुदेशक का नाम</th>
+<th>अकाउंट का प्रकार</th>
+<th>ट्रेड / विवरण</th>
+<th>नाम</th>
 <th>लॉगिन आईडी</th>
 <th>पासवर्ड (सुरक्षित)</th>
-<th>कार्रवाई (Action)</th>
+<th>स्थिति / कार्रवाई</th>
 </tr>
 </thead>
 <tbody id="adminInstructorTableBody"></tbody>
@@ -3092,56 +3092,104 @@ window.__itiLoginClick = async function(ev) {
             const tbody = document.getElementById('adminInstructorTableBody');
             if (!tbody) return;
             tbody.innerHTML = '';
-            
+
             const selectedCollegeFilter = document.getElementById('adminCollegeFilterSelect')?.value || 'ALL';
-            let instructors = getInstructorsList();
+            const accountRows = [];
+            const belongsToSelectedCollege = cid =>
+                selectedCollegeFilter === 'ALL' || String(cid || 'COL01') === selectedCollegeFilter;
 
-            if (selectedCollegeFilter !== 'ALL') {
-                instructors = instructors.filter(i => (i.collegeId || "COL01") === selectedCollegeFilter);
-            }
+            // अधीक्षक अकाउंट
+            ensureSuperintendentStore().forEach((a, index) => {
+                if (a && belongsToSelectedCollege(a.collegeId)) {
+                    accountRows.push({
+                        type: 'अधीक्षक', detail: 'कॉलेज प्रशासन', name: a.name,
+                        id: a.id, pass: a.pass, active: a.active !== false,
+                        collegeId: a.collegeId, key: `sup_${index}`
+                    });
+                }
+            });
 
-            if (instructors.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" style="padding: 20px; color: #64748b;">कोई अनुदेशक पंजीकृत नहीं है।</td></tr>`;
+            // ग्रुप इंस्ट्रक्टर अकाउंट
+            ensureGroupInstructorStore().forEach((a, index) => {
+                if (a && belongsToSelectedCollege(a.collegeId)) {
+                    accountRows.push({
+                        type: 'ग्रुप इंस्ट्रक्टर', detail: 'कॉलेज संचालन', name: a.name,
+                        id: a.id, pass: a.pass, active: a.active !== false,
+                        collegeId: a.collegeId, key: `group_${index}`
+                    });
+                }
+            });
+
+            // ट्रेडवार अनुदेशक अकाउंट — मूल इंडेक्स सुरक्षित रखें ताकि एडिट/डिलीट सही रिकॉर्ड पर हो।
+            getInstructorsList().forEach((a, index) => {
+                if (a && belongsToSelectedCollege(a.collegeId)) {
+                    accountRows.push({
+                        type: 'अनुदेशक', detail: a.trade || '-',
+                        name: a.name, id: a.id, pass: a.pass,
+                        active: a.active !== false, collegeId: a.collegeId || 'COL01',
+                        key: `inst_${index}`, instructorIndex: index
+                    });
+                }
+            });
+
+            // सभी ट्रेड के विद्यार्थी अकाउंट
+            (getCollegesList() || []).forEach(college => {
+                if (!belongsToSelectedCollege(college.id)) return;
+                getTradesList().forEach(trade => {
+                    getStudentList(college.id, trade).forEach((student, index) => {
+                        if (!student) return;
+                        accountRows.push({
+                            type: 'विद्यार्थी', detail: trade,
+                            name: student.name, id: student.studentId || student.id,
+                            pass: student.password ?? student.pass,
+                            active: student.active !== false,
+                            collegeId: college.id,
+                            key: `student_${college.id}_${trade}_${index}`
+                        });
+                    });
+                });
+            });
+
+            if (accountRows.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" style="padding:20px;color:#64748b;">इस कॉलेज में कोई अकाउंट पंजीकृत नहीं है।</td></tr>`;
                 return;
             }
 
-            instructors.forEach((inst, idx) => {
-                const isEngg = isEnggTrade(inst.trade);
-                const typeText = isEngg 
-                    ? '<span class="badge-type" style="background:#e0f2fe; color:#0369a1; border:none;">इंजीनियरिंग</span>' 
-                    : '<span class="badge-type" style="background:#fef3c7; color:#92400e; border:none;">नॉन-इंजीनियरिंग</span>';
-                
-                const isVisible = isGlobalPasswordVisible || !!showPasswordsState[idx];
-                const displayPass = isVisible ? `<code>${inst.pass}</code>` : `<span class="masked-pass">••••••••</span>`;
+            tbody.innerHTML = accountRows.map((account, idx) => {
+                const isVisible = isGlobalPasswordVisible || !!showPasswordsState[account.key];
+                const rawPass = account.pass == null || account.pass === '' ? 'उपलब्ध नहीं' : String(account.pass);
+                const displayPass = isVisible
+                    ? `<code>${supEscape(rawPass)}</code>`
+                    : `<span class="masked-pass">••••••••</span>`;
                 const eyeIcon = isVisible ? 'fa-eye-slash' : 'fa-eye';
-                const colName = getCollegeName(inst.collegeId || "COL01");
+                const status = account.active
+                    ? '<span style="color:#15803d;font-weight:700;">सक्रिय</span>'
+                    : '<span style="color:#b91c1c;font-weight:700;">बंद</span>';
+                const action = account.type === 'अनुदेशक'
+                    ? `<i class="fa-solid fa-pen-to-square action-icon action-edit" title="एडिट करें" onclick="openEditInstructorModal(${account.instructorIndex})"></i>
+                       <i class="fa-solid fa-key action-icon action-key" title="पासवर्ड बदलें" onclick="openResetPasswordModal(${account.instructorIndex})"></i>
+                       <i class="fa-solid fa-trash action-icon action-del" title="हटाएं" onclick="removeInstructor(${account.instructorIndex})"></i>`
+                    : '<span style="color:#64748b;">—</span>';
 
-                tbody.innerHTML += `
-                    <tr>
-                        <td><strong>${idx + 1}</strong></td>
-                        <td style="font-weight:700; color:var(--primary); text-align:left;">${colName}</td>
-                        <td><strong>${inst.trade}</strong></td>
-                        <td>${typeText}</td>
-                        <td style="font-weight:600;">${inst.name}</td>
-                        <td><code>${inst.id}</code></td>
-                        <td>
-                            <div style="display:flex; align-items:center; justify-content:center; gap:8px;">
-                                ${displayPass}
-                                <i class="fa-solid ${eyeIcon}" style="cursor:pointer; color:#64748b;" onclick="toggleSinglePassword(${idx})"></i>
-                            </div>
-                        </td>
-                        <td>
-                            <i class="fa-solid fa-pen-to-square action-icon action-edit" title="एडिट करें" onclick="openEditInstructorModal(${idx})"></i>
-                            <i class="fa-solid fa-key action-icon action-key" title="पासवर्ड बदलें" onclick="openResetPasswordModal(${idx})"></i>
-                            <i class="fa-solid fa-trash action-icon action-del" title="हटाएं" onclick="removeInstructor(${idx})"></i>
-                        </td>
-                    </tr>
-                `;
-            });
+                return `<tr>
+                    <td><strong>${idx + 1}</strong></td>
+                    <td style="font-weight:700;color:var(--primary);text-align:left;">${supEscape(getCollegeName(account.collegeId))}</td>
+                    <td><span class="badge-type">${supEscape(account.type)}</span></td>
+                    <td><strong>${supEscape(account.detail || '-')}</strong></td>
+                    <td style="font-weight:600;">${supEscape(account.name || '-')}</td>
+                    <td><code>${supEscape(account.id || '-')}</code></td>
+                    <td><div style="display:flex;align-items:center;justify-content:center;gap:8px;">
+                        ${displayPass}
+                        <i class="fa-solid ${eyeIcon}" style="cursor:pointer;color:#64748b;" onclick="toggleSinglePassword('${account.key}')"></i>
+                    </div></td>
+                    <td>${status}<div style="margin-top:4px;">${action}</div></td>
+                </tr>`;
+            }).join('');
         }
 
-        function toggleSinglePassword(idx) {
-            showPasswordsState[idx] = !showPasswordsState[idx];
+        function toggleSinglePassword(key) {
+            const stateKey = String(key);
+            showPasswordsState[stateKey] = !showPasswordsState[stateKey];
             renderAdminView();
         }
 
