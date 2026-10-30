@@ -703,6 +703,146 @@
         .instructor-role-layout .role-side-btn{font-size:.86rem}
         .student-side-nav{display:flex;flex-direction:column;gap:7px;max-width:230px;float:left;margin:0 16px 16px 0}
         @media(max-width:760px){.role-sidebar-layout{grid-template-columns:108px minmax(0,1fr);gap:7px}.role-sidebar{top:75px;padding:6px;gap:5px;max-height:calc(100vh - 88px)}.role-side-heading{font-size:.72rem;padding:7px 3px 9px;line-height:1.25}.role-side-btn{font-size:.68rem!important;padding:9px 5px!important;min-height:38px;gap:5px!important;line-height:1.25}.role-side-btn i{width:14px;flex:0 0 14px}.role-dashboard-heading{padding:9px;font-size:.88rem}.student-side-nav{max-width:100%;float:none;margin:0 0 12px 0}}
+
+        /* ===== Responsive top-row navigation for ALL dashboards ===== */
+        .role-sidebar-layout,
+        .sup-layout {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 10px !important;
+            align-items: stretch !important;
+        }
+        .role-sidebar,
+        .sup-sidebar {
+            position: relative !important;
+            top: auto !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            max-height: none !important;
+            overflow-x: auto !important;
+            overflow-y: hidden !important;
+            display: flex !important;
+            flex-direction: row !important;
+            flex-wrap: nowrap !important;
+            align-items: center !important;
+            gap: 7px !important;
+            padding: 9px !important;
+            margin: 0 0 10px 0 !important;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+        }
+        .role-side-heading,
+        .sup-side-heading {
+            flex: 0 0 auto !important;
+            white-space: nowrap !important;
+            border: 0 !important;
+            border-right: 1px solid #e2e8f0 !important;
+            border-bottom: 0 !important;
+            margin: 0 3px 0 0 !important;
+            padding: 7px 10px 7px 5px !important;
+            font-size: .82rem !important;
+        }
+        .role-side-btn,
+        .sup-nav-btn {
+            flex: 0 0 auto !important;
+            width: auto !important;
+            max-width: 220px;
+            min-height: 40px !important;
+            white-space: nowrap !important;
+            text-align: center !important;
+            justify-content: center !important;
+            align-items: center !important;
+            padding: 8px 11px !important;
+            font-size: .78rem !important;
+            line-height: 1.25 !important;
+            gap: 7px !important;
+        }
+        .role-side-btn i,
+        .sup-nav-btn i {
+            width: auto !important;
+            flex: 0 0 auto !important;
+        }
+        .sup-sidebar-foot {
+            display: none !important;
+        }
+        .role-main,
+        .sup-main-content {
+            width: 100% !important;
+            min-width: 0 !important;
+        }
+        .student-vertical-nav-column,
+        .student-side-nav {
+            display: flex !important;
+            flex-direction: row !important;
+            flex-wrap: nowrap !important;
+            float: none !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            overflow-x: auto !important;
+            overflow-y: hidden !important;
+            gap: 7px !important;
+            margin: 0 0 12px 0 !important;
+            padding: 8px !important;
+            background: #fff;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+        }
+        .stud-nav-btn {
+            flex: 0 0 auto !important;
+            width: auto !important;
+            min-width: 155px;
+            max-width: 220px;
+            min-height: 42px !important;
+            padding: 9px 11px !important;
+            font-size: .78rem !important;
+            justify-content: center !important;
+            gap: 8px !important;
+        }
+        .instructor-tabs {
+            flex-wrap: nowrap !important;
+            overflow-x: auto !important;
+            -webkit-overflow-scrolling: touch;
+        }
+        @media (max-width: 760px) {
+            .role-sidebar,
+            .sup-sidebar {
+                position: relative !important;
+                top: auto !important;
+                max-height: none !important;
+                padding: 7px !important;
+                gap: 6px !important;
+            }
+            .role-side-btn,
+            .sup-nav-btn {
+                min-height: 38px !important;
+                padding: 7px 9px !important;
+                font-size: .72rem !important;
+            }
+            .role-side-heading,
+            .sup-side-heading {
+                font-size: .72rem !important;
+                padding: 6px 8px 6px 3px !important;
+            }
+            .role-dashboard-heading {
+                margin-top: 0 !important;
+            }
+            .sup-topbar {
+                flex-direction: column !important;
+                align-items: stretch !important;
+            }
+            .sup-topbar .controls-left,
+            .sup-topbar .controls-right {
+                width: 100% !important;
+                flex-wrap: wrap !important;
+            }
+            .stud-nav-btn {
+                min-width: 145px;
+                font-size: .72rem !important;
+            }
+        }
+
 </style>
 
 <script>
