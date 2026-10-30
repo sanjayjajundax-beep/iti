@@ -5746,7 +5746,19 @@ window.__itiLoginClick = async function(ev) {
       <h4 style="margin-top:16px">अनुदेशकवार तुलना</h4><div class="table-shell"><table><thead><tr><th>अनुदेशक</th><th>ट्रेड</th><th>विद्यार्थी</th><th>उपस्थिति</th><th>मूल्यांकन</th><th>रिपोर्ट</th><th>स्वीकृत</th></tr></thead><tbody id="supInstructorCompareBody"></tbody></table></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="app-btn app-btn-excel" onclick="exportMonthlyCollegeReport('xlsx')">मासिक कॉलेज रिपोर्ट Excel</button><button class="app-btn app-btn-danger" onclick="exportMonthlyCollegeReport('pdf')">मासिक कॉलेज रिपोर्ट PDF</button></div>
       <label style="display:block;margin-top:10px">रिपोर्ट माह <input id="supReportMonth" type="month"></label></div>`);
-    if(!$('supTimetablePanel')) $('supViewTasks').insertAdjacentHTML('beforeend',`<div class="glass-card sup-panel" id="supTimetablePanel"><h3>कक्षा समय-सारणी प्रकाशित करें</h3><div class="sup-form-grid"><div class="input-group"><label>ट्रेड</label><select id="supTtTrade"><option value="ALL">सभी ट्रेड</option></select></div><div class="input-group"><label>दिन</label><select id="supTtDay"><option>सोमवार</option><option>मंगलवार</option><option>बुधवार</option><option>गुरुवार</option><option>शुक्रवार</option><option>शनिवार</option></select></div><div class="input-group"><label>समय</label><input id="supTtTime" placeholder="10:00 - 11:00"></div><div class="input-group"><label>विषय / प्रैक्टिकल</label><input id="supTtSubject"></div><div class="input-group"><label>अनुदेशक</label><input id="supTtInstructor"></div></div><button class="app-btn app-btn-primary" onclick="publishCollegeTimetable()">समय-सारणी प्रकाशित करें</button></div>`);
+    if(!$('supTimetablePanel')) $('supViewTasks').insertAdjacentHTML('beforeend',`<div class="glass-card sup-panel" id="supTimetablePanel">
+      <h3>साप्ताहिक कक्षा समय-सारणी तैयार एवं प्रकाशित करें</h3>
+      <p class="sup-help">पहले ट्रेड और सप्ताह चुनें। फिर प्रत्येक दिन के सभी पीरियड का समय, विषय और अनुदेशक भरें। पूरी समय-सारणी तैयार होने के बाद एक बार प्रकाशित करें।</p>
+      <div class="sup-form-grid" style="margin-top:12px">
+        <div class="input-group"><label>ट्रेड</label><select id="supTtTrade"><option value="">ट्रेड चुनें</option></select></div>
+        <div class="input-group"><label>सप्ताह प्रारंभ तारीख</label><input id="supTtWeekStart" type="date" onchange="renderCollegeTimetableDraft()"></div>
+        <div class="input-group"><label>सप्ताह में दिन</label><select id="supTtDayCount" onchange="renderCollegeTimetableDraft()"><option value="6" selected>6 दिन (सोमवार–शनिवार)</option><option value="7">7 दिन (सोमवार–रविवार)</option></select></div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0"><button type="button" class="app-btn app-btn-excel" onclick="addCollegeTimetableRow()">+ अतिरिक्त पीरियड जोड़ें</button><button type="button" class="app-btn app-btn-secondary" onclick="renderCollegeTimetableDraft()">दिनवार फॉर्म तैयार करें</button></div>
+      <div class="table-shell"><table style="min-width:760px"><thead><tr><th>दिन / तारीख</th><th>समय</th><th>विषय / प्रैक्टिकल</th><th>अनुदेशक</th><th>हटाएँ</th></tr></thead><tbody id="supTtDraftRows"><tr><td colspan="5">सप्ताह प्रारंभ तारीख चुनें।</td></tr></tbody></table></div>
+      <button type="button" class="app-btn app-btn-primary" style="margin-top:12px" onclick="publishCollegeTimetable()">पूरी साप्ताहिक समय-सारणी प्रकाशित करें</button>
+      <div id="supTtPublishedInfo" class="sup-help" style="margin-top:8px"></div>
+    </div>`);
     if(!$('supLeaveRequestsPanel')) $('supViewTasks').insertAdjacentHTML('beforeend',`<div class="glass-card sup-panel" id="supLeaveRequestsPanel"><h3>विद्यार्थी अवकाश आवेदन</h3><div class="table-shell"><table><thead><tr><th>विद्यार्थी</th><th>ट्रेड</th><th>अवधि</th><th>कारण</th><th>स्थिति</th><th>कार्रवाई</th></tr></thead><tbody id="supLeaveRequestsBody"></tbody></table></div></div>`);
     if(!$('instCompletionPanel')) $('instTabWork').insertAdjacentHTML('beforeend',`
       <div class="glass-card" id="instCompletionPanel" style="padding:18px;margin-top:14px">
@@ -5770,6 +5782,12 @@ window.__itiLoginClick = async function(ev) {
       <button class="app-btn app-btn-primary" style="margin-top:12px" onclick="saveInstructorWeeklyProgram()"><i class="fa-solid fa-cloud-arrow-up"></i> साप्ताहिक रिकॉर्ड सबमिट करें</button>
       <div id="instCompletionHistory" style="margin-top:14px"></div>
       <h4 style="margin-top:18px">कमजोर विद्यार्थी एवं सुधार योजना</h4><div class="sup-form-grid"><div class="input-group"><label>विद्यार्थी</label><select id="instWeakStudent"></select></div><div class="input-group"><label>कमजोरी / विषय</label><input id="instWeakArea" placeholder="किस विषय में सहायता चाहिए"></div><div class="input-group"><label>सुधार योजना</label><textarea id="instWeakPlan" rows="2" placeholder="अतिरिक्त अभ्यास / मार्गदर्शन"></textarea></div><div class="input-group"><label>अगली समीक्षा तारीख</label><input id="instWeakReview" type="date"></div></div><button class="app-btn app-btn-warning" onclick="saveWeakStudentPlan()">सुधार रिकॉर्ड सेव करें</button>
+      </div>`);
+    if(!$('instPublishedTimetablePanel')) $('instTabWork').insertAdjacentHTML('beforeend',`
+      <div class="glass-card" id="instPublishedTimetablePanel" style="padding:18px;margin-top:14px">
+        <h3><i class="fa-solid fa-calendar-days"></i> प्रकाशित कक्षा समय-सारणी</h3>
+        <p class="sup-help">आपके कॉलेज और ट्रेड के लिए अधीक्षक / ग्रुप इंस्ट्रक्टर द्वारा प्रकाशित साप्ताहिक समय-सारणी यहाँ दिखाई देगी।</p>
+        <div id="instPublishedTimetable">समय-सारणी अभी प्रकाशित नहीं है।</div>
       </div>`);
     if(!$('studentExtraPanel')) $('studentSection').insertAdjacentHTML('beforeend',`
       <div class="glass-card" id="studentExtraPanel" style="padding:16px;margin:14px 0"><h3>विद्यार्थी सेवाएँ</h3><h4>अवकाश आवेदन</h4><div class="sup-form-grid"><div class="input-group"><label>प्रारंभ तारीख</label><input id="studentLeaveFrom" type="date"></div><div class="input-group"><label>अंतिम तारीख</label><input id="studentLeaveTo" type="date"></div><div class="input-group"><label>अवकाश का कारण</label><textarea id="studentLeaveReason" rows="2"></textarea></div></div><button class="app-btn app-btn-primary" onclick="submitStudentLeave()">अवकाश आवेदन भेजें</button><div id="studentLeaveHistory" style="margin-top:10px"></div>
@@ -5822,7 +5840,7 @@ window.__itiLoginClick = async function(ev) {
   window.renderCompletionModules=function(){
     if(['superintendent','groupInstructor'].includes(currentRole)&&currentCollegeId){
       const d=sd(),cid=currentCollegeId,month=$('supReportMonth')?.value||new Date().toISOString().slice(0,7);
-      const tt=$('supTtTrade');if(tt&&tt.options.length<=1)tt.innerHTML='<option value="ALL">सभी ट्रेड</option>'+getTradesList().map(t=>`<option value="${esc(t)}">${esc(t)}</option>`).join('');
+      const tt=$('supTtTrade');if(tt&&tt.options.length<=1)tt.innerHTML='<option value="">ट्रेड चुनें</option>'+getTradesList().map(t=>`<option value="${esc(t)}">${esc(t)}</option>`).join('');
       const trades=getTradesList(),ins=getSupCollegeInstructors();
       if($('supTradeCompareBody'))$('supTradeCompareBody').innerHTML=trades.map(t=>{const st=getStudentList(cid,t),ac=attendanceCount(cid,t,month),rs=d.reports.filter(r=>r.collegeId===cid&&r.trade===t&&String(r.date||'').startsWith(month));return `<tr><td>${esc(t)}</td><td>${ins.filter(i=>i.trade===t).length}</td><td>${st.length}</td><td>${ac.entries}</td><td>${getSupEvalCount(t)}</td><td>${rs.length}</td></tr>`}).join('');
       if($('supInstructorCompareBody'))$('supInstructorCompareBody').innerHTML=ins.map(i=>{const ac=attendanceCount(cid,i.trade,month),rs=d.reports.filter(r=>r.collegeId===cid&&r.instructorId===i.id&&String(r.date||'').startsWith(month));return `<tr><td>${esc(i.name)}</td><td>${esc(i.trade)}</td><td>${getStudentList(cid,i.trade).length}</td><td>${ac.entries}</td><td>${getSupEvalCount(i.trade)}</td><td>${rs.length}</td><td>${rs.filter(r=>r.status==='स्वीकृत').length}</td></tr>`}).join('');
@@ -5846,12 +5864,15 @@ window.__itiLoginClick = async function(ev) {
       const d=sd();if($('instWeeklyTrade'))$('instWeeklyTrade').value=currentTrade||'';if($('instWeekFrom')?.value&&$('instWeekTo')?.value)renderWeeklyProgramDays();const sel=$('instWeakStudent');if(sel){sel.innerHTML=getStudentList(currentCollegeId,currentTrade).map(st=>`<option value="${esc(st.studentId)}">${esc(st.name)} (${esc(st.roll||st.studentId)})</option>`).join('')}
       const records=[...d.syllabus.filter(x=>x.collegeId===currentCollegeId&&x.instructorId===loggedInInstructor.id),...d.teachingRecords.filter(x=>x.collegeId===currentCollegeId&&x.instructorId===loggedInInstructor.id),...d.weeklyPrograms.filter(x=>x.collegeId===currentCollegeId&&x.instructorId===loggedInInstructor.id),...d.weakStudents.filter(x=>x.collegeId===currentCollegeId&&x.instructorId===loggedInInstructor.id)];
       if($('instCompletionHistory'))$('instCompletionHistory').innerHTML=records.slice(-20).reverse().map(x=>`<div style="padding:9px;border-bottom:1px solid #ddd"><b>${esc(x.kind||x.type||'रिकॉर्ड')}</b> · ${esc(x.weekNo?'सप्ताह '+x.weekNo+' ('+x.from+' से '+x.to+')':(x.topic||x.subject||x.studentName||''))} · ${esc(x.note||x.plan||x.percent||'')} ${x.days?`<details style="margin-top:6px"><summary>दिनवार सिलेबस देखें</summary>${x.days.map(d=>`<p><b>${esc(d.dayName)} (${esc(d.date)})</b><br>थ्योरी: ${esc(d.theory||'-')}<br>प्रैक्टिकल: ${esc(d.practical||'-')}${d.off?' · अवकाश':''}</p>`).join('')}</details>`:''}</div>`).join('')||'अभी कोई अतिरिक्त रिकॉर्ड नहीं।';
+      const published=d.timetables.filter(x=>x&&x.published!==false&&x.collegeId===currentCollegeId&&(x.trade===currentTrade||x.trade==='ALL')).slice().sort((a,b)=>String(a.date||'').localeCompare(String(b.date||''))||String(a.time||'').localeCompare(String(b.time||'')));
+      const groups={};published.forEach(x=>{const key=(x.weekStart||x.date||'')+'|'+(x.trade||'');(groups[key]||(groups[key]=[])).push(x);});
+      if($('instPublishedTimetable'))$('instPublishedTimetable').innerHTML=Object.keys(groups).sort().map(key=>{const list=groups[key],first=list[0];return `<div style="margin:10px 0 16px;padding:10px;border:1px solid #d5dbe5;border-radius:8px"><b>${esc(first.trade||currentTrade)} — ${esc(first.weekStart||first.date||'')}</b>${first.weekEnd?` से ${esc(first.weekEnd)}`:''}<div class="table-shell" style="margin-top:8px"><table style="min-width:600px"><thead><tr><th>दिन / तारीख</th><th>समय</th><th>विषय / प्रैक्टिकल</th><th>अनुदेशक</th></tr></thead><tbody>${list.map(x=>`<tr><td>${esc(x.day||'')}<br>${esc(x.date||'')}</td><td>${esc(x.time||'')}</td><td>${esc(x.subject||'')}</td><td>${esc(x.instructor||'')}</td></tr>`).join('')}</tbody></table></div></div>`;}).join('')||'आपके ट्रेड की समय-सारणी अभी प्रकाशित नहीं है।';
     }
     if(currentRole==='student'&&loggedInStudent){
       const d=sd();const req=d.leaveRequests.filter(x=>x.collegeId===currentCollegeId&&x.studentId===String(loggedInStudent.studentId));
       if($('studentLeaveHistory'))$('studentLeaveHistory').innerHTML=req.map(x=>`<p>${esc(x.from)} से ${esc(x.to)} — ${esc(x.status)}</p>`).join('')||'अभी कोई आवेदन नहीं।';
-      const tt=d.timetables.filter(x=>x.collegeId===currentCollegeId&&(x.trade==='ALL'||x.trade===currentTrade));
-      if($('studentTimetable'))$('studentTimetable').innerHTML=tt.map(x=>`<p><b>${esc(x.day)} ${esc(x.time)}</b> · ${esc(x.subject)} · ${esc(x.instructor||'')}</p>`).join('')||'समय-सारणी अभी प्रकाशित नहीं है।';
+      const tt=d.timetables.filter(x=>x.collegeId===currentCollegeId&&(x.trade==='ALL'||x.trade===currentTrade)).slice().sort((a,b)=>String(a.date||'').localeCompare(String(b.date||''))||String(a.time||'').localeCompare(String(b.time||'')));
+      if($('studentTimetable'))$('studentTimetable').innerHTML=tt.map(x=>`<p><b>${esc(x.day||'')} ${x.date?`(${esc(x.date)})`:''} ${esc(x.time||'')}</b> · ${esc(x.subject||'')} · ${esc(x.instructor||'')}</p>`).join('')||'समय-सारणी अभी प्रकाशित नहीं है।';
     }
   };
   const WEEKDAY_HI=['रविवार','सोमवार','मंगलवार','बुधवार','गुरुवार','शुक्रवार','शनिवार'];
@@ -5934,7 +5955,40 @@ window.__itiLoginClick = async function(ev) {
   window.saveInstructorTeachingRecord=function(){if(!collegeGuard('instructor'))return;const subject=$('instTeachSubject').value.trim();if(!subject){alert('विषय / प्रयोग लिखें।');return;}sd().teachingRecords.push({id:'TR'+Date.now(),kind:'शिक्षण रिकॉर्ड',type:$('instTeachType').value,subject,date:$('instTeachDate').value||new Date().toISOString().slice(0,10),students:Number($('instTeachCount').value)||0,collegeId:currentCollegeId,instructorId:loggedInInstructor.id,instructorName:loggedInInstructor.name,trade:currentTrade});syncWithFirebase();renderCompletionModules();showToast('थ्योरी / प्रैक्टिकल रिकॉर्ड सेव हुआ।');};
   window.saveWeakStudentPlan=function(){if(!collegeGuard('instructor'))return;const id=$('instWeakStudent').value,st=getStudentList(currentCollegeId,currentTrade).find(x=>String(x.studentId)===id),area=$('instWeakArea').value.trim(),plan=$('instWeakPlan').value.trim();if(!st||!area||!plan){alert('विद्यार्थी, कमजोरी और सुधार योजना भरें।');return;}sd().weakStudents.push({id:'WK'+Date.now(),kind:'कमजोर विद्यार्थी सुधार',collegeId:currentCollegeId,instructorId:loggedInInstructor.id,studentId:id,studentName:st.name,trade:currentTrade,area,plan,review:$('instWeakReview').value,status:'सुधार जारी'});syncWithFirebase();renderCompletionModules();showToast('विद्यार्थी सुधार रिकॉर्ड सेव हुआ।');};
   window.submitStudentLeave=function(){if(!collegeGuard('student'))return;const from=$('studentLeaveFrom').value,to=$('studentLeaveTo').value,reason=$('studentLeaveReason').value.trim();if(!from||!to||to<from||!reason){alert('सही तारीखें और अवकाश का कारण भरें।');return;}sd().leaveRequests.push({id:'LV'+Date.now(),collegeId:currentCollegeId,trade:currentTrade,studentId:String(loggedInStudent.studentId),studentName:loggedInStudent.name,from,to,reason,status:'लंबित',createdAt:new Date().toISOString()});syncWithFirebase();renderCompletionModules();showToast('अवकाश आवेदन अधीक्षक को भेजा गया।');};
-  window.publishCollegeTimetable=function(){if(!collegeGuard('superintendent'))return;const subject=$('supTtSubject').value.trim(),time=$('supTtTime').value.trim();if(!subject||!time){alert('समय और विषय भरें।');return;}sd().timetables.push({id:'TT'+Date.now(),collegeId:currentCollegeId,trade:$('supTtTrade').value,day:$('supTtDay').value,time,subject,instructor:$('supTtInstructor').value.trim(),createdAt:new Date().toISOString()});syncWithFirebase();['supTtTime','supTtSubject','supTtInstructor'].forEach(id=>$(id).value='');renderCompletionModules();showToast('समय-सारणी प्रकाशित हुई।');};
+  const TT_DAYS=['सोमवार','मंगलवार','बुधवार','गुरुवार','शुक्रवार','शनिवार','रविवार'];
+  function ttDateForDay(startIso,offset){const d=new Date(startIso+'T00:00:00');d.setDate(d.getDate()+offset);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
+  function ttDayName(dateIso){const d=new Date(dateIso+'T00:00:00');return WEEKDAY_HI[d.getDay()];}
+  function ttRowHtml(dateIso,weekStart,count){const opts=Array.from({length:count},(_,i)=>{const date=ttDateForDay(weekStart,i);return `<option value="${date}" ${date===dateIso?'selected':''}>${ttDayName(date)} · ${date}</option>`;}).join('');return `<tr class="sup-tt-row"><td><select class="sup-tt-day" style="min-width:145px">${opts}</select></td><td><input class="sup-tt-time" type="text" placeholder="09:00 - 10:00" style="min-width:125px"></td><td><input class="sup-tt-subject" type="text" placeholder="विषय / प्रैक्टिकल" style="min-width:180px"></td><td><input class="sup-tt-instructor" type="text" placeholder="अनुदेशक का नाम" style="min-width:150px"></td><td><button type="button" class="app-btn app-btn-danger" onclick="this.closest('tr').remove()">हटाएँ</button></td></tr>`;}
+  window.renderCollegeTimetableDraft=function(){
+    if(!['superintendent','groupInstructor'].includes(currentRole)||!currentCollegeId)return;
+    const start=$('supTtWeekStart')?.value, count=Number($('supTtDayCount')?.value||6), body=$('supTtDraftRows');if(!body)return;
+    if(!start){body.innerHTML='<tr><td colspan="5">सप्ताह प्रारंभ तारीख चुनें।</td></tr>';return;}
+    const rows=[];for(let i=0;i<count;i++){const date=ttDateForDay(start,i);rows.push(ttRowHtml(date,start,count));}
+    body.innerHTML=rows.join('');
+  };
+  window.addCollegeTimetableRow=function(){
+    if(!['superintendent','groupInstructor'].includes(currentRole)||!currentCollegeId)return;
+    const body=$('supTtDraftRows'),start=$('supTtWeekStart')?.value;if(!body||!start){alert('पहले सप्ताह प्रारंभ तारीख चुनें।');return;}
+    const first=body.querySelector('.sup-tt-day')?.value||start,count=Number($('supTtDayCount')?.value||6);body.insertAdjacentHTML('beforeend',ttRowHtml(first,start,count));
+  };
+  window.publishCollegeTimetable=function(){
+    if(!['superintendent','groupInstructor'].includes(currentRole)||!currentCollegeId){alert('यह सुविधा केवल संबंधित कॉलेज के अधीक्षक / ग्रुप इंस्ट्रक्टर के लिए है।');return;}
+    const trade=$('supTtTrade')?.value||'',start=$('supTtWeekStart')?.value||'',body=$('supTtDraftRows');
+    if(!trade){alert('पहले ट्रेड चुनें।');return;}if(!start){alert('सप्ताह प्रारंभ तारीख चुनें।');return;}if(!body){alert('समय-सारणी फॉर्म उपलब्ध नहीं है। पेज रीफ्रेश करके पुनः प्रयास करें।');return;}
+    const rows=[...body.querySelectorAll('tr.sup-tt-row')];if(!rows.length){alert('कम-से-कम एक पीरियड दर्ज करें।');return;}
+    const entries=[];for(let i=0;i<rows.length;i++){
+      const row=rows[i],date=row.querySelector('.sup-tt-day')?.value||'',time=row.querySelector('.sup-tt-time')?.value.trim()||'',subject=row.querySelector('.sup-tt-subject')?.value.trim()||'',instructor=row.querySelector('.sup-tt-instructor')?.value.trim()||'';
+      if(!date||!time||!subject||!instructor){alert(`पंक्ति ${i+1} में दिन, समय, विषय और अनुदेशक सभी भरें।`);return;}
+      entries.push({date,day:ttDayName(date),time,subject,instructor});
+    }
+    const dates=entries.map(x=>x.date).sort(),end=dates[dates.length-1],d=sd(),now=new Date().toISOString();
+    // उसी ट्रेड और सप्ताह की पुरानी प्रकाशित समय-सारणी को नई पूरी सूची से बदलें।
+    d.timetables=d.timetables.filter(x=>!(x&&x.collegeId===currentCollegeId&&x.trade===trade&&x.weekStart===start));
+    entries.forEach((x,i)=>d.timetables.push({id:'TT'+Date.now()+'_'+i,collegeId:currentCollegeId,trade,weekStart:start,weekEnd:end,date:x.date,day:x.day,time:x.time,subject:x.subject,instructor:x.instructor,createdAt:now,published:true}));
+    try{syncWithFirebase();}catch(err){console.error('Timetable publish failed',err);alert('समय-सारणी सेव नहीं हो सकी: '+(err?.message||err));return;}
+    const info=$('supTtPublishedInfo');if(info)info.textContent=`${trade} ट्रेड की ${entries.length} पीरियड वाली समय-सारणी ${start} से ${end} तक प्रकाशित कर दी गई।`;
+    showToast('पूरी साप्ताहिक समय-सारणी प्रकाशित हो गई।');renderCompletionModules();
+  };
   window.reviewStudentLeave=function(id,status){if(!['superintendent','groupInstructor'].includes(currentRole)||!currentCollegeId)return;if(!['स्वीकृत','अस्वीकृत'].includes(status))return;const x=sd().leaveRequests.find(v=>v.id===id&&v.collegeId===currentCollegeId);if(!x)return;const comment=$(`leaveReviewComment_${id}`)?.value.trim()||'';x.status=status;x.reviewComment=comment;x.reviewedAt=new Date().toISOString();x.reviewedBy=loggedInSuperintendent?.name||'ग्रुप इंस्ट्रक्टर';x.reviewedByRole=currentRole==='groupInstructor'?'ग्रुप इंस्ट्रक्टर':'अधीक्षक';syncWithFirebase();renderCompletionModules();showToast(`विद्यार्थी अवकाश आवेदन ${status} कर दिया गया।`);};
   window.printGroupWeeklyPrograms=function(){
     if(!['groupInstructor','superintendent'].includes(currentRole)||!currentCollegeId){
