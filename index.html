@@ -5956,7 +5956,6 @@ window.__itiLoginClick = async function(ev) {
       const d=new Date(String(value).slice(0,10)+'T00:00:00');
       return Number.isNaN(d.getTime())?esc(value):d.toLocaleDateString('en-US',{month:'long',day:'2-digit',year:'numeric'});
     };
-    const skills=['Workplace Etiquette & Culture','Professional Ethics','Diversity & Inclusion','Adaptability in Workplace','Work-Life Balance'];
     const pages=records.map(x=>{
       const days=Array.isArray(x.days)?x.days:[];
       const dayRows=days.map((day,i)=>{
@@ -5969,19 +5968,18 @@ window.__itiLoginClick = async function(ev) {
           <td class="date">${dateFmt(day.date)}</td>
           <td>${esc(theory)}</td>
           <td>${esc(practical)}</td>
-          ${i===0?`<td class="employability" rowspan="${Math.max(days.length,1)}">${skills.map(v=>`<div>${esc(v)}</div>`).join('')}</td>`:''}
         </tr>`;
       }).join('');
       return `<section class="weekly-page">
-        <h1>Government Industrial Training Institute – Kotri (Bhilwara)</h1>
+        <h1>${esc(getCollegeName(currentCollegeId)||'राजकीय औद्योगिक प्रशिक्षण संस्थान')}</h1>
         <div class="programme-title">Weekly Training Programme</div>
         <div class="meta"><b>Trade :-</b> ${esc(x.trade||'-')}</div>
         <div class="meta"><b>Instructor Name :-</b> <span class="line">${esc(x.instructorName||'-')}</span></div>
         <div class="meta"><b>Week ${esc(x.weekNo||'-')}: ${esc(x.topic||x.weekTitle||'Weekly Training Programme')}</b></div>
         <div class="date-range"><b>Dates:</b> ${fullDateFmt(x.from)} – ${fullDateFmt(x.to)}</div>
         <table class="weekly-table">
-          <colgroup><col style="width:7%"><col style="width:9%"><col style="width:27%"><col style="width:31%"><col style="width:26%"></colgroup>
-          <thead><tr><th>Day</th><th>Date</th><th>Trade Theory (1 Hr)</th><th>Trade Practical (4 Hrs)</th><th>Employability Skills (1 Hr)</th></tr></thead>
+          <colgroup><col style="width:10%"><col style="width:13%"><col style="width:35%"><col style="width:42%"></colgroup>
+          <thead><tr><th>Day</th><th>Date</th><th>Trade Theory (1 Hr)</th><th>Trade Practical (4 Hrs)</th></tr></thead>
           <tbody>${dayRows}</tbody>
         </table>
         <div class="signature-area">
@@ -6006,7 +6004,6 @@ window.__itiLoginClick = async function(ev) {
       .weekly-table th,.weekly-table td{border:1px solid #777;padding:8px 7px;text-align:left;vertical-align:middle;overflow-wrap:anywhere;line-height:1.45}
       .weekly-table th{font-weight:700;background:#f4f4f4}
       .weekly-table .day{font-weight:600}.weekly-table .date{white-space:nowrap}
-      .weekly-table .employability{vertical-align:middle;line-height:1.8}
       .signature-area{display:flex;justify-content:space-between;gap:28px;margin-top:44px;font-size:12px;position:absolute;left:9mm;right:9mm;bottom:12mm}
       .signature-area>div{width:48%;white-space:nowrap}
       .sign-line{display:inline-block;border-bottom:1px solid #555;width:115px;margin-left:5px;vertical-align:middle;height:13px}
