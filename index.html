@@ -3995,9 +3995,37 @@ window.__itiLoginClick = async function(ev) {
             renderRegister();
         }
 
+        // सभी ट्रेडों के मूल्यांकन पैनल में सेव बटन सुनिश्चित करें।
+        function ensureEvaluationSaveButton() {
+            const panel = document.getElementById('instTabEvaluation');
+            if (!panel) return;
+            let saveBtn = document.getElementById('btnSaveEval');
+            if (!saveBtn) {
+                let actions = panel.querySelector('.controls-right');
+                if (!actions) {
+                    const bar = panel.querySelector('.controls-card');
+                    if (!bar) return;
+                    actions = document.createElement('div');
+                    actions.className = 'controls-right';
+                    bar.appendChild(actions);
+                }
+                saveBtn = document.createElement('button');
+                saveBtn.type = 'button';
+                saveBtn.id = 'btnSaveEval';
+                saveBtn.className = 'app-btn app-btn-success';
+                saveBtn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> मूल्यांकन सुरक्षित करें';
+                saveBtn.addEventListener('click', saveAllEvaluations);
+                actions.insertBefore(saveBtn, actions.firstChild);
+            }
+            saveBtn.style.display = 'inline-flex';
+            saveBtn.disabled = isMonthLocked(currentCollegeId, currentTrade,
+                document.getElementById('evalSelectedMonth')?.value || '');
+        }
+
         function renderEvaluationTable() {
             updateSessionalRubricNotice();
             if (!currentCollegeId || !currentTrade) return;
+            ensureEvaluationSaveButton();
             let monthVal = document.getElementById('evalSelectedMonth')?.value;
             if (!monthVal) {
                 const today = new Date();
@@ -4166,29 +4194,45 @@ window.__itiLoginClick = async function(ev) {
             tStudents.forEach(st => calcStudentRowLive(String(st.roll).trim()));
         }
 
-        function saveAllEvaluations() {
-            const monthVal = document.getElementById('evalSelectedMonth').value;
-            if (!monthVal || !currentCollegeId || !currentTrade) return;
-
+        async function saveAllEvaluations() {
+            const monthEl = document.getElementById('evalSelectedMonth');
+            const monthVal = monthEl?.value;
+            if (!monthVal || !currentCollegeId || !currentTrade) {
+                alert("कॉलेज, ट्रेड और माह की जानकारी उपलब्ध नहीं है। कृपया दोबारा लॉगिन करके प्रयास करें।");
+                return;
+            }
             if (isMonthLocked(currentCollegeId, currentTrade, monthVal)) {
                 alert("यह माह एडमिन द्वारा लॉक किया जा चुका है! अंक सुरक्षित नहीं किए जा सकते।");
                 return;
             }
 
             const isEngg = isEnggTrade(currentTrade);
+            const requiredIds = ['mm_tt', 'mm_tp', 'mm_es'];
+            if (isEngg) requiredIds.push('mm_wcs', 'mm_ed');
+            const missingConfig = requiredIds.filter(id => !document.getElementById(id));
+            if (missingConfig.length) {
+                alert("मार्क्स फॉर्म पूरी तरह लोड नहीं हुआ है। कृपया मूल्यांकन टैब दोबारा खोलें।");
+                return;
+            }
+
+            const students = getStudentList(currentCollegeId, currentTrade);
+            if (!students.length) {
+                alert("इस ट्रेड में कोई विद्यार्थी उपलब्ध नहीं है।");
+                return;
+            }
 
             if (!appData.maxMarksConfig) appData.maxMarksConfig = {};
             if (!appData.maxMarksConfig[currentCollegeId]) appData.maxMarksConfig[currentCollegeId] = {};
             if (!appData.maxMarksConfig[currentCollegeId][currentTrade]) appData.maxMarksConfig[currentCollegeId][currentTrade] = {};
 
             const mmConfig = {
-                tt: parseFloat(document.getElementById('mm_tt').value) || 20,
-                tp: parseFloat(document.getElementById('mm_tp').value) || 20,
-                es: parseFloat(document.getElementById('mm_es').value) || 20
+                tt: Number(document.getElementById('mm_tt').value) || 20,
+                tp: Number(document.getElementById('mm_tp').value) || 20,
+                es: Number(document.getElementById('mm_es').value) || 20
             };
             if (isEngg) {
-                mmConfig.wcs = parseFloat(document.getElementById('mm_wcs').value) || 20;
-                mmConfig.ed = parseFloat(document.getElementById('mm_ed').value) || 20;
+                mmConfig.wcs = Number(document.getElementById('mm_wcs').value) || 20;
+                mmConfig.ed = Number(document.getElementById('mm_ed').value) || 20;
             }
             appData.maxMarksConfig[currentCollegeId][currentTrade][monthVal] = mmConfig;
 
@@ -4197,34 +4241,54 @@ window.__itiLoginClick = async function(ev) {
             if (!appData.evaluations[currentCollegeId][currentTrade]) appData.evaluations[currentCollegeId][currentTrade] = {};
             if (!appData.evaluations[currentCollegeId][currentTrade][monthVal]) appData.evaluations[currentCollegeId][currentTrade][monthVal] = {};
 
-            const tStudents = getStudentList(currentCollegeId, currentTrade);
-            tStudents.forEach(st => {
-                const sRoll = String(st.roll).trim();
-                const elTT = document.getElementById(`tt_${sRoll}`);
-                if (!elTT) return;
-
-                const studentEval = {
-                    tt: elTT.value,
-                    tp: document.getElementById(`tp_${sRoll}`).value,
-                    es: document.getElementById(`es_${sRoll}`).value,
-                    recStatus: document.getElementById(`recSt_${sRoll}`).value,
-                    recRem: document.getElementById(`recRem_${sRoll}`).value,
-                    diaryStatus: document.getElementById(`diarySt_${sRoll}`).value,
-                    diaryRem: document.getElementById(`diaryRem_${sRoll}`).value,
-                    disc: document.getElementById(`disc_${sRoll}`).value,
-                    act: document.getElementById(`act_${sRoll}`).value
+            let savedCount = 0;
+            for (const st of students) {
+                const roll = String(st.roll ?? '').trim();
+                if (!roll) continue;
+                const getVal = id => {
+                    const el = document.getElementById(id + roll);
+                    return el ? el.value : '';
                 };
-
+                // TT/TP/ES और रिकॉर्ड/डायरी/गतिविधि सभी ट्रेडों के लिए साझा हैं।
+                const studentEval = {
+                    tt: getVal('tt_'),
+                    tp: getVal('tp_'),
+                    es: getVal('es_'),
+                    recStatus: getVal('recSt_') || 'A',
+                    recRem: getVal('recRem_'),
+                    diaryStatus: getVal('diarySt_') || 'नियमित',
+                    diaryRem: getVal('diaryRem_'),
+                    disc: getVal('disc_') || 'उत्कृष्ट',
+                    act: getVal('act_') || 'सक्रिय'
+                };
                 if (isEngg) {
-                    studentEval.wcs = document.getElementById(`wcs_${sRoll}`)?.value || '';
-                    studentEval.ed = document.getElementById(`ed_${sRoll}`)?.value || '';
+                    studentEval.wcs = getVal('wcs_');
+                    studentEval.ed = getVal('ed_');
                 }
+                appData.evaluations[currentCollegeId][currentTrade][monthVal][roll] = studentEval;
+                savedCount++;
+            }
 
-                appData.evaluations[currentCollegeId][currentTrade][monthVal][sRoll] = studentEval;
-            });
+            if (!savedCount) {
+                alert("किसी विद्यार्थी का अंक रिकॉर्ड नहीं मिला।");
+                return;
+            }
 
-            syncWithFirebase();
-            showToast("पूर्णांक एवं छात्र मासिक अंक सुरक्षित किए गए!");
+            const btn = document.getElementById('btnSaveEval');
+            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> सेव हो रहा है…'; }
+            try {
+                const synced = await syncWithFirebase();
+                if (!synced) throw new Error('Firebase पर डेटा सेव नहीं हो पाया।');
+                showToast(`${currentTrade} ट्रेड के ${savedCount} विद्यार्थियों के अंक ${monthVal} के लिए सुरक्षित हो गए!`);
+            } catch (err) {
+                console.error('Evaluation save failed:', err);
+                alert("अंक लोकल कैश में रखे गए हैं, लेकिन Firebase सेव में समस्या आई। इंटरनेट और Firebase Rules जाँचें, फिर दोबारा सेव करें।");
+            } finally {
+                if (btn) {
+                    btn.disabled = isMonthLocked(currentCollegeId, currentTrade, monthVal);
+                    btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> मूल्यांकन सुरक्षित करें';
+                }
+            }
         }
 
         function getMaxMarksConfig(colId, trade, monthVal) {
@@ -4799,9 +4863,11 @@ window.__itiLoginClick = async function(ev) {
                 // पूरा डेटा — COPA सहित — केवल iti-kotri Firebase में सेव करें।
                 await rtdb.ref('portal_data').set(appData);
                 showToast("iti-kotri Firebase पर पूरा डेटा सुरक्षित हो गया!");
+                return true;
             } catch (e) {
                 console.error("Firebase sync error", e);
                 showToast("लोकल सुरक्षित हुआ, Firebase सिंक में त्रुटि! Rules/Auth जाँचें।");
+                return false;
             }
         }
 
