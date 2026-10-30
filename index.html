@@ -3289,7 +3289,7 @@ window.__itiLoginClick = async function(ev) {
                 document.getElementById('evalCollegeBadge').innerText = colName;
                 document.getElementById('evalTradeBadge').innerText = `${currentTrade} मूल्यांकन`;
                 document.getElementById('evalTradeTypeBadge').innerText = isEngg ? 'इंजीनियरिंग' : 'नॉन-इंजीनियरिंग';
-                document.getElementById('roleLabel').innerHTML = `<i class="fa-solid fa-chalkboard-user"></i> ${currentTrade} (${colName})`;
+                document.getElementById('roleLabel').innerHTML = `<i class="fa-solid fa-chalkboard-user"></i> अनुदेशक: ${supEscape(loggedInInstructor?.name || 'नाम उपलब्ध नहीं')} — ${supEscape(currentTrade)} (${supEscape(colName)})`;
                 switchInstructorTab('attendance');
             } else if (currentRole === 'superintendent' || currentRole === 'groupInstructor') {
                 document.getElementById('superintendentSection').classList.remove('hidden');
