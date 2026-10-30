@@ -5937,12 +5937,84 @@ window.__itiLoginClick = async function(ev) {
   window.publishCollegeTimetable=function(){if(!collegeGuard('superintendent'))return;const subject=$('supTtSubject').value.trim(),time=$('supTtTime').value.trim();if(!subject||!time){alert('समय और विषय भरें।');return;}sd().timetables.push({id:'TT'+Date.now(),collegeId:currentCollegeId,trade:$('supTtTrade').value,day:$('supTtDay').value,time,subject,instructor:$('supTtInstructor').value.trim(),createdAt:new Date().toISOString()});syncWithFirebase();['supTtTime','supTtSubject','supTtInstructor'].forEach(id=>$(id).value='');renderCompletionModules();showToast('समय-सारणी प्रकाशित हुई।');};
   window.reviewStudentLeave=function(id,status){if(!['superintendent','groupInstructor'].includes(currentRole)||!currentCollegeId)return;if(!['स्वीकृत','अस्वीकृत'].includes(status))return;const x=sd().leaveRequests.find(v=>v.id===id&&v.collegeId===currentCollegeId);if(!x)return;const comment=$(`leaveReviewComment_${id}`)?.value.trim()||'';x.status=status;x.reviewComment=comment;x.reviewedAt=new Date().toISOString();x.reviewedBy=loggedInSuperintendent?.name||'ग्रुप इंस्ट्रक्टर';x.reviewedByRole=currentRole==='groupInstructor'?'ग्रुप इंस्ट्रक्टर':'अधीक्षक';syncWithFirebase();renderCompletionModules();showToast(`विद्यार्थी अवकाश आवेदन ${status} कर दिया गया।`);};
   window.printGroupWeeklyPrograms=function(){
-    if(!['groupInstructor','superintendent'].includes(currentRole)||!currentCollegeId){alert('यह सुविधा केवल ग्रुप इंस्ट्रक्टर / अधीक्षक के लिए है।');return;}
-    const records=sd().weeklyPrograms.filter(x=>x&&x.collegeId===currentCollegeId).slice().sort((a,b)=>String(a.from||'').localeCompare(String(b.from||''))||Number(a.weekNo||0)-Number(b.weekNo||0));
+    if(!['groupInstructor','superintendent'].includes(currentRole)||!currentCollegeId){
+      alert('यह सुविधा केवल ग्रुप इंस्ट्रक्टर / अधीक्षक के लिए है।');return;
+    }
+    const records=sd().weeklyPrograms
+      .filter(x=>x&&x.collegeId===currentCollegeId)
+      .slice()
+      .sort((a,b)=>String(a.from||'').localeCompare(String(b.from||''))||Number(a.weekNo||0)-Number(b.weekNo||0));
     if(!records.length){alert('अभी प्रिंट करने के लिए कोई साप्ताहिक पाठ्यक्रम रिकॉर्ड उपलब्ध नहीं है।');return;}
-    const rows=records.map(x=>`<section class="week"><h3>सप्ताह ${esc(x.weekNo||'-')} — ${esc(x.trade||'-')}</h3><p><b>अनुदेशक:</b> ${esc(x.instructorName||'-')} &nbsp; <b>अवधि:</b> ${esc(x.from||'-')} से ${esc(x.to||'-')} &nbsp; <b>कार्य दिवस:</b> ${esc(x.workingDays??'-')} &nbsp; <b>अवकाश:</b> ${esc(x.holidayDays??'-')}</p><table><thead><tr><th>दिन / तारीख</th><th>थ्योरी</th><th>प्रैक्टिकल</th><th>स्थिति</th></tr></thead><tbody>${(Array.isArray(x.days)?x.days:[]).map(day=>`<tr><td>${esc(day.dayName||'-')}<br>${esc(day.date||'-')}</td><td>${esc(day.theory||'-')}</td><td>${esc(day.practical||'-')}</td><td>${day.off?'अवकाश':'कार्य दिवस'}</td></tr>`).join('')}</tbody></table><p><b>Job No.:</b> ${esc(x.jobNo||'-')} &nbsp; <b>सामग्री:</b> ${esc(x.material||'-')} &nbsp; <b>समय:</b> ${esc(x.timeAllotted||'-')}</p><p><b>अनुदेशक टिप्पणी:</b> ${esc(x.note||'-')}</p></section>`).join('');
-    const w=window.open('','_blank');if(!w){alert('PDF / प्रिंट के लिए ब्राउज़र में पॉपअप अनुमति दें।');return;}
-    w.document.write(`<!doctype html><html lang="hi"><head><meta charset="utf-8"><title>साप्ताहिक पाठ्यक्रम — ${esc(getCollegeName(currentCollegeId))}</title><style>body{font-family:Arial,sans-serif;color:#111;padding:18px}h1{text-align:center;font-size:21px;margin:0 0 5px}h2{text-align:center;font-size:17px;margin:0 0 18px}.week{page-break-inside:avoid;border:1px solid #777;padding:12px;margin:0 0 16px;border-radius:6px}.week h3{margin:0 0 8px;color:#173d79}p{margin:7px 0;font-size:12px}table{width:100%;border-collapse:collapse;margin:8px 0}th,td{border:1px solid #777;padding:7px;text-align:left;vertical-align:top;font-size:12px}th{background:#eef2f7}@page{size:A4;margin:12mm}@media print{.week{break-inside:avoid}}</style></head><body><h1>${esc(getCollegeName(currentCollegeId))}</h1><h2>सभी ट्रेड के साप्ताहिक पाठ्यक्रम एवं शिक्षण रिकॉर्ड</h2><p><b>प्रिंट दिनांक:</b> ${new Date().toLocaleDateString('hi-IN')}</p>${rows}<script>window.onload=()=>window.print()<\/script></body></html>`);
+
+    const dateFmt=value=>{
+      if(!value)return '-';
+      const d=new Date(String(value).slice(0,10)+'T00:00:00');
+      return Number.isNaN(d.getTime())?esc(value):d.toLocaleDateString('en-US',{month:'short',day:'2-digit'});
+    };
+    const fullDateFmt=value=>{
+      if(!value)return '-';
+      const d=new Date(String(value).slice(0,10)+'T00:00:00');
+      return Number.isNaN(d.getTime())?esc(value):d.toLocaleDateString('en-US',{month:'long',day:'2-digit',year:'numeric'});
+    };
+    const skills=['Workplace Etiquette & Culture','Professional Ethics','Diversity & Inclusion','Adaptability in Workplace','Work-Life Balance'];
+    const pages=records.map(x=>{
+      const days=Array.isArray(x.days)?x.days:[];
+      const dayRows=days.map((day,i)=>{
+        const holiday=!!day.off;
+        const dayLabel=day.dayName||'-';
+        const theory=holiday?(day.holidaySource||'HOLIDAY'):(day.theory||'-');
+        const practical=holiday?(day.holidaySource||'No Classes'):(day.practical||'-');
+        return `<tr>
+          <td class="day">${esc(dayLabel)}</td>
+          <td class="date">${dateFmt(day.date)}</td>
+          <td>${esc(theory)}</td>
+          <td>${esc(practical)}</td>
+          ${i===0?`<td class="employability" rowspan="${Math.max(days.length,1)}">${skills.map(v=>`<div>${esc(v)}</div>`).join('')}</td>`:''}
+        </tr>`;
+      }).join('');
+      return `<section class="weekly-page">
+        <h1>Government Industrial Training Institute – Kotri (Bhilwara)</h1>
+        <div class="programme-title">Weekly Training Programme</div>
+        <div class="meta"><b>Trade :-</b> ${esc(x.trade||'-')}</div>
+        <div class="meta"><b>Instructor Name :-</b> <span class="line">${esc(x.instructorName||'-')}</span></div>
+        <div class="meta"><b>Week ${esc(x.weekNo||'-')}: ${esc(x.topic||x.weekTitle||'Weekly Training Programme')}</b></div>
+        <div class="date-range"><b>Dates:</b> ${fullDateFmt(x.from)} – ${fullDateFmt(x.to)}</div>
+        <table class="weekly-table">
+          <colgroup><col style="width:7%"><col style="width:9%"><col style="width:27%"><col style="width:31%"><col style="width:26%"></colgroup>
+          <thead><tr><th>Day</th><th>Date</th><th>Trade Theory (1 Hr)</th><th>Trade Practical (4 Hrs)</th><th>Employability Skills (1 Hr)</th></tr></thead>
+          <tbody>${dayRows}</tbody>
+        </table>
+        <div class="signature-area">
+          <div><b>Signature Of Group Instructor</b><span class="sign-line"></span><p><b>Name of Group Instructor :-</b><span class="name-line"></span></p></div>
+          <div><b>Signature Of Superintendent</b><span class="sign-line"></span><p><b>Name Of Superintendent :-</b><span class="name-line"></span></p></div>
+        </div>
+      </section>`;
+    }).join('');
+    const w=window.open('','_blank');
+    if(!w){alert('PDF / प्रिंट के लिए ब्राउज़र में पॉपअप अनुमति दें।');return;}
+    w.document.write(`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Weekly Training Programme</title>
+    <style>
+      *{box-sizing:border-box}html,body{margin:0;padding:0;color:#222;font-family:Arial,Helvetica,sans-serif}
+      .weekly-page{width:100%;min-height:270mm;padding:10mm 9mm 8mm;page-break-after:always;break-after:page;position:relative}
+      .weekly-page:last-child{page-break-after:auto;break-after:auto}
+      h1{text-align:center;font-size:19px;line-height:1.2;margin:0 0 18px;font-weight:700}
+      .programme-title{font-size:15px;font-weight:700;margin-bottom:3px}
+      .meta{font-size:13px;font-weight:600;line-height:1.35}
+      .line{display:inline-block;border-bottom:1px solid #555;min-width:190px;height:15px}
+      .date-range{font-size:12px;margin:11px 0 27px}
+      .weekly-table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:12px}
+      .weekly-table th,.weekly-table td{border:1px solid #777;padding:8px 7px;text-align:left;vertical-align:middle;overflow-wrap:anywhere;line-height:1.45}
+      .weekly-table th{font-weight:700;background:#f4f4f4}
+      .weekly-table .day{font-weight:600}.weekly-table .date{white-space:nowrap}
+      .weekly-table .employability{vertical-align:middle;line-height:1.8}
+      .signature-area{display:flex;justify-content:space-between;gap:28px;margin-top:44px;font-size:12px;position:absolute;left:9mm;right:9mm;bottom:12mm}
+      .signature-area>div{width:48%;white-space:nowrap}
+      .sign-line{display:inline-block;border-bottom:1px solid #555;width:115px;margin-left:5px;vertical-align:middle;height:13px}
+      .signature-area p{margin-top:24px}
+      .name-line{display:inline-block;border-bottom:1px solid #555;width:135px;margin-left:5px;height:13px;vertical-align:middle}
+      @page{size:A4 portrait;margin:0}
+      @media print{.weekly-page{height:297mm;min-height:297mm}body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+    </style></head><body>${pages}<script>window.onload=()=>setTimeout(()=>window.print(),250)<\/script></body></html>`);
     w.document.close();
   };
   window.exportMonthlyCollegeReport=function(format){if(!collegeGuard('superintendent'))return;const cid=currentCollegeId,month=$('supReportMonth')?.value||new Date().toISOString().slice(0,7),d=sd();const rows=[['कॉलेज',getCollegeName(cid)],['माह',month],[],['ट्रेड','अनुदेशक','विद्यार्थी','उपस्थिति एंट्री','मूल्यांकन रिकॉर्ड','गतिविधि रिपोर्ट']];getTradesList().forEach(t=>rows.push([t,getSupCollegeInstructors().filter(i=>i.trade===t).length,getStudentList(cid,t).length,attendanceCount(cid,t,month).entries,getSupEvalCount(t),d.reports.filter(r=>r.collegeId===cid&&r.trade===t&&String(r.date||'').startsWith(month)).length]));if(format==='xlsx'&&window.XLSX){const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(rows),'Monthly Progress');XLSX.writeFile(wb,`ITI_${cid}_${month}_Monthly_Progress.xlsx`);return;}if(format==='pdf'){const w=window.open('','_blank');if(!w){alert('PDF प्रिंट के लिए पॉपअप अनुमति दें।');return;}w.document.write(`<html><meta charset="utf-8"><title>मासिक कॉलेज प्रगति</title><style>body{font-family:Arial,sans-serif;padding:20px}table{border-collapse:collapse;width:100%}td,th{border:1px solid #555;padding:8px;text-align:left}h2{text-align:center}</style><h2>${esc(getCollegeName(cid))} — मासिक प्रगति रिपोर्ट (${month})</h2><table>${rows.map((r,i)=>'<tr>'+r.map(v=>`<${i===3?'th':'td'}>${esc(v??'')}</${i===3?'th':'td'}>`).join('')+'</tr>').join('')}</table><script>window.onload=()=>window.print()<\/script></html>`);w.document.close();return;}const csv='\\uFEFF'+rows.map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\\r\\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download=`ITI_${cid}_${month}_Monthly_Progress.csv`;a.click();};
