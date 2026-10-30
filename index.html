@@ -5816,7 +5816,7 @@ window.__itiLoginClick = async function(ev) {
       <label style="display:block;margin-top:10px">रिपोर्ट माह <input id="supReportMonth" type="month"></label></div>`);
     if(!$('supAnnualTimetablePanel')) $('supViewTasks').insertAdjacentHTML('beforeend',`<div class="glass-card sup-panel" id="supAnnualTimetablePanel">
       <h3><i class="fa-solid fa-calendar-check"></i> 40 सप्ताह का स्वचालित ट्रेडवार प्रशिक्षण टाइम टेबल</h3>
-      <p class="sup-help">ट्रेड का प्रकार चुनें और उस ट्रेड के CTS पाठ्यक्रम के अनुसार Practical, Theory, WCS, ED तथा Employability Skills के वार्षिक घंटे भरें। जिन विषयों की जरूरत नहीं है, उनके घंटे 0 रखें। सिस्टम सोमवार–शनिवार के वास्तविक कार्यदिवस गिनेगा। रविवार और उपस्थिति रजिस्टर में दर्ज छुट्टियाँ छोड़कर आवश्यक प्रशिक्षण दिवस आगे की तारीखों में समायोजित होंगे; इसलिए अंतिम तारीख 40 कैलेंडर सप्ताह से आगे जा सकती है।</p>
+      <p class="sup-help">ट्रेड का प्रकार चुनें और CTS सिलेबस के अनुसार TP, TT, WCS, ED तथा ES के वार्षिक घंटे भरें। ये सभी घंटे मिलाकर CTS का कुल प्रशिक्षण लक्ष्य (उदाहरण: 1200 घंटे) बनेंगे। OJT / Group Project के घंटे यदि CTS में निर्धारित हैं तो वे इसी कुल लक्ष्य के भीतर शामिल होंगे—उन्हें अलग से जोड़कर कुल घंटे नहीं बढ़ाएँ। सोमवार–शनिवार के प्रशिक्षण दिवस गिने जाएँगे; रविवार और दर्ज छुट्टियाँ छोड़कर छूटे हुए प्रशिक्षण दिवस आगे समायोजित होंगे।</p>
       <div class="sup-form-grid" style="margin-top:12px">
         <div class="input-group"><label>ट्रेड</label><select id="supAnnualTrade" onchange="syncAnnualTradeTypeFromMaster();loadCtsSyllabusProfile(true)"><option value="">ट्रेड चुनें</option></select></div>
         <div class="input-group"><label>ट्रेड का प्रकार</label><select id="supAnnualTradeType"><option value="engineering">Engineering Trade</option><option value="non-engineering">Non-Engineering Trade</option></select></div>
@@ -5833,8 +5833,6 @@ window.__itiLoginClick = async function(ev) {
         <div class="input-group"><label>Engineering Drawing – ED (वार्षिक घंटे; पाठ्यक्रमानुसार)</label><input id="supAnnualEdHours" type="number" min="0" step="0.5" value="0"></div>
         <div class="input-group"><label>Employability Skills – ES (वार्षिक घंटे)</label><input id="supAnnualEmployHours" type="number" min="0" step="0.5" value="120"></div>
         <div class="input-group"><label>CTS सिलेबस का नाम / वर्ष / PDF संदर्भ</label><input id="supAnnualSource" type="text" placeholder="जैसे CTS Electrician NSQF 2022"></div>
-        <div class="input-group"><label>OJT / Group Project (वार्षिक घंटे; CTS के अनुसार)</label><input id="supAnnualOjtHours" type="number" min="0" step="0.5" value="0"></div>
-        <div class="input-group"><label>OJT / Group Project अनुदेशक</label><input id="supAnnualOjtInstructor" type="text" placeholder="अनुदेशक / समन्वयक"></div>
         <div class="input-group"><label>सत्र / वर्ष</label><input id="supAnnualSession" type="text" placeholder="जैसे 2026-27"></div>
         <div class="input-group"><label>प्रैक्टिकल अनुदेशक (वैकल्पिक)</label><input id="supAnnualPracticalInstructor" type="text" placeholder="अनुदेशक का नाम"></div>
         <div class="input-group"><label>थ्योरी अनुदेशक (वैकल्पिक)</label><input id="supAnnualTheoryInstructor" type="text" placeholder="अनुदेशक का नाम"></div>
@@ -6134,8 +6132,7 @@ window.__itiLoginClick = async function(ev) {
       {key:'theory',name:'Trade Theory (TT)',hours:Number(annualTtValue('supAnnualTheoryHours')||0),instructor:annualTtValue('supAnnualTheoryInstructor')},
       {key:'wcs',name:'Workshop Calculation & Science (WCS)',hours:Number(annualTtValue('supAnnualWcsHours')||0),instructor:annualTtValue('supAnnualWcsInstructor')},
       {key:'ed',name:'Engineering Drawing (ED)',hours:Number(annualTtValue('supAnnualEdHours')||0),instructor:annualTtValue('supAnnualEdInstructor')},
-      {key:'employability',name:'Employability Skills (ES)',hours:Number(annualTtValue('supAnnualEmployHours')||0),instructor:annualTtValue('supAnnualEmployInstructor')},
-      {key:'ojt',name:'OJT / Group Project',hours:Number(annualTtValue('supAnnualOjtHours')||0),instructor:annualTtValue('supAnnualOjtInstructor')}
+      {key:'employability',name:'Employability Skills (ES)',hours:Number(annualTtValue('supAnnualEmployHours')||0),instructor:annualTtValue('supAnnualEmployInstructor')}
     ];
   }
   function ctsProfileStore(){const d=sd();if(!Array.isArray(d.ctsSyllabusProfiles))d.ctsSyllabusProfiles=[];return d.ctsSyllabusProfiles;}
@@ -6156,8 +6153,8 @@ window.__itiLoginClick = async function(ev) {
     const profile=ctsProfileStore().find(x=>x.collegeId===currentCollegeId&&x.trade===trade);
     if(!profile){if(!silent)alert(`${trade} के लिए कोई CTS घंटे सेव नहीं हैं। CTS सिलेबस देखकर घंटे भरें और सेव करें।`);return;}
     $('supAnnualTradeType').value=profile.tradeType||'engineering';if($('supAnnualSource'))$('supAnnualSource').value=profile.source||'';if($('supAnnualSession')&&profile.session)$('supAnnualSession').value=profile.session;
-    const ids={practical:'supAnnualPracticalHours',theory:'supAnnualTheoryHours',wcs:'supAnnualWcsHours',ed:'supAnnualEdHours',employability:'supAnnualEmployHours',ojt:'supAnnualOjtHours'};
-    const instructorIds={practical:'supAnnualPracticalInstructor',theory:'supAnnualTheoryInstructor',wcs:'supAnnualWcsInstructor',ed:'supAnnualEdInstructor',employability:'supAnnualEmployInstructor',ojt:'supAnnualOjtInstructor'};
+    const ids={practical:'supAnnualPracticalHours',theory:'supAnnualTheoryHours',wcs:'supAnnualWcsHours',ed:'supAnnualEdHours',employability:'supAnnualEmployHours'};
+    const instructorIds={practical:'supAnnualPracticalInstructor',theory:'supAnnualTheoryInstructor',wcs:'supAnnualWcsInstructor',ed:'supAnnualEdInstructor',employability:'supAnnualEmployInstructor'};
     (profile.hours||[]).forEach(x=>{if(ids[x.key]&&$(ids[x.key]))$(ids[x.key]).value=Number(x.hours)||0;if(instructorIds[x.key]&&$(instructorIds[x.key]))$(instructorIds[x.key]).value=x.instructor||'';});
     previewAnnualTradeTimetable();const info=$('supAnnualTimetableInfo');if(info)info.textContent=`${trade} का सेव किया हुआ CTS सिलेबस लोड हो गया। स्रोत: ${profile.source||'उल्लेख नहीं'}`;if(!silent)showToast(`${trade} के CTS घंटे लोड हो गए।`);
   };
@@ -6227,7 +6224,7 @@ window.__itiLoginClick = async function(ev) {
     const existing=d.timetables.filter(x=>x&&x.collegeId===currentCollegeId&&x.trade===trade&&x.autoAnnualPlan===true);
     if(existing.length&&!confirm(`इस ट्रेड की पहले से ${existing.length} वार्षिक ऑटो-टाइम-टेबल प्रविष्टियाँ हैं। केवल पुरानी ऑटो-जनरेटेड योजना हटाकर नई योजना सेव करें? मैनुअल समय-सारणी सुरक्षित रहेगी।`))return;
     d.timetables=d.timetables.filter(x=>!(x&&x.collegeId===currentCollegeId&&x.trade===trade&&x.autoAnnualPlan===true));
-    entries.forEach((x,i)=>d.timetables.push({id:planId+'_'+i,annualPlanId:planId,autoAnnualPlan:true,tradeType,ctsSyllabusSource:annualTtValue('supAnnualSource').trim(),subjectHours:categories.map(c=>({key:c.key,name:c.name,hours:c.hours})),holidayAdjustments:calendar.skipped,plannedWorkingDays:totalWorkingDays,actualEndDate:workingDates[workingDates.length-1],collegeId:currentCollegeId,trade,weekStart:x.weekStart,weekEnd:x.weekEnd,weekNo:x.weekNo,dayCount:days,session,effective:startDate,lunch:`${annualTtValue('supAnnualLunchStart')} - ${annualTtValue('supAnnualLunchEnd')}`,breakDays:days===6?'सोमवार से शनिवार':'सोमवार से शुक्रवार',date:x.date,day:x.day,time:x.time,subject:x.subject,category:x.category,instructor:x.instructor,createdAt:now,published:true}));
+    entries.forEach((x,i)=>d.timetables.push({id:planId+'_'+i,annualPlanId:planId,autoAnnualPlan:true,tradeType,ctsSyllabusSource:annualTtValue('supAnnualSource').trim(),subjectHours:categories.map(c=>({key:c.key,name:c.name,hours:c.hours})),ojtIncludedWithinTotal:true,holidayAdjustments:calendar.skipped,plannedWorkingDays:totalWorkingDays,actualEndDate:workingDates[workingDates.length-1],collegeId:currentCollegeId,trade,weekStart:x.weekStart,weekEnd:x.weekEnd,weekNo:x.weekNo,dayCount:days,session,effective:startDate,lunch:`${annualTtValue('supAnnualLunchStart')} - ${annualTtValue('supAnnualLunchEnd')}`,breakDays:days===6?'सोमवार से शनिवार':'सोमवार से शुक्रवार',date:x.date,day:x.day,time:x.time,subject:x.subject,category:x.category,instructor:x.instructor,createdAt:now,published:true}));
     try{syncWithFirebase();}catch(err){console.error('Annual timetable save failed',err);alert('वार्षिक टाइम टेबल सेव नहीं हो सका: '+(err?.message||err));return;}
     const total=totalHours.toFixed(1),info=$('supAnnualTimetableInfo');
     if(info)info.textContent=`${trade} (${tradeType==='engineering'?'Engineering':'Non-Engineering'}) ट्रेड की ${weeks} प्रशिक्षण सप्ताह की योजना प्रकाशित हुई। ${entries.length} समय-प्रविष्टियाँ सेव हुईं। ${calendar.skipped.length} रविवार/अवकाश दिन छोड़कर अंतिम प्रशिक्षण तारीख ${workingDates[workingDates.length-1]} रखी गई। TP/TT/WCS/ED/ES सहित कुल प्रशिक्षण लक्ष्य ${total} घंटे है।`;
