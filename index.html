@@ -968,6 +968,15 @@ footer{background:#092b68!important;border-top:1px solid #1e4d91!important}
 }
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important}}
 
+
+/* Separate instructor evaluation modes: marks and weekly inspection are visually isolated. */
+#evalTableShell.mode-tests:not(.engg) th:nth-child(n+8),#evalTableShell.mode-tests:not(.engg) td:nth-child(n+8){display:none!important}
+#evalTableShell.mode-tests.engg th:nth-child(n+10),#evalTableShell.mode-tests.engg td:nth-child(n+10){display:none!important}
+#evalTableShell.mode-weekly:not(.engg) th:nth-child(-n+7),#evalTableShell.mode-weekly:not(.engg) td:nth-child(-n+7){display:none!important}
+#evalTableShell.mode-weekly.engg th:nth-child(-n+9),#evalTableShell.mode-weekly.engg td:nth-child(-n+9){display:none!important}
+#evalTableShell.mode-weekly table thead tr:first-child th[colspan]{display:none!important}
+#evalTableShell.mode-weekly table thead tr:nth-child(2){display:none!important}
+
 </style>
 
 <script>
@@ -1020,6 +1029,8 @@ footer{background:#092b68!important;border-top:1px solid #1e4d91!important}
             records: {},     
             holidays: {},    
             evaluations: {}, 
+            achievementTests: {},
+            weeklyActivities: {},
             maxMarksConfig: {} 
         };
 
@@ -1300,7 +1311,21 @@ window.__itiLoginClick = async function(ev) {
 </table>
 </div>
 </div><div class="hidden" id="instTabEvaluation">
-<div class="controls-card">
+<div class="glass-card" style="padding:12px;margin-bottom:12px;">
+ <div style="font-weight:800;color:#17478f;margin-bottom:9px;">मूल्यांकन का प्रकार चुनें</div>
+ <div class="instructor-tabs" style="margin:0;">
+  <button type="button" class="inst-tab-btn active" id="evalModeMonthlyBtn" onclick="setEvaluationEntryMode('monthly')"><i class="fa-solid fa-calendar-days"></i> मासिक टेस्ट</button>
+  <button type="button" class="inst-tab-btn" id="evalModeAchievementBtn" onclick="setEvaluationEntryMode('achievement')"><i class="fa-solid fa-trophy"></i> अचीवमेंट टेस्ट</button>
+  <button type="button" class="inst-tab-btn" id="evalModeWeeklyBtn" onclick="setEvaluationEntryMode('weekly')"><i class="fa-solid fa-book-open"></i> साप्ताहिक गतिविधियाँ</button>
+ </div>
+ <div id="achievementPeriodPicker" class="hidden" style="margin-top:12px;padding:10px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;">
+  <label for="evalAchievementDate" style="font-weight:700;display:block;margin-bottom:5px;">अचीवमेंट टेस्ट की तारीख / तिमाही चुनें</label>
+  <input id="evalAchievementDate" type="date" style="padding:8px;width:100%;max-width:240px;" onchange="renderEvaluationTable()">
+  <div id="achievementPeriodLabel" style="font-size:.82rem;color:#1e40af;font-weight:700;margin-top:7px;"></div>
+ </div>
+ <div id="weeklyModeHint" class="hidden" style="margin-top:9px;color:#0f766e;font-size:.82rem;">यहाँ केवल साप्ताहिक निरीक्षण दर्ज होंगे। टेस्ट के अंक इस स्क्रीन पर नहीं बदलेंगे।</div>
+</div>
+<div class="controls-card" id="evaluationControlsCard">
 <div class="controls-left">
 <span class="badge-college" id="evalCollegeBadge">कॉलेज</span>
 <span class="badge-trade" id="evalTradeBadge">ट्रेड मूल्यांकन</span>
@@ -1339,7 +1364,7 @@ window.__itiLoginClick = async function(ev) {
   </div>
   <div style="font-size:.78rem;color:#475569;margin-top:8px;">नीचे की रिकॉर्ड, डायरी, गतिविधि और प्लांटेशन वाली एंट्री इसी तारीख की साप्ताहिक जाँच के रूप में सेव होगी। मासिक टेस्ट अंक अलग सुरक्षित होंगे।</div>
 </div>
-<div class="table-shell">
+<div class="table-shell" id="evalTableShell">
 <table>
 <thead id="evalTableHeader"></thead>
 <tbody id="evaluationTableBody"></tbody>
@@ -3469,7 +3494,7 @@ window.__itiLoginClick = async function(ev) {
         function switchInstructorTab(tab) {
             const map={attendance:'instTabAttendance',evaluation:'instTabEvaluation',work:'instTabWork'};
             Object.entries(map).forEach(([key,id])=>{const panel=document.getElementById(id);if(panel)panel.classList.toggle('hidden',key!==tab);const btn=document.getElementById(key==='attendance'?'tabBtnAtt':key==='evaluation'?'tabBtnEval':'tabBtnWork');if(btn)btn.classList.toggle('active',key===tab);});
-            if(tab==='attendance')renderRegister();else if(tab==='evaluation')renderEvaluationTable();else if(tab==='work'){const date=document.getElementById('instActivityDate');if(date&&!date.value)date.value=new Date().toISOString().slice(0,10);toggleActivityPeriodFields();renderInstructorWorkPanel();}
+            if(tab==='attendance')renderRegister();else if(tab==='evaluation'){setEvaluationEntryMode('monthly');}else if(tab==='work'){const date=document.getElementById('instActivityDate');if(date&&!date.value)date.value=new Date().toISOString().slice(0,10);toggleActivityPeriodFields();renderInstructorWorkPanel();}
         }
 
         // ==================== SUPER ADMIN CONTROL & INSTRUCTOR MANAGEMENT ====================
@@ -4408,17 +4433,54 @@ window.__itiLoginClick = async function(ev) {
                 document.getElementById('evalSelectedMonth')?.value || '');
         }
 
+        // मूल्यांकन मॉड्यूल: मासिक, सत्र-आधारित त्रैमासिक अचीवमेंट और साप्ताहिक निरीक्षण।
+        window.evalEntryMode = window.evalEntryMode || 'monthly';
+        function dateOnlyLocal(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
+        function addMonthsClamped(date, months){const d=new Date(date.getFullYear(),date.getMonth(),date.getDate());const day=d.getDate();d.setDate(1);d.setMonth(d.getMonth()+months);const last=new Date(d.getFullYear(),d.getMonth()+1,0).getDate();d.setDate(Math.min(day,last));return d;}
+        function getAchievementPeriodForDate(dateValue){
+            const cfg=appData.sessionConfig||{};const start=new Date((cfg.startDate||'2026-08-10')+'T00:00:00');const sessionEnd=new Date((cfg.endDate||'2027-06-30')+'T00:00:00');
+            const chosen=new Date((dateValue||dateOnlyLocal(new Date()))+'T00:00:00');if(isNaN(chosen)||chosen<start||chosen>sessionEnd)return null;
+            let periodStart=new Date(start);let index=0;while(index<24){const next=addMonthsClamped(start,(index+1)*3);if(chosen<next)break;periodStart=next;index++;}
+            const nextStart=addMonthsClamped(start,(index+1)*3);const periodEnd=new Date(Math.min(sessionEnd.getTime(),nextStart.getTime()-86400000));
+            return {index:index+1,start:dateOnlyLocal(periodStart),end:dateOnlyLocal(periodEnd),key:`Q${index+1}_${dateOnlyLocal(periodStart)}`,label:`अचीवमेंट टेस्ट ${index+1}: ${dateOnlyLocal(periodStart)} से ${dateOnlyLocal(periodEnd)}`};
+        }
+        function setEvaluationEntryMode(mode){
+            if(!['monthly','achievement','weekly'].includes(mode))return;window.evalEntryMode=mode;
+            ['monthly','achievement','weekly'].forEach(k=>{const b=document.getElementById('evalMode'+k.charAt(0).toUpperCase()+k.slice(1)+'Btn');if(b)b.classList.toggle('active',k===mode);});
+            const picker=document.getElementById('achievementPeriodPicker');if(picker)picker.classList.toggle('hidden',mode!=='achievement');
+            const hint=document.getElementById('weeklyModeHint');if(hint)hint.classList.toggle('hidden',mode!=='weekly');
+            const shell=document.getElementById('evalTableShell');if(shell){shell.classList.remove('mode-tests','mode-weekly','engg');shell.classList.add(mode==='weekly'?'mode-weekly':'mode-tests');if(isEnggTrade(currentTrade))shell.classList.add('engg');}
+            const save=document.getElementById('btnSaveEval');if(save){save.textContent=mode==='achievement'?'अचीवमेंट टेस्ट अंक सुरक्षित करें':'मासिक टेस्ट अंक सुरक्षित करें';save.classList.toggle('hidden',mode==='weekly');}
+            const weeklySave=document.getElementById('btnSaveWeeklyInspection');if(weeklySave)weeklySave.classList.toggle('hidden',mode!=='weekly');
+            const exportBtn=document.querySelector('#instTabEvaluation .app-btn-excel');if(exportBtn)exportBtn.classList.toggle('hidden',mode==='weekly');
+            const mm=document.querySelector('.max-marks-banner');if(mm)mm.classList.toggle('hidden',mode==='weekly');
+            const rubric=document.getElementById('sessionalRubricNotice');if(rubric)rubric.classList.toggle('hidden',mode==='achievement');
+            const dateCard=document.getElementById('evalInspectionDate')?.closest('.glass-card');if(dateCard)dateCard.classList.toggle('hidden',mode!=='weekly');
+            const month=document.getElementById('evalSelectedMonth');if(month){month.closest('div')?.classList.toggle('hidden',mode==='achievement');}
+            renderEvaluationTable();
+        }
+
         function renderEvaluationTable() {
             updateSessionalRubricNotice();
             if (!currentCollegeId || !currentTrade) return;
             ensureEvaluationSaveButton();
             let monthVal = document.getElementById('evalSelectedMonth')?.value;
+            const activeMode = window.evalEntryMode || 'monthly';
+            const achDateEl=document.getElementById('evalAchievementDate');
+            if(achDateEl){const cfg=appData.sessionConfig||{};achDateEl.min=cfg.startDate||'2026-08-10';achDateEl.max=cfg.endDate||'2027-06-30';if(!achDateEl.value)achDateEl.value=cfg.startDate||'2026-08-10';}
+            const achievementPeriod=activeMode==='achievement'?getAchievementPeriodForDate(achDateEl?.value):null;
+            if(activeMode==='achievement'&&!achievementPeriod){const label=document.getElementById('achievementPeriodLabel');if(label)label.textContent='चयनित तारीख वर्तमान सत्र के अंदर नहीं है।';return;}
+            const dataKey=activeMode==='achievement'?achievementPeriod.key:monthVal;
+            const dataRoot=activeMode==='achievement'?'achievementTests':'evaluations';
+            const periodLabel=document.getElementById('achievementPeriodLabel');if(periodLabel&&achievementPeriod)periodLabel.textContent=achievementPeriod.label;
             if (!monthVal) {
                 const today = new Date();
                 monthVal = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
                 const el = document.getElementById('evalSelectedMonth');
                 if (el) el.value = monthVal;
             }
+            if(activeMode==='achievement') monthVal=achievementPeriod.start.slice(0,7);
+            const resolvedDataKey=activeMode==='achievement'?achievementPeriod.key:monthVal;
 
             const isLocked = isMonthLocked(currentCollegeId, currentTrade, monthVal);
             const inspectionDateEl = document.getElementById('evalInspectionDate');
@@ -4443,7 +4505,7 @@ window.__itiLoginClick = async function(ev) {
             }
 
             const isEngg = isEnggTrade(currentTrade);
-            const mmConfig = getMaxMarksConfig(currentCollegeId, currentTrade, monthVal);
+            const mmConfig = getMaxMarksConfig(currentCollegeId, currentTrade, resolvedDataKey);
 
             const mmContainer = document.getElementById('maxMarksInputsContainer');
             if (mmContainer) {
@@ -4484,7 +4546,7 @@ window.__itiLoginClick = async function(ev) {
                     <tr>
                         <th rowspan="2" class="col-sticky-roll">रोल</th>
                         <th rowspan="2" class="col-sticky-name">छात्र का नाम</th>
-                        <th colspan="${testColSpan}" style="background:#e0f2fe; color:#0369a1;">मासिक टेस्ट अंक</th>
+                        <th colspan="${testColSpan}" style="background:#e0f2fe; color:#0369a1;">${activeMode === 'achievement' ? 'अचीवमेंट टेस्ट अंक' : 'मासिक टेस्ट अंक'}</th>
                         <th rowspan="2" style="background:#dbeafe; color:#1e40af;">कुल प्राप्तांक</th>
                         <th rowspan="2" style="background:#dbeafe; color:#1e40af;">प्रतिशत (%)</th>
                         <th colspan="2" style="background:#fef3c7; color:#92400e;">साप्ताहिक रिकॉर्ड / फाइल</th>
@@ -4506,12 +4568,12 @@ window.__itiLoginClick = async function(ev) {
                 `;
             }
 
-            if (!appData.evaluations) appData.evaluations = {};
-            if (!appData.evaluations[currentCollegeId]) appData.evaluations[currentCollegeId] = {};
-            if (!appData.evaluations[currentCollegeId][currentTrade]) appData.evaluations[currentCollegeId][currentTrade] = {};
-            if (!appData.evaluations[currentCollegeId][currentTrade][monthVal]) appData.evaluations[currentCollegeId][currentTrade][monthVal] = {};
+            if (!appData[dataRoot]) appData[dataRoot] = {};
+            if (!appData[dataRoot][currentCollegeId]) appData[dataRoot][currentCollegeId] = {};
+            if (!appData[dataRoot][currentCollegeId][currentTrade]) appData[dataRoot][currentCollegeId][currentTrade] = {};
+            if (!appData[dataRoot][currentCollegeId][currentTrade][resolvedDataKey]) appData[dataRoot][currentCollegeId][currentTrade][resolvedDataKey] = {};
 
-            const monthEval = appData.evaluations[currentCollegeId][currentTrade][monthVal];
+            const monthEval = appData[dataRoot][currentCollegeId][currentTrade][resolvedDataKey];
             const tStudents = getStudentList(currentCollegeId, currentTrade);
             const tbody = document.getElementById('evaluationTableBody');
             if (!tbody) return;
@@ -4529,8 +4591,9 @@ window.__itiLoginClick = async function(ev) {
             tStudents.forEach(st => {
                 const sRoll = String(st.roll).trim();
                 const ev = monthEval[sRoll] || { tt: '', tp: '', wcs: '', ed: '', es: '' };
+                const weeklyRecord = appData.weeklyActivities?.[currentCollegeId]?.[currentTrade]?.[selectedInspectionDate]?.[sRoll];
                 const weeklyList = Array.isArray(ev.inspections) ? ev.inspections : [];
-                const weeklyEv = weeklyList.find(x => x.date === selectedInspectionDate) || {
+                const weeklyEv = weeklyRecord || weeklyList.find(x => x.date === selectedInspectionDate) || {
                     recStatus: 'A', recRem: '', diaryStatus: 'नियमित', diaryRem: '',
                     disc: 'उत्कृष्ट', act: 'सक्रिय', plantationStatus: '', plantationRem: ''
                 };
@@ -4605,8 +4668,13 @@ window.__itiLoginClick = async function(ev) {
 
         async function saveAllEvaluations() {
             const monthEl = document.getElementById('evalSelectedMonth');
-            const monthVal = monthEl?.value;
-            if (!monthVal || !currentCollegeId || !currentTrade) {
+            let monthVal = monthEl?.value;
+            const activeMode=window.evalEntryMode||'monthly';
+            const achPeriod=activeMode==='achievement'?getAchievementPeriodForDate(document.getElementById('evalAchievementDate')?.value):null;
+            if(activeMode==='achievement'&&achPeriod)monthVal=achPeriod.start.slice(0,7);
+            const dataKey=activeMode==='achievement'?(achPeriod?.key||''):monthVal;
+            const dataRoot=activeMode==='achievement'?'achievementTests':'evaluations';
+            if ((!monthVal && activeMode!=='achievement') || (activeMode==='achievement'&&!achPeriod) || !currentCollegeId || !currentTrade) {
                 alert("कॉलेज, ट्रेड और माह की जानकारी उपलब्ध नहीं है। कृपया दोबारा लॉगिन करके प्रयास करें।");
                 return;
             }
@@ -4643,12 +4711,12 @@ window.__itiLoginClick = async function(ev) {
                 mmConfig.wcs = Number(document.getElementById('mm_wcs').value) || 20;
                 mmConfig.ed = Number(document.getElementById('mm_ed').value) || 20;
             }
-            appData.maxMarksConfig[currentCollegeId][currentTrade][monthVal] = mmConfig;
+            appData.maxMarksConfig[currentCollegeId][currentTrade][dataKey] = mmConfig;
 
-            if (!appData.evaluations) appData.evaluations = {};
-            if (!appData.evaluations[currentCollegeId]) appData.evaluations[currentCollegeId] = {};
-            if (!appData.evaluations[currentCollegeId][currentTrade]) appData.evaluations[currentCollegeId][currentTrade] = {};
-            if (!appData.evaluations[currentCollegeId][currentTrade][monthVal]) appData.evaluations[currentCollegeId][currentTrade][monthVal] = {};
+            if (!appData[dataRoot]) appData[dataRoot] = {};
+            if (!appData[dataRoot][currentCollegeId]) appData[dataRoot][currentCollegeId] = {};
+            if (!appData[dataRoot][currentCollegeId][currentTrade]) appData[dataRoot][currentCollegeId][currentTrade] = {};
+            if (!appData[dataRoot][currentCollegeId][currentTrade][dataKey]) appData[dataRoot][currentCollegeId][currentTrade][dataKey] = {};
 
             let savedCount = 0;
             for (const st of students) {
@@ -4659,12 +4727,12 @@ window.__itiLoginClick = async function(ev) {
                     return el ? el.value : '';
                 };
                 // केवल मासिक टेस्ट अंक सेव करें; साप्ताहिक निरीक्षण अलग बटन से सेव होगा।
-                const studentEval = appData.evaluations[currentCollegeId][currentTrade][monthVal][roll] || {};
+                const studentEval = appData[dataRoot][currentCollegeId][currentTrade][dataKey][roll] || {};
                 studentEval.tt = getVal('tt_');
                 studentEval.tp = getVal('tp_');
                 studentEval.es = getVal('es_');
                 if (isEngg) { studentEval.wcs = getVal('wcs_'); studentEval.ed = getVal('ed_'); }
-                appData.evaluations[currentCollegeId][currentTrade][monthVal][roll] = studentEval;
+                appData[dataRoot][currentCollegeId][currentTrade][dataKey][roll] = studentEval;
                 savedCount++;
             }
 
@@ -4678,69 +4746,34 @@ window.__itiLoginClick = async function(ev) {
             try {
                 const synced = await syncWithFirebase();
                 if (!synced) throw new Error('Firebase पर डेटा सेव नहीं हो पाया।');
-                showToast(`${currentTrade} ट्रेड के ${savedCount} विद्यार्थियों के मासिक टेस्ट अंक ${monthVal} के लिए सुरक्षित हो गए!`);
+                showToast(`${currentTrade} ट्रेड के ${savedCount} विद्यार्थियों के ${activeMode === 'achievement' ? 'अचीवमेंट टेस्ट' : 'मासिक टेस्ट'} अंक ${activeMode === 'achievement' ? achPeriod.label : monthVal} के लिए सुरक्षित हो गए!`);
             } catch (err) {
                 console.error('Evaluation save failed:', err);
                 alert("अंक लोकल कैश में रखे गए हैं, लेकिन Firebase सेव में समस्या आई। इंटरनेट और Firebase Rules जाँचें, फिर दोबारा सेव करें।");
             } finally {
                 if (btn) {
                     btn.disabled = isMonthLocked(currentCollegeId, currentTrade, monthVal);
-                    btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> मासिक टेस्ट अंक सुरक्षित करें';
+                    btn.innerHTML = activeMode==='achievement'?'अचीवमेंट टेस्ट अंक सुरक्षित करें':'<i class="fa-solid fa-floppy-disk"></i> मासिक टेस्ट अंक सुरक्षित करें';
                 }
             }
         }
 
         async function saveWeeklyInspections() {
-            const monthVal = document.getElementById('evalSelectedMonth')?.value;
-            const inspectionDate = document.getElementById('evalInspectionDate')?.value;
-            if (!monthVal || !inspectionDate || !currentCollegeId || !currentTrade) {
-                alert('कॉलेज, ट्रेड, माह और साप्ताहिक जाँच दिनांक चुनें।'); return;
-            }
-            if (inspectionDate.slice(0,7) !== monthVal) {
-                alert('साप्ताहिक निरीक्षण की तारीख चयनित माह के अंदर होनी चाहिए।'); return;
-            }
-            if (isMonthLocked(currentCollegeId, currentTrade, monthVal)) {
-                alert('यह माह लॉक है। साप्ताहिक निरीक्षण में बदलाव नहीं किया जा सकता।'); return;
-            }
-            const students = getStudentList(currentCollegeId, currentTrade);
-            if (!students.length) { alert('इस ट्रेड में कोई विद्यार्थी उपलब्ध नहीं है।'); return; }
-            if (!appData.evaluations) appData.evaluations = {};
-            if (!appData.evaluations[currentCollegeId]) appData.evaluations[currentCollegeId] = {};
-            if (!appData.evaluations[currentCollegeId][currentTrade]) appData.evaluations[currentCollegeId][currentTrade] = {};
-            if (!appData.evaluations[currentCollegeId][currentTrade][monthVal]) appData.evaluations[currentCollegeId][currentTrade][monthVal] = {};
-            const btn = document.getElementById('btnSaveWeeklyInspection');
-            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> निरीक्षण सेव हो रहा है…'; }
-            let savedCount = 0;
-            try {
-                for (const st of students) {
-                    const roll = String(st.roll ?? '').trim(); if (!roll) continue;
-                    const getVal = id => document.getElementById(id + roll)?.value ?? '';
-                    const studentEval = appData.evaluations[currentCollegeId][currentTrade][monthVal][roll] || {};
-                    if (!Array.isArray(studentEval.inspections)) studentEval.inspections = [];
-                    const inspection = {
-                        date: inspectionDate,
-                        recStatus: getVal('recSt_'), recRem: getVal('recRem_'),
-                        diaryStatus: getVal('diarySt_'), diaryRem: getVal('diaryRem_'),
-                        disc: getVal('disc_'), act: getVal('act_'),
-                        plantationStatus: getVal('plantSt_'), plantationRem: getVal('plantRem_'),
-                        updatedAt: new Date().toISOString(), updatedBy: loggedInInstructor?.name || ''
-                    };
-                    const index = studentEval.inspections.findIndex(x => x.date === inspectionDate);
-                    if (index >= 0) studentEval.inspections[index] = inspection;
-                    else studentEval.inspections.push(inspection);
-                    studentEval.inspections.sort((a,b) => String(a.date).localeCompare(String(b.date)));
-                    appData.evaluations[currentCollegeId][currentTrade][monthVal][roll] = studentEval;
-                    savedCount++;
-                }
-                const synced = await syncWithFirebase();
-                if (!synced) throw new Error('Firebase पर डेटा सेव नहीं हो पाया।');
-                showToast(`${inspectionDate} का साप्ताहिक निरीक्षण ${savedCount} विद्यार्थियों के लिए सुरक्षित हो गया।`);
-            } catch (err) {
-                console.error('Weekly inspection save failed:', err);
-                alert('साप्ताहिक निरीक्षण लोकल कैश में रखा गया है, लेकिन Firebase सेव में समस्या आई। इंटरनेट और Firebase Rules जाँचें।');
-            } finally {
-                if (btn) { btn.disabled = isMonthLocked(currentCollegeId, currentTrade, monthVal); btn.innerHTML = '<i class="fa-solid fa-calendar-check"></i> साप्ताहिक निरीक्षण सुरक्षित करें'; }
-            }
+            const monthVal=document.getElementById('evalSelectedMonth')?.value;
+            const inspectionDate=document.getElementById('evalInspectionDate')?.value;
+            if(!monthVal||!inspectionDate||!currentCollegeId||!currentTrade){alert('कॉलेज, ट्रेड, माह और साप्ताहिक जाँच दिनांक चुनें।');return;}
+            if(inspectionDate.slice(0,7)!==monthVal){alert('साप्ताहिक निरीक्षण की तारीख चयनित माह के अंदर होनी चाहिए।');return;}
+            if(isMonthLocked(currentCollegeId,currentTrade,monthVal)){alert('यह माह लॉक है। साप्ताहिक निरीक्षण में बदलाव नहीं किया जा सकता।');return;}
+            const students=getStudentList(currentCollegeId,currentTrade);if(!students.length){alert('इस ट्रेड में कोई विद्यार्थी उपलब्ध नहीं है।');return;}
+            if(!appData.weeklyActivities)appData.weeklyActivities={};if(!appData.weeklyActivities[currentCollegeId])appData.weeklyActivities[currentCollegeId]={};if(!appData.weeklyActivities[currentCollegeId][currentTrade])appData.weeklyActivities[currentCollegeId][currentTrade]={};if(!appData.weeklyActivities[currentCollegeId][currentTrade][inspectionDate])appData.weeklyActivities[currentCollegeId][currentTrade][inspectionDate]={};
+            const btn=document.getElementById('btnSaveWeeklyInspection');if(btn){btn.disabled=true;btn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> निरीक्षण सेव हो रहा है…';}
+            let savedCount=0;
+            try{
+                for(const st of students){const roll=String(st.roll??'').trim();if(!roll)continue;const getVal=id=>document.getElementById(id+roll)?.value??'';
+                    appData.weeklyActivities[currentCollegeId][currentTrade][inspectionDate][roll]={date:inspectionDate,recStatus:getVal('recSt_'),recRem:getVal('recRem_'),diaryStatus:getVal('diarySt_'),diaryRem:getVal('diaryRem_'),disc:getVal('disc_'),act:getVal('act_'),plantationStatus:getVal('plantSt_'),plantationRem:getVal('plantRem_'),updatedAt:new Date().toISOString(),updatedBy:loggedInInstructor?.name||''};savedCount++;}
+                const synced=await syncWithFirebase();if(!synced)throw new Error('Firebase पर डेटा सेव नहीं हो पाया।');showToast(`${inspectionDate} का साप्ताहिक निरीक्षण ${savedCount} विद्यार्थियों के लिए अलग रिकॉर्ड में सुरक्षित हो गया।`);
+            }catch(err){console.error('Weekly inspection save failed:',err);alert('साप्ताहिक गतिविधि लोकल कैश में रखी गई है, लेकिन Firebase सेव में समस्या आई। इंटरनेट और Firebase Rules जाँचें।');}
+            finally{if(btn){btn.disabled=isMonthLocked(currentCollegeId,currentTrade,monthVal);btn.innerHTML='<i class="fa-solid fa-calendar-check"></i> साप्ताहिक निरीक्षण सुरक्षित करें';}}
         }
 
         function getMaxMarksConfig(colId, trade, monthVal) {
@@ -4970,11 +5003,13 @@ window.__itiLoginClick = async function(ev) {
                     halfStats[halfKey].tpMax += mmTP;
                 }
 
-                if (sEval) {
-                    // नई व्यवस्था: महीने के प्रत्येक साप्ताहिक निरीक्षण को अलग गणना में लें।
-                    // पुराने डेटा के लिए inspections न होने पर पुराने मासिक फ़ील्ड का fallback रखें।
-                    const inspections = Array.isArray(sEval.inspections) ? sEval.inspections : [];
-                    const reviewItems = inspections.length ? inspections : [sEval];
+                {
+                    // साप्ताहिक गतिविधियाँ मासिक टेस्ट से स्वतंत्र हैं; केवल निरीक्षण वाले महीने भी H1/H2 में जुड़ेंगे।
+                    const legacyInspections = Array.isArray(sEval?.inspections) ? sEval.inspections : [];
+                    const weeklyRoot = appData.weeklyActivities?.[collegeId]?.[trade] || {};
+                    const separatedInspections = Object.entries(weeklyRoot).filter(([dt])=>String(dt).startsWith(mVal)).map(([dt,students])=>students?.[sRoll] ? students[sRoll] : null).filter(Boolean);
+                    const inspections = [...legacyInspections, ...separatedInspections];
+                    const reviewItems = inspections.length ? inspections : (sEval ? [sEval] : []);
                     reviewItems.forEach(review => {
                         const rScore = scoreRecord(review.recStatus);
                         const dScore = scoreDiary(review.diaryStatus);
@@ -5537,8 +5572,23 @@ window.__itiLoginClick = async function(ev) {
                 `;
             }
 
+            if(cardsContainer){
+                const achievementRoot=appData.achievementTests?.[currentCollegeId]?.[currentTrade]||{};
+                const achievementCards=[];
+                Object.entries(achievementRoot).sort(([a],[b])=>a.localeCompare(b)).forEach(([periodKey,students])=>{
+                    const ev=students?.[sRollStr]||students?.[sRollNum];if(!ev)return;
+                    const mm=getMaxMarksConfig(currentCollegeId,currentTrade,periodKey);let obtained=(Number(ev.tt)||0)+(Number(ev.tp)||0)+(Number(ev.es)||0);let maximum=(Number(mm.tt)||20)+(Number(mm.tp)||20)+(Number(mm.es)||20);
+                    if(isEnggTrade(currentTrade)){obtained+=(Number(ev.wcs)||0)+(Number(ev.ed)||0);maximum+=(Number(mm.wcs)||20)+(Number(mm.ed)||20);}
+                    const pct=maximum?((obtained/maximum)*100).toFixed(1):'0.0';
+                    achievementCards.push(`<div class="metric-card" style="border-left:4px solid #079b83"><div class="title">अचीवमेंट टेस्ट · ${periodKey}</div><div class="value" style="color:#079b83">${obtained} / ${maximum}</div><div class="sub">प्रतिशत: <strong>${pct}%</strong></div></div>`);
+                });
+                if(achievementCards.length)cardsContainer.innerHTML+=`<div style="grid-column:1/-1;margin-top:12px;font-weight:800;color:#087f6b">त्रैमासिक अचीवमेंट टेस्ट परिणाम</div>${achievementCards.join('')}`;
+            }
+
             if (monthEval) {
-                const weeklyInspections = Array.isArray(monthEval.inspections) ? monthEval.inspections : [];
+                const legacyWeekly = Array.isArray(monthEval.inspections) ? monthEval.inspections : [];
+                const separateWeekly=Object.entries(appData.weeklyActivities?.[currentCollegeId]?.[currentTrade]||{}).filter(([dt])=>String(dt).startsWith(monthVal)).map(([dt,rows])=>rows?.[sRollStr]||rows?.[sRollNum]).filter(Boolean);
+                const weeklyInspections=[...legacyWeekly,...separateWeekly];
                 const latestInspection = weeklyInspections.slice().sort((a,b)=>String(b.date).localeCompare(String(a.date)))[0] || monthEval;
                 document.getElementById('scRecordStatus').innerText = latestInspection.recStatus || 'प्रक्रियाधीन';
                 document.getElementById('scRecordRemark').innerText = `${latestInspection.recRem || '-'}${weeklyInspections.length ? ` · इस माह ${weeklyInspections.length} जाँच` : ''}`;
@@ -5547,6 +5597,17 @@ window.__itiLoginClick = async function(ev) {
                 document.getElementById('scDiscipline').innerText = latestInspection.disc || 'सामान्य';
                 document.getElementById('scActivity').innerText = `${latestInspection.act || 'सामान्य'}${latestInspection.plantationStatus ? ` · प्लांटेशन: ${latestInspection.plantationStatus}` : ''}`;
             } else {
+                const separateWeekly=Object.entries(appData.weeklyActivities?.[currentCollegeId]?.[currentTrade]||{}).filter(([dt])=>String(dt).startsWith(monthVal)).map(([dt,rows])=>rows?.[sRollStr]||rows?.[sRollNum]).filter(Boolean);
+                const latest=separateWeekly.slice().sort((a,b)=>String(b.date).localeCompare(String(a.date)))[0];
+                if(latest){
+                    document.getElementById('scRecordStatus').innerText=latest.recStatus||'प्रक्रियाधीन';
+                    document.getElementById('scRecordRemark').innerText=latest.recRem||'-';
+                    document.getElementById('scDiaryStatus').innerText=latest.diaryStatus||'लंबित';
+                    document.getElementById('scDiaryRemark').innerText=latest.diaryRem||`जाँच दिनांक: ${latest.date}`;
+                    document.getElementById('scDiscipline').innerText=latest.disc||'सामान्य';
+                    document.getElementById('scActivity').innerText=latest.act||'सामान्य';
+                    return;
+                }
                 document.getElementById('scRecordStatus').innerText = 'प्रक्रियाधीन';
                 document.getElementById('scRecordRemark').innerText = 'रिकॉर्ड उपलब्ध नहीं';
                 document.getElementById('scDiaryStatus').innerText = 'लंबित';
@@ -5883,15 +5944,16 @@ window.__itiLoginClick = async function(ev) {
         function exportEvaluationToExcel() {
             if (!currentCollegeId || !currentTrade) { alert("कृपया पहले ट्रेड का चयन करें!"); return; }
             const monthVal = document.getElementById('evalSelectedMonth').value;
+            const mode=window.evalEntryMode||'monthly';const ap=mode==='achievement'?getAchievementPeriodForDate(document.getElementById('evalAchievementDate')?.value):null;const key=mode==='achievement'?(ap?.key||''):monthVal;const root=mode==='achievement'?'achievementTests':'evaluations';
             if (!monthVal) return;
 
             const isEngg = isEnggTrade(currentTrade);
-            const mmConfig = getMaxMarksConfig(currentCollegeId, currentTrade, monthVal);
+            const mmConfig = getMaxMarksConfig(currentCollegeId, currentTrade, key);
             const tStudents = getStudentList(currentCollegeId, currentTrade);
             if (tStudents.length === 0) { alert("इस ट्रेड में कोई छात्र पंजीकृत नहीं है!"); return; }
 
             const colName = getCollegeName(currentCollegeId);
-            const monthEval = (appData.evaluations && appData.evaluations[currentCollegeId] && appData.evaluations[currentCollegeId][currentTrade] && appData.evaluations[currentCollegeId][currentTrade][monthVal]) || {};
+            const monthEval = (appData[root] && appData[root][currentCollegeId] && appData[root][currentCollegeId][currentTrade] && appData[root][currentCollegeId][currentTrade][key]) || {};
             const headers = ["कॉलेज", "रोल नंबर", "छात्र का नाम", `Trade Theory (TT / ${mmConfig.tt || 20})`, `Trade Practical (TP / ${mmConfig.tp || 20})`];
             if (isEngg) {
                 headers.push(`WCS (/ ${mmConfig.wcs || 20})`, `Engg. Drawing (ED / ${mmConfig.ed || 20})`);
@@ -5934,7 +5996,7 @@ window.__itiLoginClick = async function(ev) {
             const wb = XLSX.utils.book_new();
             const ws = XLSX.utils.aoa_to_sheet(excelRows);
             XLSX.utils.book_append_sheet(wb, ws, "Evaluations");
-            XLSX.writeFile(wb, `${colName}_${currentTrade}_${monthVal}.xlsx`);
+            XLSX.writeFile(wb, `${colName}_${currentTrade}_${mode==='achievement'?(ap?.key||'achievement'):monthVal}.xlsx`);
             showToast("मासिक मूल्यांकन एक्सेल शीट डाउनलोड हो गई!");
         }
 
