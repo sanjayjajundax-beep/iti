@@ -1040,6 +1040,7 @@ footer{background:#092b68!important;border-top:1px solid #1e4d91!important}
             evaluations: {}, 
             achievementTests: {},
             weeklyActivities: {},
+            weeklyPracticalMarks: {},
             maxMarksConfig: {} 
         };
 
@@ -1325,7 +1326,8 @@ window.__itiLoginClick = async function(ev) {
  <div class="instructor-tabs" style="margin:0;">
   <button type="button" class="inst-tab-btn active" id="evalModeMonthlyBtn" onclick="setEvaluationEntryMode('monthly')"><i class="fa-solid fa-calendar-days"></i> मासिक टेस्ट</button>
   <button type="button" class="inst-tab-btn" id="evalModeAchievementBtn" onclick="setEvaluationEntryMode('achievement')"><i class="fa-solid fa-trophy"></i> अचीवमेंट टेस्ट</button>
-  <button type="button" class="inst-tab-btn" id="evalModeWeeklyBtn" onclick="setEvaluationEntryMode('weekly')"><i class="fa-solid fa-book-open"></i> साप्ताहिक गतिविधियाँ</button>
+  <button type="button" class="inst-tab-btn" id="evalModeWeeklyBtn" onclick="setEvaluationEntryMode('weekly')"><i class="fa-solid fa-book-open"></i> साप्ताहिक निरीक्षण</button>
+  <button type="button" class="inst-tab-btn" id="evalModePracticalWeeklyBtn" onclick="setEvaluationEntryMode('practicalWeekly')"><i class="fa-solid fa-screwdriver-wrench"></i> नियमित प्रायोगिक कार्य</button>
  </div>
  <div id="achievementPeriodPicker" class="hidden" style="margin-top:12px;padding:10px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;">
   <label for="evalAchievementDate" style="font-weight:700;display:block;margin-bottom:5px;">अचीवमेंट टेस्ट की तारीख / तिमाही चुनें</label>
@@ -1333,6 +1335,7 @@ window.__itiLoginClick = async function(ev) {
   <div id="achievementPeriodLabel" style="font-size:.82rem;color:#1e40af;font-weight:700;margin-top:7px;"></div>
  </div>
  <div id="weeklyModeHint" class="hidden" style="margin-top:9px;color:#0f766e;font-size:.82rem;">यहाँ केवल साप्ताहिक निरीक्षण दर्ज होंगे। टेस्ट के अंक इस स्क्रीन पर नहीं बदलेंगे।</div>
+ <div id="practicalWeeklyModeHint" class="hidden" style="margin-top:9px;color:#0f766e;font-size:.82rem;">यहाँ अनुदेशक अपने नियमित प्रायोगिक कार्य के रिकॉर्ड के आधार पर प्रत्येक विद्यार्थी को सप्ताह में एक बार 100 में से अंक देंगे। केवल दर्ज अंकों का H1/H2 औसत लिया जाएगा; खाली या अनुपस्थित प्रविष्टियाँ औसत में शामिल नहीं होंगी।</div>
 </div>
 <div class="controls-card" id="evaluationControlsCard">
 <div class="controls-left">
@@ -1348,6 +1351,7 @@ window.__itiLoginClick = async function(ev) {
 <button class="app-btn app-btn-excel" onclick="exportEvaluationToExcel()"><i class="fa-solid fa-file-excel"></i> मूल्यांकन एक्सेल (.xlsx)</button>
 <button class="app-btn app-btn-success" id="btnSaveEval" onclick="saveAllEvaluations()"><i class="fa-solid fa-floppy-disk"></i> मासिक टेस्ट अंक सुरक्षित करें</button>
 <button class="app-btn app-btn-primary" id="btnSaveWeeklyInspection" onclick="saveWeeklyInspections()"><i class="fa-solid fa-calendar-check"></i> साप्ताहिक निरीक्षण सुरक्षित करें</button>
+<button class="app-btn app-btn-success hidden" id="btnSaveWeeklyPractical" onclick="saveWeeklyPracticalMarks()"><i class="fa-solid fa-floppy-disk"></i> नियमित प्रायोगिक अंक सुरक्षित करें</button>
 <button class="app-btn app-btn-dark" onclick="syncWithFirebase()"><i class="fa-solid fa-cloud-arrow-up"></i> Firebase सेव करें</button>
 </div>
 </div>
@@ -1372,6 +1376,13 @@ window.__itiLoginClick = async function(ev) {
     <label style="font-weight:700;white-space:nowrap;">जाँच दिनांक: <input id="evalInspectionDate" type="date" onchange="renderEvaluationTable()" style="margin-left:5px;padding:7px;border:1px solid #cbd5e1;border-radius:8px;"></label>
   </div>
   <div style="font-size:.78rem;color:#475569;margin-top:8px;">नीचे की रिकॉर्ड, डायरी, गतिविधि और प्लांटेशन वाली एंट्री इसी तारीख की साप्ताहिक जाँच के रूप में सेव होगी। मासिक टेस्ट अंक अलग सुरक्षित होंगे।</div>
+</div>
+<div id="weeklyPracticalDateCard" class="glass-card hidden" style="padding:13px 16px;margin:12px 0;border-left:5px solid #2563eb;">
+  <div style="display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;">
+    <div><strong style="color:#1d4ed8;"><i class="fa-solid fa-screwdriver-wrench"></i> साप्ताहिक नियमित प्रायोगिक कार्य</strong><div style="font-size:.8rem;color:#64748b;margin-top:3px;">प्रत्येक सप्ताह विद्यार्थी के वास्तविक प्रैक्टिकल प्रदर्शन के आधार पर 100 में से अंक भरें।</div></div>
+    <label style="font-weight:700;white-space:nowrap;">सप्ताह / मूल्यांकन दिनांक: <input id="evalPracticalDate" type="date" onchange="renderEvaluationTable()" style="margin-left:5px;padding:7px;border:1px solid #cbd5e1;border-radius:8px;"></label>
+  </div>
+  <div style="font-size:.78rem;color:#475569;margin-top:8px;">जिस विद्यार्थी का मूल्यांकन नहीं हुआ या जो अनुपस्थित था, उसका अंक खाली रखें और स्थिति चुनें। खाली अंक को शून्य नहीं माना जाएगा।</div>
 </div>
 <div class="table-shell" id="evalTableShell">
 <table>
@@ -4454,27 +4465,109 @@ window.__itiLoginClick = async function(ev) {
             return {index:index+1,start:dateOnlyLocal(periodStart),end:dateOnlyLocal(periodEnd),key:`Q${index+1}_${dateOnlyLocal(periodStart)}`,label:`अचीवमेंट टेस्ट ${index+1}: ${dateOnlyLocal(periodStart)} से ${dateOnlyLocal(periodEnd)}`};
         }
         function setEvaluationEntryMode(mode){
-            if(!['monthly','achievement','weekly'].includes(mode))return;window.evalEntryMode=mode;
-            ['monthly','achievement','weekly'].forEach(k=>{const b=document.getElementById('evalMode'+k.charAt(0).toUpperCase()+k.slice(1)+'Btn');if(b)b.classList.toggle('active',k===mode);});
+            if(!['monthly','achievement','weekly','practicalWeekly'].includes(mode))return;
+            window.evalEntryMode=mode;
+            ['monthly','achievement','weekly','practicalWeekly'].forEach(k=>{const b=document.getElementById('evalMode'+k.charAt(0).toUpperCase()+k.slice(1)+'Btn');if(b)b.classList.toggle('active',k===mode);});
             const picker=document.getElementById('achievementPeriodPicker');if(picker)picker.classList.toggle('hidden',mode!=='achievement');
             const hint=document.getElementById('weeklyModeHint');if(hint)hint.classList.toggle('hidden',mode!=='weekly');
-            const shell=document.getElementById('evalTableShell');if(shell){shell.classList.remove('mode-tests','mode-weekly','engg');shell.classList.add(mode==='weekly'?'mode-weekly':'mode-tests');if(isEnggTrade(currentTrade))shell.classList.add('engg');}
-            const save=document.getElementById('btnSaveEval');if(save){save.textContent=mode==='achievement'?'अचीवमेंट टेस्ट अंक सुरक्षित करें':'मासिक टेस्ट अंक सुरक्षित करें';save.classList.toggle('hidden',mode==='weekly');}
+            const practicalHint=document.getElementById('practicalWeeklyModeHint');if(practicalHint)practicalHint.classList.toggle('hidden',mode!=='practicalWeekly');
+            const shell=document.getElementById('evalTableShell');if(shell){shell.classList.remove('mode-tests','mode-weekly','mode-practical-weekly','engg');shell.classList.add(mode==='weekly'?'mode-weekly':mode==='practicalWeekly'?'mode-practical-weekly':'mode-tests');if(isEnggTrade(currentTrade))shell.classList.add('engg');}
+            const save=document.getElementById('btnSaveEval');if(save){save.textContent=mode==='achievement'?'अचीवमेंट टेस्ट अंक सुरक्षित करें':'मासिक टेस्ट अंक सुरक्षित करें';save.classList.toggle('hidden',mode==='weekly'||mode==='practicalWeekly');}
             const weeklySave=document.getElementById('btnSaveWeeklyInspection');if(weeklySave)weeklySave.classList.toggle('hidden',mode!=='weekly');
-            const exportBtn=document.querySelector('#instTabEvaluation .app-btn-excel');if(exportBtn)exportBtn.classList.toggle('hidden',mode==='weekly');
-            const mm=document.querySelector('.max-marks-banner');if(mm)mm.classList.toggle('hidden',mode==='weekly');
+            const practicalSave=document.getElementById('btnSaveWeeklyPractical');if(practicalSave)practicalSave.classList.toggle('hidden',mode!=='practicalWeekly');
+            const exportBtn=document.querySelector('#instTabEvaluation .app-btn-excel');if(exportBtn)exportBtn.classList.toggle('hidden',mode==='weekly'||mode==='practicalWeekly');
+            const mm=document.querySelector('.max-marks-banner');if(mm)mm.classList.toggle('hidden',mode==='weekly'||mode==='practicalWeekly');
             const rubric=document.getElementById('sessionalRubricNotice');if(rubric)rubric.classList.toggle('hidden',mode==='achievement');
             const dateCard=document.getElementById('evalInspectionDate')?.closest('.glass-card');if(dateCard)dateCard.classList.toggle('hidden',mode!=='weekly');
-            const month=document.getElementById('evalSelectedMonth');if(month){month.closest('div')?.classList.toggle('hidden',mode==='achievement');}
+            const practicalDateCard=document.getElementById('weeklyPracticalDateCard');if(practicalDateCard)practicalDateCard.classList.toggle('hidden',mode!=='practicalWeekly');
+            const month=document.getElementById('evalSelectedMonth');if(month){month.closest('div')?.classList.toggle('hidden',mode==='achievement'||mode==='weekly'||mode==='practicalWeekly');}
             renderEvaluationTable();
         }
+
+        function getWeeklyPracticalRoot(collegeId=currentCollegeId, trade=currentTrade){
+            if(!appData.weeklyPracticalMarks)appData.weeklyPracticalMarks={};
+            if(!appData.weeklyPracticalMarks[collegeId])appData.weeklyPracticalMarks[collegeId]={};
+            if(!appData.weeklyPracticalMarks[collegeId][trade])appData.weeklyPracticalMarks[collegeId][trade]={};
+            return appData.weeklyPracticalMarks[collegeId][trade];
+        }
+
+        function getWeeklyPracticalEntriesForStudent(collegeId,trade,roll){
+            const root=appData.weeklyPracticalMarks?.[collegeId]?.[trade]||{};
+            return Object.entries(root).map(([date,rows])=>({date,...(rows?.[String(roll)]||{})}))
+                .filter(x=>x.score!==null&&x.score!==undefined&&x.score!==''&&Number.isFinite(Number(x.score))&&Number(x.score)>=0&&Number(x.score)<=100)
+                .sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+        }
+
+        function getDateHalfKey(dateValue){
+            const info=getSessionHalfInfo();const d=new Date(String(dateValue)+'T00:00:00');
+            return !isNaN(d)&&d<=info.split?'H1':'H2';
+        }
+
+        function renderWeeklyPracticalMarksTable(){
+            if(!currentCollegeId||!currentTrade)return;
+            const dateEl=document.getElementById('evalPracticalDate');
+            const cfg=getSessionConfig();
+            if(dateEl){dateEl.min=cfg.startDate;dateEl.max=cfg.endDate;if(!dateEl.value){const today=dateOnlyLocal(new Date());dateEl.value=today>=cfg.startDate&&today<=cfg.endDate?today:cfg.startDate;}}
+            const date=dateEl?.value||cfg.startDate;
+            const month=date.slice(0,7),locked=isMonthLocked(currentCollegeId,currentTrade,month);
+            const lockBadge=document.getElementById('evalLockStatusBadge');
+            if(lockBadge){lockBadge.className=locked?'lock-indicator lock-active':'lock-indicator lock-open';lockBadge.innerHTML=locked?'<i class="fa-solid fa-lock"></i> माह लॉक है (केवल दृश्य मोड)':'<i class="fa-solid fa-lock-open"></i> संपादन सक्रिय';}
+            const save=document.getElementById('btnSaveWeeklyPractical');if(save)save.disabled=locked;
+            if(dateEl)dateEl.disabled=locked;
+            const header=document.getElementById('evalTableHeader'),body=document.getElementById('evaluationTableBody');if(!header||!body)return;
+            header.innerHTML='<tr><th>रोल</th><th>विद्यार्थी का नाम</th><th>प्राप्तांक (100 में से)</th><th>मूल्यांकन स्थिति</th><th>अनुदेशक टिप्पणी</th><th>H1/H2 अब तक का औसत</th></tr>';
+            const students=getStudentList(currentCollegeId,currentTrade);const root=getWeeklyPracticalRoot();
+            if(!students.length){body.innerHTML='<tr><td colspan="6" class="empty">इस ट्रेड में कोई विद्यार्थी पंजीकृत नहीं है।</td></tr>';return;}
+            body.innerHTML=students.map(st=>{
+                const roll=String(st.roll??'').trim(),old=root[date]?.[roll]||{};
+                const score=old.score===null||old.score===undefined?'':old.score;
+                const status=old.status||(score!==''?'evaluated':'pending');
+                const half=getDateHalfKey(date);const entries=getWeeklyPracticalEntriesForStudent(currentCollegeId,currentTrade,roll).filter(x=>getDateHalfKey(x.date)===half);
+                const avg=entries.length?(entries.reduce((a,x)=>a+Number(x.score),0)/entries.length).toFixed(1):'—';
+                return `<tr>
+                    <td><b>${supEscape(roll)}</b></td><td style="font-weight:700;text-align:left;">${supEscape(st.name||'')}</td>
+                    <td><input type="number" id="wpScore_${supEscape(roll)}" min="0" max="100" step="0.5" value="${score}" ${locked?'disabled':''} placeholder="खाली रखें" style="width:105px;text-align:center;padding:7px;border:1px solid #cbd5e1;border-radius:7px;"></td>
+                    <td><select id="wpStatus_${supEscape(roll)}" ${locked?'disabled':''} style="min-width:130px;padding:7px;border:1px solid #cbd5e1;border-radius:7px;"><option value="evaluated" ${status==='evaluated'?'selected':''}>मूल्यांकन किया</option><option value="absent" ${status==='absent'?'selected':''}>अनुपस्थित</option><option value="pending" ${status==='pending'?'selected':''}>मूल्यांकन शेष</option></select></td>
+                    <td><input type="text" id="wpRemark_${supEscape(roll)}" value="${supEscape(old.remark||'')}" ${locked?'disabled':''} placeholder="वैकल्पिक टिप्पणी" style="min-width:150px;padding:7px;border:1px solid #cbd5e1;border-radius:7px;"></td>
+                    <td><b>${avg}</b> <small style="color:#64748b;">(${entries.length} सप्ताह)</small></td>
+                </tr>`;
+            }).join('');
+        }
+
+        async function saveWeeklyPracticalMarks(){
+            const date=document.getElementById('evalPracticalDate')?.value;
+            const cfg=getSessionConfig();
+            if(!date||date<cfg.startDate||date>cfg.endDate||!currentCollegeId||!currentTrade){alert('सत्र के अंदर मूल्यांकन दिनांक चुनें।');return;}
+            if(isMonthLocked(currentCollegeId,currentTrade,date.slice(0,7))){alert('यह माह लॉक है। साप्ताहिक प्रायोगिक अंक बदले नहीं जा सकते।');return;}
+            const students=getStudentList(currentCollegeId,currentTrade);if(!students.length){alert('इस ट्रेड में विद्यार्थी उपलब्ध नहीं हैं।');return;}
+            const root=getWeeklyPracticalRoot();if(!root[date])root[date]={};
+            const pending=[],updates=[];
+            for(const st of students){
+                const roll=String(st.roll??'').trim();if(!roll)continue;
+                const raw=document.getElementById('wpScore_'+roll)?.value?.trim()??'';
+                const status=document.getElementById('wpStatus_'+roll)?.value||'pending';
+                const remark=document.getElementById('wpRemark_'+roll)?.value?.trim()||'';
+                if(raw!==''&&(!Number.isFinite(Number(raw))||Number(raw)<0||Number(raw)>100)){alert(`${st.name}: अंक 0 से 100 के बीच भरें।`);return;}
+                if(status==='evaluated'&&raw===''){pending.push(st.name);continue;}
+                if(status!=='evaluated'&&raw!==''){alert(`${st.name}: अंक भरे हैं, इसलिए स्थिति 'मूल्यांकन किया' चुनें।`);return;}
+                updates.push({roll,record:{date,score:raw===''?null:Number(raw),status,remark,updatedAt:new Date().toISOString(),updatedBy:loggedInInstructor?.name||'',instructorId:loggedInInstructor?.id||'',instructorName:loggedInInstructor?.name||''}});
+            }
+            if(pending.length){alert('इन विद्यार्थियों की स्थिति मूल्यांकन किया है, लेकिन अंक खाली हैं:\n'+pending.join(', '));return;}
+            updates.forEach(x=>root[date][x.roll]=x.record);
+            const btn=document.getElementById('btnSaveWeeklyPractical');if(btn){btn.disabled=true;btn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> सेव हो रहा है…';}
+            try{const synced=await syncWithFirebase();if(!synced)throw new Error('Firebase save failed');showToast(`${date} के नियमित प्रायोगिक कार्य के साप्ताहिक अंक Firebase में सुरक्षित हो गए।`);renderWeeklyPracticalMarksTable();}
+            catch(e){console.error('Weekly practical save failed',e);alert('अंक लोकल कैश में सुरक्षित हैं, लेकिन Firebase sync नहीं हुआ। इंटरनेट और Firebase Rules जाँचें।');}
+            finally{if(btn){btn.disabled=isMonthLocked(currentCollegeId,currentTrade,date.slice(0,7));btn.innerHTML='<i class="fa-solid fa-floppy-disk"></i> नियमित प्रायोगिक अंक सुरक्षित करें';}}
+        }
+
 
         function renderEvaluationTable() {
             updateSessionalRubricNotice();
             if (!currentCollegeId || !currentTrade) return;
             ensureEvaluationSaveButton();
-            let monthVal = document.getElementById('evalSelectedMonth')?.value;
             const activeMode = window.evalEntryMode || 'monthly';
+            if(activeMode==='practicalWeekly'){renderWeeklyPracticalMarksTable();return;}
+            let monthVal = document.getElementById('evalSelectedMonth')?.value;
             const modeShell=document.getElementById('evalTableShell');
             if(modeShell){modeShell.classList.remove('mode-tests','mode-weekly','engg');modeShell.classList.add(activeMode==='weekly'?'mode-weekly':'mode-tests');if(isEnggTrade(currentTrade))modeShell.classList.add('engg');}
             const achDateEl=document.getElementById('evalAchievementDate');
@@ -4743,6 +4836,7 @@ window.__itiLoginClick = async function(ev) {
                 studentEval.tp = getVal('tp_');
                 studentEval.es = getVal('es_');
                 if (isEngg) { studentEval.wcs = getVal('wcs_'); studentEval.ed = getVal('ed_'); }
+                if(activeMode==='achievement'){studentEval.testDate=document.getElementById('evalAchievementDate')?.value||achPeriod.start;studentEval.testPeriod=achPeriod.label;}
                 appData[dataRoot][currentCollegeId][currentTrade][dataKey][roll] = studentEval;
                 savedCount++;
             }
@@ -4869,6 +4963,9 @@ window.__itiLoginClick = async function(ev) {
             if (appData.evaluations && appData.evaluations[collegeId] && appData.evaluations[collegeId][trade]) {
                 Object.keys(appData.evaluations[collegeId][trade]).forEach(m => recordedMonthsSet.add(m));
             }
+            Object.keys(appData.weeklyPracticalMarks?.[collegeId]?.[trade]||{}).forEach(d=>{if(/^\d{4}-\d{2}-\d{2}$/.test(d))recordedMonthsSet.add(d.slice(0,7));});
+            Object.keys(appData.weeklyActivities?.[collegeId]?.[trade]||{}).forEach(d=>{if(/^\d{4}-\d{2}-\d{2}$/.test(d))recordedMonthsSet.add(d.slice(0,7));});
+            Object.keys(appData.achievementTests?.[collegeId]?.[trade]||{}).forEach(k=>{const m=String(k).match(/^Q\d+_(\d{4}-\d{2}-\d{2})$/);if(m)recordedMonthsSet.add(m[1].slice(0,7));});
             
             const allMonths = Array.from(recordedMonthsSet)
                 .filter(mVal => isMonthInSession(mVal))
@@ -4888,11 +4985,10 @@ window.__itiLoginClick = async function(ev) {
             
             // H1/H2 की सीमा एडमिन द्वारा निर्धारित सत्र की कुल अवधि से स्वतः निकलेगी।
             const halfStats = {
-                H1: { months: 0, present: 0, working: 0, ttObt: 0, ttMax: 0, tpObt: 0, tpMax: 0, rec: [], diary: [], activity: [] },
-                H2: { months: 0, present: 0, working: 0, ttObt: 0, ttMax: 0, tpObt: 0, tpMax: 0, rec: [], diary: [], activity: [] }
+                H1: { months: 0, present: 0, working: 0, practicalWork: [], practicalTests: [], theoryTests: [], diary: [], activity: [] },
+                H2: { months: 0, present: 0, working: 0, practicalWork: [], practicalTests: [], theoryTests: [], diary: [], activity: [] }
             };
-            const allRecScores = [], allDiaryScores = [], allActivityScores = [];
-            const scoreRecord = v => ({'A+':48, 'A':44, 'B':36, 'C':28}[v] ?? null);
+            const allPracticalWorkScores = [], allDiaryScores = [], allActivityScores = [];
             const scoreDiary = v => ({'नियमित':27.5, 'अनियमित':21, 'लंबित':15}[v] ?? null);
             const scoreActivity = (disc, act) => {
                 if (disc === 'उत्कृष्ट' || act === 'सक्रिय') return 9.5;
@@ -4939,9 +5035,10 @@ window.__itiLoginClick = async function(ev) {
                     }
                 }
 
-                if (mWorking === 0 && (!appData.evaluations || !appData.evaluations[collegeId] || !appData.evaluations[collegeId][trade] || !appData.evaluations[collegeId][trade][mVal])) {
-                    return;
-                }
+                const hasMonthEval=!!appData.evaluations?.[collegeId]?.[trade]?.[mVal];
+                const hasWeeklyPractical=Object.entries(appData.weeklyPracticalMarks?.[collegeId]?.[trade]||{}).some(([dt,rows])=>String(dt).startsWith(mVal)&&!!rows?.[sRoll]);
+                const hasWeeklyInspection=Object.entries(appData.weeklyActivities?.[collegeId]?.[trade]||{}).some(([dt,rows])=>String(dt).startsWith(mVal)&&!!rows?.[sRoll]);
+                if (mWorking === 0 && !hasMonthEval && !hasWeeklyPractical && !hasWeeklyInspection) return;
 
                 yearlyPortalW += mWorking;
                 yearlyPortalP += mPresent;
@@ -4973,34 +5070,21 @@ window.__itiLoginClick = async function(ev) {
 
                 if (hasMarks) {
                     const mm = getMaxMarksConfig(collegeId, trade, mVal);
-                    const tt = parseFloat(sEval.tt) || 0;
-                    const tp = parseFloat(sEval.tp) || 0;
-                    const es = parseFloat(sEval.es) || 0;
-
-                    let mmTT = parseFloat(mm.tt) || 20;
-                    let mmTP = parseFloat(mm.tp) || 20;
-                    let mmES = parseFloat(mm.es) || 20;
-
-                    if (tt > mmTT) mmTT = tt;
-                    if (tp > mmTP) mmTP = tp;
-                    if (es > mmES) mmES = es;
-
-                    mTotalObt = tt + tp + es;
-                    mTotalMM = mmTT + mmTP + mmES;
-
-                    sumTTObt += tt; sumTTMax += mmTT;
-                    sumTPObt += tp; sumTPMax += mmTP;
-
-                    if (isEngg) {
-                        const wcs = parseFloat(sEval.wcs) || 0;
-                        const ed = parseFloat(sEval.ed) || 0;
-                        let mmWCS = parseFloat(mm.wcs) || 20;
-                        let mmED = parseFloat(mm.ed) || 20;
-                        if (wcs > mmWCS) mmWCS = wcs;
-                        if (ed > mmED) mmED = ed;
-                        mTotalObt += (wcs + ed);
-                        mTotalMM += (mmWCS + mmED);
-                    }
+                    const testParts=[];
+                    const addTestPart=(field,maxField)=>{
+                        const raw=sEval[field];
+                        if(raw!==''&&raw!==undefined&&raw!==null){
+                            const obtained=Number(raw)||0;let maximum=Number(mm[maxField])||20;
+                            if(obtained>maximum)maximum=obtained;
+                            testParts.push({field,obtained,maximum});
+                        }
+                    };
+                    addTestPart('tt','tt');addTestPart('tp','tp');addTestPart('es','es');
+                    if(isEngg){addTestPart('wcs','wcs');addTestPart('ed','ed');}
+                    mTotalObt=testParts.reduce((a,x)=>a+x.obtained,0);
+                    mTotalMM=testParts.reduce((a,x)=>a+x.maximum,0);
+                    const ttPart=testParts.find(x=>x.field==='tt');if(ttPart){sumTTObt+=ttPart.obtained;sumTTMax+=ttPart.maximum;}
+                    const tpPart=testParts.find(x=>x.field==='tp');if(tpPart){sumTPObt+=tpPart.obtained;sumTPMax+=tpPart.maximum;}
 
                     mTestPct = mTotalMM > 0 ? ((mTotalObt / mTotalMM) * 100).toFixed(1) : "0.0";
                     scoreDisplay = `${mTotalObt} / ${mTotalMM}`;
@@ -5008,10 +5092,15 @@ window.__itiLoginClick = async function(ev) {
                     totalObt += mTotalObt;
                     totalMax += mTotalMM;
                     halfStats[halfKey].months++;
-                    halfStats[halfKey].ttObt += tt;
-                    halfStats[halfKey].ttMax += mmTT;
-                    halfStats[halfKey].tpObt += tp;
-                    halfStats[halfKey].tpMax += mmTP;
+                    // प्रत्येक माह के टेस्ट प्रतिशत को अलग रिकॉर्ड मानकर औसत में शामिल करें।
+                    if(sEval.tp!==''&&sEval.tp!==undefined&&sEval.tp!==null&&mmTP>0)halfStats[halfKey].practicalTests.push((tp/mmTP)*100);
+                    const theoryParts=[];
+                    if(sEval.tt!==''&&sEval.tt!==undefined&&sEval.tt!==null)theoryParts.push([tt,mmTT]);
+                    if(sEval.es!==''&&sEval.es!==undefined&&sEval.es!==null)theoryParts.push([es,mmES]);
+                    if(isEngg&&sEval.wcs!==''&&sEval.wcs!==undefined&&sEval.wcs!==null)theoryParts.push([parseFloat(sEval.wcs)||0,parseFloat(mm.wcs)||20]);
+                    if(isEngg&&sEval.ed!==''&&sEval.ed!==undefined&&sEval.ed!==null)theoryParts.push([parseFloat(sEval.ed)||0,parseFloat(mm.ed)||20]);
+                    const theoryObt=theoryParts.reduce((a,x)=>a+x[0],0),theoryMax=theoryParts.reduce((a,x)=>a+x[1],0);
+                    if(theoryMax>0)halfStats[halfKey].theoryTests.push((theoryObt/theoryMax)*100);
                 }
 
                 {
@@ -5022,12 +5111,19 @@ window.__itiLoginClick = async function(ev) {
                     const inspections = [...legacyInspections, ...separatedInspections];
                     const reviewItems = inspections.length ? inspections : (sEval ? [sEval] : []);
                     reviewItems.forEach(review => {
-                        const rScore = scoreRecord(review.recStatus);
                         const dScore = scoreDiary(review.diaryStatus);
                         const aScore = scoreActivity(review.disc, review.act);
-                        if (rScore !== null) { allRecScores.push(rScore); halfStats[halfKey].rec.push(rScore); }
                         if (dScore !== null) { allDiaryScores.push(dScore); halfStats[halfKey].diary.push(dScore); }
                         if (aScore !== null) { allActivityScores.push(aScore); halfStats[halfKey].activity.push(aScore); }
+                    });
+                    // नियमित प्रायोगिक कार्य के वास्तविक साप्ताहिक अंक अलग मॉड्यूल से आते हैं।
+                    Object.entries(appData.weeklyPracticalMarks?.[collegeId]?.[trade]||{}).forEach(([dt,rows])=>{
+                        if(String(dt).startsWith(mVal)){
+                            const mark=rows?.[sRoll];
+                            if(mark&&mark.score!==null&&mark.score!==undefined&&mark.score!==''&&Number.isFinite(Number(mark.score))&&Number(mark.score)>=0&&Number(mark.score)<=100){
+                                const score=Number(mark.score);allPracticalWorkScores.push(score);halfStats[getDateHalfKey(dt)].practicalWork.push(score);
+                            }
+                        }
                     });
                 }
 
@@ -5063,48 +5159,69 @@ window.__itiLoginClick = async function(ev) {
 
             const attWeightScore = ((overallAttPct / 100) * 10).toFixed(1);
 
-            let tpTestWeightScore = "0.0";
-            if (sumTPMax > 0) {
-                tpTestWeightScore = ((sumTPObt / sumTPMax) * 30).toFixed(1);
-            } else if (totalMax > 0) {
-                tpTestWeightScore = ((totalObt / totalMax) * 30).toFixed(1);
-            }
-
-            let ttTestWeightScore = "0.0";
-            if (sumTTMax > 0) {
-                ttTestWeightScore = ((sumTTObt / sumTTMax) * 50).toFixed(1);
-            } else if (totalMax > 0) {
-                ttTestWeightScore = ((totalObt / totalMax) * 50).toFixed(1);
-            }
-
-            // पूरे सत्र के उपलब्ध मासिक मूल्यांकनों का औसत (केवल अंतिम माह नहीं)।
-            const average = arr => arr.length ? arr.reduce((a,b)=>a+b,0) / arr.length : 0;
-            const pracWorkScore = average(allRecScores).toFixed(1);
-            const notesScore = average(allDiaryScores).toFixed(1);
-            const activityScore = average(allActivityScores).toFixed(1);
+            // सभी उपलब्ध टेस्टों के प्रतिशत का औसत; TP प्रायोगिक और TT+ES+WCS+ED सैद्धांतिक में।
+            const average = arr => arr.length ? arr.reduce((a,b)=>a+b,0) / arr.length : null;
+            const allPracticalTestPcts=[], allTheoryTestPcts=[];
+            // मासिक टेस्ट रिकॉर्ड को माहवार प्रतिशत के रूप में पुनः पढ़ें।
+            allMonths.forEach(mVal=>{
+                const ev=appData.evaluations?.[collegeId]?.[trade]?.[mVal]?.[sRoll];if(!ev)return;
+                const mm=getMaxMarksConfig(collegeId,trade,mVal);const tp=Number(ev.tp),tt=Number(ev.tt),es=Number(ev.es);
+                if(ev.tp!==''&&ev.tp!==undefined&&ev.tp!==null){const max=Number(mm.tp)||20;if(max>0)allPracticalTestPcts.push((tp/max)*100);}
+                const theoryParts=[];
+                if(ev.tt!==''&&ev.tt!==undefined&&ev.tt!==null)theoryParts.push([tt,Number(mm.tt)||20]);
+                if(ev.es!==''&&ev.es!==undefined&&ev.es!==null)theoryParts.push([es,Number(mm.es)||20]);
+                if(isEngg){if(ev.wcs!==''&&ev.wcs!==undefined&&ev.wcs!==null)theoryParts.push([Number(ev.wcs),Number(mm.wcs)||20]);if(ev.ed!==''&&ev.ed!==undefined&&ev.ed!==null)theoryParts.push([Number(ev.ed),Number(mm.ed)||20]);}
+                const got=theoryParts.reduce((a,x)=>a+x[0],0),max=theoryParts.reduce((a,x)=>a+x[1],0);if(max>0)allTheoryTestPcts.push((got/max)*100);
+            });
+            // पुराने/नए अचीवमेंट टेस्ट भी अलग टेस्ट रिकॉर्ड हैं; तिमाही की शुरुआत के आधार पर H1/H2 में जोड़ें।
+            Object.entries(appData.achievementTests?.[collegeId]?.[trade]||{}).forEach(([key,rows])=>{
+                const match=String(key).match(/^Q\d+_(\d{4}-\d{2}-\d{2})$/);if(!match)return;
+                const ev=rows?.[sRoll];if(!ev)return;const testDate=ev.testDate||match[1];
+                const mm=getMaxMarksConfig(collegeId,trade,key);const tp=Number(ev.tp),tt=Number(ev.tt),es=Number(ev.es);
+                if(ev.tp!==''&&ev.tp!==undefined&&ev.tp!==null){const max=Number(mm.tp)||20;if(max>0)allPracticalTestPcts.push((tp/max)*100);}
+                const parts=[];if(ev.tt!==''&&ev.tt!==undefined&&ev.tt!==null)parts.push([tt,Number(mm.tt)||20]);if(ev.es!==''&&ev.es!==undefined&&ev.es!==null)parts.push([es,Number(mm.es)||20]);
+                if(isEngg){if(ev.wcs!==''&&ev.wcs!==undefined&&ev.wcs!==null)parts.push([Number(ev.wcs),Number(mm.wcs)||20]);if(ev.ed!==''&&ev.ed!==undefined&&ev.ed!==null)parts.push([Number(ev.ed),Number(mm.ed)||20]);}
+                const got=parts.reduce((a,x)=>a+x[0],0),max=parts.reduce((a,x)=>a+x[1],0);if(max>0)allTheoryTestPcts.push((got/max)*100);
+                const half=getDateHalfKey(testDate);if(ev.tp!==''&&ev.tp!==undefined&&ev.tp!==null&&Number(mm.tp)>0)halfStats[half].practicalTests.push((tp/(Number(mm.tp)||20))*100);if(max>0)halfStats[half].theoryTests.push((got/max)*100);
+            });
+            const avgPracticalTest=average(allPracticalTestPcts),avgTheoryTest=average(allTheoryTestPcts);
+            const tpTestWeightScore = avgPracticalTest===null?'—':(avgPracticalTest*0.30).toFixed(1);
+            const ttTestWeightScore = avgTheoryTest===null?'—':(avgTheoryTest*0.50).toFixed(1);
+            const pracWorkAverage=average(allPracticalWorkScores), diaryAverage=average(allDiaryScores), activityAverage=average(allActivityScores);
+            const pracWorkScore=pracWorkAverage===null?'—':(pracWorkAverage*0.50).toFixed(1);
+            const notesScore=diaryAverage===null?'—':diaryAverage.toFixed(1);
+            const activityScore=activityAverage===null?'—':activityAverage.toFixed(1);
 
             const halfScore = h => {
-                const attPct = h.working > 0 ? (h.present / h.working) * 100 : 0;
-                const attendance = attPct * 0.10;
-                const practicalTest = h.tpMax > 0 ? (h.tpObt / h.tpMax) * 30 : 0;
-                const theoryTest = h.ttMax > 0 ? (h.ttObt / h.ttMax) * 50 : 0;
+                const attPct = h.working > 0 ? (h.present / h.working) * 100 : null;
+                const attendance = attPct===null?null:attPct * 0.10;
+                const pAvg=average(h.practicalWork),ptAvg=average(h.practicalTests),ttAvg=average(h.theoryTests),dAvg=average(h.diary),aAvg=average(h.activity);
+                const practicalWork=pAvg===null?null:pAvg*0.50;
+                const practicalTest=ptAvg===null?null:ptAvg*0.30;
+                const theoryTest=ttAvg===null?null:ttAvg*0.50;
+                const practicalParts=[practicalWork,practicalTest,attendance,aAvg];
+                const theoryParts=[dAvg,theoryTest,attendance,aAvg];
+                const sumParts=arr=>arr.every(x=>x!==null)?arr.reduce((a,b)=>a+b,0):null;
                 return {
-                    practical: (average(h.rec) + practicalTest + attendance + average(h.activity)).toFixed(1),
-                    theory: (average(h.diary) + theoryTest + attendance + average(h.activity)).toFixed(1),
-                    rec: average(h.rec).toFixed(1),
-                    diary: average(h.diary).toFixed(1),
-                    activity: average(h.activity).toFixed(1),
-                    attendance: attendance.toFixed(1),
-                    practicalTest: practicalTest.toFixed(1),
-                    theoryTest: theoryTest.toFixed(1),
-                    attendancePct: attPct.toFixed(1)
+                    practical:sumParts(practicalParts)===null?'लंबित':sumParts(practicalParts).toFixed(1),
+                    theory:sumParts(theoryParts)===null?'लंबित':sumParts(theoryParts).toFixed(1),
+                    practicalWork:practicalWork===null?'—':practicalWork.toFixed(1),
+                    diary:dAvg===null?'—':dAvg.toFixed(1),
+                    activity:aAvg===null?'—':aAvg.toFixed(1),
+                    attendance:attendance===null?'—':attendance.toFixed(1),
+                    practicalTest:practicalTest===null?'—':practicalTest.toFixed(1),
+                    theoryTest:theoryTest===null?'—':theoryTest.toFixed(1),
+                    attendancePct:attPct===null?'—':attPct.toFixed(1),
+                    practicalCount:h.practicalWork.length,diaryCount:h.diary.length
                 };
             };
             const h1Score = halfScore(halfStats.H1);
             const h2Score = halfScore(halfStats.H2);
 
-            const totalPracticalSessional = (parseFloat(pracWorkScore) + parseFloat(tpTestWeightScore) + parseFloat(attWeightScore) + parseFloat(activityScore)).toFixed(1);
-            const totalTheorySessional = (parseFloat(notesScore) + parseFloat(ttTestWeightScore) + parseFloat(attWeightScore) + parseFloat(activityScore)).toFixed(1);
+            const totalPracticalParts=[pracWorkScore==='—'?null:Number(pracWorkScore),tpTestWeightScore==='—'?null:Number(tpTestWeightScore),Number(attWeightScore),activityScore==='—'?null:Number(activityScore)];
+            const totalTheoryParts=[notesScore==='—'?null:Number(notesScore),ttTestWeightScore==='—'?null:Number(ttTestWeightScore),Number(attWeightScore),activityScore==='—'?null:Number(activityScore)];
+            const totalPracticalSessional=totalPracticalParts.some(x=>x===null)?'लंबित':totalPracticalParts.reduce((a,b)=>a+b,0).toFixed(1);
+            const totalTheorySessional=totalTheoryParts.some(x=>x===null)?'लंबित':totalTheoryParts.reduce((a,b)=>a+b,0).toFixed(1);
 
             const signHTML = (inst.superintendentSignUrl && inst.superintendentSignUrl.trim() !== '')
                 ? `<img src="${inst.superintendentSignUrl}" style="max-height: 38px; display: block; margin: 0 auto 2px auto;">`
@@ -5175,18 +5292,26 @@ window.__itiLoginClick = async function(ev) {
                     <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;">
                         <div style="border:1px solid #bfdbfe;border-radius:6px;padding:8px;background:#eff6ff;">
                             <b>H1 — ${getSessionHalfInfo().h1Label}</b>
-                            <div>प्रायोगिक: <b>${h1Score.practical}/100</b></div>
-                            <div>सैद्धांतिक: <b>${h1Score.theory}/100</b></div>
-                            <small>साप्ताहिक निरीक्षण: ${halfStats.H1.rec.length} · उपस्थिति: ${h1Score.attendancePct}%</small>
+                            <div>प्रायोगिक कुल: <b>${h1Score.practical}/100</b></div>
+                            <small>नियमित प्रायोगिक कार्य: ${h1Score.practicalWork}/50 · TP टेस्ट: ${h1Score.practicalTest}/30</small><br>
+                            <small>उपस्थिति: ${h1Score.attendance}/10 · गतिविधियाँ: ${h1Score.activity}/10</small><br>
+                            <div style="margin-top:5px;">सैद्धांतिक कुल: <b>${h1Score.theory}/100</b></div>
+                            <small>नोटबुक: ${h1Score.diary}/30 · TT+ES+WCS+ED टेस्ट: ${h1Score.theoryTest}/50</small><br>
+                            <small>उपस्थिति: ${h1Score.attendance}/10 · गतिविधियाँ: ${h1Score.activity}/10</small><br>
+                            <small>साप्ताहिक प्रायोगिक मूल्यांकन: ${h1Score.practicalCount} · उपस्थिति: ${h1Score.attendancePct}%</small>
                         </div>
                         <div style="border:1px solid #99f6e4;border-radius:6px;padding:8px;background:#f0fdfa;">
                             <b>H2 — ${getSessionHalfInfo().h2Label}</b>
-                            <div>प्रायोगिक: <b>${h2Score.practical}/100</b></div>
-                            <div>सैद्धांतिक: <b>${h2Score.theory}/100</b></div>
-                            <small>साप्ताहिक निरीक्षण: ${halfStats.H2.rec.length} · उपस्थिति: ${h2Score.attendancePct}%</small>
+                            <div>प्रायोगिक कुल: <b>${h2Score.practical}/100</b></div>
+                            <small>नियमित प्रायोगिक कार्य: ${h2Score.practicalWork}/50 · TP टेस्ट: ${h2Score.practicalTest}/30</small><br>
+                            <small>उपस्थिति: ${h2Score.attendance}/10 · गतिविधियाँ: ${h2Score.activity}/10</small><br>
+                            <div style="margin-top:5px;">सैद्धांतिक कुल: <b>${h2Score.theory}/100</b></div>
+                            <small>नोटबुक: ${h2Score.diary}/30 · TT+ES+WCS+ED टेस्ट: ${h2Score.theoryTest}/50</small><br>
+                            <small>उपस्थिति: ${h2Score.attendance}/10 · गतिविधियाँ: ${h2Score.activity}/10</small><br>
+                            <small>साप्ताहिक प्रायोगिक मूल्यांकन: ${h2Score.practicalCount} · उपस्थिति: ${h2Score.attendancePct}%</small>
                         </div>
                     </div>
-                    <div style="font-size:0.72rem;color:#475569;margin-top:6px;">प्रत्येक H1/H2 में संबंधित अवधि के उपलब्ध साप्ताहिक निरीक्षणों का औसत लिया गया है। टेस्ट अंक मासिक ही रहेंगे। H1/H2 में महीने का विभाजन महीने की 15 तारीख के आधार पर होता है।</div>
+                    <div style="font-size:0.72rem;color:#475569;margin-top:6px;">प्रत्येक H1/H2 में संबंधित अवधि के उपलब्ध साप्ताहिक प्रायोगिक अंकों, नोटबुक निरीक्षणों और गतिविधि मूल्यांकनों का अलग-अलग औसत लिया गया है। टेस्टों के प्रतिशत का औसत लिया गया है; TT+ES+WCS+ED सैद्धांतिक टेस्ट में शामिल हैं। अधूरे घटक होने पर कुल परिणाम लंबित रहेगा।</div>
                 </div>
 
                 <div style="font-size: 0.82rem; font-weight: 700; margin-bottom: 5px; color: #831843;">
@@ -5201,7 +5326,7 @@ window.__itiLoginClick = async function(ev) {
                         <table style="width: 100%; text-align: left;">
                             <tbody>
                                 <tr>
-                                    <td style="text-align: left; padding: 2px;">1. नियमित प्रायोगिक कार्य (जॉब/रिकॉर्ड)</td>
+                                    <td style="text-align: left; padding: 2px;">1. नियमित प्रायोगिक कार्य (साप्ताहिक औसत)</td>
                                     <td style="text-align: right; font-weight: 600;">50%</td>
                                     <td style="text-align: right; font-weight: 700; color: #15803d;">${pracWorkScore}/50</td>
                                 </tr>
@@ -5685,6 +5810,9 @@ window.__itiLoginClick = async function(ev) {
             if (appData.evaluations && appData.evaluations[collegeId] && appData.evaluations[collegeId][trade]) {
                 Object.keys(appData.evaluations[collegeId][trade]).forEach(m => recordedMonthsSet.add(m));
             }
+            Object.keys(appData.weeklyPracticalMarks?.[collegeId]?.[trade]||{}).forEach(d=>{if(/^\d{4}-\d{2}-\d{2}$/.test(d))recordedMonthsSet.add(d.slice(0,7));});
+            Object.keys(appData.weeklyActivities?.[collegeId]?.[trade]||{}).forEach(d=>{if(/^\d{4}-\d{2}-\d{2}$/.test(d))recordedMonthsSet.add(d.slice(0,7));});
+            Object.keys(appData.achievementTests?.[collegeId]?.[trade]||{}).forEach(k=>{const m=String(k).match(/^Q\d+_(\d{4}-\d{2}-\d{2})$/);if(m)recordedMonthsSet.add(m[1].slice(0,7));});
             
             const allMonths = Array.from(recordedMonthsSet).filter(mVal => isMonthInSession(mVal)).sort();
 
