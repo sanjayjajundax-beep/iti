@@ -969,13 +969,22 @@ footer{background:#092b68!important;border-top:1px solid #1e4d91!important}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important}}
 
 
-/* Separate instructor evaluation modes: marks and weekly inspection are visually isolated. */
-#evalTableShell.mode-tests:not(.engg) th:nth-child(n+8),#evalTableShell.mode-tests:not(.engg) td:nth-child(n+8){display:none!important}
-#evalTableShell.mode-tests.engg th:nth-child(n+10),#evalTableShell.mode-tests.engg td:nth-child(n+10){display:none!important}
-#evalTableShell.mode-weekly:not(.engg) th:nth-child(-n+7),#evalTableShell.mode-weekly:not(.engg) td:nth-child(-n+7){display:none!important}
-#evalTableShell.mode-weekly.engg th:nth-child(-n+9),#evalTableShell.mode-weekly.engg td:nth-child(-n+9){display:none!important}
-#evalTableShell.mode-weekly table thead tr:first-child th[colspan]{display:none!important}
-#evalTableShell.mode-weekly table thead tr:nth-child(2){display:none!important}
+/* Evaluation table: keep student identity visible in every mode and hide only unrelated columns. */
+/* Monthly/Achievement: show Roll + Name + test subjects + total + percentage. */
+#evalTableShell.mode-tests:not(.engg) tbody td:nth-child(n+8),
+#evalTableShell.mode-tests.engg tbody td:nth-child(n+10){display:none!important}
+#evalTableShell.mode-tests thead tr:first-child th:nth-child(n+6){display:none!important}
+#evalTableShell.mode-tests:not(.engg) thead tr:nth-child(2) th:nth-child(n+4),
+#evalTableShell.mode-tests.engg thead tr:nth-child(2) th:nth-child(n+6){display:none!important}
+
+/* Weekly: keep Roll + Student Name; hide test marks/total/percentage only. */
+#evalTableShell.mode-weekly:not(.engg) tbody td:nth-child(n+3):nth-child(-n+7),
+#evalTableShell.mode-weekly.engg tbody td:nth-child(n+3):nth-child(-n+9){display:none!important}
+#evalTableShell.mode-weekly thead tr:first-child th:nth-child(3),
+#evalTableShell.mode-weekly thead tr:first-child th:nth-child(4),
+#evalTableShell.mode-weekly thead tr:first-child th:nth-child(5){display:none!important}
+#evalTableShell.mode-weekly:not(.engg) thead tr:nth-child(2) th:nth-child(-n+3),
+#evalTableShell.mode-weekly.engg thead tr:nth-child(2) th:nth-child(-n+5){display:none!important}
 
 </style>
 
@@ -4466,6 +4475,8 @@ window.__itiLoginClick = async function(ev) {
             ensureEvaluationSaveButton();
             let monthVal = document.getElementById('evalSelectedMonth')?.value;
             const activeMode = window.evalEntryMode || 'monthly';
+            const modeShell=document.getElementById('evalTableShell');
+            if(modeShell){modeShell.classList.remove('mode-tests','mode-weekly','engg');modeShell.classList.add(activeMode==='weekly'?'mode-weekly':'mode-tests');if(isEnggTrade(currentTrade))modeShell.classList.add('engg');}
             const achDateEl=document.getElementById('evalAchievementDate');
             if(achDateEl){const cfg=appData.sessionConfig||{};achDateEl.min=cfg.startDate||'2026-08-10';achDateEl.max=cfg.endDate||'2027-06-30';if(!achDateEl.value)achDateEl.value=cfg.startDate||'2026-08-10';}
             const achievementPeriod=activeMode==='achievement'?getAchievementPeriodForDate(achDateEl?.value):null;
