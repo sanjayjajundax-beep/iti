@@ -1267,7 +1267,7 @@ window.__itiLoginClick = async function(ev) {
 <div class="role-sidebar-layout instructor-role-layout"><aside aria-label="अनुदेशक मेन्यू" class="role-sidebar"><div class="role-side-heading">अनुदेशक मेन्यू</div><button class="role-side-btn inst-tab-btn active" id="tabBtnAtt" onclick="switchInstructorTab('attendance')">
 <i class="fa-solid fa-calendar-check"></i> 1. दैनिक उपस्थिति रजिस्टर
                 </button><button class="role-side-btn inst-tab-btn" id="tabBtnEval" onclick="switchInstructorTab('evaluation')">
-<i class="fa-solid fa-pen-ruler"></i> 2. मासिक टेस्ट अंक, डायरी व रिकॉर्ड चेकिंग
+<i class="fa-solid fa-pen-ruler"></i> 2. मासिक टेस्ट अंक एवं साप्ताहिक निरीक्षण
                 </button><button class="role-side-btn inst-tab-btn" id="tabBtnWork" onclick="switchInstructorTab('work')"><i class="fa-solid fa-list-check"></i> 3. अधीक्षक कार्य / दैनिक गतिविधि रिपोर्ट</button></aside><div class="role-main"><div id="instTabAttendance">
 <div class="controls-card">
 <div class="controls-left">
@@ -1312,14 +1312,15 @@ window.__itiLoginClick = async function(ev) {
 </div>
 <div class="controls-right">
 <button class="app-btn app-btn-excel" onclick="exportEvaluationToExcel()"><i class="fa-solid fa-file-excel"></i> मूल्यांकन एक्सेल (.xlsx)</button>
-<button class="app-btn app-btn-success" id="btnSaveEval" onclick="saveAllEvaluations()"><i class="fa-solid fa-floppy-disk"></i> मूल्यांकन सुरक्षित करें</button>
+<button class="app-btn app-btn-success" id="btnSaveEval" onclick="saveAllEvaluations()"><i class="fa-solid fa-floppy-disk"></i> मासिक टेस्ट अंक सुरक्षित करें</button>
+<button class="app-btn app-btn-primary" id="btnSaveWeeklyInspection" onclick="saveWeeklyInspections()"><i class="fa-solid fa-calendar-check"></i> साप्ताहिक निरीक्षण सुरक्षित करें</button>
 <button class="app-btn app-btn-dark" onclick="syncWithFirebase()"><i class="fa-solid fa-cloud-arrow-up"></i> Firebase सेव करें</button>
 </div>
 </div>
 <div id="sessionalRubricNotice" style="margin:10px 0;padding:12px 14px;border:1px solid #f0c36d;border-left:5px solid #d97706;border-radius:9px;background:#fffbeb;color:#78350f;">
 <strong style="display:block;margin-bottom:6px;">📌 अनुदेशक हेतु सत्रीय अंक निर्धारण — H1 / H2</strong>
 <div style="font-size:0.82rem;line-height:1.65;">
-<span id="sessionalRubricPeriodText"><b>H1:</b> सत्र की पहली आधी अवधि &nbsp; | &nbsp; <b>H2:</b> सत्र की दूसरी आधी अवधि।</span> दोनों भागों के अंक अलग-अलग बनेंगे और प्रत्येक भाग में उस अवधि के सभी मासिक मूल्यांकनों का औसत लिया जाएगा।<br>
+<span id="sessionalRubricPeriodText"><b>H1:</b> सत्र की पहली आधी अवधि &nbsp; | &nbsp; <b>H2:</b> सत्र की दूसरी आधी अवधि।</span> दोनों भागों के अंक अलग-अलग बनेंगे। टेस्ट के अंक मासिक और रिकॉर्ड / डायरी / गतिविधि के निरीक्षण साप्ताहिक होंगे; H1/H2 में संबंधित अवधि के सभी साप्ताहिक निरीक्षणों का औसत लिया जाएगा।<br>
 <b>प्रायोगिक रिकॉर्ड (50):</b> A+ उत्कृष्ट = 48/50 · A पूर्ण = 44/50 · B सुधार अपेक्षित = 36/50 · C अपूर्ण = 28/50।<br>
 <b>सैद्धांतिक डायरी / नोट्स (30):</b> नियमित = 27.5/30 · अनियमित = 21/30 · जाँच लंबित = 15/30।<br>
 <b>गतिविधि / अनुशासन (10):</b> उत्कृष्ट / सक्रिय = 9.5/10 · संतोषजनक / सामान्य = 7.5/10 · सुधार जरूरी / उदासीन = 5/10।<br>
@@ -1330,6 +1331,13 @@ window.__itiLoginClick = async function(ev) {
 <i class="fa-solid fa-sliders"></i> इस माह के टेस्ट का विषयवार पूर्णांक (Max Marks) सेट करें:
                     </div>
 <div class="max-marks-inputs" id="maxMarksInputsContainer"></div>
+</div>
+<div class="glass-card" style="padding:13px 16px;margin:12px 0;border-left:5px solid #0d9488;">
+  <div style="display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;">
+    <div><strong style="color:#0f766e;"><i class="fa-solid fa-calendar-week"></i> साप्ताहिक निरीक्षण की तारीख</strong><div style="font-size:.8rem;color:#64748b;margin-top:3px;">हर सप्ताह जिस दिन जाँच करें, उसी तारीख पर सभी निरीक्षण विवरण भरकर सुरक्षित करें। एक महीने में कितनी भी जाँच हो सकती हैं।</div></div>
+    <label style="font-weight:700;white-space:nowrap;">जाँच दिनांक: <input id="evalInspectionDate" type="date" onchange="renderEvaluationTable()" style="margin-left:5px;padding:7px;border:1px solid #cbd5e1;border-radius:8px;"></label>
+  </div>
+  <div style="font-size:.78rem;color:#475569;margin-top:8px;">नीचे की रिकॉर्ड, डायरी, गतिविधि और प्लांटेशन वाली एंट्री इसी तारीख की साप्ताहिक जाँच के रूप में सेव होगी। मासिक टेस्ट अंक अलग सुरक्षित होंगे।</div>
 </div>
 <div class="table-shell">
 <table>
@@ -1513,7 +1521,7 @@ window.__itiLoginClick = async function(ev) {
 </div>
 <!-- 3. रिकॉर्ड व डायरी सेक्शन -->
 <div class="hidden" id="studSecRecords">
-<div class="section-bar-title"><i class="fa-solid fa-clipboard-check"></i> प्रैक्टिकल रिकॉर्ड, नोटबुक व दैनिक डायरी स्थिति</div>
+<div class="section-bar-title"><i class="fa-solid fa-clipboard-check"></i> साप्ताहिक रिकॉर्ड, नोटबुक, डायरी, गतिविधि एवं प्लांटेशन निरीक्षण</div>
 <div class="stats-tri-grid">
 <div class="metric-card">
 <div class="title">प्रैक्टिकल रिकॉर्ड / नोटबुक</div>
@@ -4369,6 +4377,16 @@ window.__itiLoginClick = async function(ev) {
             }
 
             const isLocked = isMonthLocked(currentCollegeId, currentTrade, monthVal);
+            const inspectionDateEl = document.getElementById('evalInspectionDate');
+            if (inspectionDateEl) {
+                if (!inspectionDateEl.value || inspectionDateEl.value.slice(0,7) !== monthVal) {
+                    const now = new Date();
+                    const today = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+                    inspectionDateEl.value = today.slice(0,7) === monthVal ? today : `${monthVal}-01`;
+                }
+                inspectionDateEl.disabled = isLocked;
+            }
+            const selectedInspectionDate = inspectionDateEl?.value || `${monthVal}-01`;
             const lockBadge = document.getElementById('evalLockStatusBadge');
             const saveBtn = document.getElementById('btnSaveEval');
 
@@ -4376,6 +4394,8 @@ window.__itiLoginClick = async function(ev) {
                 lockBadge.className = isLocked ? "lock-indicator lock-active" : "lock-indicator lock-open";
                 lockBadge.innerHTML = isLocked ? `<i class="fa-solid fa-lock"></i> माह लॉक है (केवल दृश्य मोड)` : `<i class="fa-solid fa-lock-open"></i> संपादन सक्रिय`;
                 if (saveBtn) saveBtn.disabled = isLocked;
+                const weeklySaveBtn = document.getElementById('btnSaveWeeklyInspection');
+                if (weeklySaveBtn) weeklySaveBtn.disabled = isLocked;
             }
 
             const isEngg = isEnggTrade(currentTrade);
@@ -4423,18 +4443,21 @@ window.__itiLoginClick = async function(ev) {
                         <th colspan="${testColSpan}" style="background:#e0f2fe; color:#0369a1;">मासिक टेस्ट अंक</th>
                         <th rowspan="2" style="background:#dbeafe; color:#1e40af;">कुल प्राप्तांक</th>
                         <th rowspan="2" style="background:#dbeafe; color:#1e40af;">प्रतिशत (%)</th>
-                        <th colspan="2" style="background:#fef3c7; color:#92400e;">रिकॉर्ड व नोटबुक</th>
-                        <th colspan="2" style="background:#dcfce7; color:#166534;">दैनिक डायरी</th>
-                        <th colspan="2" style="background:#f3e8ff; color:#6b21a8;">गतिविधियां व आचरण</th>
+                        <th colspan="2" style="background:#fef3c7; color:#92400e;">साप्ताहिक रिकॉर्ड / फाइल</th>
+                        <th colspan="2" style="background:#dcfce7; color:#166534;">साप्ताहिक नोटबुक / डायरी</th>
+                        <th colspan="2" style="background:#f3e8ff; color:#6b21a8;">साप्ताहिक गतिविधि / अनुशासन</th>
+                        <th colspan="2" style="background:#ecfccb; color:#3f6212;">प्लांटेशन वर्क</th>
                     </tr>
                     <tr>
                         ${subCols}
                         <th style="background:#fffbeb;">स्थिति</th>
                         <th style="background:#fffbeb;">रिमार्क</th>
-                        <th style="background:#f0fdf4;">डायरी चेकिंग</th>
+                        <th style="background:#f0fdf4;">जाँच स्थिति</th>
                         <th style="background:#f0fdf4;">रिमार्क</th>
                         <th style="background:#faf5ff;">अनुशासन</th>
                         <th style="background:#faf5ff;">सक्रियता</th>
+                        <th style="background:#ecfccb;">कार्य स्थिति</th>
+                        <th style="background:#ecfccb;">रिमार्क</th>
                     </tr>
                 `;
             }
@@ -4451,7 +4474,7 @@ window.__itiLoginClick = async function(ev) {
             tbody.innerHTML = '';
 
             if (tStudents.length === 0) {
-                const totalColCount = isEngg ? 15 : 13;
+                const totalColCount = isEngg ? 17 : 15;
                 tbody.innerHTML = `<tr><td colspan="${totalColCount}" style="padding: 24px; color: var(--text-muted); font-size: 0.95rem;">इस ट्रेड में कोई छात्र पंजीकृत नहीं है।</td></tr>`;
                 refreshTotalMMDisplayOnly();
                 return;
@@ -4461,11 +4484,11 @@ window.__itiLoginClick = async function(ev) {
 
             tStudents.forEach(st => {
                 const sRoll = String(st.roll).trim();
-                const ev = monthEval[sRoll] || {
-                    tt: '', tp: '', wcs: '', ed: '', es: '',
-                    recStatus: 'A', recRem: '',
-                    diaryStatus: 'नियमित', diaryRem: '',
-                    disc: 'उत्कृष्ट', act: 'सक्रिय'
+                const ev = monthEval[sRoll] || { tt: '', tp: '', wcs: '', ed: '', es: '' };
+                const weeklyList = Array.isArray(ev.inspections) ? ev.inspections : [];
+                const weeklyEv = weeklyList.find(x => x.date === selectedInspectionDate) || {
+                    recStatus: 'A', recRem: '', diaryStatus: 'नियमित', diaryRem: '',
+                    disc: 'उत्कृष्ट', act: 'सक्रिय', plantationStatus: '', plantationRem: ''
                 };
 
                 let inputsHTML = `
@@ -4491,35 +4514,43 @@ window.__itiLoginClick = async function(ev) {
                         <td id="pct_${sRoll}" style="font-weight:700; color:#15803d; background:#f8fafc;">0%</td>
                         <td>
                             <select id="recSt_${sRoll}" style="padding:2px;" ${dis}>
-                                <option value="A+" ${ev.recStatus==='A+'?'selected':''}>A+ (उत्कृष्ट)</option>
-                                <option value="A" ${ev.recStatus==='A'?'selected':''}>A (पूर्ण)</option>
-                                <option value="B" ${ev.recStatus==='B'?'selected':''}>B (सुधार अपेक्षित)</option>
-                                <option value="C" ${ev.recStatus==='C'?'selected':''}>C (अपूर्ण)</option>
+                                <option value="A+" ${weeklyEv.recStatus==='A+'?'selected':''}>A+ (उत्कृष्ट)</option>
+                                <option value="A" ${weeklyEv.recStatus==='A'?'selected':''}>A (पूर्ण)</option>
+                                <option value="B" ${weeklyEv.recStatus==='B'?'selected':''}>B (सुधार अपेक्षित)</option>
+                                <option value="C" ${weeklyEv.recStatus==='C'?'selected':''}>C (अपूर्ण)</option>
                             </select>
                         </td>
-                        <td><input type="text" id="recRem_${sRoll}" ${dis} value="${ev.recRem || ''}" placeholder="टिप्पणी" style="width:80px; padding:3px;"></td>
+                        <td><input type="text" id="recRem_${sRoll}" ${dis} value="${weeklyEv.recRem || ''}" placeholder="टिप्पणी" style="width:80px; padding:3px;"></td>
                         <td>
                             <select id="diarySt_${sRoll}" style="padding:2px;" ${dis}>
-                                <option value="नियमित" ${ev.diaryStatus==='नियमित'?'selected':''}>नियमित चेक</option>
-                                <option value="अनियमित" ${ev.diaryStatus==='अनियमित'?'selected':''}>अनियमित</option>
-                                <option value="लंबित" ${ev.diaryStatus==='लंबित'?'selected':''}>जांच लंबित</option>
+                                <option value="नियमित" ${weeklyEv.diaryStatus==='नियमित'?'selected':''}>नियमित चेक</option>
+                                <option value="अनियमित" ${weeklyEv.diaryStatus==='अनियमित'?'selected':''}>अनियमित</option>
+                                <option value="लंबित" ${weeklyEv.diaryStatus==='लंबित'?'selected':''}>जांच लंबित</option>
                             </select>
                         </td>
-                        <td><input type="text" id="diaryRem_${sRoll}" ${dis} value="${ev.diaryRem || ''}" placeholder="टिप्पणी" style="width:80px; padding:3px;"></td>
+                        <td><input type="text" id="diaryRem_${sRoll}" ${dis} value="${weeklyEv.diaryRem || ''}" placeholder="टिप्पणी" style="width:80px; padding:3px;"></td>
                         <td>
                             <select id="disc_${sRoll}" style="padding:2px;" ${dis}>
-                                <option value="उत्कृष्ट" ${ev.disc==='उत्कृष्ट'?'selected':''}>उत्कृष्ट</option>
-                                <option value="संतोषजनक" ${ev.disc==='संतोषजनक'?'selected':''}>संतोषजनक</option>
-                                <option value="सुधार जरूरी" ${ev.disc==='सुधार जरूरी'?'selected':''}>सुधार जरूरी</option>
+                                <option value="उत्कृष्ट" ${weeklyEv.disc==='उत्कृष्ट'?'selected':''}>उत्कृष्ट</option>
+                                <option value="संतोषजनक" ${weeklyEv.disc==='संतोषजनक'?'selected':''}>संतोषजनक</option>
+                                <option value="सुधार जरूरी" ${weeklyEv.disc==='सुधार जरूरी'?'selected':''}>सुधार जरूरी</option>
                             </select>
                         </td>
                         <td>
                             <select id="act_${sRoll}" style="padding:2px;" ${dis}>
-                                <option value="सक्रिय" ${ev.act==='सक्रिय'?'selected':''}>सक्रिय</option>
-                                <option value="सामान्य" ${ev.act==='सामान्य'?'selected':''}>सामान्य</option>
-                                <option value="उदासीन" ${ev.act==='उदासीन'?'selected':''}>उदासीन</option>
+                                <option value="सक्रिय" ${weeklyEv.act==='सक्रिय'?'selected':''}>सक्रिय</option>
+                                <option value="सामान्य" ${weeklyEv.act==='सामान्य'?'selected':''}>सामान्य</option>
+                                <option value="उदासीन" ${weeklyEv.act==='उदासीन'?'selected':''}>उदासीन</option>
                             </select>
                         </td>
+                        <td><select id="plantSt_${sRoll}" style="padding:2px;" ${dis}>
+                            <option value="" ${!weeklyEv.plantationStatus?'selected':''}>चयन करें</option>
+                            <option value="पूर्ण" ${weeklyEv.plantationStatus==='पूर्ण'?'selected':''}>पूर्ण</option>
+                            <option value="प्रगतिरत" ${weeklyEv.plantationStatus==='प्रगतिरत'?'selected':''}>प्रगतिरत</option>
+                            <option value="लंबित" ${weeklyEv.plantationStatus==='लंबित'?'selected':''}>लंबित</option>
+                            <option value="लागू नहीं" ${weeklyEv.plantationStatus==='लागू नहीं'?'selected':''}>लागू नहीं</option>
+                        </select></td>
+                        <td><input type="text" id="plantRem_${sRoll}" ${dis} value="${weeklyEv.plantationRem || ''}" placeholder="टिप्पणी" style="width:80px;padding:3px;"></td>
                     </tr>
                 `;
             });
@@ -4583,22 +4614,12 @@ window.__itiLoginClick = async function(ev) {
                     const el = document.getElementById(id + roll);
                     return el ? el.value : '';
                 };
-                // TT/TP/ES और रिकॉर्ड/डायरी/गतिविधि सभी ट्रेडों के लिए साझा हैं।
-                const studentEval = {
-                    tt: getVal('tt_'),
-                    tp: getVal('tp_'),
-                    es: getVal('es_'),
-                    recStatus: getVal('recSt_') || 'A',
-                    recRem: getVal('recRem_'),
-                    diaryStatus: getVal('diarySt_') || 'नियमित',
-                    diaryRem: getVal('diaryRem_'),
-                    disc: getVal('disc_') || 'उत्कृष्ट',
-                    act: getVal('act_') || 'सक्रिय'
-                };
-                if (isEngg) {
-                    studentEval.wcs = getVal('wcs_');
-                    studentEval.ed = getVal('ed_');
-                }
+                // केवल मासिक टेस्ट अंक सेव करें; साप्ताहिक निरीक्षण अलग बटन से सेव होगा।
+                const studentEval = appData.evaluations[currentCollegeId][currentTrade][monthVal][roll] || {};
+                studentEval.tt = getVal('tt_');
+                studentEval.tp = getVal('tp_');
+                studentEval.es = getVal('es_');
+                if (isEngg) { studentEval.wcs = getVal('wcs_'); studentEval.ed = getVal('ed_'); }
                 appData.evaluations[currentCollegeId][currentTrade][monthVal][roll] = studentEval;
                 savedCount++;
             }
@@ -4613,15 +4634,68 @@ window.__itiLoginClick = async function(ev) {
             try {
                 const synced = await syncWithFirebase();
                 if (!synced) throw new Error('Firebase पर डेटा सेव नहीं हो पाया।');
-                showToast(`${currentTrade} ट्रेड के ${savedCount} विद्यार्थियों के अंक ${monthVal} के लिए सुरक्षित हो गए!`);
+                showToast(`${currentTrade} ट्रेड के ${savedCount} विद्यार्थियों के मासिक टेस्ट अंक ${monthVal} के लिए सुरक्षित हो गए!`);
             } catch (err) {
                 console.error('Evaluation save failed:', err);
                 alert("अंक लोकल कैश में रखे गए हैं, लेकिन Firebase सेव में समस्या आई। इंटरनेट और Firebase Rules जाँचें, फिर दोबारा सेव करें।");
             } finally {
                 if (btn) {
                     btn.disabled = isMonthLocked(currentCollegeId, currentTrade, monthVal);
-                    btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> मूल्यांकन सुरक्षित करें';
+                    btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> मासिक टेस्ट अंक सुरक्षित करें';
                 }
+            }
+        }
+
+        async function saveWeeklyInspections() {
+            const monthVal = document.getElementById('evalSelectedMonth')?.value;
+            const inspectionDate = document.getElementById('evalInspectionDate')?.value;
+            if (!monthVal || !inspectionDate || !currentCollegeId || !currentTrade) {
+                alert('कॉलेज, ट्रेड, माह और साप्ताहिक जाँच दिनांक चुनें।'); return;
+            }
+            if (inspectionDate.slice(0,7) !== monthVal) {
+                alert('साप्ताहिक निरीक्षण की तारीख चयनित माह के अंदर होनी चाहिए।'); return;
+            }
+            if (isMonthLocked(currentCollegeId, currentTrade, monthVal)) {
+                alert('यह माह लॉक है। साप्ताहिक निरीक्षण में बदलाव नहीं किया जा सकता।'); return;
+            }
+            const students = getStudentList(currentCollegeId, currentTrade);
+            if (!students.length) { alert('इस ट्रेड में कोई विद्यार्थी उपलब्ध नहीं है।'); return; }
+            if (!appData.evaluations) appData.evaluations = {};
+            if (!appData.evaluations[currentCollegeId]) appData.evaluations[currentCollegeId] = {};
+            if (!appData.evaluations[currentCollegeId][currentTrade]) appData.evaluations[currentCollegeId][currentTrade] = {};
+            if (!appData.evaluations[currentCollegeId][currentTrade][monthVal]) appData.evaluations[currentCollegeId][currentTrade][monthVal] = {};
+            const btn = document.getElementById('btnSaveWeeklyInspection');
+            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> निरीक्षण सेव हो रहा है…'; }
+            let savedCount = 0;
+            try {
+                for (const st of students) {
+                    const roll = String(st.roll ?? '').trim(); if (!roll) continue;
+                    const getVal = id => document.getElementById(id + roll)?.value ?? '';
+                    const studentEval = appData.evaluations[currentCollegeId][currentTrade][monthVal][roll] || {};
+                    if (!Array.isArray(studentEval.inspections)) studentEval.inspections = [];
+                    const inspection = {
+                        date: inspectionDate,
+                        recStatus: getVal('recSt_'), recRem: getVal('recRem_'),
+                        diaryStatus: getVal('diarySt_'), diaryRem: getVal('diaryRem_'),
+                        disc: getVal('disc_'), act: getVal('act_'),
+                        plantationStatus: getVal('plantSt_'), plantationRem: getVal('plantRem_'),
+                        updatedAt: new Date().toISOString(), updatedBy: loggedInInstructor?.name || ''
+                    };
+                    const index = studentEval.inspections.findIndex(x => x.date === inspectionDate);
+                    if (index >= 0) studentEval.inspections[index] = inspection;
+                    else studentEval.inspections.push(inspection);
+                    studentEval.inspections.sort((a,b) => String(a.date).localeCompare(String(b.date)));
+                    appData.evaluations[currentCollegeId][currentTrade][monthVal][roll] = studentEval;
+                    savedCount++;
+                }
+                const synced = await syncWithFirebase();
+                if (!synced) throw new Error('Firebase पर डेटा सेव नहीं हो पाया।');
+                showToast(`${inspectionDate} का साप्ताहिक निरीक्षण ${savedCount} विद्यार्थियों के लिए सुरक्षित हो गया।`);
+            } catch (err) {
+                console.error('Weekly inspection save failed:', err);
+                alert('साप्ताहिक निरीक्षण लोकल कैश में रखा गया है, लेकिन Firebase सेव में समस्या आई। इंटरनेट और Firebase Rules जाँचें।');
+            } finally {
+                if (btn) { btn.disabled = isMonthLocked(currentCollegeId, currentTrade, monthVal); btn.innerHTML = '<i class="fa-solid fa-calendar-check"></i> साप्ताहिक निरीक्षण सुरक्षित करें'; }
             }
         }
 
@@ -4853,12 +4927,18 @@ window.__itiLoginClick = async function(ev) {
                 }
 
                 if (sEval) {
-                    const rScore = scoreRecord(sEval.recStatus);
-                    const dScore = scoreDiary(sEval.diaryStatus);
-                    const aScore = scoreActivity(sEval.disc, sEval.act);
-                    if (rScore !== null) { allRecScores.push(rScore); halfStats[halfKey].rec.push(rScore); }
-                    if (dScore !== null) { allDiaryScores.push(dScore); halfStats[halfKey].diary.push(dScore); }
-                    if (aScore !== null) { allActivityScores.push(aScore); halfStats[halfKey].activity.push(aScore); }
+                    // नई व्यवस्था: महीने के प्रत्येक साप्ताहिक निरीक्षण को अलग गणना में लें।
+                    // पुराने डेटा के लिए inspections न होने पर पुराने मासिक फ़ील्ड का fallback रखें।
+                    const inspections = Array.isArray(sEval.inspections) ? sEval.inspections : [];
+                    const reviewItems = inspections.length ? inspections : [sEval];
+                    reviewItems.forEach(review => {
+                        const rScore = scoreRecord(review.recStatus);
+                        const dScore = scoreDiary(review.diaryStatus);
+                        const aScore = scoreActivity(review.disc, review.act);
+                        if (rScore !== null) { allRecScores.push(rScore); halfStats[halfKey].rec.push(rScore); }
+                        if (dScore !== null) { allDiaryScores.push(dScore); halfStats[halfKey].diary.push(dScore); }
+                        if (aScore !== null) { allActivityScores.push(aScore); halfStats[halfKey].activity.push(aScore); }
+                    });
                 }
 
                 let enggCols = '';
@@ -4878,7 +4958,7 @@ window.__itiLoginClick = async function(ev) {
                         <td>${(sEval && sEval.es !== undefined && sEval.es !== '') ? sEval.es : '-'}</td>
                         <td style="font-weight:700;">${scoreDisplay}</td>
                         <td style="font-weight:700; color:#1e40af;">${hasMarks ? mTestPct + '%' : '-'}</td>
-                        <td>${(sEval && sEval.diaryStatus) ? sEval.diaryStatus : '-'}</td>
+                        <td>${sEval ? (Array.isArray(sEval.inspections) && sEval.inspections.length ? `${sEval.inspections.length} जाँच (${sEval.inspections.map(x=>x.date).join(', ')})` : (sEval.diaryStatus || '-')) : '-'}</td>
                     </tr>
                 `;
             });
@@ -5007,16 +5087,16 @@ window.__itiLoginClick = async function(ev) {
                             <b>H1 — ${getSessionHalfInfo().h1Label}</b>
                             <div>प्रायोगिक: <b>${h1Score.practical}/100</b></div>
                             <div>सैद्धांतिक: <b>${h1Score.theory}/100</b></div>
-                            <small>मासिक मूल्यांकन: ${halfStats.H1.rec.length} · उपस्थिति: ${h1Score.attendancePct}%</small>
+                            <small>साप्ताहिक निरीक्षण: ${halfStats.H1.rec.length} · उपस्थिति: ${h1Score.attendancePct}%</small>
                         </div>
                         <div style="border:1px solid #99f6e4;border-radius:6px;padding:8px;background:#f0fdfa;">
                             <b>H2 — ${getSessionHalfInfo().h2Label}</b>
                             <div>प्रायोगिक: <b>${h2Score.practical}/100</b></div>
                             <div>सैद्धांतिक: <b>${h2Score.theory}/100</b></div>
-                            <small>मासिक मूल्यांकन: ${halfStats.H2.rec.length} · उपस्थिति: ${h2Score.attendancePct}%</small>
+                            <small>साप्ताहिक निरीक्षण: ${halfStats.H2.rec.length} · उपस्थिति: ${h2Score.attendancePct}%</small>
                         </div>
                     </div>
-                    <div style="font-size:0.72rem;color:#475569;margin-top:6px;">प्रत्येक H1/H2 में संबंधित अवधि के उपलब्ध मासिक मूल्यांकनों का औसत लिया गया है। मासिक रिकॉर्ड का विभाजन महीने की 15 तारीख के आधार पर होता है।</div>
+                    <div style="font-size:0.72rem;color:#475569;margin-top:6px;">प्रत्येक H1/H2 में संबंधित अवधि के उपलब्ध साप्ताहिक निरीक्षणों का औसत लिया गया है। टेस्ट अंक मासिक ही रहेंगे। H1/H2 में महीने का विभाजन महीने की 15 तारीख के आधार पर होता है।</div>
                 </div>
 
                 <div style="font-size: 0.82rem; font-weight: 700; margin-bottom: 5px; color: #831843;">
@@ -5414,12 +5494,14 @@ window.__itiLoginClick = async function(ev) {
             }
 
             if (monthEval) {
-                document.getElementById('scRecordStatus').innerText = monthEval.recStatus || 'A';
-                document.getElementById('scRecordRemark').innerText = monthEval.recRem || 'जांच पूर्ण';
-                document.getElementById('scDiaryStatus').innerText = monthEval.diaryStatus || 'नियमित';
-                document.getElementById('scDiaryRemark').innerText = monthEval.diaryRem || 'हस्ताक्षरित';
-                document.getElementById('scDiscipline').innerText = monthEval.disc || 'उत्कृष्ट';
-                document.getElementById('scActivity').innerText = monthEval.act || 'सक्रिय';
+                const weeklyInspections = Array.isArray(monthEval.inspections) ? monthEval.inspections : [];
+                const latestInspection = weeklyInspections.slice().sort((a,b)=>String(b.date).localeCompare(String(a.date)))[0] || monthEval;
+                document.getElementById('scRecordStatus').innerText = latestInspection.recStatus || 'प्रक्रियाधीन';
+                document.getElementById('scRecordRemark').innerText = `${latestInspection.recRem || '-'}${weeklyInspections.length ? ` · इस माह ${weeklyInspections.length} जाँच` : ''}`;
+                document.getElementById('scDiaryStatus').innerText = latestInspection.diaryStatus || 'लंबित';
+                document.getElementById('scDiaryRemark').innerText = latestInspection.diaryRem || (latestInspection.date ? `जाँच दिनांक: ${latestInspection.date}` : '-');
+                document.getElementById('scDiscipline').innerText = latestInspection.disc || 'सामान्य';
+                document.getElementById('scActivity').innerText = `${latestInspection.act || 'सामान्य'}${latestInspection.plantationStatus ? ` · प्लांटेशन: ${latestInspection.plantationStatus}` : ''}`;
             } else {
                 document.getElementById('scRecordStatus').innerText = 'प्रक्रियाधीन';
                 document.getElementById('scRecordRemark').innerText = 'रिकॉर्ड उपलब्ध नहीं';
@@ -5775,7 +5857,7 @@ window.__itiLoginClick = async function(ev) {
             let totalMM = (parseFloat(mmConfig.tt) || 20) + (parseFloat(mmConfig.tp) || 20) + (parseFloat(mmConfig.es) || 20);
             if (isEngg) totalMM += (parseFloat(mmConfig.wcs) || 20) + (parseFloat(mmConfig.ed) || 20);
 
-            headers.push(`कुल प्राप्तांक (/ ${totalMM})`, "प्रतिशत (%)", "प्रैक्टिकल रिकॉर्ड स्थिति", "रिकॉर्ड रिमार्क", "दैनिक डायरी चेकिंग", "डायरी रिमार्क", "अनुशासन", "सक्रियता");
+            headers.push(`कुल प्राप्तांक (/ ${totalMM})`, "प्रतिशत (%)", "साप्ताहिक जाँच दिनांक", "रिकॉर्ड / फाइल स्थिति", "रिकॉर्ड रिमार्क", "नोटबुक / डायरी स्थिति", "डायरी रिमार्क", "अनुशासन", "अतिरिक्त गतिविधि", "प्लांटेशन वर्क स्थिति", "प्लांटेशन रिमार्क");
             const excelRows = [headers];
 
             tStudents.forEach(st => {
@@ -5786,17 +5868,23 @@ window.__itiLoginClick = async function(ev) {
                 const es = parseFloat(ev.es) || 0;
                 let total = tt + tp + es;
 
-                const row = [colName, st.roll, st.name, ev.tt !== undefined ? ev.tt : '', ev.tp !== undefined ? ev.tp : ''];
+                const baseRow = [colName, st.roll, st.name, ev.tt !== undefined ? ev.tt : '', ev.tp !== undefined ? ev.tp : ''];
                 if (isEngg) {
                     const wcs = parseFloat(ev.wcs) || 0;
                     const ed = parseFloat(ev.ed) || 0;
                     total += (wcs + ed);
-                    row.push(ev.wcs !== undefined ? ev.wcs : '', ev.ed !== undefined ? ev.ed : '');
+                    baseRow.push(ev.wcs !== undefined ? ev.wcs : '', ev.ed !== undefined ? ev.ed : '');
                 }
-                row.push(ev.es !== undefined ? ev.es : '');
+                baseRow.push(ev.es !== undefined ? ev.es : '');
                 const pct = totalMM > 0 ? ((total / totalMM) * 100).toFixed(1) : 0;
-                row.push(total, `${pct}%`, ev.recStatus || 'A', ev.recRem || '', ev.diaryStatus || 'नियमित', ev.diaryRem || '', ev.disc || 'उत्कृष्ट', ev.act || 'सक्रिय');
-                excelRows.push(row);
+                const markCells = [total, `${pct}%`];
+                const checks = Array.isArray(ev.inspections) && ev.inspections.length ? ev.inspections.slice().sort((a,b)=>String(a.date).localeCompare(String(b.date))) : [null];
+                checks.forEach(check => {
+                    excelRows.push([...baseRow, ...markCells,
+                        check?.date || '', check?.recStatus || '', check?.recRem || '',
+                        check?.diaryStatus || '', check?.diaryRem || '', check?.disc || '', check?.act || '',
+                        check?.plantationStatus || '', check?.plantationRem || '']);
+                });
             });
 
             const wb = XLSX.utils.book_new();
