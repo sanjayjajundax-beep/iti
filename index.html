@@ -5092,15 +5092,8 @@ window.__itiLoginClick = async function(ev) {
                     totalObt += mTotalObt;
                     totalMax += mTotalMM;
                     halfStats[halfKey].months++;
-                    // प्रत्येक माह के टेस्ट प्रतिशत को अलग रिकॉर्ड मानकर औसत में शामिल करें।
-                    if(sEval.tp!==''&&sEval.tp!==undefined&&sEval.tp!==null&&mmTP>0)halfStats[halfKey].practicalTests.push((tp/mmTP)*100);
-                    const theoryParts=[];
-                    if(sEval.tt!==''&&sEval.tt!==undefined&&sEval.tt!==null)theoryParts.push([tt,mmTT]);
-                    if(sEval.es!==''&&sEval.es!==undefined&&sEval.es!==null)theoryParts.push([es,mmES]);
-                    if(isEngg&&sEval.wcs!==''&&sEval.wcs!==undefined&&sEval.wcs!==null)theoryParts.push([parseFloat(sEval.wcs)||0,parseFloat(mm.wcs)||20]);
-                    if(isEngg&&sEval.ed!==''&&sEval.ed!==undefined&&sEval.ed!==null)theoryParts.push([parseFloat(sEval.ed)||0,parseFloat(mm.ed)||20]);
-                    const theoryObt=theoryParts.reduce((a,x)=>a+x[0],0),theoryMax=theoryParts.reduce((a,x)=>a+x[1],0);
-                    if(theoryMax>0)halfStats[halfKey].theoryTests.push((theoryObt/theoryMax)*100);
+                    // H1/H2 टेस्ट प्रतिशत नीचे allMonths के सुरक्षित aggregation चरण में निकाला जाता है।
+                    // यहाँ दोबारा गणना नहीं करें; इससे undefined variables और duplicate counting दोनों रुकते हैं।
                 }
 
                 {
@@ -5982,7 +5975,14 @@ window.__itiLoginClick = async function(ev) {
         function downloadReportCardAsPDF() {
             const studentId = document.getElementById('reportCardStudentSelect')?.value || (loggedInStudent?.studentId) || 'Report';
             const element = document.getElementById('printableProgressCard');
-            if (!element) return;
+            if (!element || !element.innerHTML.trim()) {
+                alert('पहले छात्र चुनकर वार्षिक प्रोग्रेस कार्ड में “देखें” दबाएँ।');
+                return;
+            }
+            if (typeof html2pdf !== 'function') {
+                alert('PDF लाइब्रेरी लोड नहीं हुई है। इंटरनेट कनेक्शन जाँचकर पेज रिफ्रेश करें।');
+                return;
+            }
 
             const opt = {
                 margin:       [4, 4, 4, 4],
