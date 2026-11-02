@@ -613,8 +613,8 @@
             border: 1.5px solid #1e3a8a;
             border-radius: 6px;
             font-family: 'Hind', sans-serif;
-            width: 100% !important;
-            max-width: 780px !important;
+            width: 190mm !important;
+            max-width: 190mm !important;
             min-width: 0 !important;
             margin: 0 auto;
             overflow: visible !important;
@@ -1962,7 +1962,13 @@ window.__itiLoginClick = async function(ev) {
 <div class="hidden" id="reportCardPreviewWrapper">
 <div id="adminPdfDownloadBtnContainer" style="text-align: right; margin-bottom: 10px;">
 <button class="app-btn app-btn-pdf" onclick="downloadReportCardAsPDF()" type="button">
-<i class="fa-solid fa-file-arrow-down"></i> A4 PDF डाउनलोड करें
+<i class="fa-solid fa-file-arrow-down"></i> इस विद्यार्थी की A4 PDF
+                    </button>
+<button class="app-btn app-btn-primary" onclick="downloadAllStudentsReportCardsPDF()" type="button" style="margin-left:6px;">
+<i class="fa-solid fa-users"></i> सभी विद्यार्थियों की PDF
+                    </button>
+<button class="app-btn app-btn-excel" onclick="openAdminAnnualExcelModal()" type="button" style="margin-left:6px;">
+<i class="fa-solid fa-file-excel"></i> सभी विद्यार्थियों की Excel
                     </button>
 </div>
 <div class="printableProgressCard" id="printableProgressCard"></div>
@@ -2441,22 +2447,25 @@ window.__itiLoginClick = async function(ev) {
             return appData.sessionConfig;
         }
 
-        // सत्र की कुल अवधि को दिनों के आधार पर दो लगभग बराबर हिस्सों में बाँटें।
-        // मासिक रिकॉर्ड उस हिस्से में जाएगा जिसमें उस महीने की 15 तारीख आती है।
-        // पहले/अंतिम अधूरे महीने में 15 तारीख सत्र से बाहर हो तो निकटतम सत्र-तिथि ली जाएगी।
+        // H1 सत्र के शुरुआती कैलेंडर महीनों में (कुल महीनों का ऊपर की ओर आधा: 11 माह में 6), H2 शेष अवधि में।
+        // सभी विद्यार्थियों और सभी मॉड्यूल में यही एक तारीख-सीमा लागू होती है।
         function getSessionHalfInfo() {
             const conf = getSessionConfig();
             const start = new Date(conf.startDate + 'T00:00:00');
             const end = new Date(conf.endDate + 'T00:00:00');
-            const dayMs = 24 * 60 * 60 * 1000;
-            const totalDays = Math.floor((Date.UTC(end.getFullYear(), end.getMonth(), end.getDate()) - Date.UTC(start.getFullYear(), start.getMonth(), start.getDate())) / dayMs) + 1;
-            const h1Days = Math.ceil(totalDays / 2);
-            const split = new Date(start.getFullYear(), start.getMonth(), start.getDate() + h1Days - 1);
+            const totalMonths = Math.max(1, (end.getFullYear() - start.getFullYear()) * 12 + end.getMonth() - start.getMonth() + 1);
+            const h1Months = Math.ceil(totalMonths / 2);
+            // H1 में start month सहित पहले h1Months कैलेंडर महीने शामिल होंगे।
+            let split = new Date(start.getFullYear(), start.getMonth() + h1Months, 0);
+            if (split > end) split = new Date(end.getFullYear(), end.getMonth(), end.getDate());
             const h2Start = new Date(split.getFullYear(), split.getMonth(), split.getDate() + 1);
+            const dayMs = 86400000;
+            const totalDays = Math.floor((Date.UTC(end.getFullYear(),end.getMonth(),end.getDate())-Date.UTC(start.getFullYear(),start.getMonth(),start.getDate()))/dayMs)+1;
+            const h1Days = Math.max(0, Math.floor((Date.UTC(split.getFullYear(),split.getMonth(),split.getDate())-Date.UTC(start.getFullYear(),start.getMonth(),start.getDate()))/dayMs)+1);
             const fmt = d => `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
-            return { start, end, split, h2Start, totalDays, h1Days, h2Days: totalDays - h1Days,
+            return { start, end, split, h2Start, totalDays, h1Days, h2Days: totalDays-h1Days, totalMonths, h1Months,
                 h1Label: `${fmt(start)} से ${fmt(split)}`,
-                h2Label: totalDays > h1Days ? `${fmt(h2Start)} से ${fmt(end)}` : 'लागू नहीं' };
+                h2Label: h2Start <= end ? `${fmt(h2Start)} से ${fmt(end)}` : 'लागू नहीं' };
         }
 
         function getMonthHalfKey(monthValue) {
@@ -5284,6 +5293,45 @@ window.__itiLoginClick = async function(ev) {
             const totalPracticalSessional=totalPracticalParts.some(x=>x===null)?'लंबित':totalPracticalParts.reduce((a,b)=>a+b,0).toFixed(1);
             const totalTheorySessional=totalTheoryParts.some(x=>x===null)?'लंबित':totalTheoryParts.reduce((a,b)=>a+b,0).toFixed(1);
 
+            // चारों विषयों के लिए H1/H2 में अलग-अलग विभागीय Formative Assessment।
+            // ED में अलग साप्ताहिक कार्य-रिकॉर्ड उपलब्ध नहीं है, इसलिए Practical का साझा साप्ताहिक कार्य घटक लागू है।
+            // WCS/ES में अलग नोटबुक निरीक्षण रिकॉर्ड उपलब्ध नहीं है, इसलिए उपलब्ध साझा डायरी/नोटबुक अंक लागू हैं।
+            const makeSubjectSessional = (h, testAverage, formula) => {
+                const asNumber = v => (v === null || v === undefined || v === '—' || v === '') ? null : Number(v);
+                const first = asNumber(formula === 'practical' ? h.practicalWork : h.diary);
+                const attendance = asNumber(h.attendance), activity = asNumber(h.activity);
+                const testWeight = testAverage === null ? null : testAverage * (formula === 'practical' ? 0.30 : 0.50);
+                const parts = [first, testWeight, attendance, activity];
+                const total = parts.every(v => v !== null && Number.isFinite(v)) ? parts.reduce((a,b)=>a+b,0).toFixed(1) : 'लंबित';
+                return {
+                    first,
+                    test: testWeight,
+                    attendance,
+                    activity,
+                    total,
+                    firstLabel: formula === 'practical' ? 'नियमित प्रायोगिक कार्य' : 'नोट्स व अभ्यास पुस्तिका (डायरी)',
+                    firstWeight: formula === 'practical' ? '50%' : '30%',
+                    testWeightLabel: formula === 'practical' ? '30%' : '50%'
+                };
+            };
+            const subjectSessional = [
+                {title:'1. प्रायोगिक (Practical)',formula:'practical',test:h=>average(h.practicalTests)},
+                {title:'2. इंजीनियरिंग ड्राइंग (ED)',formula:'practical',test:h=>average(h.edTests)},
+                {title:'3. कार्यशाला गणना एवं विज्ञान (WCS)',formula:'theory',test:h=>average(h.wcsTests)},
+                {title:'4. ES विषय',formula:'theory',test:h=>average(h.esTests)}
+            ].map(subject => ({...subject,H1:makeSubjectSessional(h1Score,subject.test(halfStats.H1),subject.formula),H2:makeSubjectSessional(h2Score,subject.test(halfStats.H2),subject.formula)}));
+            const renderSubjectHalfBreakdown = (halfLabel, data) => `
+                <div class="report-no-break" style="border:1px solid #cbd5e1;border-radius:6px;padding:7px;background:#fff;">
+                    <b style="font-size:.78rem;color:#1e3a8a;">${halfLabel}</b>
+                    <table style="width:100%;margin-top:4px;"><tbody>
+                        <tr><td style="text-align:left;white-space:normal;">${data.firstLabel}</td><td style="text-align:right;">${data.firstWeight}</td><td style="text-align:right;font-weight:700;">${data.first===null?'—':Number(data.first).toFixed(1)}/${data.firstWeight==='50%'?'50':'30'}</td></tr>
+                        <tr><td style="text-align:left;white-space:normal;">मासिक / अचीवमेंट टेस्ट</td><td style="text-align:right;">${data.testWeightLabel}</td><td style="text-align:right;font-weight:700;">${data.test===null?'—':Number(data.test).toFixed(1)}/${data.testWeightLabel==='30%'?'30':'50'}</td></tr>
+                        <tr><td style="text-align:left;white-space:normal;">उपस्थिति</td><td style="text-align:right;">10%</td><td style="text-align:right;font-weight:700;">${data.attendance===null?'—':Number(data.attendance).toFixed(1)}/10</td></tr>
+                        <tr><td style="text-align:left;white-space:normal;">सह-पाठ्यक्रम गतिविधियां</td><td style="text-align:right;">10%</td><td style="text-align:right;font-weight:700;">${data.activity===null?'—':Number(data.activity).toFixed(1)}/10</td></tr>
+                        <tr style="background:#f0fdf4;font-weight:800;"><td style="text-align:left;white-space:normal;">कुल सत्रीय अंक</td><td style="text-align:right;">100%</td><td style="text-align:right;color:#166534;">${data.total}/100</td></tr>
+                    </tbody></table>
+                </div>`;
+
             const signHTML = (inst.superintendentSignUrl && inst.superintendentSignUrl.trim() !== '')
                 ? `<img src="${inst.superintendentSignUrl}" style="max-height: 38px; display: block; margin: 0 auto 2px auto;">`
                 : `<div style="height: 32px;"></div>`;
@@ -5371,80 +5419,21 @@ window.__itiLoginClick = async function(ev) {
                     </div>
                 </div>
 
-                <div style="font-size: 0.82rem; font-weight: 700; margin-bottom: 5px; color: #831843;">
-                    <i class="fa-solid fa-scale-balanced"></i> 2. सत्रीय अंक निर्धारण (Formative Assessment / Sessional Marks Breakdown):
+                <div style="font-size: 0.82rem; font-weight: 700; margin: 8px 0 6px; color: #831843;">
+                    <i class="fa-solid fa-scale-balanced"></i> 2. विषयवार सत्रीय अंक निर्धारण (Formative Assessment / Sessional Marks Breakdown)
                 </div>
-
-                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 8px;">
-                    <div style="border: 1px solid #cbd5e1; border-radius: 4px; padding: 6px 8px; background: #ffffff;">
-                        <div style="font-size: 0.78rem; font-weight: 700; color: #1e3a8a; border-bottom: 1px solid #cbd5e1; padding-bottom: 3px; margin-bottom: 4px;">
-                            प्रायोगिक सत्रीय अंक (विभागीय भारांक)
-                        </div>
-                        <table style="width: 100%; text-align: left;">
-                            <tbody>
-                                <tr>
-                                    <td style="text-align: left; padding: 2px;">1. नियमित प्रायोगिक कार्य (साप्ताहिक औसत)</td>
-                                    <td style="text-align: right; font-weight: 600;">50%</td>
-                                    <td style="text-align: right; font-weight: 700; color: #15803d;">${pracWorkScore}/50</td>
-                                </tr>
-                                <tr>
-                                    <td style="text-align: left; padding: 2px;">2. मासिक / अचीवमेंट टेस्ट</td>
-                                    <td style="text-align: right; font-weight: 600;">30%</td>
-                                    <td style="text-align: right; font-weight: 700; color: #15803d;">${tpTestWeightScore}/30</td>
-                                </tr>
-                                <tr>
-                                    <td style="text-align: left; padding: 2px;">3. उपस्थिति (${overallAttPct}%)</td>
-                                    <td style="text-align: right; font-weight: 600;">10%</td>
-                                    <td style="text-align: right; font-weight: 700; color: #15803d;">${attWeightScore}/10</td>
-                                </tr>
-                                <tr>
-                                    <td style="text-align: left; padding: 2px;">4. सह-पाठ्यक्रम गतिविधियां</td>
-                                    <td style="text-align: right; font-weight: 600;">10%</td>
-                                    <td style="text-align: right; font-weight: 700; color: #15803d;">${activityScore}/10</td>
-                                </tr>
-                                <tr style="background: #f0fdf4; font-weight: 800; border-top: 1px solid #86efac;">
-                                    <td style="text-align: left; padding: 3px;">कुल प्रायोगिक सत्रीय अंक</td>
-                                    <td style="text-align: right;">100%</td>
-                                    <td style="text-align: right; color: #166534; font-size: 0.8rem;">${totalPracticalSessional} / 100</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <div style="border: 1px solid #cbd5e1; border-radius: 4px; padding: 6px 8px; background: #ffffff;">
-                        <div style="font-size: 0.78rem; font-weight: 700; color: #0d9488; border-bottom: 1px solid #cbd5e1; padding-bottom: 3px; margin-bottom: 4px;">
-                            सैद्धांतिक सत्रीय अंक (विभागीय भारांक)
-                        </div>
-                        <table style="width: 100%; text-align: left;">
-                            <tbody>
-                                <tr>
-                                    <td style="text-align: left; padding: 2px;">1. नोट्स व अभ्यास पुस्तिका (डायरी)</td>
-                                    <td style="text-align: right; font-weight: 600;">30%</td>
-                                    <td style="text-align: right; font-weight: 700; color: #0f766e;">${notesScore}/30</td>
-                                </tr>
-                                <tr>
-                                    <td style="text-align: left; padding: 2px;">2. मासिक / अचीवमेंट टेस्ट</td>
-                                    <td style="text-align: right; font-weight: 600;">50%</td>
-                                    <td style="text-align: right; font-weight: 700; color: #0f766e;">${ttTestWeightScore}/50</td>
-                                </tr>
-                                <tr>
-                                    <td style="text-align: left; padding: 2px;">3. उपस्थिति (${overallAttPct}%)</td>
-                                    <td style="text-align: right; font-weight: 600;">10%</td>
-                                    <td style="text-align: right; font-weight: 700; color: #0f766e;">${attWeightScore}/10</td>
-                                </tr>
-                                <tr>
-                                    <td style="text-align: left; padding: 2px;">4. सह-पाठ्यक्रम गतिविधियां</td>
-                                    <td style="text-align: right; font-weight: 600;">10%</td>
-                                    <td style="text-align: right; font-weight: 700; color: #0f766e;">${activityScore}/10</td>
-                                </tr>
-                                <tr style="background: #f0fdfa; font-weight: 800; border-top: 1px solid #99f6e4;">
-                                    <td style="text-align: left; padding: 3px;">कुल सैद्धांतिक सत्रीय अंक</td>
-                                    <td style="text-align: right;">100%</td>
-                                    <td style="text-align: right; color: #115e59; font-size: 0.8rem;">${totalTheorySessional} / 100</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+                <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:8px;">
+                    ${subjectSessional.map((subject,idx)=>`
+                        <div class="report-no-break" style="border:1px solid ${idx%2?'#99f6e4':'#bfdbfe'};border-radius:7px;padding:7px;background:${idx%2?'#f0fdfa':'#eff6ff'};">
+                            <div style="font-weight:800;font-size:.82rem;color:${idx%2?'#0f766e':'#1e3a8a'};margin-bottom:5px;">${subject.title}</div>
+                            <div style="display:grid;grid-template-columns:1fr;gap:6px;">
+                                ${renderSubjectHalfBreakdown(`H1 — ${getSessionHalfInfo().h1Label}`,subject.H1)}
+                                ${renderSubjectHalfBreakdown(`H2 — ${getSessionHalfInfo().h2Label}`,subject.H2)}
+                            </div>
+                        </div>`).join('')}
+                </div>
+                <div style="font-size:.7rem;color:#64748b;margin:4px 0 8px;">
+                    ED में अलग साप्ताहिक नियमित कार्य के अंक उपलब्ध नहीं होने के कारण प्रायोगिक का साझा साप्ताहिक कार्य घटक लिया गया है। WCS और ES में अलग नोटबुक निरीक्षण रिकॉर्ड उपलब्ध नहीं होने के कारण साझा डायरी/नोटबुक अंक लागू हैं। टेस्ट का औसत प्रत्येक विषय के अपने उपलब्ध मासिक/अचीवमेंट टेस्ट से निकाला गया है। H1 और H2 की गणना स्वतंत्र है; आवश्यक घटक उपलब्ध न होने पर कुल अंक 'लंबित' रहेंगे।
                 </div>
 
                 <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 14px; padding: 0 10px; font-size: 0.82rem;">
@@ -5857,8 +5846,8 @@ window.__itiLoginClick = async function(ev) {
             const info = getSessionHalfInfo(), cfg = getSessionConfig();
             const today = new Date(); today.setHours(0,0,0,0);
             const result = {
-                H1:{working:0,present:0,practicalWork:[],practicalTests:[],theoryTests:[],diary:[],activity:[]},
-                H2:{working:0,present:0,practicalWork:[],practicalTests:[],theoryTests:[],diary:[],activity:[]}
+                H1:{working:0,present:0,practicalWork:[],practicalTests:[],theoryTests:[],edTests:[],wcsTests:[],esTests:[],diary:[],activity:[]},
+                H2:{working:0,present:0,practicalWork:[],practicalTests:[],theoryTests:[],edTests:[],wcsTests:[],esTests:[],diary:[],activity:[]}
             };
             const avg = a => a.length ? a.reduce((x,y)=>x+y,0)/a.length : null;
             const halfFor = date => getDateHalfKey(date);
@@ -5884,6 +5873,7 @@ window.__itiLoginClick = async function(ev) {
                 if(ev){
                     const max=getMaxMarksConfig(collegeId,trade,month), h=getMonthHalfKey(month);
                     if(ev.tp!==''&&ev.tp!==undefined&&ev.tp!==null){const m=Number(max.tp)||20;if(m>0)result[h].practicalTests.push(Number(ev.tp)/m*100);}
+                    for(const [field,target] of [['ed','edTests'],['wcs','wcsTests'],['es','esTests']]) if(ev[field]!==''&&ev[field]!==undefined&&ev[field]!==null){const full=Number(max[field])||20;if(full>0)result[h][target].push(Number(ev[field])/full*100);}
                     const parts=[];for(const f of ['tt','es',...(isEngg?['wcs','ed']:[])])if(ev[f]!==''&&ev[f]!==undefined&&ev[f]!==null)parts.push([Number(ev[f]),Number(max[f])||20]);
                     const got=parts.reduce((a,x)=>a+x[0],0),full=parts.reduce((a,x)=>a+x[1],0);if(full>0)result[h].theoryTests.push(got/full*100);
                 }
@@ -5907,6 +5897,7 @@ window.__itiLoginClick = async function(ev) {
                 const m=String(key).match(/^Q\d+_(\d{4}-\d{2}-\d{2})$/),ev=rows?.[roll];if(!m||!ev)return;
                 const date=ev.testDate||m[1],h=halfFor(date),max=getMaxMarksConfig(collegeId,trade,key);
                 if(ev.tp!==''&&ev.tp!==undefined&&ev.tp!==null){const full=Number(max.tp)||20;if(full>0)result[h].practicalTests.push(Number(ev.tp)/full*100);}
+                for(const [field,target] of [['ed','edTests'],['wcs','wcsTests'],['es','esTests']]) if(ev[field]!==''&&ev[field]!==undefined&&ev[field]!==null){const full=Number(max[field])||20;if(full>0)result[h][target].push(Number(ev[field])/full*100);}
                 const parts=[];for(const f of ['tt','es',...(isEngg?['wcs','ed']:[])])if(ev[f]!==''&&ev[f]!==undefined&&ev[f]!==null)parts.push([Number(ev[f]),Number(max[f])||20]);
                 const got=parts.reduce((a,x)=>a+x[0],0),full=parts.reduce((a,x)=>a+x[1],0);if(full>0)result[h].theoryTests.push(got/full*100);
             });
@@ -5916,7 +5907,8 @@ window.__itiLoginClick = async function(ev) {
                 const pParts=[pw===null?null:pw*.5,pt===null?null:pt*.3,att===null?null:att*.1,ac];
                 const tParts=[di,tt===null?null:tt*.5,att===null?null:att*.1,ac];
                 const total=a=>a.every(x=>x!==null)?Number(a.reduce((x,y)=>x+y,0).toFixed(1)):'लंबित';
-                return {half:key,working:h.working,present:h.present,attendancePct:att===null?'—':Number(att.toFixed(1)),practicalWork:pw===null?'—':Number((pw*.5).toFixed(1)),practicalTest:pt===null?'—':Number((pt*.3).toFixed(1)),diary:di===null?'—':Number(di.toFixed(1)),theoryTest:tt===null?'—':Number((tt*.5).toFixed(1)),attendance:att===null?'—':Number((att*.1).toFixed(1)),activity:ac===null?'—':Number(ac.toFixed(1)),practicalTotal:total(pParts),theoryTotal:total(tParts),practicalWorkCount:h.practicalWork.length,practicalTestCount:h.practicalTests.length,diaryCount:h.diary.length,activityCount:h.activity.length};
+                const subjectTotal=(testArr,formula)=>{const testAvg=avg(testArr),first=formula==='practical'?(pw===null?null:pw*.5):di,weightedTest=testAvg===null?null:testAvg*(formula==='practical'?.3:.5);const parts=[first,weightedTest,att===null?null:att*.1,ac];return parts.every(v=>v!==null)?Number(parts.reduce((a,b)=>a+b,0).toFixed(1)):'लंबित';};
+                return {half:key,working:h.working,present:h.present,attendancePct:att===null?'—':Number(att.toFixed(1)),practicalWork:pw===null?'—':Number((pw*.5).toFixed(1)),practicalTest:pt===null?'—':Number((pt*.3).toFixed(1)),diary:di===null?'—':Number(di.toFixed(1)),theoryTest:tt===null?'—':Number((tt*.5).toFixed(1)),attendance:att===null?'—':Number((att*.1).toFixed(1)),activity:ac===null?'—':Number(ac.toFixed(1)),practicalTotal:total(pParts),theoryTotal:total(tParts),edAverage:avg(h.edTests)===null?'—':Number(avg(h.edTests).toFixed(1)),wcsAverage:avg(h.wcsTests)===null?'—':Number(avg(h.wcsTests).toFixed(1)),esAverage:avg(h.esTests)===null?'—':Number(avg(h.esTests).toFixed(1)),edSessional:subjectTotal(h.edTests,'practical'),wcsSessional:subjectTotal(h.wcsTests,'theory'),esSessional:subjectTotal(h.esTests,'theory'),practicalWorkCount:h.practicalWork.length,practicalTestCount:h.practicalTests.length,diaryCount:h.diary.length,activityCount:h.activity.length};
             });
         }
 
@@ -6045,6 +6037,14 @@ window.__itiLoginClick = async function(ev) {
                 });
                 XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(halfRows),halfKey);
             }
+            const subjectRows=[['कॉलेज','ट्रेड','रोल','विद्यार्थी','अवधि','विषय','टेस्ट औसत %','फॉर्मूला','कुल सत्रीय अंक /100']];
+            tStudents.forEach(st=>calculateHalfYearAssessmentForExport(collegeId,trade,st).forEach(h=>{
+                subjectRows.push([colName,trade,st.roll,st.name,h.half,'प्रायोगिक (Practical)',h.practicalTest==='—'?'—':(Number(h.practicalTest)/30*100).toFixed(1),'प्रायोगिक 50:30:10:10',h.practicalTotal]);
+                if(isEngg) subjectRows.push([colName,trade,st.roll,st.name,h.half,'इंजीनियरिंग ड्राइंग (ED)',h.edAverage,'प्रायोगिक 50:30:10:10',h.edSessional]);
+                if(isEngg) subjectRows.push([colName,trade,st.roll,st.name,h.half,'कार्यशाला गणना एवं विज्ञान (WCS)',h.wcsAverage,'सैद्धांतिक 30:50:10:10',h.wcsSessional]);
+                subjectRows.push([colName,trade,st.roll,st.name,h.half,'ES',h.esAverage,'सैद्धांतिक 30:50:10:10',h.esSessional]);
+            }));
+            XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(subjectRows),'Subject_Sessional');
             XLSX.writeFile(wb, `${colName}_${trade}_Annual_H1_H2_Report.xlsx`);
             closeModal('adminAnnualExcelModal');
             showToast(`ट्रेड ${trade} की वार्षिक परफॉर्मेंस रिपोर्ट डाउनलोड हो गई!`);
@@ -6128,7 +6128,7 @@ window.__itiLoginClick = async function(ev) {
             }
 
             const opt = {
-                margin: [6, 6, 8, 6],
+                margin: [5, 5, 6, 5],
                 filename: `Annual_Report_${studentId}.pdf`,
                 image: { type: 'jpeg', quality: 0.97 },
                 html2canvas: {
@@ -6137,7 +6137,7 @@ window.__itiLoginClick = async function(ev) {
                     allowTaint: false,
                     logging: false,
                     backgroundColor: '#ffffff',
-                    windowWidth: Math.max(element.scrollWidth, 794),
+                    windowWidth: Math.ceil(190 * 96 / 25.4),
                     scrollX: 0,
                     scrollY: 0
                 },
@@ -6152,6 +6152,33 @@ window.__itiLoginClick = async function(ev) {
                 console.error('Annual report PDF error:', err);
                 alert('PDF बनाते समय त्रुटि हुई। कृपया दोबारा प्रयास करें।');
             });
+        }
+
+        async function downloadAllStudentsReportCardsPDF() {
+            const collegeId = document.getElementById('reportCardCollegeSelect')?.value || currentCollegeId;
+            const trade = document.getElementById('reportCardTradeSelect')?.value || currentTrade;
+            if (!collegeId || !trade) { alert('कृपया कॉलेज और ट्रेड चुनें।'); return; }
+            if (typeof html2pdf !== 'function') { alert('PDF लाइब्रेरी लोड नहीं हुई है। इंटरनेट कनेक्शन जाँचें।'); return; }
+            const students = getStudentList(collegeId, trade);
+            if (!students.length) { alert('इस ट्रेड में कोई विद्यार्थी उपलब्ध नहीं है।'); return; }
+            const host = document.createElement('div');
+            host.id = 'bulkAnnualReportPdfHost';
+            host.style.cssText = 'position:fixed;left:0;top:0;width:190mm;background:#fff;z-index:-1;pointer-events:none;';
+            students.forEach((st,index)=>{
+                const page=document.createElement('div');
+                page.className='printableProgressCard bulk-report-card';
+                page.style.cssText=`width:190mm;max-width:190mm;box-sizing:border-box;background:#fff;${index?'break-before:page;page-break-before:always;':''}`;
+                page.innerHTML=generateReportCardHTML(collegeId,trade,st);
+                host.appendChild(page);
+            });
+            document.body.appendChild(host);
+            try {
+                showToast(`सभी ${students.length} विद्यार्थियों की PDF तैयार हो रही है...`);
+                const opt={margin:[5,5,6,5],filename:`${String(getCollegeName(collegeId)).replace(/[^a-zA-Z0-9_-]/g,'_')}_${String(trade).replace(/[^a-zA-Z0-9_-]/g,'_')}_All_Students_Annual_Reports.pdf`,image:{type:'jpeg',quality:0.96},html2canvas:{scale:1.6,useCORS:true,allowTaint:false,logging:false,backgroundColor:'#ffffff',windowWidth:Math.ceil(190*96/25.4),scrollX:0,scrollY:0},jsPDF:{unit:'mm',format:'a4',orientation:'portrait',compress:true},pagebreak:{mode:['css','legacy'],avoid:['tr','.report-no-break','img']}};
+                await html2pdf().set(opt).from(host).save();
+                showToast(`सभी ${students.length} विद्यार्थियों की PDF डाउनलोड हो गई।`);
+            } catch(err) { console.error('Bulk annual PDF error:',err); alert('सभी विद्यार्थियों की PDF बनाते समय त्रुटि हुई। कम विद्यार्थियों के बैच में पुनः प्रयास करें।'); }
+            finally { host.remove(); }
         }
 
         function exportAttendanceToExcel() {
