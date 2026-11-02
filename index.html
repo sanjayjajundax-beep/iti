@@ -613,10 +613,11 @@
             border: 1.5px solid #1e3a8a;
             border-radius: 6px;
             font-family: 'Hind', sans-serif;
-            width: 780px !important;
+            width: 100% !important;
             max-width: 780px !important;
-            min-width: 780px !important;
+            min-width: 0 !important;
             margin: 0 auto;
+            overflow: visible !important;
             box-sizing: border-box;
         }
 
@@ -634,6 +635,18 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+        }
+
+        /* Annual report PDF: allow natural multi-page flow; never clip the card at a fixed height. */
+        .printableProgressCard { break-inside: auto !important; page-break-inside: auto !important; }
+        .printableProgressCard table { page-break-inside: auto !important; }
+        .printableProgressCard thead { display: table-header-group; }
+        .printableProgressCard tr, .printableProgressCard img, .printableProgressCard .report-no-break {
+            break-inside: avoid !important; page-break-inside: avoid !important;
+        }
+        .printableProgressCard h2, .printableProgressCard h3 { break-after: avoid; page-break-after: avoid; }
+        @media print {
+            .printableProgressCard { width: 100% !important; max-width: none !important; min-width: 0 !important; }
         }
 
         footer {
@@ -5008,8 +5021,8 @@ window.__itiLoginClick = async function(ev) {
             
             // H1/H2 की सीमा एडमिन द्वारा निर्धारित सत्र की कुल अवधि से स्वतः निकलेगी।
             const halfStats = {
-                H1: { months: 0, present: 0, working: 0, practicalWork: [], practicalTests: [], theoryTests: [], diary: [], activity: [] },
-                H2: { months: 0, present: 0, working: 0, practicalWork: [], practicalTests: [], theoryTests: [], diary: [], activity: [] }
+                H1: { months: 0, present: 0, working: 0, practicalWork: [], practicalTests: [], theoryTests: [], edTests: [], wcsTests: [], esTests: [], diary: [], activity: [] },
+                H2: { months: 0, present: 0, working: 0, practicalWork: [], practicalTests: [], theoryTests: [], edTests: [], wcsTests: [], esTests: [], diary: [], activity: [] }
             };
             const allPracticalWorkScores = [], allDiaryScores = [], allActivityScores = [];
             const scoreDiary = v => ({'नियमित':27.5, 'अनियमित':21, 'लंबित':15}[v] ?? null);
@@ -5116,6 +5129,14 @@ window.__itiLoginClick = async function(ev) {
                     const theoryObt = theoryTestParts.reduce((a,x)=>a+x.obtained,0);
                     const theoryMax = theoryTestParts.reduce((a,x)=>a+x.maximum,0);
                     if (theoryMax > 0) halfStats[halfKey].theoryTests.push((theoryObt / theoryMax) * 100);
+                    // ED, WCS और ES के टेस्ट अलग-अलग H1/H2 विषयवार औसत में भी दर्ज हों।
+                    ['ed','wcs','es'].forEach(field => {
+                        const part = testParts.find(x => x.field === field);
+                        if (part && part.maximum > 0) {
+                            const bucket = field === 'ed' ? 'edTests' : field === 'wcs' ? 'wcsTests' : 'esTests';
+                            halfStats[halfKey][bucket].push((part.obtained / part.maximum) * 100);
+                        }
+                    });
 
                     mTestPct = mTotalMM > 0 ? ((mTotalObt / mTotalMM) * 100).toFixed(1) : "0.0";
                     scoreDisplay = `${mTotalObt} / ${mTotalMM}`;
@@ -5211,6 +5232,15 @@ window.__itiLoginClick = async function(ev) {
                 if(isEngg){if(ev.wcs!==''&&ev.wcs!==undefined&&ev.wcs!==null)parts.push([Number(ev.wcs),Number(mm.wcs)||20]);if(ev.ed!==''&&ev.ed!==undefined&&ev.ed!==null)parts.push([Number(ev.ed),Number(mm.ed)||20]);}
                 const got=parts.reduce((a,x)=>a+x[0],0),max=parts.reduce((a,x)=>a+x[1],0);if(max>0)allTheoryTestPcts.push((got/max)*100);
                 const half=getDateHalfKey(testDate);if(ev.tp!==''&&ev.tp!==undefined&&ev.tp!==null&&Number(mm.tp)>0)halfStats[half].practicalTests.push((tp/(Number(mm.tp)||20))*100);if(max>0)halfStats[half].theoryTests.push((got/max)*100);
+                ['ed','wcs','es'].forEach(field => {
+                    if (ev[field] !== '' && ev[field] !== undefined && ev[field] !== null) {
+                        const full = Number(mm[field]) || 20;
+                        if (full > 0) {
+                            const bucket = field === 'ed' ? 'edTests' : field === 'wcs' ? 'wcsTests' : 'esTests';
+                            halfStats[half][bucket].push((Number(ev[field]) / full) * 100);
+                        }
+                    }
+                });
             });
             const avgPracticalTest=average(allPracticalTestPcts),avgTheoryTest=average(allTheoryTestPcts);
             const tpTestWeightScore = avgPracticalTest===null?'—':(avgPracticalTest*0.30).toFixed(1);
@@ -5239,6 +5269,9 @@ window.__itiLoginClick = async function(ev) {
                     attendance:attendance===null?'—':attendance.toFixed(1),
                     practicalTest:practicalTest===null?'—':practicalTest.toFixed(1),
                     theoryTest:theoryTest===null?'—':theoryTest.toFixed(1),
+                    engineeringDrawing:average(h.edTests)===null?'—':average(h.edTests).toFixed(1),
+                    workshopCalculation:average(h.wcsTests)===null?'—':average(h.wcsTests).toFixed(1),
+                    esSubject:average(h.esTests)===null?'—':average(h.esTests).toFixed(1),
                     attendancePct:attPct===null?'—':attPct.toFixed(1),
                     practicalCount:h.practicalWork.length,diaryCount:h.diary.length
                 };
@@ -5315,31 +5348,27 @@ window.__itiLoginClick = async function(ev) {
                     </table>
                 </div>
 
-                <div style="margin:10px 0 12px;padding:9px;border:1px solid #cbd5e1;border-radius:8px;background:#f8fafc;">
-                    <h3 style="margin:0 0 8px;color:#1e3a8a;font-size:0.95rem;">H1 / H2 अर्धवार्षिक सत्रीय मूल्यांकन</h3>
+                <div class="report-section" style="margin:10px 0 12px;padding:9px;border:1px solid #cbd5e1;border-radius:8px;background:#f8fafc;">
+                    <h3 style="margin:0 0 8px;color:#1e3a8a;font-size:0.95rem;">H1 / H2 अर्धवार्षिक विषयवार मूल्यांकन — चार अलग-अलग भाग</h3>
                     <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;">
-                        <div style="border:1px solid #bfdbfe;border-radius:6px;padding:8px;background:#eff6ff;">
-                            <b>H1 — ${getSessionHalfInfo().h1Label}</b>
-                            <div>प्रायोगिक कुल: <b>${h1Score.practical}/100</b></div>
-                            <small>नियमित प्रायोगिक कार्य: ${h1Score.practicalWork}/50 · TP टेस्ट: ${h1Score.practicalTest}/30</small><br>
-                            <small>उपस्थिति: ${h1Score.attendance}/10 · गतिविधियाँ: ${h1Score.activity}/10</small><br>
-                            <div style="margin-top:5px;">सैद्धांतिक कुल: <b>${h1Score.theory}/100</b></div>
-                            <small>नोटबुक: ${h1Score.diary}/30 · TT+ES+WCS+ED टेस्ट: ${h1Score.theoryTest}/50</small><br>
-                            <small>उपस्थिति: ${h1Score.attendance}/10 · गतिविधियाँ: ${h1Score.activity}/10</small><br>
-                            <small>साप्ताहिक प्रायोगिक मूल्यांकन: ${h1Score.practicalCount} · उपस्थिति: ${h1Score.attendancePct}%</small>
-                        </div>
-                        <div style="border:1px solid #99f6e4;border-radius:6px;padding:8px;background:#f0fdfa;">
-                            <b>H2 — ${getSessionHalfInfo().h2Label}</b>
-                            <div>प्रायोगिक कुल: <b>${h2Score.practical}/100</b></div>
-                            <small>नियमित प्रायोगिक कार्य: ${h2Score.practicalWork}/50 · TP टेस्ट: ${h2Score.practicalTest}/30</small><br>
-                            <small>उपस्थिति: ${h2Score.attendance}/10 · गतिविधियाँ: ${h2Score.activity}/10</small><br>
-                            <div style="margin-top:5px;">सैद्धांतिक कुल: <b>${h2Score.theory}/100</b></div>
-                            <small>नोटबुक: ${h2Score.diary}/30 · TT+ES+WCS+ED टेस्ट: ${h2Score.theoryTest}/50</small><br>
-                            <small>उपस्थिति: ${h2Score.attendance}/10 · गतिविधियाँ: ${h2Score.activity}/10</small><br>
-                            <small>साप्ताहिक प्रायोगिक मूल्यांकन: ${h2Score.practicalCount} · उपस्थिति: ${h2Score.attendancePct}%</small>
-                        </div>
+                        ${[
+                            {title:'1. प्रायोगिक (Practical)',key:'practical',detail:'नियमित प्रायोगिक कार्य + TP टेस्ट',h1:`${h1Score.practical}/100`,h2:`${h2Score.practical}/100`,extra1:`कार्य ${h1Score.practicalWork}/50 · TP टेस्ट ${h1Score.practicalTest}/30`,extra2:`कार्य ${h2Score.practicalWork}/50 · TP टेस्ट ${h2Score.practicalTest}/30`},
+                            {title:'2. इंजीनियरिंग ड्राइंग (ED)',key:'ed',detail:'ED मासिक / अचीवमेंट टेस्ट का औसत',h1:`${h1Score.engineeringDrawing}%`,h2:`${h2Score.engineeringDrawing}%`,extra1:'केवल ED विषय के उपलब्ध टेस्ट',extra2:'केवल ED विषय के उपलब्ध टेस्ट'},
+                            {title:'3. कार्यशाला गणना एवं विज्ञान (WCS)',key:'wcs',detail:'WCS मासिक / अचीवमेंट टेस्ट का औसत',h1:`${h1Score.workshopCalculation}%`,h2:`${h2Score.workshopCalculation}%`,extra1:'केवल WCS विषय के उपलब्ध टेस्ट',extra2:'केवल WCS विषय के उपलब्ध टेस्ट'},
+                            {title:'4. ES विषय',key:'es',detail:'ES मासिक / अचीवमेंट टेस्ट का औसत',h1:`${h1Score.esSubject}%`,h2:`${h2Score.esSubject}%`,extra1:'केवल ES विषय के उपलब्ध टेस्ट',extra2:'केवल ES विषय के उपलब्ध टेस्ट'}
+                        ].map((item,idx)=>`
+                            <div class="report-no-break" style="border:1px solid ${idx%2?'#99f6e4':'#bfdbfe'};border-radius:7px;padding:8px;background:${idx%2?'#f0fdfa':'#eff6ff'};">
+                                <b>${item.title}</b>
+                                <div style="margin-top:4px;font-size:0.82rem;">H1 — ${getSessionHalfInfo().h1Label}: <strong>${item.h1}</strong></div>
+                                <small>${item.extra1}</small>
+                                <div style="margin-top:5px;font-size:0.82rem;">H2 — ${getSessionHalfInfo().h2Label}: <strong>${item.h2}</strong></div>
+                                <small>${item.extra2}</small>
+                                <div style="font-size:0.7rem;color:#64748b;margin-top:3px;">${item.detail}</div>
+                            </div>`).join('')}
                     </div>
-                    <div style="font-size:0.72rem;color:#475569;margin-top:6px;">प्रत्येक H1/H2 में संबंधित अवधि के उपलब्ध साप्ताहिक प्रायोगिक अंकों, नोटबुक निरीक्षणों और गतिविधि मूल्यांकनों का अलग-अलग औसत लिया गया है। टेस्टों के प्रतिशत का औसत लिया गया है; TT+ES+WCS+ED सैद्धांतिक टेस्ट में शामिल हैं। अधूरे घटक होने पर कुल परिणाम लंबित रहेगा।</div>
+                    <div style="font-size:0.72rem;color:#475569;margin-top:7px;">
+                        H1 और H2 की गणना संबंधित अवधि के रिकॉर्ड से अलग-अलग की गई है। प्रायोगिक में साप्ताहिक नियमित कार्य और TP टेस्ट शामिल हैं। ED, WCS तथा ES में केवल उसी विषय के उपलब्ध मासिक / अचीवमेंट टेस्ट का प्रतिशत औसत दिखाया गया है। उपलब्ध रिकॉर्ड न होने पर — दिखेगा। मूल विभागीय परिपत्र के अनुसार प्रायोगिक तथा अन्य सत्रीय भारांक का कुल निर्धारण नीचे अलग दिया गया है।
+                    </div>
                 </div>
 
                 <div style="font-size: 0.82rem; font-weight: 700; margin-bottom: 5px; color: #831843;">
@@ -5349,7 +5378,7 @@ window.__itiLoginClick = async function(ev) {
                 <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 8px;">
                     <div style="border: 1px solid #cbd5e1; border-radius: 4px; padding: 6px 8px; background: #ffffff;">
                         <div style="font-size: 0.78rem; font-weight: 700; color: #1e3a8a; border-bottom: 1px solid #cbd5e1; padding-bottom: 3px; margin-bottom: 4px;">
-                            प्रायोगिक / इंजीनियरिंग ड्राईंग के सत्रीय अंक
+                            प्रायोगिक सत्रीय अंक (विभागीय भारांक)
                         </div>
                         <table style="width: 100%; text-align: left;">
                             <tbody>
@@ -5384,7 +5413,7 @@ window.__itiLoginClick = async function(ev) {
 
                     <div style="border: 1px solid #cbd5e1; border-radius: 4px; padding: 6px 8px; background: #ffffff;">
                         <div style="font-size: 0.78rem; font-weight: 700; color: #0d9488; border-bottom: 1px solid #cbd5e1; padding-bottom: 3px; margin-bottom: 4px;">
-                            सैद्धांतिक / कार्यशाला गणना एवं विज्ञान सत्रीय अंक
+                            सैद्धांतिक सत्रीय अंक (विभागीय भारांक)
                         </div>
                         <table style="width: 100%; text-align: left;">
                             <tbody>
@@ -6099,16 +6128,29 @@ window.__itiLoginClick = async function(ev) {
             }
 
             const opt = {
-                margin:       [4, 4, 4, 4],
-                filename:     `Annual_Report_${studentId}.pdf`,
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true, logging: false },
-                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                margin: [6, 6, 8, 6],
+                filename: `Annual_Report_${studentId}.pdf`,
+                image: { type: 'jpeg', quality: 0.97 },
+                html2canvas: {
+                    scale: 2,
+                    useCORS: true,
+                    allowTaint: false,
+                    logging: false,
+                    backgroundColor: '#ffffff',
+                    windowWidth: Math.max(element.scrollWidth, 794),
+                    scrollX: 0,
+                    scrollY: 0
+                },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait', compress: true },
+                pagebreak: { mode: ['css', 'legacy'], avoid: ['tr', '.report-no-break', 'img'] }
             };
 
             showToast("A4 रिपोर्ट कार्ड PDF जनरेट हो रहा है...");
             html2pdf().set(opt).from(element).save().then(() => {
-                showToast("PDF पूरी चौड़ाई में डाउनलोड हो गया!");
+                showToast("पूरे रिपोर्ट कार्ड के सभी PDF पेज डाउनलोड हो गए!");
+            }).catch(err => {
+                console.error('Annual report PDF error:', err);
+                alert('PDF बनाते समय त्रुटि हुई। कृपया दोबारा प्रयास करें।');
             });
         }
 
