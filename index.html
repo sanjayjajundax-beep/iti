@@ -5030,8 +5030,8 @@ window.__itiLoginClick = async function(ev) {
             
             // H1/H2 की सीमा एडमिन द्वारा निर्धारित सत्र की कुल अवधि से स्वतः निकलेगी।
             const halfStats = {
-                H1: { months: 0, present: 0, working: 0, practicalWork: [], practicalTests: [], theoryTests: [], edTests: [], wcsTests: [], esTests: [], diary: [], activity: [] },
-                H2: { months: 0, present: 0, working: 0, practicalWork: [], practicalTests: [], theoryTests: [], edTests: [], wcsTests: [], esTests: [], diary: [], activity: [] }
+                H1: { months: 0, present: 0, working: 0, practicalWork: [], practicalTests: [], theoryTests: [], ttTests: [], edTests: [], wcsTests: [], esTests: [], diary: [], activity: [] },
+                H2: { months: 0, present: 0, working: 0, practicalWork: [], practicalTests: [], theoryTests: [], ttTests: [], edTests: [], wcsTests: [], esTests: [], diary: [], activity: [] }
             };
             const allPracticalWorkScores = [], allDiaryScores = [], allActivityScores = [];
             const scoreDiary = v => ({'नियमित':27.5, 'अनियमित':21, 'लंबित':15}[v] ?? null);
@@ -5138,7 +5138,8 @@ window.__itiLoginClick = async function(ev) {
                     const theoryObt = theoryTestParts.reduce((a,x)=>a+x.obtained,0);
                     const theoryMax = theoryTestParts.reduce((a,x)=>a+x.maximum,0);
                     if (theoryMax > 0) halfStats[halfKey].theoryTests.push((theoryObt / theoryMax) * 100);
-                    // ED, WCS और ES के टेस्ट अलग-अलग H1/H2 विषयवार औसत में भी दर्ज हों।
+                    // TT, ED, WCS और ES के टेस्ट अलग-अलग विषयवार दर्ज हों।
+                    if (ttPart && ttPart.maximum > 0) halfStats[halfKey].ttTests.push((ttPart.obtained / ttPart.maximum) * 100);
                     ['ed','wcs','es'].forEach(field => {
                         const part = testParts.find(x => x.field === field);
                         if (part && part.maximum > 0) {
@@ -5241,6 +5242,10 @@ window.__itiLoginClick = async function(ev) {
                 if(isEngg){if(ev.wcs!==''&&ev.wcs!==undefined&&ev.wcs!==null)parts.push([Number(ev.wcs),Number(mm.wcs)||20]);if(ev.ed!==''&&ev.ed!==undefined&&ev.ed!==null)parts.push([Number(ev.ed),Number(mm.ed)||20]);}
                 const got=parts.reduce((a,x)=>a+x[0],0),max=parts.reduce((a,x)=>a+x[1],0);if(max>0)allTheoryTestPcts.push((got/max)*100);
                 const half=getDateHalfKey(testDate);if(ev.tp!==''&&ev.tp!==undefined&&ev.tp!==null&&Number(mm.tp)>0)halfStats[half].practicalTests.push((tp/(Number(mm.tp)||20))*100);if(max>0)halfStats[half].theoryTests.push((got/max)*100);
+                if (ev.tt !== '' && ev.tt !== undefined && ev.tt !== null) {
+                    const fullTT = Number(mm.tt) || 20;
+                    if (fullTT > 0) halfStats[half].ttTests.push((Number(ev.tt) / fullTT) * 100);
+                }
                 ['ed','wcs','es'].forEach(field => {
                     if (ev[field] !== '' && ev[field] !== undefined && ev[field] !== null) {
                         const full = Number(mm[field]) || 20;
@@ -5278,6 +5283,7 @@ window.__itiLoginClick = async function(ev) {
                     attendance:attendance===null?'—':attendance.toFixed(1),
                     practicalTest:practicalTest===null?'—':practicalTest.toFixed(1),
                     theoryTest:theoryTest===null?'—':theoryTest.toFixed(1),
+                    theorySubject:average(h.ttTests)===null?'—':average(h.ttTests).toFixed(1),
                     engineeringDrawing:average(h.edTests)===null?'—':average(h.edTests).toFixed(1),
                     workshopCalculation:average(h.wcsTests)===null?'—':average(h.wcsTests).toFixed(1),
                     esSubject:average(h.esTests)===null?'—':average(h.esTests).toFixed(1),
@@ -5314,12 +5320,14 @@ window.__itiLoginClick = async function(ev) {
                     testWeightLabel: formula === 'practical' ? '30%' : '50%'
                 };
             };
-            const subjectSessional = [
-                {title:'1. प्रायोगिक (Practical)',formula:'practical',test:h=>average(h.practicalTests)},
-                {title:'2. इंजीनियरिंग ड्राइंग (ED)',formula:'practical',test:h=>average(h.edTests)},
-                {title:'3. कार्यशाला गणना एवं विज्ञान (WCS)',formula:'theory',test:h=>average(h.wcsTests)},
-                {title:'4. ES विषय',formula:'theory',test:h=>average(h.esTests)}
-            ].map(subject => ({...subject,H1:makeSubjectSessional(h1Score,subject.test(halfStats.H1),subject.formula),H2:makeSubjectSessional(h2Score,subject.test(halfStats.H2),subject.formula)}));
+            const subjectDefinitions = [
+                {title:'1. प्रायोगिक (Practical)',formula:'practical',test:h=>average(h.practicalTests),always:true},
+                {title:'2. सैद्धांतिक (Theory / TT)',formula:'theory',test:h=>average(h.ttTests),always:true},
+                {title:'3. इंजीनियरिंग ड्राइंग (ED)',formula:'practical',test:h=>average(h.edTests),engineering:true},
+                {title:'4. कार्यशाला गणना एवं विज्ञान (WCS)',formula:'theory',test:h=>average(h.wcsTests),engineering:true},
+                {title:'5. एम्प्लॉयबिलिटी स्किल्स (ES)',formula:'theory',test:h=>average(h.esTests),always:true}
+            ];
+            const subjectSessional = subjectDefinitions.filter(x=>x.always || isEngg).map(subject => ({...subject,H1:makeSubjectSessional(h1Score,subject.test(halfStats.H1),subject.formula),H2:makeSubjectSessional(h2Score,subject.test(halfStats.H2),subject.formula)}));
             const renderSubjectHalfBreakdown = (halfLabel, data) => `
                 <div class="report-no-break" style="border:1px solid #cbd5e1;border-radius:6px;padding:7px;background:#fff;">
                     <b style="font-size:.78rem;color:#1e3a8a;">${halfLabel}</b>
@@ -5397,14 +5405,15 @@ window.__itiLoginClick = async function(ev) {
                 </div>
 
                 <div class="report-section" style="margin:10px 0 12px;padding:9px;border:1px solid #cbd5e1;border-radius:8px;background:#f8fafc;">
-                    <h3 style="margin:0 0 8px;color:#1e3a8a;font-size:0.95rem;">H1 / H2 अर्धवार्षिक विषयवार मूल्यांकन — चार अलग-अलग भाग</h3>
+                    <h3 style="margin:0 0 8px;color:#1e3a8a;font-size:0.95rem;">H1 / H2 अर्धवार्षिक विषयवार मूल्यांकन — ट्रेड के अनुसार सभी विषय</h3>
                     <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;">
                         ${[
-                            {title:'1. प्रायोगिक (Practical)',key:'practical',detail:'नियमित प्रायोगिक कार्य + TP टेस्ट',h1:`${h1Score.practical}/100`,h2:`${h2Score.practical}/100`,extra1:`कार्य ${h1Score.practicalWork}/50 · TP टेस्ट ${h1Score.practicalTest}/30`,extra2:`कार्य ${h2Score.practicalWork}/50 · TP टेस्ट ${h2Score.practicalTest}/30`},
-                            {title:'2. इंजीनियरिंग ड्राइंग (ED)',key:'ed',detail:'ED मासिक / अचीवमेंट टेस्ट का औसत',h1:`${h1Score.engineeringDrawing}%`,h2:`${h2Score.engineeringDrawing}%`,extra1:'केवल ED विषय के उपलब्ध टेस्ट',extra2:'केवल ED विषय के उपलब्ध टेस्ट'},
-                            {title:'3. कार्यशाला गणना एवं विज्ञान (WCS)',key:'wcs',detail:'WCS मासिक / अचीवमेंट टेस्ट का औसत',h1:`${h1Score.workshopCalculation}%`,h2:`${h2Score.workshopCalculation}%`,extra1:'केवल WCS विषय के उपलब्ध टेस्ट',extra2:'केवल WCS विषय के उपलब्ध टेस्ट'},
-                            {title:'4. ES विषय',key:'es',detail:'ES मासिक / अचीवमेंट टेस्ट का औसत',h1:`${h1Score.esSubject}%`,h2:`${h2Score.esSubject}%`,extra1:'केवल ES विषय के उपलब्ध टेस्ट',extra2:'केवल ES विषय के उपलब्ध टेस्ट'}
-                        ].map((item,idx)=>`
+                            {title:'1. प्रायोगिक (Practical)',detail:'नियमित प्रायोगिक कार्य + TP टेस्ट',h1:`${h1Score.practical}/100`,h2:`${h2Score.practical}/100`,extra1:`कार्य ${h1Score.practicalWork}/50 · TP टेस्ट ${h1Score.practicalTest}/30`,extra2:`कार्य ${h2Score.practicalWork}/50 · TP टेस्ट ${h2Score.practicalTest}/30`,show:true},
+                            {title:'2. सैद्धांतिक (Theory / TT)',detail:'केवल TT विषय के मासिक / अचीवमेंट टेस्ट',h1:`${h1Score.theorySubject}%`,h2:`${h2Score.theorySubject}%`,extra1:'TT विषय के उपलब्ध टेस्ट',extra2:'TT विषय के उपलब्ध टेस्ट',show:true},
+                            {title:'3. इंजीनियरिंग ड्राइंग (ED)',detail:'ED मासिक / अचीवमेंट टेस्ट का औसत',h1:`${h1Score.engineeringDrawing}%`,h2:`${h2Score.engineeringDrawing}%`,extra1:'केवल ED विषय के उपलब्ध टेस्ट',extra2:'केवल ED विषय के उपलब्ध टेस्ट',show:isEngg},
+                            {title:'4. कार्यशाला गणना एवं विज्ञान (WCS)',detail:'WCS मासिक / अचीवमेंट टेस्ट का औसत',h1:`${h1Score.workshopCalculation}%`,h2:`${h2Score.workshopCalculation}%`,extra1:'केवल WCS विषय के उपलब्ध टेस्ट',extra2:'केवल WCS विषय के उपलब्ध टेस्ट',show:isEngg},
+                            {title:'5. एम्प्लॉयबिलिटी स्किल्स (ES)',detail:'ES मासिक / अचीवमेंट टेस्ट का औसत',h1:`${h1Score.esSubject}%`,h2:`${h2Score.esSubject}%`,extra1:'केवल ES विषय के उपलब्ध टेस्ट',extra2:'केवल ES विषय के उपलब्ध टेस्ट',show:true}
+                        ].filter(item=>item.show).map((item,idx)=>`
                             <div class="report-no-break" style="border:1px solid ${idx%2?'#99f6e4':'#bfdbfe'};border-radius:7px;padding:8px;background:${idx%2?'#f0fdfa':'#eff6ff'};">
                                 <b>${item.title}</b>
                                 <div style="margin-top:4px;font-size:0.82rem;">H1 — ${getSessionHalfInfo().h1Label}: <strong>${item.h1}</strong></div>
@@ -5433,20 +5442,13 @@ window.__itiLoginClick = async function(ev) {
                         </div>`).join('')}
                 </div>
                 <div style="font-size:.7rem;color:#64748b;margin:4px 0 8px;">
-                    ED में अलग साप्ताहिक नियमित कार्य के अंक उपलब्ध नहीं होने के कारण प्रायोगिक का साझा साप्ताहिक कार्य घटक लिया गया है। WCS और ES में अलग नोटबुक निरीक्षण रिकॉर्ड उपलब्ध नहीं होने के कारण साझा डायरी/नोटबुक अंक लागू हैं। टेस्ट का औसत प्रत्येक विषय के अपने उपलब्ध मासिक/अचीवमेंट टेस्ट से निकाला गया है। H1 और H2 की गणना स्वतंत्र है; आवश्यक घटक उपलब्ध न होने पर कुल अंक 'लंबित' रहेंगे।
+                    प्रायोगिक और ED पर 50:30:10:10 तथा Theory/TT, WCS और ES पर 30:50:10:10 का विभागीय फॉर्मूला लागू है। ED के नियमित कार्य तथा TT/WCS/ES के नोटबुक घटक के लिए वर्तमान में उपलब्ध संबंधित साझा रिकॉर्ड उपयोग किए जाते हैं। टेस्ट प्रत्येक विषय के अपने मासिक/अचीवमेंट रिकॉर्ड से लिए जाते हैं। H1 और H2 की गणना स्वतंत्र है; आवश्यक घटक उपलब्ध न होने पर कुल अंक 'लंबित' रहेंगे।
                 </div>
 
-                <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 14px; padding: 0 10px; font-size: 0.82rem;">
-                    <div style="text-align: center;">
-                        <div style="width: 140px; border-bottom: 1px dashed #475569; margin-bottom: 4px;"></div>
-                        <strong>हस्ताक्षर वर्ग अनुदेशक</strong>
-                    </div>
-                    <div style="text-align: center;">
-                        ${signHTML}
-                        <div style="width: 150px; border-bottom: 1px dashed #475569; margin-bottom: 4px;"></div>
-                        <strong>${inst.superintendentName || 'हस्ताक्षर अधीक्षक'}</strong>
-                        <div style="font-size: 0.72rem; color: #64748b;">${inst.superintendentTitle}</div>
-                    </div>
+                <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;align-items:end;margin-top:14px;padding:0 6px;font-size:.76rem;text-align:center;">
+                    <div><div style="height:34px;"></div><div style="border-top:1px dashed #475569;padding-top:4px;"><strong>संबंधित विषय अनुदेशक</strong></div></div>
+                    <div><div style="height:34px;"></div><div style="border-top:1px dashed #475569;padding-top:4px;"><strong>समूह अनुदेशक</strong></div></div>
+                    <div>${signHTML}<div style="border-top:1px dashed #475569;padding-top:4px;"><strong>${inst.superintendentName || 'प्रधानाचार्य'}</strong><div style="font-size:.7rem;color:#64748b;">प्रधानाचार्य अनुमोदन</div></div></div>
                 </div>
 
                 <div style="text-align: center; border-top: 1px solid #cbd5e1; margin-top: 12px; padding-top: 5px; font-size: 0.72rem; color: #64748b;">
@@ -5846,8 +5848,8 @@ window.__itiLoginClick = async function(ev) {
             const info = getSessionHalfInfo(), cfg = getSessionConfig();
             const today = new Date(); today.setHours(0,0,0,0);
             const result = {
-                H1:{working:0,present:0,practicalWork:[],practicalTests:[],theoryTests:[],edTests:[],wcsTests:[],esTests:[],diary:[],activity:[]},
-                H2:{working:0,present:0,practicalWork:[],practicalTests:[],theoryTests:[],edTests:[],wcsTests:[],esTests:[],diary:[],activity:[]}
+                H1:{working:0,present:0,practicalWork:[],practicalTests:[],theoryTests:[],ttTests:[],edTests:[],wcsTests:[],esTests:[],diary:[],activity:[]},
+                H2:{working:0,present:0,practicalWork:[],practicalTests:[],theoryTests:[],ttTests:[],edTests:[],wcsTests:[],esTests:[],diary:[],activity:[]}
             };
             const avg = a => a.length ? a.reduce((x,y)=>x+y,0)/a.length : null;
             const halfFor = date => getDateHalfKey(date);
@@ -5873,6 +5875,7 @@ window.__itiLoginClick = async function(ev) {
                 if(ev){
                     const max=getMaxMarksConfig(collegeId,trade,month), h=getMonthHalfKey(month);
                     if(ev.tp!==''&&ev.tp!==undefined&&ev.tp!==null){const m=Number(max.tp)||20;if(m>0)result[h].practicalTests.push(Number(ev.tp)/m*100);}
+                    if(ev.tt!==''&&ev.tt!==undefined&&ev.tt!==null){const full=Number(max.tt)||20;if(full>0)result[h].ttTests.push(Number(ev.tt)/full*100);}
                     for(const [field,target] of [['ed','edTests'],['wcs','wcsTests'],['es','esTests']]) if(ev[field]!==''&&ev[field]!==undefined&&ev[field]!==null){const full=Number(max[field])||20;if(full>0)result[h][target].push(Number(ev[field])/full*100);}
                     const parts=[];for(const f of ['tt','es',...(isEngg?['wcs','ed']:[])])if(ev[f]!==''&&ev[f]!==undefined&&ev[f]!==null)parts.push([Number(ev[f]),Number(max[f])||20]);
                     const got=parts.reduce((a,x)=>a+x[0],0),full=parts.reduce((a,x)=>a+x[1],0);if(full>0)result[h].theoryTests.push(got/full*100);
@@ -5897,6 +5900,7 @@ window.__itiLoginClick = async function(ev) {
                 const m=String(key).match(/^Q\d+_(\d{4}-\d{2}-\d{2})$/),ev=rows?.[roll];if(!m||!ev)return;
                 const date=ev.testDate||m[1],h=halfFor(date),max=getMaxMarksConfig(collegeId,trade,key);
                 if(ev.tp!==''&&ev.tp!==undefined&&ev.tp!==null){const full=Number(max.tp)||20;if(full>0)result[h].practicalTests.push(Number(ev.tp)/full*100);}
+                if(ev.tt!==''&&ev.tt!==undefined&&ev.tt!==null){const full=Number(max.tt)||20;if(full>0)result[h].ttTests.push(Number(ev.tt)/full*100);}
                 for(const [field,target] of [['ed','edTests'],['wcs','wcsTests'],['es','esTests']]) if(ev[field]!==''&&ev[field]!==undefined&&ev[field]!==null){const full=Number(max[field])||20;if(full>0)result[h][target].push(Number(ev[field])/full*100);}
                 const parts=[];for(const f of ['tt','es',...(isEngg?['wcs','ed']:[])])if(ev[f]!==''&&ev[f]!==undefined&&ev[f]!==null)parts.push([Number(ev[f]),Number(max[f])||20]);
                 const got=parts.reduce((a,x)=>a+x[0],0),full=parts.reduce((a,x)=>a+x[1],0);if(full>0)result[h].theoryTests.push(got/full*100);
@@ -5908,7 +5912,7 @@ window.__itiLoginClick = async function(ev) {
                 const tParts=[di,tt===null?null:tt*.5,att===null?null:att*.1,ac];
                 const total=a=>a.every(x=>x!==null)?Number(a.reduce((x,y)=>x+y,0).toFixed(1)):'लंबित';
                 const subjectTotal=(testArr,formula)=>{const testAvg=avg(testArr),first=formula==='practical'?(pw===null?null:pw*.5):di,weightedTest=testAvg===null?null:testAvg*(formula==='practical'?.3:.5);const parts=[first,weightedTest,att===null?null:att*.1,ac];return parts.every(v=>v!==null)?Number(parts.reduce((a,b)=>a+b,0).toFixed(1)):'लंबित';};
-                return {half:key,working:h.working,present:h.present,attendancePct:att===null?'—':Number(att.toFixed(1)),practicalWork:pw===null?'—':Number((pw*.5).toFixed(1)),practicalTest:pt===null?'—':Number((pt*.3).toFixed(1)),diary:di===null?'—':Number(di.toFixed(1)),theoryTest:tt===null?'—':Number((tt*.5).toFixed(1)),attendance:att===null?'—':Number((att*.1).toFixed(1)),activity:ac===null?'—':Number(ac.toFixed(1)),practicalTotal:total(pParts),theoryTotal:total(tParts),edAverage:avg(h.edTests)===null?'—':Number(avg(h.edTests).toFixed(1)),wcsAverage:avg(h.wcsTests)===null?'—':Number(avg(h.wcsTests).toFixed(1)),esAverage:avg(h.esTests)===null?'—':Number(avg(h.esTests).toFixed(1)),edSessional:subjectTotal(h.edTests,'practical'),wcsSessional:subjectTotal(h.wcsTests,'theory'),esSessional:subjectTotal(h.esTests,'theory'),practicalWorkCount:h.practicalWork.length,practicalTestCount:h.practicalTests.length,diaryCount:h.diary.length,activityCount:h.activity.length};
+                return {half:key,working:h.working,present:h.present,attendancePct:att===null?'—':Number(att.toFixed(1)),practicalWork:pw===null?'—':Number((pw*.5).toFixed(1)),practicalTest:pt===null?'—':Number((pt*.3).toFixed(1)),diary:di===null?'—':Number(di.toFixed(1)),theoryTest:tt===null?'—':Number((tt*.5).toFixed(1)),attendance:att===null?'—':Number((att*.1).toFixed(1)),activity:ac===null?'—':Number(ac.toFixed(1)),practicalTotal:total(pParts),theoryTotal:total(tParts),ttAverage:avg(h.ttTests)===null?'—':Number(avg(h.ttTests).toFixed(1)),ttSessional:subjectTotal(h.ttTests,'theory'),edAverage:avg(h.edTests)===null?'—':Number(avg(h.edTests).toFixed(1)),wcsAverage:avg(h.wcsTests)===null?'—':Number(avg(h.wcsTests).toFixed(1)),esAverage:avg(h.esTests)===null?'—':Number(avg(h.esTests).toFixed(1)),edSessional:subjectTotal(h.edTests,'practical'),wcsSessional:subjectTotal(h.wcsTests,'theory'),esSessional:subjectTotal(h.esTests,'theory'),practicalWorkCount:h.practicalWork.length,practicalTestCount:h.practicalTests.length,diaryCount:h.diary.length,activityCount:h.activity.length};
             });
         }
 
@@ -6040,6 +6044,7 @@ window.__itiLoginClick = async function(ev) {
             const subjectRows=[['कॉलेज','ट्रेड','रोल','विद्यार्थी','अवधि','विषय','टेस्ट औसत %','फॉर्मूला','कुल सत्रीय अंक /100']];
             tStudents.forEach(st=>calculateHalfYearAssessmentForExport(collegeId,trade,st).forEach(h=>{
                 subjectRows.push([colName,trade,st.roll,st.name,h.half,'प्रायोगिक (Practical)',h.practicalTest==='—'?'—':(Number(h.practicalTest)/30*100).toFixed(1),'प्रायोगिक 50:30:10:10',h.practicalTotal]);
+                subjectRows.push([colName,trade,st.roll,st.name,h.half,'सैद्धांतिक (Theory / TT)',h.ttAverage,'सैद्धांतिक 30:50:10:10',h.ttSessional]);
                 if(isEngg) subjectRows.push([colName,trade,st.roll,st.name,h.half,'इंजीनियरिंग ड्राइंग (ED)',h.edAverage,'प्रायोगिक 50:30:10:10',h.edSessional]);
                 if(isEngg) subjectRows.push([colName,trade,st.roll,st.name,h.half,'कार्यशाला गणना एवं विज्ञान (WCS)',h.wcsAverage,'सैद्धांतिक 30:50:10:10',h.wcsSessional]);
                 subjectRows.push([colName,trade,st.roll,st.name,h.half,'ES',h.esAverage,'सैद्धांतिक 30:50:10:10',h.esSessional]);
