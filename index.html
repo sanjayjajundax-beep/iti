@@ -4445,28 +4445,37 @@ window.__itiLoginClick = async function(ev) {
                 const assessment = appData.halfAssessments && appData.halfAssessments[collegeId] &&
                     appData.halfAssessments[collegeId][trade] && appData.halfAssessments[collegeId][trade][halfKey] &&
                     appData.halfAssessments[collegeId][trade][halfKey][sRoll] || {};
-                const subjectDefs = [
-                    {key:'tt',kind:'theory'}, {key:'tp',kind:'practical'},
-                    {key:'wcs',kind:'theory',engg:true}, {key:'ed',kind:'practical',engg:true},
-                    {key:'es',kind:'theory'}
-                ].filter(x => !x.engg || isEngg);
-                const calcSubject = x => {
+                const defs = [
+                    {key:'tp',kind:'practical',max:125},
+                    {key:'tt',kind:'theory',max:50},
+                    {key:'wcs',kind:'theory',max:10},
+                    {key:'ed',kind:'practical',max:10},
+                    {key:'es',kind:'theory',max:25}
+                ];
+                const subjectPct = {};
+                const subjectMarks = {};
+                defs.forEach(x => {
                     const v = assessment[x.key] || {};
                     const w = x.kind === 'practical' ? {A:50,B:30,C:10,D:10} : {A:30,B:50,C:10,D:10};
-                    const A = Number(v.A)||0, B = Number(v.B)||0, D = Number(v.D)||0;
-                    return A*w.A/100 + B*w.B/100 + attPct*w.C/100 + D*w.D/100;
-                };
-                const avgKind = kind => {
-                    const list = subjectDefs.filter(x=>x.kind===kind);
-                    return list.length ? list.reduce((sum,x)=>sum+calcSubject(x),0)/list.length : 0;
-                };
+                    const raw = (Number(v.A)||0)*w.A/100 +
+                        (Number(v.B)||0)*w.B/100 + attPct*w.C/100 +
+                        (Number(v.D)||0)*w.D/100;
+                    subjectPct[x.key] = raw;
+                    subjectMarks[x.key] = raw*x.max/100;
+                });
+                const weightedRawTotal = defs.reduce((sum,x)=>sum+subjectMarks[x.key],0);
+                const formativeTotal = weightedRawTotal/220*100;
                 return {
-                    practical: avgKind('practical').toFixed(1),
-                    theory: avgKind('theory').toFixed(1),
+                    practical: subjectPct.tp.toFixed(1),
+                    theory: subjectPct.tt.toFixed(1),
+                    subjectMarks: subjectMarks,
+                    subjectPct: subjectPct,
+                    total: formativeTotal.toFixed(2),
+                    rawTotal: weightedRawTotal.toFixed(2),
+                    attendance: attPct.toFixed(2),
+                    attendancePct: attPct.toFixed(2),
                     rec: '—', diary: '—', activity: '—',
-                    attendance: (attPct*0.10).toFixed(1),
-                    practicalTest: '—', theoryTest: '—',
-                    attendancePct: attPct.toFixed(1)
+                    practicalTest: '—', theoryTest: '—'
                 };
             };
             const h1Score = halfScore(halfStats.H1, 'H1');
@@ -4544,18 +4553,18 @@ window.__itiLoginClick = async function(ev) {
                     <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;">
                         <div style="border:1px solid #bfdbfe;border-radius:6px;padding:8px;background:#eff6ff;">
                             <b>H1 — ${getSessionHalfInfo().h1Label}</b>
-                            <div>प्रायोगिक: <b>${h1Score.practical}/100</b></div>
-                            <div>सैद्धांतिक: <b>${h1Score.theory}/100</b></div>
-                            <small>मासिक मूल्यांकन: ${halfStats.H1.rec.length} · उपस्थिति: ${h1Score.attendancePct}%</small>
+                            <div style="font-size:.76rem;line-height:1.65">Practical: ${h1Score.subjectMarks.tp.toFixed(1)}/125 · Theory: ${h1Score.subjectMarks.tt.toFixed(1)}/50<br>WC&S: ${h1Score.subjectMarks.wcs.toFixed(1)}/10 · ED: ${h1Score.subjectMarks.ed.toFixed(1)}/10 · ES: ${h1Score.subjectMarks.es.toFixed(1)}/25</div>
+                            <div>Formative Assessment: <b>${h1Score.total}/100</b></div>
+                            <small>Attendance: ${h1Score.attendancePct}%</small>
                         </div>
                         <div style="border:1px solid #99f6e4;border-radius:6px;padding:8px;background:#f0fdfa;">
                             <b>H2 — ${getSessionHalfInfo().h2Label}</b>
-                            <div>प्रायोगिक: <b>${h2Score.practical}/100</b></div>
-                            <div>सैद्धांतिक: <b>${h2Score.theory}/100</b></div>
-                            <small>मासिक मूल्यांकन: ${halfStats.H2.rec.length} · उपस्थिति: ${h2Score.attendancePct}%</small>
+                            <div style="font-size:.76rem;line-height:1.65">Practical: ${h2Score.subjectMarks.tp.toFixed(1)}/125 · Theory: ${h2Score.subjectMarks.tt.toFixed(1)}/50<br>WC&S: ${h2Score.subjectMarks.wcs.toFixed(1)}/10 · ED: ${h2Score.subjectMarks.ed.toFixed(1)}/10 · ES: ${h2Score.subjectMarks.es.toFixed(1)}/25</div>
+                            <div>Formative Assessment: <b>${h2Score.total}/100</b></div>
+                            <small>Attendance: ${h2Score.attendancePct}%</small>
                         </div>
                     </div>
-                    <div style="font-size:0.72rem;color:#475569;margin-top:6px;">H1/H2 अंक Excel के भारांक के अनुसार विषयवार A/B/C/D से निकाले जाते हैं। C (उपस्थिति) वास्तविक अटेंडेंस रिकॉर्ड से स्वतः गणना होती है।</div>
+                    <div style="font-size:0.72rem;color:#475569;margin-top:6px;">H1/H2 में विषयवार अंक Practical /125, Theory /50, WC&S /10, ED /10 और ES /25 के अनुपात में निकाले जाते हैं। इनका योग 220 में से लेकर (योग ÷ 220 × 100) से Formative Assessment /100 बनता है। Attendance वास्तविक अटेंडेंस रिकॉर्ड से स्वतः आती है।</div>
                 </div>
 
                 <div style="font-size: 0.82rem; font-weight: 700; margin-bottom: 5px; color: #831843;">
@@ -5891,121 +5900,95 @@ window.__itiLoginClick = async function(ev) {
   const oldRoute=window.setupUIRoute; if(oldRoute)window.setupUIRoute=function(){oldRoute.apply(this,arguments);setTimeout(()=>{inject();renderCompletionModules();},0);};
 })();
 
-/* ===== H1/H2 Excel-based assessment module ===== */
+/* ===== H1/H2 Excel-format assessment module (screenshot-aligned) ===== */
 (function(){
- const subjects = [
-  {key:'tt',label:'Trade Theory (TT)',kind:'theory'},
-  {key:'tp',label:'Trade Practical (TP)',kind:'practical'},
-  {key:'wcs',label:'Workshop Calculation & Science (WCS)',kind:'theory',engg:true},
-  {key:'ed',label:'Engineering Drawing (ED)',kind:'practical',engg:true},
-  {key:'es',label:'Employability Skills (ES)',kind:'theory'}
+ const subjects=[
+  {key:'tt',label:'Internal Assessment - Theory',short:'Theory',kind:'theory',aLabel:'Notes Book'},
+  {key:'wcs',label:'Internal Assessment - Workshop Calculation and Science',short:'Workshop Calculation & Science',kind:'theory',aLabel:'Notes Book',engg:true},
+  {key:'tp',label:'Internal Assessment - Practical',short:'Practical',kind:'practical',aLabel:'Regular Work'},
+  {key:'ed',label:'Internal Assessment - Engineering Drawing',short:'Engineering Drawing',kind:'practical',aLabel:'Regular Work',engg:true},
+  {key:'es',label:'Internal Assessment - Employability Skills',short:'Employability Skills',kind:'theory',aLabel:'Notes Book'}
  ];
- const weights = {theory:{A:30,B:50,C:10,D:10},practical:{A:50,B:30,C:10,D:10}};
- const $id=id=>document.getElementById(id);
- function store(){
-  if(!appData.halfAssessments) appData.halfAssessments={};
-  if(!appData.halfAssessments[currentCollegeId]) appData.halfAssessments[currentCollegeId]={};
-  if(!appData.halfAssessments[currentCollegeId][currentTrade]) appData.halfAssessments[currentCollegeId][currentTrade]={};
+ const weights={theory:{A:30,B:50,C:10,D:10},practical:{A:50,B:30,C:10,D:10}};
+ const $=id=>document.getElementById(id);
+ function getStore(){
+  if(!appData.halfAssessments)appData.halfAssessments={};
+  if(!appData.halfAssessments[currentCollegeId])appData.halfAssessments[currentCollegeId]={};
+  if(!appData.halfAssessments[currentCollegeId][currentTrade])appData.halfAssessments[currentCollegeId][currentTrade]={};
   return appData.halfAssessments[currentCollegeId][currentTrade];
  }
- function getAttPct(roll,half){
-  let working=0,present=0;
-  const st=getStudentList(currentCollegeId,currentTrade).find(x=>String(x.roll).trim()===String(roll).trim());
-  if(!st)return 0;
-  const recMonths=(appData.records&&appData.records[currentCollegeId]&&appData.records[currentCollegeId][currentTrade])||{};
-  Object.keys(recMonths).forEach(m=>{
-   if(typeof getMonthHalfKey==='function' && getMonthHalfKey(m)!==half)return;
+ function listSubjects(){return subjects.filter(x=>!x.engg||isEnggTrade(currentTrade));}
+ function attendancePct(roll,half){
+  let working=0,present=0;const st=getStudentList(currentCollegeId,currentTrade).find(x=>String(x.roll).trim()===String(roll).trim());if(!st)return 0;
+  const months=(appData.records&&appData.records[currentCollegeId]&&appData.records[currentCollegeId][currentTrade])||{};
+  Object.keys(months).forEach(m=>{
+   if(typeof getMonthHalfKey==='function'&&getMonthHalfKey(m)!==half)return;
    const [y,mo]=m.split('-').map(Number),days=new Date(y,mo,0).getDate();
    for(let d=1;d<=days;d++){
-    const dt=new Date(y,mo-1,d);
-    if(typeof isDateInSession==='function'&&!isDateInSession(dt))continue;
+    const dt=new Date(y,mo-1,d);if(typeof isDateInSession==='function'&&!isDateInSession(dt))continue;
     if(typeof isDateAfterAdmission==='function'&&!isDateAfterAdmission(dt,st))continue;
-    if(dt.getDay()===0)continue;
-    const hol=(appData.holidays&&appData.holidays[currentCollegeId]&&appData.holidays[currentCollegeId][currentTrade]&&appData.holidays[currentCollegeId][currentTrade][m]||[]).map(Number);
-    if(hol.includes(d))continue;
-    if(dt>new Date())continue;
+    if(dt.getDay()===0||dt>new Date())continue;
+    const holidays=(appData.holidays&&appData.holidays[currentCollegeId]&&appData.holidays[currentCollegeId][currentTrade]&&appData.holidays[currentCollegeId][currentTrade][m])||[];
+    if(holidays.map(Number).includes(d))continue;
+    const day=months[m]&&months[m][String(st.roll).trim()]||{};
+    const morning=day[d+'_m'],evening=day[d+'_e'];
+    // केवल वास्तविक रूप से दर्ज उपस्थिति वाले दिन denominator में आएँ।
+    if(!['P','A','L'].includes(morning)&&!['P','A','L'].includes(evening))continue;
     working++;
-    const day=recMonths[m]&&recMonths[m][String(st.roll).trim()]||{};
-    if(day[d+'_e']==='P')present++;
+    if(morning==='P'||evening==='P')present++;
    }
   });
   return working?present/working*100:0;
  }
- function calc(rec,kind,attPct){
-  const w=weights[kind],A=Number(rec&&rec.A)||0,B=Number(rec&&rec.B)||0,D=Number(rec&&rec.D)||0,C=attPct;
-  return {a:A*w.A/100,b:B*w.B/100,c:C*w.C/100,d:D*w.D/100,total:A*w.A/100+B*w.B/100+C*w.C/100+D*w.D/100};
- }
- function visibleSubjects(){return subjects.filter(x=>!x.engg||isEnggTrade(currentTrade));}
+ function calc(row,kind,att){const w=weights[kind],A=Number(row?.A)||0,B=Number(row?.B)||0,D=Number(row?.D)||0,C=att;const a=A*w.A/100,b=B*w.B/100,c=C*w.C/100,d=D*w.D/100;return{a,b,c,d,total:a+b+c+d};}
  function ensureModal(){
-  if($id('halfAssessmentModal'))return;
-  const div=document.createElement('div');div.id='halfAssessmentModal';div.className='modal-backdrop hidden';
-  div.innerHTML=`<div class="modal-content" style="max-width:1050px;width:96%;max-height:92vh;overflow:auto">
-   <div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h3 style="color:#1e3a8a">H1 / H2 — Excel आधारित सत्रीय मूल्यांकन</h3><button class="app-btn app-btn-secondary" onclick="document.getElementById('halfAssessmentModal').classList.add('hidden')">✕</button></div>
-   <p style="font-size:13px;color:#475569;margin:8px 0">A: नोटबुक / नियमित कार्य, B: मासिक + अचीवमेंट टेस्ट, C: वास्तविक उपस्थिति (स्वतः), D: अन्य गतिविधि। सभी A/B/D अंक 0–100 के पैमाने पर दर्ज करें।</p>
-   <div style="display:flex;gap:10px;flex-wrap:wrap;margin:10px 0">
-    <label>अर्धवार्षिक अवधि <select id="haHalf" onchange="window.renderHalfAssessmentTable()" style="padding:8px"><option value="H1">H1</option><option value="H2">H2</option></select></label>
-    <label>विषय <select id="haSubject" onchange="window.renderHalfAssessmentTable()" style="padding:8px"></select></label>
-   </div>
-   <div id="haWeightInfo" style="padding:8px;background:#eff6ff;border-radius:7px;margin-bottom:8px"></div>
-   <div class="table-shell" style="max-height:55vh"><table><thead><tr><th>रोल</th><th>विद्यार्थी</th><th>A: कार्य/नोटबुक</th><th>B: टेस्ट</th><th>C: उपस्थिति %</th><th>D: गतिविधि</th><th>कुल /100</th></tr></thead><tbody id="haRows"></tbody></table></div>
-   <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px;flex-wrap:wrap"><button class="app-btn app-btn-success" onclick="window.saveHalfAssessment()">मूल्यांकन सुरक्षित करें</button><button class="app-btn app-btn-excel" onclick="window.exportHalfAssessmentExcel()">H1/H2 Excel डाउनलोड</button></div>
-  </div>`;
-  document.body.appendChild(div);
-  const sel=$id('haSubject');visibleSubjects().forEach(x=>{const o=document.createElement('option');o.value=x.key;o.textContent=x.label;sel.appendChild(o)});
+  if($('halfAssessmentModal'))return;
+  const el=document.createElement('div');el.id='halfAssessmentModal';el.className='modal-backdrop hidden';
+  el.innerHTML=`<div class="modal-content" style="max-width:1180px;width:98%;max-height:94vh;overflow:auto">
+   <div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h3 style="color:#1e3a8a">H1 / H2 — आंतरिक मूल्यांकन (Excel प्रारूप)</h3><button class="app-btn app-btn-secondary" onclick="document.getElementById('halfAssessmentModal').classList.add('hidden')">✕</button></div>
+   <p style="font-size:13px;color:#475569;margin:8px 0">A = नियमित कार्य / नोटबुक, B = मासिक एवं अचीवमेंट टेस्ट, C = वास्तविक उपस्थिति (स्वतः), D = अन्य गतिविधि। A, B और D के अंक 0–100 में भरें। भारित अंक और कुल अपने-आप निकलेंगे।</p>
+   <div style="display:flex;gap:12px;flex-wrap:wrap;margin:10px 0"><label><b>अवधि:</b> <select id="haHalf" onchange="window.renderHalfAssessmentTable()" style="padding:8px"><option value="H1">H1</option><option value="H2">H2</option></select></label><label><b>मूल्यांकन:</b> <select id="haSubject" onchange="window.renderHalfAssessmentTable()" style="padding:8px"></select></label></div>
+   <div id="haWeightInfo" style="padding:9px;background:#eff6ff;border-radius:7px;margin-bottom:8px"></div>
+   <div class="table-shell" style="max-height:58vh"><table style="min-width:1050px"><thead id="haHead"></thead><tbody id="haRows"></tbody></table></div>
+   <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px;flex-wrap:wrap"><button class="app-btn app-btn-success" onclick="window.saveHalfAssessment()">मूल्यांकन सुरक्षित करें</button><button class="app-btn app-btn-excel" onclick="window.exportHalfAssessmentExcel()"><i class="fa-solid fa-file-excel"></i> अलग H1/H2 Excel डाउनलोड</button></div>
+  </div>`;document.body.appendChild(el);
  }
- window.openHalfAssessment=function(){
-  if(!currentCollegeId||!currentTrade){alert('पहले ट्रेड चुनें।');return;}
-  ensureModal();const sel=$id('haSubject');sel.innerHTML='';visibleSubjects().forEach(x=>{const o=document.createElement('option');o.value=x.key;o.textContent=x.label;sel.appendChild(o)});
-  $id('halfAssessmentModal').classList.remove('hidden');window.renderHalfAssessmentTable();
- };
+ window.openHalfAssessment=function(){if(!currentCollegeId||!currentTrade){alert('पहले ट्रेड का चयन करें।');return;}ensureModal();const sel=$('haSubject');sel.innerHTML='';listSubjects().forEach(x=>{const o=document.createElement('option');o.value=x.key;o.textContent=x.short;sel.appendChild(o)});$('halfAssessmentModal').classList.remove('hidden');window.renderHalfAssessmentTable();};
  window.renderHalfAssessmentTable=function(){
-  const half=$id('haHalf').value,key=$id('haSubject').value,sub=subjects.find(x=>x.key===key);if(!sub)return;
-  const data=store(),h=data[half]||{},students=getStudentList(currentCollegeId,currentTrade);
-  const w=weights[sub.kind];$id('haWeightInfo').innerHTML=`<b>${sub.kind==='practical'?'प्रायोगिक':'सैद्धांतिक'} मूल्यांकन भार:</b> A ${w.A}% + B ${w.B}% + C ${w.C}% + D ${w.D}% = 100%`;
-  $id('haRows').innerHTML=students.map(st=>{
-   const r=h[st.roll]&&h[st.roll][key]||{},att=getAttPct(st.roll,half),v=calc(r,sub.kind,att);
-   return `<tr><td>${st.roll}</td><td style="text-align:left">${st.name}</td>
-   <td><input type="number" min="0" max="100" id="haA_${st.roll}" value="${r.A??''}" style="width:68px"></td>
-   <td><input type="number" min="0" max="100" id="haB_${st.roll}" value="${r.B??''}" style="width:68px"></td>
-   <td><b>${att.toFixed(1)}%</b></td>
-   <td><input type="number" min="0" max="100" id="haD_${st.roll}" value="${r.D??''}" style="width:68px"></td>
-   <td><b>${v.total.toFixed(1)}</b></td></tr>`;
-  }).join('');
+  const half=$('haHalf').value,key=$('haSubject').value,sub=listSubjects().find(x=>x.key===key);if(!sub)return;
+  const data=getStore(),h=data[half]||{},w=weights[sub.kind];$('haWeightInfo').innerHTML=`<b>${sub.label}</b> — A (${sub.aLabel}) ${w.A}% + B (Monthly & Achievement Test) ${w.B}% + C (Attendance) 10% + D (Other Activity) 10% = <b>100%</b>`;
+  $('haHead').innerHTML=`<tr><th rowspan="2">Sr. No</th><th rowspan="2">Trainees Name</th><th rowspan="2">${sub.aLabel} (A)</th><th rowspan="2">Monthly and achievement Test (B)</th><th rowspan="2">Attendance (C)</th><th rowspan="2">Other activity (D)</th><th colspan="4">Formative Assessment Marks</th><th rowspan="2">Total</th></tr><tr><th>(A) ${w.A}%</th><th>(B) ${w.B}%</th><th>(C) 10%</th><th>(D) 10%</th></tr>`;
+  $('haRows').innerHTML=getStudentList(currentCollegeId,currentTrade).map((st,i)=>{const r=h[st.roll]?.[key]||{},att=attendancePct(st.roll,half),v=calc(r,sub.kind,att);return `<tr><td>${i+1}</td><td style="text-align:left">${st.name}</td><td><input type="number" min="0" max="100" step="0.01" id="haA_${st.roll}" value="${r.A??''}" style="width:76px" oninput="window.updateHalfAssessmentRow('${st.roll}')"></td><td><input type="number" min="0" max="100" step="0.01" id="haB_${st.roll}" value="${r.B??''}" style="width:76px" oninput="window.updateHalfAssessmentRow('${st.roll}')"></td><td><b>${att.toFixed(2)}</b></td><td><input type="number" min="0" max="100" step="0.01" id="haD_${st.roll}" value="${r.D??''}" style="width:76px" oninput="window.updateHalfAssessmentRow('${st.roll}')"></td><td id="haWA_${st.roll}">${v.a.toFixed(1)}</td><td id="haWB_${st.roll}">${v.b.toFixed(1)}</td><td id="haWC_${st.roll}">${v.c.toFixed(1)}</td><td id="haWD_${st.roll}">${v.d.toFixed(1)}</td><td id="haTotal_${st.roll}"><b>${v.total.toFixed(1)}</b></td></tr>`}).join('');
  };
- window.saveHalfAssessment=function(){
-  const half=$id('haHalf').value,key=$id('haSubject').value,sub=subjects.find(x=>x.key===key),data=store();
-  if(!data[half])data[half]={};
-  getStudentList(currentCollegeId,currentTrade).forEach(st=>{
-   const read=id=>{const el=$id(id+'_'+st.roll);return el&&el.value!==''?Math.max(0,Math.min(100,Number(el.value))):null};
-   if(!data[half][st.roll])data[half][st.roll]={};
-   data[half][st.roll][key]={A:read('haA'),B:read('haB'),D:read('haD')};
-  });
-  syncWithFirebase();window.renderHalfAssessmentTable();showToast('H1/H2 मूल्यांकन सुरक्षित किया गया।');
- };
+ window.updateHalfAssessmentRow=function(roll){const half=$('haHalf').value,key=$('haSubject').value,sub=listSubjects().find(x=>x.key===key);if(!sub)return;const r={A:$('haA_'+roll)?.value,B:$('haB_'+roll)?.value,D:$('haD_'+roll)?.value},v=calc(r,sub.kind,attendancePct(roll,half));[['haWA_',v.a],['haWB_',v.b],['haWC_',v.c],['haWD_',v.d],['haTotal_',v.total]].forEach(([id,n])=>{const el=$(id+roll);if(el)el.innerHTML=id==='haTotal_'?`<b>${n.toFixed(1)}</b>`:n.toFixed(1)});};
+ window.saveHalfAssessment=function(){const half=$('haHalf').value,key=$('haSubject').value,data=getStore();if(!data[half])data[half]={};getStudentList(currentCollegeId,currentTrade).forEach(st=>{const read=id=>{const el=$(id+'_'+st.roll);if(!el||el.value==='')return null;const n=Number(el.value);if(!Number.isFinite(n)||n<0||n>100)throw new Error('अंक 0 से 100 के बीच होने चाहिए।');return n;};try{if(!data[half][st.roll])data[half][st.roll]={};data[half][st.roll][key]={A:read('haA'),B:read('haB'),D:read('haD')};}catch(e){alert(e.message+' रोल '+st.roll);throw e;}});syncWithFirebase();window.renderHalfAssessmentTable();showToast('H1/H2 मूल्यांकन Firebase में सुरक्षित किया गया।');};
  window.exportHalfAssessmentExcel=function(){
   if(!window.XLSX){alert('Excel लाइब्रेरी लोड नहीं हुई।');return;}
-  const data=store(),wb=XLSX.utils.book_new(),students=getStudentList(currentCollegeId,currentTrade);
+  const data=getStore(),wb=XLSX.utils.book_new(),students=getStudentList(currentCollegeId,currentTrade);
   ['H1','H2'].forEach(half=>{
-   const rows=[['कॉलेज',getCollegeName(currentCollegeId),'ट्रेड',currentTrade,'अवधि',half],['रोल','विद्यार्थी','विषय','प्रकार','A अंक','A भारित','B अंक','B भारित','C उपस्थिति %','C भारित','D अंक','D भारित','कुल /100']];
-   students.forEach(st=>visibleSubjects().forEach(sub=>{
-    const r=data[half]&&data[half][st.roll]&&data[half][st.roll][sub.key]||{},att=getAttPct(st.roll,half),v=calc(r,sub.kind,att),w=weights[sub.kind];
-    rows.push([st.roll,st.name,sub.label,sub.kind==='practical'?'प्रायोगिक':'सैद्धांतिक',r.A??'',v.a.toFixed(2),r.B??'',v.b.toFixed(2),att.toFixed(2),v.c.toFixed(2),r.D??'',v.d.toFixed(2),v.total.toFixed(2)]);
-   }));
-   XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(rows),half);
+   const rows=[['Internal Assessment — '+half],['College',getCollegeName(currentCollegeId),'Trade',currentTrade],[]];
+   listSubjects().forEach(sub=>{
+    const w=weights[sub.kind];rows.push([sub.label]);
+    rows.push(['Sr. No','Trainees Name',sub.aLabel+' (A)','Monthly and achievement Test (B)','Attendance (C)','Other activity (D)',`(A) ${w.A}%`,`(B) ${w.B}%`,'(C) 10%','(D) 10%','Total /100']);
+    students.forEach((st,i)=>{const r=data[half]?.[st.roll]?.[sub.key]||{},att=attendancePct(st.roll,half),v=calc(r,sub.kind,att);rows.push([i+1,st.name,r.A??'',r.B??'',Number(att.toFixed(2)),r.D??'',Number(v.a.toFixed(1)),Number(v.b.toFixed(1)),Number(v.c.toFixed(1)),Number(v.d.toFixed(1)),Number(v.total.toFixed(1))]);});
+    rows.push([]);
+   });
+   const ws=XLSX.utils.aoa_to_sheet(rows);ws['!cols']=[{wch:9},{wch:28},{wch:18},{wch:23},{wch:15},{wch:17},{wch:10},{wch:10},{wch:10},{wch:10},{wch:12}];XLSX.utils.book_append_sheet(wb,ws,half);
+   const summary=[['FORMATIVE ASSESSMENT — '+half],['College',getCollegeName(currentCollegeId),'Trade',currentTrade],[],['Sr. No','Roll Number','Name','Practical /125','Theory /50','WC&S /10','ED /10','ES /25','Total Raw /220','Formative Assessment /100','Attendance %']];
+   students.forEach((st,i)=>{
+    const a=data[half]?.[st.roll]||{},att=attendancePct(st.roll,half);
+    const defs=[['tp','practical',125],['tt','theory',50],['wcs','theory',10],['ed','practical',10],['es','theory',25]];
+    const marks=defs.map(([key,kind,max])=>{const v=calc(a[key]||{},kind,att);return v.total*max/100;});
+    const raw=marks.reduce((x,y)=>x+y,0),total=raw/220*100;
+    summary.push([i+1,st.roll,st.name,...marks.map(x=>Number(x.toFixed(2))),Number(raw.toFixed(2)),Number(total.toFixed(2)),Number(att.toFixed(2))]);
+   });
+   const sumWs=XLSX.utils.aoa_to_sheet(summary);sumWs['!cols']=[{wch:8},{wch:14},{wch:28},{wch:15},{wch:13},{wch:12},{wch:10},{wch:10},{wch:15},{wch:20},{wch:14}];
+   XLSX.utils.book_append_sheet(wb,sumWs,half+'_Total');
   });
-  XLSX.writeFile(wb,`${currentCollegeId}_${currentTrade}_H1_H2_Assessment.xlsx`);
+  XLSX.writeFile(wb,`${currentCollegeId}_${currentTrade}_H1_H2_Formative_Assessment.xlsx`);
  };
- // Put a dedicated H1/H2 assessment control alongside the monthly assessment controls.
- function addButton(){
-  const bar=document.querySelector('#instTabEvaluation .controls-right');
-  if(bar&&!$id('openHalfAssessmentBtn')){
-   const b=document.createElement('button');b.id='openHalfAssessmentBtn';b.className='app-btn app-btn-purple';b.innerHTML='<i class="fa-solid fa-calculator"></i> H1/H2 मूल्यांकन';b.onclick=window.openHalfAssessment;bar.insertBefore(b,bar.firstChild);
-  }
- }
- const oldRender=window.renderEvaluationTable;
- if(typeof oldRender==='function')window.renderEvaluationTable=function(){const r=oldRender.apply(this,arguments);addButton();return r;};
- document.addEventListener('DOMContentLoaded',addButton);
- // Annual export button in report preview and student-facing annual card is also available via this standalone control.
+ function addButton(){const bar=document.querySelector('#instTabEvaluation .controls-right');if(bar&&!$('openHalfAssessmentBtn')){const b=document.createElement('button');b.id='openHalfAssessmentBtn';b.className='app-btn app-btn-purple';b.innerHTML='<i class="fa-solid fa-calculator"></i> H1/H2 मूल्यांकन';b.onclick=window.openHalfAssessment;bar.insertBefore(b,bar.firstChild);}}
+ const oldRender=window.renderEvaluationTable;if(typeof oldRender==='function')window.renderEvaluationTable=function(){const r=oldRender.apply(this,arguments);addButton();return r;};document.addEventListener('DOMContentLoaded',addButton);
 })();
 
 </script>
