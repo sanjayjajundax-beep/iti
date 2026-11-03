@@ -6330,10 +6330,34 @@ D) लखनऊ
    if(examAttemptBusy)return;if(confirmSubmit&&!confirm(`आपने ${examAnswers.filter(x=>x!==null).length}/${examQuestions.length} प्रश्न हल किए हैं। क्या परीक्षा सबमिट करें?`))return;
    examAttemptBusy=true;if(examTimer)clearInterval(examTimer);
    let score=0,totalMarks=0,attempted=0,wrong=0;
-   const details=examOrder.map((orig,i)=>{const q=examQuestions[orig],selected=examAnswers[i],isAttempted=selected!==null,isCorrect=isAttempted&&selected===q.c;if(isAttempted)attempted++;if(isCorrect)score+=q.marks;else if(isAttempted)wrong++;totalMarks+=q.marks;return{number:i+1,question:q.q,selectedText:!isAttempted?'उत्तर नहीं दिया':q.a[selected],correctText:q.a[q.c],isCorrect,marks:q.marks,obtained:isCorrect?q.marks:0};});
+   const details=examOrder.map((orig,i)=>{const q=examQuestions[orig],selected=examAnswers[i],isAttempted=selected!==null,isCorrect=isAttempted&&selected===q.c;if(isAttempted)attempted++;if(isCorrect)score+=q.marks;else if(isAttempted)wrong++;totalMarks+=q.marks;return{number:i+1,question:q.q,options:Array.isArray(q.a)?q.a.slice():[],selectedIndex:isAttempted?selected:null,selectedText:!isAttempted?'उत्तर नहीं दिया':q.a[selected],correctIndex:q.c,correctText:q.a[q.c],isAttempted,isCorrect,marks:q.marks,obtained:isCorrect?q.marks:0};});
    const percent=Number((totalMarks?score/totalMarks*100:0).toFixed(2)),now=new Date(),correct=details.filter(d=>d.isCorrect).length;
-   const record={collegeId:currentCollegeId,trade:currentTrade,examId:activeExam.id,examTitle:activeExam.title,name:activeExam.studentName,roll:activeExam.roll,total:examQuestions.length,attempted,correct,wrong,unattempted:examQuestions.length-attempted,score:Number(score.toFixed(2)),maximum:Number(totalMarks.toFixed(2)),percent,status:percent>=40?'PASS':'FAIL',submittedAt:now.toISOString()};
-   const pdfHtml=`<div style="font-family:Arial,sans-serif;color:#111;padding:18px"><h2 style="text-align:center">${escExam(record.examTitle)}</h2><h3 style="text-align:center">${escExam(getCollegeName(currentCollegeId))} — ${escExam(currentTrade)}</h3><p><b>विद्यार्थी:</b> ${escExam(record.name)} &nbsp; <b>रोल:</b> ${escExam(record.roll)}</p><p><b>हल किए:</b> ${attempted} | <b>सही:</b> ${correct} | <b>गलत:</b> ${wrong} | <b>अंक:</b> ${record.score}/${record.maximum} | <b>प्रतिशत:</b> ${percent}%</p><table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr><th style="border:1px solid #555;padding:6px">क्र.</th><th style="border:1px solid #555;padding:6px">प्रश्न</th><th style="border:1px solid #555;padding:6px">आपका उत्तर</th><th style="border:1px solid #555;padding:6px">सही उत्तर</th><th style="border:1px solid #555;padding:6px">अंक</th><th style="border:1px solid #555;padding:6px">स्थिति</th></tr></thead><tbody>${details.map(d=>`<tr><td style="border:1px solid #555;padding:6px">${d.number}</td><td style="border:1px solid #555;padding:6px">${escExam(d.question)}</td><td style="border:1px solid #555;padding:6px">${escExam(d.selectedText)}</td><td style="border:1px solid #555;padding:6px">${escExam(d.correctText)}</td><td style="border:1px solid #555;padding:6px">${d.obtained}/${d.marks}</td><td style="border:1px solid #555;padding:6px">${d.isCorrect?'सही':d.selectedText==='उत्तर नहीं दिया'?'अनुत्तरित':'गलत'}</td></tr>`).join('')}</tbody></table><p style="margin-top:18px">सबमिट समय: ${now.toLocaleString('hi-IN')}</p></div>`;
+   const record={collegeId:currentCollegeId,trade:currentTrade,examId:activeExam.id,examTitle:activeExam.title,name:activeExam.studentName,roll:activeExam.roll,total:examQuestions.length,attempted,correct,wrong,unattempted:examQuestions.length-attempted,score:Number(score.toFixed(2)),maximum:Number(totalMarks.toFixed(2)),percent,status:percent>=40?'PASS':'FAIL',submittedAt:now.toISOString(),details};
+   const pdfHtml=`<div style="font-family:Arial,sans-serif;color:#111;padding:18px;font-size:12px">
+    <h2 style="text-align:center;margin:0 0 6px">${escExam(record.examTitle)}</h2>
+    <h3 style="text-align:center;margin:0 0 14px">${escExam(getCollegeName(currentCollegeId))} — ${escExam(currentTrade)}</h3>
+    <div style="border:1px solid #777;padding:10px;margin-bottom:14px;line-height:1.8">
+      <b>विद्यार्थी:</b> ${escExam(record.name)} &nbsp; <b>रोल नंबर:</b> ${escExam(record.roll)}<br>
+      <b>कुल प्रश्न:</b> ${record.total} &nbsp; <b>हल किए:</b> ${attempted} &nbsp; <b>अनुत्तरित:</b> ${record.unattempted}<br>
+      <b>सही:</b> ${correct} &nbsp; <b>गलत:</b> ${wrong} &nbsp; <b>प्राप्तांक:</b> ${record.score}/${record.maximum} &nbsp; <b>प्रतिशत:</b> ${percent}% &nbsp; <b>परिणाम:</b> ${record.status}
+    </div>
+    <h3 style="margin:0 0 10px">प्रश्नवार उत्तर विवरण</h3>
+    ${details.map(d=>`<div style="border:1px solid #888;border-radius:5px;padding:9px;margin:0 0 10px;page-break-inside:avoid;break-inside:avoid">
+      <div style="font-weight:bold;margin-bottom:7px">${d.number}. ${escExam(d.question)}</div>
+      <div style="margin:4px 0 7px">${(d.options||[]).map((op,i)=>{const selected=d.selectedIndex===i,correctOption=d.correctIndex===i;return `<div style="padding:4px 6px;margin:2px 0;background:${correctOption?'#e8f5e9':selected?'#fff3e0':'#fff'};border-left:3px solid ${correctOption?'#16803d':selected?'#d97706':'#ddd'}">
+        <b>${'ABCD'[i]||i+1}.</b> ${escExam(op)}
+        ${selected?'<b style="color:#b45309">　✓ विद्यार्थी का चयन</b>':''}
+        ${correctOption?'<b style="color:#15803d">　✓ सही उत्तर</b>':''}
+      </div>`;}).join('')}</div>
+      <div style="border-top:1px dashed #aaa;padding-top:5px">
+        <b>आपका उत्तर:</b> ${d.isAttempted?`${'ABCD'[d.selectedIndex]}. ${escExam(d.selectedText)}`:'अनुत्तरित'}
+        &nbsp; | &nbsp; <b>सही उत्तर:</b> ${'ABCD'[d.correctIndex]}. ${escExam(d.correctText)}
+        &nbsp; | &nbsp; <b>स्थिति:</b> <span style="font-weight:bold;color:${d.isCorrect?'#15803d':d.isAttempted?'#b91c1c':'#555'}">${d.isCorrect?'सही':d.isAttempted?'गलत':'अनुत्तरित'}</span>
+        &nbsp; | &nbsp; <b>अंक:</b> ${d.obtained}/${d.marks}
+      </div>
+    </div>`).join('')}
+    <p style="margin-top:16px">सबमिट समय: ${now.toLocaleString('hi-IN')}</p>
+   </div>`;
    try{
     // Firebase पर केवल aggregate summary जाएगा; किसी विद्यार्थी का उत्तर या PDF नहीं।
     const ref=db().ref(`exam_results/${safeKey(currentCollegeId)}/${safeKey(currentTrade)}/${activeExam.id}`).push();await ref.set(record);
