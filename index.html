@@ -718,8 +718,6 @@
         .sup-nav-btn i{width:auto!important;flex:0 0 auto!important}
         .sup-sidebar-foot{display:none!important}
         .sup-main-content{width:100%!important;min-width:0!important}
-        #subjectAnnualEvaluationPanel{width:100%;max-width:100%;overflow:hidden;scroll-margin-top:90px}
-        #subjectAnnualEvaluationPanel .table-shell{max-width:100%;overflow-x:auto!important;-webkit-overflow-scrolling:touch}
         @media(max-width:760px){.role-sidebar-layout>.role-sidebar,.sup-layout>.sup-sidebar{position:relative!important;top:auto!important}.role-sidebar>.role-side-btn{min-width:132px;font-size:.76rem!important}.sup-nav-btn{min-width:125px;font-size:.76rem!important}.role-dashboard-heading{width:100%}}
 
 /* ===== ITI EXAM DASHBOARD MODULE ===== */
@@ -1070,7 +1068,6 @@ window.__itiLoginClick = async function(ev) {
 <span class="lock-indicator lock-open" id="evalLockStatusBadge"><i class="fa-solid fa-lock-open"></i> संपादन सक्रिय</span>
 </div>
 <div class="controls-right">
-<button class="app-btn app-btn-purple" type="button" onclick="toggleSubjectAnnualEvaluation()"><i class="fa-solid fa-calculator"></i> विषयवार वार्षिक मूल्यांकन</button>
 <button class="app-btn app-btn-primary" type="button" onclick="openH1H2ReportPanel()"><i class="fa-solid fa-chart-column"></i> H1 / H2 गणना रिपोर्ट</button>
 <button class="app-btn app-btn-excel" onclick="exportEvaluationToExcel()"><i class="fa-solid fa-file-excel"></i> मूल्यांकन एक्सेल (.xlsx)</button>
 <button class="app-btn app-btn-success" id="btnSaveEval" onclick="saveAllEvaluations()"><i class="fa-solid fa-floppy-disk"></i> मूल्यांकन सुरक्षित करें</button>
@@ -1089,12 +1086,6 @@ window.__itiLoginClick = async function(ev) {
 <tbody id="evaluationTableBody"></tbody>
 </table>
 </div>
-</div>
-<div class="glass-card hidden" id="subjectAnnualEvaluationPanel" style="margin-top:14px;">
-  <h3 style="color:#1e3a8a;margin-bottom:8px;"><i class="fa-solid fa-calculator"></i> विषयवार वार्षिक मूल्यांकन</h3>
-  <p class="sup-help">प्रायोगिक विषय: नियमित प्रायोगिक कार्य 50%, मासिक/अचीवमेंट टेस्ट 30%, उपस्थिति 10%, सह-पाठ्यक्रम गतिविधियाँ 10%। सैद्धांतिक विषय: नोट्स एवं अभ्यास पुस्तिका 30%, टेस्ट 50%, उपस्थिति 10%, गतिविधियाँ 10%। टेस्ट और उपस्थिति के अंक पोर्टल के मौजूदा रिकॉर्ड से स्वतः लिए जाएँगे। अन्य दोनों घटक 0–100 में भरें।</p>
-  <div class="controls-card"><div class="controls-left"><span class="badge-college" id="annualEvalCollegeBadge">कॉलेज</span><span class="badge-trade" id="annualEvalTradeBadge">ट्रेड</span></div><div class="controls-right"><button class="app-btn app-btn-success" onclick="saveSubjectAnnualEvaluation()"><i class="fa-solid fa-floppy-disk"></i> वार्षिक मूल्यांकन सुरक्षित करें</button><button class="app-btn app-btn-dark" onclick="toggleSubjectAnnualEvaluation(false)">बंद करें</button></div></div>
-  <div class="table-shell"><table><thead><tr><th>रोल</th><th>विद्यार्थी</th><th>विषय</th><th>प्रकृति</th><th id="annualComponentHeading">नियमित कार्य / नोट्स (0-100)</th><th>मासिक टेस्ट % (स्वतः)</th><th>उपस्थिति % (स्वतः)</th><th>सह-पाठ्यक्रम गतिविधि (0-100)</th><th>अंतिम भारित अंक /100</th></tr></thead><tbody id="subjectAnnualEvaluationBody"></tbody></table></div>
 </div>
 <div class="glass-card hidden" id="h1H2ReportPanel" style="margin-top:14px;">
   <h3 style="color:#1e3a8a;margin-bottom:8px;"><i class="fa-solid fa-chart-column"></i> H1 / H2 विषयवार गणना रिपोर्ट</h3>
@@ -3545,6 +3536,7 @@ D) लखनऊ
                     const parsed = JSON.parse(e.target.result);
                     if (parsed && typeof parsed === 'object') {
                         appData = parsed;
+                    if (appData && Object.prototype.hasOwnProperty.call(appData, 'subjectAnnualEvaluation')) delete appData.subjectAnnualEvaluation;
                         if (!Array.isArray(appData.superintendents)) appData.superintendents = [];
                         if (!appData.superintendentData) appData.superintendentData = { inspections: [], tasks: [], reports: [], auditLog: [], notices: [], assets: [] };
                         autoMigrateLegacyData();
@@ -4732,6 +4724,7 @@ D) लखनऊ
 
         function saveLocalCache() {
             try {
+                if (appData && Object.prototype.hasOwnProperty.call(appData, 'subjectAnnualEvaluation')) delete appData.subjectAnnualEvaluation;
                 localStorage.setItem('multi_iti_rtdb_cache_iti_kotri_only_v1', JSON.stringify(appData));
             } catch(e) {}
         }
@@ -4754,6 +4747,11 @@ D) लखनऊ
                 const cloudVal = snapshot.val();
                 if (cloudVal) {
                     appData = cloudVal;
+                    // पुराने विषयवार वार्षिक मूल्यांकन का डेटा Firebase से भी हटाएँ।
+                    if (Object.prototype.hasOwnProperty.call(appData, 'subjectAnnualEvaluation')) {
+                        delete appData.subjectAnnualEvaluation;
+                        rtdb.ref('portal_data/subjectAnnualEvaluation').remove().catch(err => console.warn('Legacy annual evaluation cleanup:', err));
+                    }
                     
                     if (!appData.colleges || !Array.isArray(appData.colleges) || appData.colleges.length === 0) {
                         appData.colleges = [
@@ -4806,6 +4804,8 @@ D) लखनऊ
         }
 
         async function syncWithFirebase() {
+            // हटाए गए विषयवार वार्षिक मूल्यांकन को लोकल/Firebase पर दोबारा न भेजें।
+            if (Object.prototype.hasOwnProperty.call(appData, 'subjectAnnualEvaluation')) delete appData.subjectAnnualEvaluation;
             saveLocalCache();
             try {
                 // पूरा डेटा — COPA सहित — केवल iti-kotri Firebase में सेव करें।
@@ -5075,147 +5075,8 @@ D) लखनऊ
             }
         }
 
-        // ==================== SUBJECT-WISE ANNUAL WEIGHTED EVALUATION ====================
-        function getAnnualSubjectDefinitions(trade) {
-            const defs = [
-                {key:'tt', name:'Trade Theory (TT)', nature:'theory'},
-                {key:'tp', name:'Trade Practical (TP)', nature:'practical'}
-            ];
-            if (isEnggTrade(trade)) {
-                defs.push({key:'wcs', name:'Workshop Calculation & Science (WCS)', nature:'theory'});
-                defs.push({key:'ed', name:'Engineering Drawing (ED)', nature:'practical'});
-            }
-            defs.push({key:'es', name:'Employability Skills (ES)', nature:'theory'});
-            return defs;
-        }
-        function toggleSubjectAnnualEvaluation(forceOpen) {
-            const panel=document.getElementById('subjectAnnualEvaluationPanel');
-            if(!panel) { showToast('विषयवार मूल्यांकन पैनल उपलब्ध नहीं है।'); return; }
-            const open = forceOpen===undefined ? panel.classList.contains('hidden') : !!forceOpen;
-            // यदि पैनल किसी छिपे हुए टैब के भीतर हो तो पहले संबंधित टैब सक्रिय करें।
-            const evaluationTab=document.getElementById('instTabEvaluation');
-            if(open && evaluationTab && evaluationTab.classList.contains('hidden')) {
-                switchInstructorTab('evaluation');
-            }
-            panel.classList.toggle('hidden',!open);
-            if(open) {
-                try {
-                    renderSubjectAnnualEvaluation();
-                    requestAnimationFrame(()=>panel.scrollIntoView({behavior:'smooth',block:'start'}));
-                } catch(err) {
-                    console.error('Subject annual evaluation render error:',err);
-                    const body=document.getElementById('subjectAnnualEvaluationBody');
-                    if(body) body.innerHTML='<tr><td colspan="9" style="color:#b91c1c;padding:16px">मूल्यांकन लोड नहीं हो सका: '+String(err.message||err)+'</td></tr>';
-                    showToast('विषयवार मूल्यांकन लोड करने में त्रुटि।');
-                }
-            }
-        }
-        function getAnnualAttendancePercent(collegeId,trade,student) {
-            let working=parseInt(student.pastWorkingDays)||0, present=parseInt(student.pastPresentDays)||0;
-            const months=(appData.records&&appData.records[collegeId]&&appData.records[collegeId][trade])||{};
-            const today=new Date(); today.setHours(23,59,59,999);
-            Object.keys(months).filter(isMonthInSession).forEach(m=>{
-                const [yy,mm]=m.split('-').map(Number), days=new Date(yy,mm,0).getDate();
-                const holidayRaw=((appData.holidays||{})[collegeId]||{})[trade]?.[m]||[];
-                const holidays=Array.isArray(holidayRaw)?holidayRaw:Object.values(holidayRaw);
-                const rec=months[m]?.[String(student.roll).trim()]||{};
-                for(let d=1;d<=days;d++){
-                    const dt=new Date(yy,mm-1,d);
-                    if(dt>today||!isDateInSession(dt)||!isDateAfterAdmission(dt,student)||dt.getDay()===0||holidays.map(Number).includes(d))continue;
-                    working++; if(rec[`${d}_e`]==='P')present++;
-                }
-            });
-            return working?present/working*100:0;
-        }
-        function getAnnualSubjectTestPercent(collegeId,trade,student,key) {
-            const months=(appData.evaluations&&appData.evaluations[collegeId]&&appData.evaluations[collegeId][trade])||{};
-            let obtained=0,max=0;
-            Object.keys(months).filter(isMonthInSession).forEach(m=>{
-                const ev=months[m]?.[String(student.roll).trim()]; if(!ev||ev[key]===''||ev[key]===undefined||ev[key]===null)return;
-                const mm=getMaxMarksConfig(collegeId,trade,m);
-                const fallback=20, cap=Math.max(0,parseFloat(mm[key])||fallback), val=Math.max(0,parseFloat(ev[key])||0);
-                obtained+=val; max+=Math.max(cap,val);
-            });
-            return max?obtained/max*100:0;
-        }
-        function calculateSubjectAnnualWeighted(nature,work,test,attendance,activity) {
-            return nature==='practical' ? work*.50+test*.30+attendance*.10+activity*.10 : work*.30+test*.50+attendance*.10+activity*.10;
-        }
-        function renderSubjectAnnualEvaluation() {
-            if(!currentCollegeId||!currentTrade)return;
-            const cb=document.getElementById('annualEvalCollegeBadge'),tb=document.getElementById('annualEvalTradeBadge');
-            if(cb)cb.textContent=getCollegeName(currentCollegeId); if(tb)tb.textContent=currentTrade;
-            const body=document.getElementById('subjectAnnualEvaluationBody'); if(!body)return;
-            const defs=getAnnualSubjectDefinitions(currentTrade), students=getStudentList(currentCollegeId,currentTrade);
-            const root=appData.subjectAnnualEvaluation||(appData.subjectAnnualEvaluation={});
-            const tradeRoot=root[currentCollegeId]||(root[currentCollegeId]={});
-            const data=tradeRoot[currentTrade]||(tradeRoot[currentTrade]={});
-            body.innerHTML='';
-            students.forEach(st=>{
-                const roll=String(st.roll).trim();
-                let total=0;
-                defs.forEach(d=>{
-                    const saved=data[roll]?.[d.key]||{};
-                    const test=getAnnualSubjectTestPercent(currentCollegeId,currentTrade,st,d.key);
-                    const att=getAnnualAttendancePercent(currentCollegeId,currentTrade,st);
-                    const work=Number(saved.work)||0, activity=Number(saved.activity)||0;
-                    // विषय की प्रकृति निर्धारित रहेगी: TT/WCS/ES सैद्धांतिक, TP/ED प्रायोगिक।
-                    const score=calculateSubjectAnnualWeighted(d.nature,work,test,att,activity);
-                    total+=score;
-                    const natureText=d.nature==='practical'?'प्रायोगिक':'सैद्धांतिक';
-                    const workLabel=d.nature==='practical'?'नियमित प्रायोगिक कार्य':'नोट्स एवं अभ्यास पुस्तिका';
-                    body.insertAdjacentHTML('beforeend',`<tr><td>${roll}</td><td style="text-align:left">${st.name}</td><td>${d.name}</td><td><strong>${natureText}</strong></td><td><label style="font-size:11px">${workLabel} (0-100)</label><input type="number" min="0" max="100" id="sa_w_${roll}_${d.key}" value="${work}" style="width:70px" oninput="previewSubjectAnnualScore('${roll}','${d.key}')"></td><td>${test.toFixed(1)}%</td><td>${att.toFixed(1)}%</td><td><input type="number" min="0" max="100" id="sa_a_${roll}_${d.key}" value="${activity}" style="width:70px" oninput="previewSubjectAnnualScore('${roll}','${d.key}')"></td><td id="sa_s_${roll}_${d.key}" style="font-weight:800;color:#166534">${score.toFixed(1)}</td></tr>`);
-                });
-                const maxTotal=defs.length*100;
-                const percent=maxTotal?(total/maxTotal*100):0;
-                body.insertAdjacentHTML('beforeend',`<tr style="background:#eff6ff;font-weight:800"><td colspan="7" style="text-align:right">${st.name} (${roll}) — सभी विषयों का कुल</td><td id="sa_total_${roll}">${total.toFixed(2)} / ${maxTotal}</td><td id="sa_percent_${roll}">${percent.toFixed(2)}%</td></tr>`);
-            });
-            if(!students.length)body.innerHTML='<tr><td colspan="9">इस ट्रेड में विद्यार्थी उपलब्ध नहीं हैं।</td></tr>';
-        }
-        function previewSubjectAnnualScore(roll,key) {
-            const st=getStudentList(currentCollegeId,currentTrade).find(x=>String(x.roll).trim()===String(roll)); if(!st)return;
-            const nature=getAnnualSubjectDefinitions(currentTrade).find(x=>x.key===key)?.nature||'theory';
-            const work=Math.min(100,Math.max(0,Number(document.getElementById(`sa_w_${roll}_${key}`)?.value)||0));
-            const activity=Math.min(100,Math.max(0,Number(document.getElementById(`sa_a_${roll}_${key}`)?.value)||0));
-            const test=getAnnualSubjectTestPercent(currentCollegeId,currentTrade,st,key), att=getAnnualAttendancePercent(currentCollegeId,currentTrade,st);
-            const score=calculateSubjectAnnualWeighted(nature,work,test,att,activity);
-            const out=document.getElementById(`sa_s_${roll}_${key}`); if(out)out.textContent=score.toFixed(1);
-            const defs=getAnnualSubjectDefinitions(currentTrade); let total=0;
-            defs.forEach(d=>{
-                const w=Math.min(100,Math.max(0,Number(document.getElementById(`sa_w_${roll}_${d.key}`)?.value)||0));
-                const a=Math.min(100,Math.max(0,Number(document.getElementById(`sa_a_${roll}_${d.key}`)?.value)||0));
-                const t=getAnnualSubjectTestPercent(currentCollegeId,currentTrade,st,d.key), at=getAnnualAttendancePercent(currentCollegeId,currentTrade,st);
-                total+=calculateSubjectAnnualWeighted(d.nature,w,t,at,a);
-            });
-            const maxTotal=defs.length*100;
-            const totalCell=document.getElementById(`sa_total_${roll}`), percentCell=document.getElementById(`sa_percent_${roll}`);
-            if(totalCell)totalCell.textContent=`${total.toFixed(2)} / ${maxTotal}`;
-            if(percentCell)percentCell.textContent=`${(defs.length?total/defs.length:0).toFixed(2)}%`;
-        }
-        function saveSubjectAnnualEvaluation() {
-            if(!currentCollegeId||!currentTrade)return;
-            if(!appData.subjectAnnualEvaluation)appData.subjectAnnualEvaluation={};
-            const root=appData.subjectAnnualEvaluation;
-            if(!root[currentCollegeId])root[currentCollegeId]={}; if(!root[currentCollegeId][currentTrade])root[currentCollegeId][currentTrade]={};
-            const target=root[currentCollegeId][currentTrade];
-            const defs=getAnnualSubjectDefinitions(currentTrade);
-            getStudentList(currentCollegeId,currentTrade).forEach(st=>{
-                const roll=String(st.roll).trim(); if(!target[roll])target[roll]={};
-                let total=0;
-                defs.forEach(d=>{
-                    const nature=d.nature;
-                    const work=Math.min(100,Math.max(0,Number(document.getElementById(`sa_w_${roll}_${d.key}`)?.value)||0));
-                    const activity=Math.min(100,Math.max(0,Number(document.getElementById(`sa_a_${roll}_${d.key}`)?.value)||0));
-                    const test=getAnnualSubjectTestPercent(currentCollegeId,currentTrade,st,d.key), attendance=getAnnualAttendancePercent(currentCollegeId,currentTrade,st);
-                    const score=calculateSubjectAnnualWeighted(nature,work,test,attendance,activity);
-                    total+=score;
-                    target[roll][d.key]={nature,work,activity,test:Number(test.toFixed(2)),attendance:Number(attendance.toFixed(2)),score:Number(score.toFixed(2)),updatedAt:new Date().toISOString()};
-                });
-                target[roll]._annualTotal={obtained:Number(total.toFixed(2)),maximum:defs.length*100,percentage:Number((defs.length?total/defs.length:0).toFixed(2)),subjectCount:defs.length,updatedAt:new Date().toISOString()};
-            });
-            syncWithFirebase(); showToast('विषयवार अंक और सभी विषयों का कुल योग सुरक्षित हो गया।'); renderSubjectAnnualEvaluation();
-        }
-
+        // पुराना विषयवार वार्षिक मूल्यांकन मॉड्यूल हटाया गया है।
+        // पुराने Firebase डेटा की सफाई नीचे cloud load/sync पर की जाती है।
 
         // ==================== H1 / H2 REPORT-ONLY CALCULATION ====================
         // मौजूदा dated records से गणना; केवल विषयों के अधिकतम अंक की सेटिंग सेव होती है।
