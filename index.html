@@ -1071,6 +1071,7 @@ window.__itiLoginClick = async function(ev) {
 </div>
 <div class="controls-right">
 <button class="app-btn app-btn-purple" type="button" onclick="toggleSubjectAnnualEvaluation()"><i class="fa-solid fa-calculator"></i> विषयवार वार्षिक मूल्यांकन</button>
+<button class="app-btn app-btn-primary" type="button" onclick="openH1H2ReportPanel()"><i class="fa-solid fa-chart-column"></i> H1 / H2 गणना रिपोर्ट</button>
 <button class="app-btn app-btn-excel" onclick="exportEvaluationToExcel()"><i class="fa-solid fa-file-excel"></i> मूल्यांकन एक्सेल (.xlsx)</button>
 <button class="app-btn app-btn-success" id="btnSaveEval" onclick="saveAllEvaluations()"><i class="fa-solid fa-floppy-disk"></i> मूल्यांकन सुरक्षित करें</button>
 <button class="app-btn app-btn-dark" onclick="syncWithFirebase()"><i class="fa-solid fa-cloud-arrow-up"></i> Firebase सेव करें</button>
@@ -1094,6 +1095,30 @@ window.__itiLoginClick = async function(ev) {
   <p class="sup-help">प्रायोगिक विषय: नियमित प्रायोगिक कार्य 50%, मासिक/अचीवमेंट टेस्ट 30%, उपस्थिति 10%, सह-पाठ्यक्रम गतिविधियाँ 10%। सैद्धांतिक विषय: नोट्स एवं अभ्यास पुस्तिका 30%, टेस्ट 50%, उपस्थिति 10%, गतिविधियाँ 10%। टेस्ट और उपस्थिति के अंक पोर्टल के मौजूदा रिकॉर्ड से स्वतः लिए जाएँगे। अन्य दोनों घटक 0–100 में भरें।</p>
   <div class="controls-card"><div class="controls-left"><span class="badge-college" id="annualEvalCollegeBadge">कॉलेज</span><span class="badge-trade" id="annualEvalTradeBadge">ट्रेड</span></div><div class="controls-right"><button class="app-btn app-btn-success" onclick="saveSubjectAnnualEvaluation()"><i class="fa-solid fa-floppy-disk"></i> वार्षिक मूल्यांकन सुरक्षित करें</button><button class="app-btn app-btn-dark" onclick="toggleSubjectAnnualEvaluation(false)">बंद करें</button></div></div>
   <div class="table-shell"><table><thead><tr><th>रोल</th><th>विद्यार्थी</th><th>विषय</th><th>प्रकृति</th><th id="annualComponentHeading">नियमित कार्य / नोट्स (0-100)</th><th>मासिक टेस्ट % (स्वतः)</th><th>उपस्थिति % (स्वतः)</th><th>सह-पाठ्यक्रम गतिविधि (0-100)</th><th>अंतिम भारित अंक /100</th></tr></thead><tbody id="subjectAnnualEvaluationBody"></tbody></table></div>
+</div>
+<div class="glass-card hidden" id="h1H2ReportPanel" style="margin-top:14px;">
+  <h3 style="color:#1e3a8a;margin-bottom:8px;"><i class="fa-solid fa-chart-column"></i> H1 / H2 विषयवार गणना रिपोर्ट</h3>
+  <p class="sup-help">यह रिपोर्ट पोर्टल में पहले से सुरक्षित मासिक टेस्ट, नोटबुक/रिकॉर्ड ग्रेड, उपस्थिति और गतिविधि रिकॉर्ड से बनेगी। कोई नया अंक दर्ज या Firebase में सेव नहीं होगा। सत्र की शुरुआत से पहले 6 कैलेंडर महीने H1 और शेष अवधि H2 मानी जाएगी।</p>
+  <div class="controls-card" style="gap:10px;flex-wrap:wrap;">
+    <div class="controls-left" style="gap:8px;flex-wrap:wrap;"><span class="badge-college" id="h1h2CollegeBadge">कॉलेज</span><span class="badge-trade" id="h1h2TradeBadge">ट्रेड</span>
+      <select id="h1h2PeriodSelect" onchange="renderH1H2Report()" style="padding:9px;border:1px solid #cbd5e1;border-radius:8px;font-weight:700;"><option value="H1">H1 रिपोर्ट</option><option value="H2">H2 रिपोर्ट</option></select>
+    </div>
+    <div class="controls-right" style="gap:8px;flex-wrap:wrap;">
+      <button class="app-btn app-btn-excel" onclick="exportH1H2Excel()"><i class="fa-solid fa-file-excel"></i> Excel डाउनलोड</button>
+      <button class="app-btn app-btn-pdf" onclick="downloadH1H2StudentPDF()"><i class="fa-solid fa-file-pdf"></i> विद्यार्थी PDF</button>
+      <button class="app-btn app-btn-dark" onclick="closeH1H2ReportPanel()">बंद करें</button>
+    </div>
+  </div>
+  <div id="h1h2PeriodInfo" class="sup-help" style="margin:10px 0;"></div>
+  <div class="glass-card" style="padding:12px;margin:10px 0;background:#f8fafc;">
+    <h4 style="margin:0 0 8px;color:#1e3a8a;">विषयवार पूर्णांक निर्धारित करें</h4>
+    <p class="sup-help">ट्रेड के अनुसार पूर्णांक भरें। ये पूर्णांक H1 और H2 दोनों की अंतिम मार्कशीट में लागू होंगे। WCS/ED केवल इंजीनियरिंग ट्रेड में दिखेंगे।</p>
+    <div id="h1h2MaxMarksFields" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(125px,1fr));gap:10px;"></div>
+    <button class="app-btn app-btn-success" style="margin-top:10px;" onclick="saveH1H2MaxMarks()"><i class="fa-solid fa-floppy-disk"></i> पूर्णांक सुरक्षित करें</button>
+    <span id="h1h2MaxMarksStatus" class="sup-help" style="margin-left:8px;"></span>
+  </div>
+  <div class="table-shell"><table id="h1h2ReportTable"><thead id="h1h2ReportHead"></thead><tbody id="h1h2ReportBody"></tbody></table></div>
+  <div class="input-group" style="max-width:360px;margin-top:14px;"><label for="h1h2StudentSelect">विद्यार्थी की व्यक्तिगत PDF चुनें</label><select id="h1h2StudentSelect"></select></div>
 </div>
 <div class="hidden" id="instTabWork">
 <div class="glass-card" style="padding:18px;margin-bottom:14px;">
@@ -5189,6 +5214,172 @@ D) लखनऊ
                 target[roll]._annualTotal={obtained:Number(total.toFixed(2)),maximum:defs.length*100,percentage:Number((defs.length?total/defs.length:0).toFixed(2)),subjectCount:defs.length,updatedAt:new Date().toISOString()};
             });
             syncWithFirebase(); showToast('विषयवार अंक और सभी विषयों का कुल योग सुरक्षित हो गया।'); renderSubjectAnnualEvaluation();
+        }
+
+
+        // ==================== H1 / H2 REPORT-ONLY CALCULATION ====================
+        // मौजूदा dated records से गणना; केवल विषयों के अधिकतम अंक की सेटिंग सेव होती है।
+        function getH1H2DateRanges(){
+            const conf=getSessionConfig();
+            const start=new Date(conf.startDate+'T00:00:00');
+            const end=new Date(conf.endDate+'T23:59:59');
+            const split=new Date(start.getFullYear(),start.getMonth()+6,start.getDate());
+            const h1End=new Date(split.getTime()-86400000);
+            return {H1:{start,end:h1End<end?h1End:end},H2:{start:new Date(h1End.getTime()+86400000),end}};
+        }
+        function h1h2DateKey(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;}
+        function h1h2MonthInRange(month,range){
+            const [y,m]=month.split('-').map(Number); if(!y||!m)return false;
+            const first=new Date(y,m-1,1,0,0,0,0),last=new Date(y,m,0,23,59,59,999);
+            return first<=range.end && last>=range.start;
+        }
+        function h1h2Attendance(collegeId,trade,student,range){
+            let working=0,present=0;
+            const months=(appData.records&&appData.records[collegeId]&&appData.records[collegeId][trade])||{};
+            const cur=new Date(range.start);cur.setHours(0,0,0,0);
+            const stop=new Date(range.end);stop.setHours(0,0,0,0);
+            while(cur<=stop){
+                if(isDateInSession(cur)&&isDateAfterAdmission(cur,student)&&cur.getDay()!==0){
+                    const month=h1h2DateKey(cur),day=cur.getDate();
+                    const raw=((appData.holidays||{})[collegeId]||{})[trade]?.[month]||[];
+                    const holidays=Array.isArray(raw)?raw:Object.values(raw);
+                    if(!holidays.map(Number).includes(day)){
+                        working++;
+                        const rec=months[month]?.[String(student.roll).trim()]||{};
+                        if(rec[`${day}_e`]==='P')present++;
+                    }
+                }
+                cur.setDate(cur.getDate()+1);
+            }
+            return working?present/working*100:null;
+        }
+        function h1h2GradePercent(value,type){
+            if(type==='notebookTheory'){
+                const points={'नियमित':27.5,'अनियमित':21,'लंबित':15};
+                return Object.prototype.hasOwnProperty.call(points,value)?points[value]/27.5*100:null;
+            }
+            if(type==='notebookPractical'){
+                const points={'A+':48,'A':44,'B':36,'C':28};
+                return Object.prototype.hasOwnProperty.call(points,value)?points[value]/48*100:null;
+            }
+            if(type==='activity'){
+                if(!value||!value.disc&&!value.act)return null;
+                let points=null;
+                if(value.disc==='उत्कृष्ट'||value.act==='सक्रिय')points=9.5;
+                else if(value.disc==='संतोषजनक'||value.act==='सामान्य')points=7.5;
+                else if(value.disc==='सुधार जरूरी'||value.act==='उदासीन')points=5;
+                return points===null?null:points/9.5*100;
+            }
+            return null;
+        }
+        function h1h2Average(values){const v=values.filter(x=>Number.isFinite(x));return v.length?v.reduce((a,b)=>a+b,0)/v.length:null;}
+        function h1h2TestPercent(collegeId,trade,student,key,range){
+            const months=(appData.evaluations&&appData.evaluations[collegeId]&&appData.evaluations[collegeId][trade])||{};
+            let got=0,max=0;
+            Object.keys(months).filter(m=>h1h2MonthInRange(m,range)).forEach(m=>{
+                const ev=months[m]?.[String(student.roll).trim()];if(!ev||ev[key]===''||ev[key]===undefined||ev[key]===null)return;
+                const cfg=getMaxMarksConfig(collegeId,trade,m)||{};
+                const cap=Math.max(0,Number(cfg[key])||20),val=Math.max(0,Number(ev[key])||0);
+                got+=val;max+=Math.max(cap,val);
+            });
+            return max?got/max*100:null;
+        }
+        function getH1H2MaxMarks(){
+            const defs=getAnnualSubjectDefinitions(currentTrade||'');
+            const root=appData.h1h2MaxMarks||{};
+            const saved=root[currentCollegeId]?.[currentTrade]||{};
+            const result={};
+            defs.forEach(d=>{const v=saved[d.key];result[d.key]=v!==undefined&&v!==null&&v!==''?Number(v):'';});
+            return result;
+        }
+        function renderH1H2MaxMarksFields(){
+            const box=document.getElementById('h1h2MaxMarksFields');if(!box||!currentTrade)return;
+            const defs=getAnnualSubjectDefinitions(currentTrade),marks=getH1H2MaxMarks();
+            box.innerHTML=defs.map(d=>`<label style="font-weight:700;font-size:13px;">${d.name}<input type="number" min="0.01" step="0.01" id="h1h2_max_${d.key}" value="${marks[d.key]??''}" placeholder="पूर्णांक" style="display:block;width:100%;padding:9px;border:1px solid #cbd5e1;border-radius:8px;margin-top:5px;"></label>`).join('');
+        }
+        function saveH1H2MaxMarks(){
+            if(!currentCollegeId||!currentTrade)return;
+            const defs=getAnnualSubjectDefinitions(currentTrade),vals={};
+            for(const d of defs){const el=document.getElementById(`h1h2_max_${d.key}`),v=Number(el?.value);if(!el||!Number.isFinite(v)||v<=0){alert(`${d.name} का सही पूर्णांक भरें।`);el?.focus();return;}vals[d.key]=v;}
+            if(!appData.h1h2MaxMarks)appData.h1h2MaxMarks={};
+            if(!appData.h1h2MaxMarks[currentCollegeId])appData.h1h2MaxMarks[currentCollegeId]={};
+            appData.h1h2MaxMarks[currentCollegeId][currentTrade]=vals;
+            syncWithFirebase();
+            const status=document.getElementById('h1h2MaxMarksStatus');if(status)status.textContent='पूर्णांक सुरक्षित हो गए';
+            renderH1H2Report();
+        }
+        function calculateH1H2Student(collegeId,trade,student,period){
+            const range=getH1H2DateRanges()[period],defs=getAnnualSubjectDefinitions(trade);
+            const months=(appData.evaluations&&appData.evaluations[collegeId]&&appData.evaluations[collegeId][trade])||{};
+            const attendance=h1h2Attendance(collegeId,trade,student,range),maxMarks=getH1H2MaxMarks();
+            const subjects=defs.map(d=>{
+                const notebook=[],activities=[];
+                Object.keys(months).filter(m=>h1h2MonthInRange(m,range)).forEach(m=>{
+                    const ev=months[m]?.[String(student.roll).trim()];if(!ev)return;
+                    const n=h1h2GradePercent(d.nature==='practical'?ev.recStatus:ev.diaryStatus,d.nature==='practical'?'notebookPractical':'notebookTheory');
+                    if(n!==null)notebook.push(n);
+                    const a=h1h2GradePercent({disc:ev.disc,act:ev.act},'activity');if(a!==null)activities.push(a);
+                });
+                const work=h1h2Average(notebook),test=h1h2TestPercent(collegeId,trade,student,d.key,range),activity=h1h2Average(activities);
+                const weights=d.nature==='practical'?{work:50,test:30,attendance:10,activity:10}:{work:30,test:50,attendance:10,activity:10};
+                const parts=[['work',work],['test',test],['attendance',attendance],['activity',activity]];
+                let weighted=0,availableWeight=0;
+                parts.forEach(([k,v])=>{if(v!==null&&Number.isFinite(v)){weighted+=v*weights[k]/100;availableWeight+=weights[k];}});
+                // Missing components are not treated as zero; available weights are normalized.
+                const score=availableWeight?weighted/(availableWeight/100):null;
+                const maximum=Number(maxMarks[d.key])||0;
+                const obtained=score===null?null:score*maximum/100;
+                return {...d,work,test,attendance,activity,score,maximum,obtained,availableWeight,weights};
+            });
+            const valid=subjects.filter(x=>x.score!==null&&x.maximum>0);
+            const total=valid.length?valid.reduce((a,x)=>a+x.obtained,0):null;
+            const maximum=valid.reduce((a,x)=>a+x.maximum,0);
+            return {student,period,range,subjects,total,maximum,percentage:maximum&&total!==null?total/maximum*100:null};
+        }
+        function openH1H2ReportPanel(){
+            if(!currentCollegeId||!currentTrade){showToast('पहले कॉलेज और ट्रेड चुनें।');return;}
+            const p=document.getElementById('h1H2ReportPanel');if(!p)return;
+            const evTab=document.getElementById('instTabEvaluation');if(evTab&&evTab.classList.contains('hidden'))switchInstructorTab('evaluation');
+            p.classList.remove('hidden');renderH1H2Report();p.scrollIntoView({behavior:'smooth',block:'start'});
+        }
+        function closeH1H2ReportPanel(){document.getElementById('h1H2ReportPanel')?.classList.add('hidden');}
+        function renderH1H2Report(){
+            if(!currentCollegeId||!currentTrade)return;
+            const period=document.getElementById('h1h2PeriodSelect')?.value||'H1';
+            const college=document.getElementById('h1h2CollegeBadge'),trade=document.getElementById('h1h2TradeBadge');
+            if(college)college.textContent=getCollegeName(currentCollegeId);if(trade)trade.textContent=currentTrade;
+            renderH1H2MaxMarksFields();
+            const range=getH1H2DateRanges()[period],fmt=d=>d.toLocaleDateString('en-GB');
+            const info=document.getElementById('h1h2PeriodInfo');if(info)info.textContent=`${period} अवधि: ${fmt(range.start)} से ${fmt(range.end)} | ट्रेड प्रकार: ${isEnggTrade(currentTrade)?'Engineering':'Non-Engineering'} | विषयवार भारित अंक को निर्धारित पूर्णांक में बदला जाएगा।`;
+            const defs=getAnnualSubjectDefinitions(currentTrade),students=getStudentList(currentCollegeId,currentTrade),maxMarks=getH1H2MaxMarks();
+            const head=document.getElementById('h1h2ReportHead'),body=document.getElementById('h1h2ReportBody');if(!head||!body)return;
+            head.innerHTML=`<tr><th>रोल</th><th>विद्यार्थी</th>${defs.map(d=>`<th>${d.key.toUpperCase()}<br>प्राप्तांक / ${maxMarks[d.key]||'—'}</th>`).join('')}<th>कुल प्राप्तांक</th><th>कुल पूर्णांक</th><th>Formative Assessment अंक /100</th><th>प्रतिशत</th><th>डेटा उपलब्धता</th></tr>`;
+            body.innerHTML='';
+            students.forEach(st=>{
+                const r=calculateH1H2Student(currentCollegeId,currentTrade,st,period);
+                const cells=r.subjects.map(x=>`<td>${x.obtained===null?'—':x.obtained.toFixed(2)}</td>`).join('');
+                const available=r.subjects.filter(x=>x.score!==null).length;
+                body.insertAdjacentHTML('beforeend',`<tr><td>${String(st.roll)}</td><td style="text-align:left">${String(st.name||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}</td>${cells}<td><b>${r.total===null?'—':r.total.toFixed(2)}</b></td><td>${r.maximum.toFixed(2)}</td><td><b>${r.percentage===null?'—':r.percentage.toFixed(2)}</b></td><td>${r.percentage===null?'—':r.percentage.toFixed(2)+'%'}</td><td>${available}/${defs.length} विषय</td></tr>`);
+            });
+            if(!students.length)body.innerHTML=`<tr><td colspan="${defs.length+7}">इस ट्रेड में विद्यार्थी उपलब्ध नहीं हैं।</td></tr>`;
+            const sel=document.getElementById('h1h2StudentSelect');if(sel){const old=sel.value;sel.innerHTML=students.map(st=>`<option value="${String(st.roll).replace(/"/g,'&quot;')}">${String(st.roll)} — ${String(st.name||'')}</option>`).join('');if(students.some(st=>String(st.roll)===old))sel.value=old;}
+        }
+        function exportH1H2Excel(){
+            if(typeof XLSX==='undefined'){alert('Excel लाइब्रेरी उपलब्ध नहीं है।');return;}
+            const period=document.getElementById('h1h2PeriodSelect')?.value||'H1',range=getH1H2DateRanges()[period],defs=getAnnualSubjectDefinitions(currentTrade),students=getStudentList(currentCollegeId,currentTrade),maxMarks=getH1H2MaxMarks();
+            const rows=[['संस्थान',getCollegeName(currentCollegeId)],['ट्रेड',currentTrade],['रिपोर्ट',period],['अवधि',range.start.toLocaleDateString('en-GB')+' से '+range.end.toLocaleDateString('en-GB')],[],['रोल नंबर','विद्यार्थी',...defs.map(d=>`${d.name} प्राप्तांक / ${maxMarks[d.key]||0}`),'कुल प्राप्तांक','कुल पूर्णांक','Formative Assessment अंक /100','प्रतिशत','उपलब्ध विषय']];
+            students.forEach(st=>{const r=calculateH1H2Student(currentCollegeId,currentTrade,st,period);rows.push([st.roll,st.name,...r.subjects.map(x=>x.obtained===null?'':Number(x.obtained.toFixed(2))),r.total===null?'':Number(r.total.toFixed(2)),r.maximum, r.percentage===null?'':Number(r.percentage.toFixed(2)),r.percentage===null?'':Number(r.percentage.toFixed(2)),r.subjects.filter(x=>x.score!==null).length+'/'+defs.length]);});
+            const wb=XLSX.utils.book_new(),ws=XLSX.utils.aoa_to_sheet(rows);ws['!cols']=[{wch:12},{wch:28},...defs.map(()=>({wch:24})),{wch:16},{wch:14},{wch:18},{wch:14},{wch:16}];XLSX.utils.book_append_sheet(wb,ws,period+'_Report');XLSX.writeFile(wb,`${currentTrade}_${period}_Calculation_Report.xlsx`);
+        }
+        function downloadH1H2StudentPDF(){
+            const roll=document.getElementById('h1h2StudentSelect')?.value;if(!roll){alert('विद्यार्थी चुनें।');return;}
+            const period=document.getElementById('h1h2PeriodSelect')?.value||'H1',st=getStudentList(currentCollegeId,currentTrade).find(x=>String(x.roll)===String(roll));if(!st)return;
+            const r=calculateH1H2Student(currentCollegeId,currentTrade,st,period),inst=getInstituteSettings(),defs=r.subjects;
+            const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+            const rows=defs.map(x=>`<tr><td>${esc(x.name)}</td><td>${x.maximum||'—'}</td><td>${x.work===null?'—':x.work.toFixed(2)+'%'}</td><td>${x.test===null?'—':x.test.toFixed(2)+'%'}</td><td>${x.attendance===null?'—':x.attendance.toFixed(2)+'%'}</td><td>${x.activity===null?'—':x.activity.toFixed(2)+'%'}</td><td><b>${x.obtained===null?'—':x.obtained.toFixed(2)}</b></td></tr>`).join('');
+            const html=`<div style="font-family:Arial,sans-serif;color:#111;padding:18px"><div style="text-align:center;border-bottom:2px solid #1e3a8a;padding-bottom:10px"><h2>${esc(getCollegeName(currentCollegeId))}</h2><h3>${period} Formative Assessment Marksheet</h3><p>सत्र अवधि: ${r.range.start.toLocaleDateString('en-GB')} से ${r.range.end.toLocaleDateString('en-GB')}</p></div><p><b>विद्यार्थी:</b> ${esc(st.name)} &nbsp; <b>रोल:</b> ${esc(st.roll)} &nbsp; <b>ट्रेड:</b> ${esc(currentTrade)}</p><table style="width:100%;border-collapse:collapse;font-size:11px"><thead><tr>${['विषय','पूर्णांक','नोटबुक/रिकॉर्ड %','टेस्ट %','उपस्थिति %','गतिविधि %','प्राप्तांक'].map(x=>`<th style="border:1px solid #555;padding:7px;background:#eaf1fb">${x}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table><h3 style="text-align:right">कुल: ${r.total===null?'—':r.total.toFixed(2)+' / '+r.maximum.toFixed(2)} &nbsp; Formative Assessment: ${r.percentage===null?'—':r.percentage.toFixed(2)+' / 100 ('+r.percentage.toFixed(2)+'%)'}</h3><p style="font-size:10px;color:#555">सूत्र: विषय का भारित प्रतिशत × विषय का पूर्णांक ÷ 100। अनुपलब्ध घटक को शून्य नहीं माना गया; उपलब्ध भार के अनुसार परिणाम सामान्यीकृत है।</p></div>`;
+            if(typeof html2pdf==='undefined'){const w=window.open('','_blank');if(!w){alert('PDF के लिए पॉपअप अनुमति दें।');return;}w.document.write(html+'<script>window.print()<\\/script>');w.document.close();return;}
+            const box=document.createElement('div');box.innerHTML=html;html2pdf().set({margin:8,filename:`${period}_${String(st.roll)}_Progress_Card.pdf`,image:{type:'jpeg',quality:.98},html2canvas:{scale:2},jsPDF:{unit:'mm',format:'a4',orientation:'landscape'}}).from(box).save();
         }
 
         // ==================== EXCEL AND PDF EXPORTS ====================
