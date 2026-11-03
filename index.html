@@ -1921,36 +1921,46 @@ window.__itiLoginClick = async function(ev) {
 <div id="examAdminModal" class="exam-modal" role="dialog" aria-modal="true">
  <div class="exam-modal-card">
   <div style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap">
-   <div><h2 style="color:#1e3a8a">📝 परीक्षा डैशबोर्ड प्रबंधन</h2><p style="color:#64748b">ट्रेड के लिए साझा लॉगिन, परीक्षा और प्रश्न बैंक</p></div>
+   <div><h2 id="examAdminModeTitle" style="color:#1e3a8a">📝 परीक्षा डैशबोर्ड प्रबंधन</h2><p style="color:#64748b">ट्रेड के लिए साझा लॉगिन, परीक्षा और प्रश्न बैंक</p></div>
    <button class="exam-action exam-red" onclick="closeExamAdmin()">बंद करें ✕</button>
   </div>
   <div class="exam-panel">
-   <h3>1. ट्रेड की परीक्षा लॉगिन आईडी बनाएं</h3>
-   <div class="exam-grid">
+   <h3 class="exam-admin-only">1. ट्रेड की परीक्षा लॉगिन आईडी बनाएं</h3>
+   <div class="exam-grid exam-admin-only">
     <div class="exam-field"><label>कॉलेज</label><select id="examCredCollege"></select></div>
     <div class="exam-field"><label>ट्रेड</label><select id="examCredTrade"></select></div>
     <div class="exam-field"><label>साझा लॉगिन आईडी</label><input id="examCredId" placeholder="जैसे COPA-EXAM"></div>
     <div class="exam-field"><label>पासवर्ड</label><input id="examCredPass" placeholder="पासवर्ड"></div>
    </div>
-   <button class="exam-action exam-primary" onclick="saveExamCredential()">लॉगिन आईडी सेव करें</button>
-   <div id="examCredentialList" style="margin-top:12px"></div>
+   <button class="exam-action exam-primary exam-admin-only" onclick="saveExamCredential()">लॉगिन आईडी सेव करें</button>
+   <div id="examCredentialList" class="exam-admin-only" style="margin-top:12px"></div>
   </div>
   <div class="exam-panel">
-   <h3>2. नई परीक्षा बनाएं और HTML प्रश्न फाइल अपलोड करें</h3>
-   <p style="font-size:13px;color:#64748b">डेमो HTML में मौजूद <b>const questions = [{q, a, c}]</b> फॉर्मेट अपने आप पढ़ा जाएगा। हर परीक्षा अलग कॉलेज और ट्रेड के अंतर्गत सेव होगी।</p>
+   <h3>नई परीक्षा तैयार करें</h3>
+   <p style="font-size:13px;color:#64748b">प्रश्न-उत्तर किसी डॉक्यूमेंट से कॉपी करके नीचे पेस्ट करें। प्रत्येक प्रश्न के साथ A/B/C/D विकल्प और सही उत्तर लिखें।</p>
    <div class="exam-grid">
-    <div class="exam-field"><label>कॉलेज</label><select id="examNewCollege"></select></div>
-    <div class="exam-field"><label>ट्रेड</label><select id="examNewTrade"></select></div>
+    <div class="exam-field exam-admin-only"><label>कॉलेज</label><select id="examNewCollege"></select></div>
+    <div class="exam-field exam-admin-only"><label>ट्रेड</label><select id="examNewTrade"></select></div>
     <div class="exam-field"><label>परीक्षा का नाम</label><input id="examNewTitle" placeholder="जैसे Achievement Test 1"></div>
     <div class="exam-field"><label>समय (मिनट)</label><input id="examNewMinutes" type="number" min="1" value="30"></div>
+    <div class="exam-field"><label>कुल प्रश्न (वैकल्पिक)</label><input id="examNewQuestionLimit" type="number" min="1" placeholder="सभी प्रश्न"></div>
+    <div class="exam-field"><label>प्रति प्रश्न अंक</label><input id="examNewMarks" type="number" min="0.5" step="0.5" value="1"></div>
    </div>
-   <div class="exam-field"><label>HTML प्रश्न कोड फाइल (.html)</label><input id="examHtmlFile" type="file" accept=".html,.htm,text/html"></div>
-   <div class="exam-field"><label>या प्रश्न JSON पेस्ट करें (वैकल्पिक)</label><textarea id="examQuestionJson" rows="4" placeholder='[{"q":"प्रश्न","a":["विकल्प A","विकल्प B","विकल्प C","विकल्प D"],"c":0}]'></textarea></div>
+   <div class="exam-field"><label>कॉपी किए हुए प्रश्न-उत्तर यहाँ पेस्ट करें</label><textarea id="examQuestionText" rows="12" placeholder="1. भारत की राजधानी क्या है?
+A) जयपुर
+B) दिल्ली
+C) भोपाल
+D) लखनऊ
+उत्तर: B
+
+2. ..."></textarea></div>
+   <div style="font-size:12px;color:#64748b">हर प्रश्न के विकल्प अलग पंक्ति में A), B), C), D) या A. B. C. D. लिखें। सही उत्तर: उत्तर: B / Ans: B लिखें।</div>
+   <button class="exam-action exam-grey" onclick="previewPastedExam()">प्रश्न जाँचें</button>
    <button class="exam-action exam-green" onclick="createExamFromAdmin()">परीक्षा और प्रश्न सेव करें</button>
    <div id="examImportStatus" style="margin-top:8px;font-weight:700"></div>
   </div>
   <div class="exam-panel">
-   <h3>3. परीक्षा परिणाम (ट्रेड अनुसार)</h3>
+   <h3>विद्यार्थियों के परीक्षा परिणाम</h3>
    <div class="exam-grid">
     <div class="exam-field"><label>कॉलेज</label><select id="examResultCollege"></select></div>
     <div class="exam-field"><label>ट्रेड</label><select id="examResultTrade"></select></div>
@@ -3051,6 +3061,12 @@ window.__itiLoginClick = async function(ev) {
                 updateAdminSessionBadge();
             } else if (currentRole === 'instructor') {
                 document.getElementById('instructorSection').classList.remove('hidden');
+                const instExamSide = document.querySelector('#instructorSection .role-sidebar');
+                if (instExamSide && !document.getElementById('openExamInstructorBtn')) {
+                    const eb = document.createElement('button'); eb.id='openExamInstructorBtn'; eb.className='app-btn app-btn-success role-side-btn';
+                    eb.innerHTML='<i class="fa-solid fa-file-circle-plus"></i> परीक्षा डैशबोर्ड';
+                    eb.onclick=openExamInstructor; instExamSide.appendChild(eb);
+                }
                 const isEngg = isEnggTrade(currentTrade);
                 const colName = getCollegeName(currentCollegeId);
                 document.getElementById('activeCollegeBadge').innerText = colName;
@@ -6080,8 +6096,9 @@ window.__itiLoginClick = async function(ev) {
    ['examCredCollege','examNewCollege','examResultCollege'].forEach(id=>{const el=$(id);if(el)el.innerHTML=colleges.map(c=>`<option value="${escExam(c.id)}">${escExam(c.name)}</option>`).join('');});
    ['examCredTrade','examNewTrade','examResultTrade'].forEach(id=>{const el=$(id);if(el)el.innerHTML=trades.map(t=>`<option value="${escExam(t)}">${escExam(t)}</option>`).join('');});
  }
- window.openExamAdmin=async function(){if(currentRole!=='admin'){alert('केवल सुपर एडमिन यह पैनल खोल सकता है।');return;}fillExamSelectors();$('examAdminModal').classList.add('open');await loadExamCredentials();};
- window.closeExamAdmin=()=>$('examAdminModal').classList.remove('open');
+ window.openExamAdmin=async function(){if(currentRole!=='admin'){alert('केवल सुपर एडमिन यह पैनल खोल सकता है।');return;}fillExamSelectors();$('examAdminModal').classList.add('open');$('examAdminModal').querySelectorAll('.exam-admin-only').forEach(x=>x.style.display='');$('examNewCollege').disabled=false;$('examNewTrade').disabled=false;await loadExamCredentials();};
+ window.openExamInstructor=async function(){if(currentRole!=='instructor'){alert('केवल अनुदेशक यह पैनल खोल सकता है।');return;}fillExamSelectors();$('examAdminModal').classList.add('open');$('examAdminModal').querySelectorAll('.exam-admin-only').forEach(x=>x.style.display='none');$('examNewCollege').value=currentCollegeId;$('examNewTrade').value=currentTrade;$('examNewCollege').disabled=true;$('examNewTrade').disabled=true;await loadInstructorExamResults();};
+ window.closeExamAdmin=()=>{$('examAdminModal').classList.remove('open');$('examNewCollege').disabled=false;$('examNewTrade').disabled=false;};
  window.saveExamCredential=async function(){
    const collegeId=$('examCredCollege').value,trade=$('examCredTrade').value,id=$('examCredId').value.trim(),pass=$('examCredPass').value;
    if(!collegeId||!trade||!id||!pass){alert('कॉलेज, ट्रेड, लॉगिन आईडी और पासवर्ड भरें।');return;}
@@ -6097,32 +6114,40 @@ window.__itiLoginClick = async function(ev) {
    $('examCredentialList').innerHTML=Object.entries(all).map(([k,x])=>`<div style="padding:9px;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><span><b>${escExam(x.trade)}</b> — ${escExam(x.id)} (${escExam(x.collegeId)})</span><span>${x.active===false?'बंद':'सक्रिय'} <button class="exam-action exam-red" onclick="toggleExamCredential('${k}',${x.active===false?'true':'false'})">${x.active===false?'चालू करें':'बंद करें'}</button></span></div>`).join('')||'अभी कोई ट्रेड परीक्षा लॉगिन नहीं बनाया गया।';
  }
  window.toggleExamCredential=async function(key,active){await db().ref('exam_portal/credentials/'+key+'/active').set(active);loadExamCredentials();};
- function parseQuestionsFromHtml(html){
-   const m=html.match(/(?:const|let|var)\s+questions\s*=\s*(\[[\s\S]*?\])\s*;/);
-   if(!m)throw new Error('HTML में const questions = [...] नहीं मिला।');
-   const block=m[1], out=[];
-   const re=/\{\s*q\s*:\s*("(?:\\.|[^"\\])*")\s*,\s*a\s*:\s*(\[(?:"(?:\\.|[^"\\])*"(?:\s*,\s*"(?:\\.|[^"\\])*")*)\])\s*,\s*c\s*:\s*(\d+)\s*\}/g;
-   let hit;while((hit=re.exec(block))!==null){out.push({q:JSON.parse(hit[1]),a:JSON.parse(hit[2]),c:Number(hit[3])});}
-   if(!out.length)throw new Error('प्रश्न नहीं पढ़े जा सके। कृपया डेमो HTML का q, a, c फॉर्मेट रखें।');
-   return out;
+ function parsePastedQuestions(text){
+   const normalized=String(text||'').replace(/\r/g,'').replace(/[：]/g,':').trim();
+   if(!normalized)throw new Error('पहले प्रश्न-उत्तर पेस्ट करें।');
+   const chunks=normalized.split(/\n(?=\s*(?:प्रश्न\s*)?\d+\s*[.)।:-])/i).map(x=>x.trim()).filter(Boolean),parsed=[];
+   for(const chunk of chunks){
+     const lines=chunk.split('\n').map(x=>x.trim()).filter(Boolean);
+     const qLine=lines.find(x=>!(/^(?:[A-Da-d][).:-]|(?:सही\s*)?(?:उत्तर|ans(?:wer)?)\s*:)/i.test(x)));
+     if(!qLine)continue;
+     const q=qLine.replace(/^(?:(?:प्रश्न\s*)?\d+\s*[.)।:-]\s*)/i,'').trim(),opts={};
+     lines.forEach(line=>{const m=line.match(/^([A-Da-d])\s*[).:-]\s*(.+)$/);if(m)opts[m[1].toUpperCase()]=m[2].trim();});
+     const ansLine=lines.find(x=>/^(?:सही\s*)?(?:उत्तर|ans(?:wer)?)\s*:/i.test(x));if(!ansLine)continue;
+     let ans=ansLine.split(':').slice(1).join(':').trim().toUpperCase(),am=ans.match(/[A-D]/);if(am)ans=am[0];
+     const keys=['A','B','C','D'].filter(k=>opts[k]);if(q&&keys.length>=2&&keys.includes(ans))parsed.push({q,a:keys.map(k=>opts[k]),c:keys.indexOf(ans)});
+   }
+   if(!parsed.length)throw new Error('कोई पूरा प्रश्न नहीं मिला। प्रत्येक प्रश्न में A)/B)/C)/D) विकल्प और "उत्तर: B" अवश्य लिखें।');
+   return parsed;
  }
- function validateExamQuestions(qs){
+ function validateExamQuestions(qs,defaultMarks=1){
    if(!Array.isArray(qs)||!qs.length)throw new Error('कम से कम एक प्रश्न आवश्यक है।');
-   qs.forEach((q,i)=>{if(!q.q||!Array.isArray(q.a)||q.a.length<2||!Number.isInteger(Number(q.c))||Number(q.c)<0||Number(q.c)>=q.a.length)throw new Error(`प्रश्न ${i+1} का फॉर्मेट गलत है।`);});
-   return qs.map(q=>({q:String(q.q),a:q.a.map(String),c:Number(q.c)}));
+   return qs.map((q,i)=>{if(!q.q||!Array.isArray(q.a)||q.a.length<2||!Number.isInteger(Number(q.c))||Number(q.c)<0||Number(q.c)>=q.a.length)throw new Error(`प्रश्न ${i+1} का फॉर्मेट गलत है।`);return{q:String(q.q),a:q.a.map(String),c:Number(q.c),marks:Math.max(.5,Number(q.marks)||defaultMarks)};});
  }
+ window.previewPastedExam=function(){try{const qs=validateExamQuestions(parsePastedQuestions($('examQuestionText').value),Number($('examNewMarks').value)||1);$('examImportStatus').innerHTML=`<span style="color:#15803d">${qs.length} प्रश्न पहचाने गए। कुल पूर्णांक: ${qs.reduce((a,q)=>a+q.marks,0)}</span>`;}catch(e){$('examImportStatus').textContent='त्रुटि: '+e.message;}};
  window.createExamFromAdmin=async function(){
    try{
-    const collegeId=$('examNewCollege').value,trade=$('examNewTrade').value,title=$('examNewTitle').value.trim(),minutes=Math.max(1,Number($('examNewMinutes').value)||30);
+    if(!['instructor','admin'].includes(currentRole))throw new Error('केवल अनुदेशक परीक्षा बना सकता है।');
+    const collegeId=currentRole==='instructor'?currentCollegeId:$('examNewCollege').value,trade=currentRole==='instructor'?currentTrade:$('examNewTrade').value;
+    const title=$('examNewTitle').value.trim(),minutes=Math.max(1,Number($('examNewMinutes').value)||30),defaultMarks=Math.max(.5,Number($('examNewMarks').value)||1);
     if(!collegeId||!trade||!title)throw new Error('कॉलेज, ट्रेड और परीक्षा का नाम भरें।');
-    let qs;const json=$('examQuestionJson').value.trim();
-    if(json)qs=JSON.parse(json);
-    else{const file=$('examHtmlFile').files[0];if(!file)throw new Error('HTML फाइल अपलोड करें या JSON प्रश्न पेस्ट करें।');qs=parseQuestionsFromHtml(await file.text());}
-    qs=validateExamQuestions(qs);
+    let qs=validateExamQuestions(parsePastedQuestions($('examQuestionText').value),defaultMarks);
+    const limit=Math.max(0,parseInt($('examNewQuestionLimit').value)||0);if(limit)qs=qs.slice(0,limit);if(!qs.length)throw new Error('चुनी गई प्रश्न संख्या के अनुसार प्रश्न उपलब्ध नहीं हैं।');
     const ref=db().ref(`exam_portal/exams/${safeKey(collegeId)}/${safeKey(trade)}`).push();
-    await ref.set({title,minutes,questions:qs,active:true,createdAt:new Date().toISOString(),createdBy:'admin'});
-    $('examImportStatus').textContent=`सफलता: ${qs.length} प्रश्नों के साथ "${title}" परीक्षा सेव हुई।`;
-    $('examNewTitle').value='';$('examQuestionJson').value='';$('examHtmlFile').value='';
+    await ref.set({title,minutes,questions:qs,active:true,createdAt:new Date().toISOString(),createdBy:currentRole==='instructor'?(loggedInInstructor?.name||'instructor'):'admin',createdById:currentRole==='instructor'?(loggedInInstructor?.id||''):'admin'});
+    $('examImportStatus').textContent=`सफलता: ${qs.length} प्रश्न और ${qs.reduce((a,q)=>a+q.marks,0)} कुल अंक सेव हुए।`;$('examNewTitle').value='';$('examQuestionText').value='';$('examNewQuestionLimit').value='';
+    if(currentRole==='instructor')await loadInstructorExamResults();
    }catch(e){$('examImportStatus').textContent='त्रुटि: '+e.message;}
  };
  window.loadAvailableExams=async function(){
@@ -6162,20 +6187,31 @@ window.__itiLoginClick = async function(ev) {
  window.submitExamAttempt=async function(confirmSubmit){
    if(examAttemptBusy)return;if(confirmSubmit&&!confirm(`आपने ${examAnswers.filter(x=>x!==null).length}/${examQuestions.length} प्रश्न हल किए हैं। क्या परीक्षा सबमिट करें?`))return;
    examAttemptBusy=true;if(examTimer)clearInterval(examTimer);
-   let score=0;const details=examOrder.map((orig,i)=>{const q=examQuestions[orig],correct=examAnswers[i]===q.c;if(correct)score++;return{number:i+1,question:q.q,selected:examAnswers[i],selectedText:examAnswers[i]===null?'उत्तर नहीं दिया':q.a[examAnswers[i]],correct:q.c,correctText:q.a[q.c],isCorrect:correct};});
-   const percent=Number((score/examQuestions.length*100).toFixed(2)),now=new Date();
-   const record={collegeId:currentCollegeId,trade:currentTrade,examId:activeExam.id,examTitle:activeExam.title,name:activeExam.studentName,roll:activeExam.roll,total:examQuestions.length,score,percent,status:percent>=40?'PASS':'FAIL',submittedAt:now.toISOString(),details};
-   try{const ref=db().ref(`exam_results/${safeKey(currentCollegeId)}/${safeKey(currentTrade)}/${activeExam.id}`).push();await ref.set(record);
+   let score=0,totalMarks=0,attempted=0,wrong=0;
+   const details=examOrder.map((orig,i)=>{const q=examQuestions[orig],selected=examAnswers[i],isAttempted=selected!==null,isCorrect=isAttempted&&selected===q.c;if(isAttempted)attempted++;if(isCorrect)score+=q.marks;else if(isAttempted)wrong++;totalMarks+=q.marks;return{number:i+1,question:q.q,selectedText:!isAttempted?'उत्तर नहीं दिया':q.a[selected],correctText:q.a[q.c],isCorrect,marks:q.marks,obtained:isCorrect?q.marks:0};});
+   const percent=Number((totalMarks?score/totalMarks*100:0).toFixed(2)),now=new Date(),correct=details.filter(d=>d.isCorrect).length;
+   const record={collegeId:currentCollegeId,trade:currentTrade,examId:activeExam.id,examTitle:activeExam.title,name:activeExam.studentName,roll:activeExam.roll,total:examQuestions.length,attempted,correct,wrong,unattempted:examQuestions.length-attempted,score:Number(score.toFixed(2)),maximum:Number(totalMarks.toFixed(2)),percent,status:percent>=40?'PASS':'FAIL',submittedAt:now.toISOString()};
+   const pdfHtml=`<div style="font-family:Arial,sans-serif;color:#111;padding:18px"><h2 style="text-align:center">${escExam(record.examTitle)}</h2><h3 style="text-align:center">${escExam(getCollegeName(currentCollegeId))} — ${escExam(currentTrade)}</h3><p><b>विद्यार्थी:</b> ${escExam(record.name)} &nbsp; <b>रोल:</b> ${escExam(record.roll)}</p><p><b>हल किए:</b> ${attempted} | <b>सही:</b> ${correct} | <b>गलत:</b> ${wrong} | <b>अंक:</b> ${record.score}/${record.maximum} | <b>प्रतिशत:</b> ${percent}%</p><table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr><th style="border:1px solid #555;padding:6px">क्र.</th><th style="border:1px solid #555;padding:6px">प्रश्न</th><th style="border:1px solid #555;padding:6px">आपका उत्तर</th><th style="border:1px solid #555;padding:6px">सही उत्तर</th><th style="border:1px solid #555;padding:6px">अंक</th><th style="border:1px solid #555;padding:6px">स्थिति</th></tr></thead><tbody>${details.map(d=>`<tr><td style="border:1px solid #555;padding:6px">${d.number}</td><td style="border:1px solid #555;padding:6px">${escExam(d.question)}</td><td style="border:1px solid #555;padding:6px">${escExam(d.selectedText)}</td><td style="border:1px solid #555;padding:6px">${escExam(d.correctText)}</td><td style="border:1px solid #555;padding:6px">${d.obtained}/${d.marks}</td><td style="border:1px solid #555;padding:6px">${d.isCorrect?'सही':d.selectedText==='उत्तर नहीं दिया'?'अनुत्तरित':'गलत'}</td></tr>`).join('')}</tbody></table><p style="margin-top:18px">सबमिट समय: ${now.toLocaleString('hi-IN')}</p></div>`;
+   try{
+    // Firebase पर केवल aggregate summary जाएगा; किसी विद्यार्थी का उत्तर या PDF नहीं।
+    const ref=db().ref(`exam_results/${safeKey(currentCollegeId)}/${safeKey(currentTrade)}/${activeExam.id}`).push();await ref.set(record);
     $('examTakePanel').style.display='none';$('examStudentResult').style.display='block';
-    $('examStudentResult').innerHTML=`<h2 style="text-align:center;color:#1e3a8a">परीक्षा परिणाम</h2><h3>${escExam(activeExam.title)}</h3><p><b>विद्यार्थी:</b> ${escExam(record.name)} | <b>रोल:</b> ${escExam(record.roll)}</p><div class="exam-grid"><div class="exam-card">प्राप्तांक <h2>${score}/${record.total}</h2></div><div class="exam-card">प्रतिशत <h2>${percent}%</h2></div><div class="exam-card">परिणाम <h2 class="${record.status==='PASS'?'pass':'fail'}">${record.status}</h2></div></div><table class="result-table"><thead><tr><th>#</th><th>प्रश्न</th><th>आपका उत्तर</th><th>सही उत्तर</th><th>स्थिति</th></tr></thead><tbody>${details.map(d=>`<tr><td>${d.number}</td><td>${escExam(d.question)}</td><td>${escExam(d.selectedText)}</td><td>${escExam(d.correctText)}</td><td>${d.isCorrect?'✓ सही':'✗ गलत'}</td></tr>`).join('')}</tbody></table><button class="exam-action exam-primary exam-no-print" onclick="window.print()">रिजल्ट PDF / प्रिंट</button>`;
-   }catch(e){alert('रिजल्ट सेव नहीं हो सका: '+e.message);examAttemptBusy=false;}
+    $('examStudentResult').innerHTML=`<h2 style="text-align:center;color:#1e3a8a">परीक्षा परिणाम</h2><h3>${escExam(record.examTitle)}</h3><p><b>विद्यार्थी:</b> ${escExam(record.name)} | <b>रोल:</b> ${escExam(record.roll)}</p><div class="exam-grid"><div class="exam-card">प्राप्तांक <h2>${record.score}/${record.maximum}</h2></div><div class="exam-card">प्रतिशत <h2>${percent}%</h2></div><div class="exam-card">सही / गलत <h2>${correct} / ${wrong}</h2></div></div><button class="exam-action exam-primary" id="downloadExamAnswerPdf">उत्तर सहित PDF डाउनलोड करें</button>`;
+    $('downloadExamAnswerPdf').onclick=async()=>{const wrap=document.createElement('div');wrap.innerHTML=pdfHtml;document.body.appendChild(wrap);try{await html2pdf().set({margin:8,filename:`${safeKey(record.roll)}-${safeKey(record.examTitle)}-answer.pdf`,image:{type:'jpeg',quality:.95},html2canvas:{scale:2,useCORS:true},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}}).from(wrap).save();}finally{wrap.remove();}};
+   }catch(e){alert('परिणाम सारांश दर्ज नहीं हो सका: '+e.message);examAttemptBusy=false;}
+ };
+ window.loadInstructorExamResults=async function(){
+   if(currentRole!=='instructor')return;
+   const college=currentCollegeId,trade=currentTrade,exSnap=await db().ref(`exam_portal/exams/${safeKey(college)}/${safeKey(trade)}`).once('value'),exams=exSnap.val()||{};let rows=[];
+   for(const [id,ex] of Object.entries(exams)){const rs=await db().ref(`exam_results/${safeKey(college)}/${safeKey(trade)}/${id}`).once('value');Object.values(rs.val()||{}).forEach(r=>rows.push(r));}
+   $('examAdminResults').innerHTML=rows.length?`<table class="result-table"><thead><tr><th>परीक्षा</th><th>विद्यार्थी</th><th>रोल</th><th>हल</th><th>सही</th><th>गलत</th><th>अंक</th><th>%</th><th>तिथि</th></tr></thead><tbody>${rows.sort((a,b)=>String(b.submittedAt).localeCompare(String(a.submittedAt))).map(r=>`<tr><td>${escExam(r.examTitle)}</td><td>${escExam(r.name)}</td><td>${escExam(r.roll)}</td><td>${r.attempted}/${r.total}</td><td>${r.correct}</td><td>${r.wrong}</td><td>${r.score}/${r.maximum}</td><td>${r.percent}%</td><td>${new Date(r.submittedAt).toLocaleString('hi-IN')}</td></tr>`).join('')}</tbody></table>`:'अभी किसी विद्यार्थी ने परीक्षा सबमिट नहीं की है।';
  };
  window.loadExamResultsAdmin=async function(){
    const college=$('examResultCollege').value,trade=$('examResultTrade').value;
    const exSnap=await db().ref(`exam_portal/exams/${safeKey(college)}/${safeKey(trade)}`).once('value'),exams=exSnap.val()||{};
    let rows=[];
    for(const [id,ex] of Object.entries(exams)){const rs=await db().ref(`exam_results/${safeKey(college)}/${safeKey(trade)}/${id}`).once('value');Object.values(rs.val()||{}).forEach(r=>rows.push(r));}
-   $('examAdminResults').innerHTML=rows.length?`<table class="result-table"><thead><tr><th>परीक्षा</th><th>विद्यार्थी</th><th>रोल</th><th>अंक</th><th>%</th><th>परिणाम</th><th>तिथि</th></tr></thead><tbody>${rows.sort((a,b)=>String(b.submittedAt).localeCompare(String(a.submittedAt))).map(r=>`<tr><td>${escExam(r.examTitle)}</td><td>${escExam(r.name)}</td><td>${escExam(r.roll)}</td><td>${r.score}/${r.total}</td><td>${r.percent}</td><td>${r.status}</td><td>${new Date(r.submittedAt).toLocaleString('hi-IN')}</td></tr>`).join('')}</tbody></table>`:'इस कॉलेज/ट्रेड का कोई परिणाम उपलब्ध नहीं है।';
+   $('examAdminResults').innerHTML=rows.length?`<table class="result-table"><thead><tr><th>परीक्षा</th><th>विद्यार्थी</th><th>रोल</th><th>हल/सही/गलत</th><th>अंक</th><th>%</th><th>परिणाम</th><th>तिथि</th></tr></thead><tbody>${rows.sort((a,b)=>String(b.submittedAt).localeCompare(String(a.submittedAt))).map(r=>`<tr><td>${escExam(r.examTitle)}</td><td>${escExam(r.name)}</td><td>${escExam(r.roll)}</td><td>${r.attempted}/${r.total} / ${r.correct} / ${r.wrong}</td><td>${r.score}/${r.maximum||r.total}</td><td>${r.percent}</td><td>${r.status}</td><td>${new Date(r.submittedAt).toLocaleString('hi-IN')}</td></tr>`).join('')}</tbody></table>`:'इस कॉलेज/ट्रेड का कोई परिणाम उपलब्ध नहीं है।';
  };
  document.addEventListener('DOMContentLoaded',()=>{fillExamSelectors();});
 })();
