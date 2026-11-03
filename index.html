@@ -6333,27 +6333,40 @@ D) लखनऊ
    const details=examOrder.map((orig,i)=>{const q=examQuestions[orig],selected=examAnswers[i],isAttempted=selected!==null,isCorrect=isAttempted&&selected===q.c;if(isAttempted)attempted++;if(isCorrect)score+=q.marks;else if(isAttempted)wrong++;totalMarks+=q.marks;return{number:i+1,question:q.q,options:Array.isArray(q.a)?q.a.slice():[],selectedIndex:isAttempted?selected:null,selectedText:!isAttempted?'उत्तर नहीं दिया':q.a[selected],correctIndex:q.c,correctText:q.a[q.c],isAttempted,isCorrect,marks:q.marks,obtained:isCorrect?q.marks:0};});
    const percent=Number((totalMarks?score/totalMarks*100:0).toFixed(2)),now=new Date(),correct=details.filter(d=>d.isCorrect).length;
    const record={collegeId:currentCollegeId,trade:currentTrade,examId:activeExam.id,examTitle:activeExam.title,name:activeExam.studentName,roll:activeExam.roll,total:examQuestions.length,attempted,correct,wrong,unattempted:examQuestions.length-attempted,score:Number(score.toFixed(2)),maximum:Number(totalMarks.toFixed(2)),percent,status:percent>=40?'PASS':'FAIL',submittedAt:now.toISOString(),details};
-   const pdfHtml=`<div class="exam-answer-pdf" style="font-family:Arial,'Noto Sans Devanagari',sans-serif;color:#111;background:#fff;padding:4mm;width:202mm;box-sizing:border-box;font-size:9pt;line-height:1.25;overflow-wrap:anywhere;word-break:normal">
+   const pdfHtml=`<div class="exam-answer-pdf" style="font-family:Arial,'Noto Sans Devanagari',sans-serif;color:#111;background:#fff;padding:2.5mm;width:202mm;box-sizing:border-box;font-size:8.2pt;line-height:1.12;overflow-wrap:anywhere;word-break:normal;text-align:left">
     <style>
-      .exam-answer-pdf *{box-sizing:border-box}
-      .exam-answer-pdf h2{font-size:14pt;text-align:center;margin:0 0 1mm}
-      .exam-answer-pdf h3{font-size:9.5pt;text-align:center;margin:0 0 2mm}
-      .exam-answer-pdf .summary{border:1px solid #555;padding:1.5mm 2mm;margin-bottom:2mm;line-height:1.35;font-size:8.5pt}
-      .exam-answer-pdf .qcard{border:1px solid #999;border-radius:1mm;padding:1.5mm 2mm;margin:0 0 1.5mm;page-break-inside:avoid;break-inside:avoid}
-      .exam-answer-pdf .qtitle{font-weight:700;font-size:9pt;line-height:1.25;margin-bottom:1mm}
-      .exam-answer-pdf .options{display:grid;grid-template-columns:1fr 1fr;column-gap:2mm;row-gap:.5mm}
-      .exam-answer-pdf .option{padding:.6mm 1mm;margin:0;border:1px solid #e1e1e1;border-radius:.5mm;font-size:8pt;line-height:1.2;white-space:normal;overflow-wrap:anywhere}
+      .exam-answer-pdf,.exam-answer-pdf *{box-sizing:border-box;text-align:left!important;word-spacing:normal!important;letter-spacing:0!important}
+      .exam-answer-pdf h2{font-size:12pt;text-align:left!important;margin:0 0 .5mm;line-height:1.1}
+      .exam-answer-pdf h3{font-size:8.5pt;text-align:left!important;margin:0 0 1mm;line-height:1.1}
+      .exam-answer-pdf .summary{border:1px solid #555;padding:1mm 1.5mm;margin:0 0 1mm;line-height:1.15;font-size:7.8pt;text-align:left!important}
+      .exam-answer-pdf .summary .sumline{display:block;margin:0;padding:0;line-height:1.15}
+      .exam-answer-pdf .qcard{border:1px solid #999;border-radius:.7mm;padding:.8mm 1.2mm;margin:0 0 .8mm;page-break-inside:avoid;break-inside:avoid}
+      .exam-answer-pdf .qtitle{display:block;font-weight:700;font-size:8.2pt;line-height:1.12;margin:0 0 .6mm;padding:0}
+      .exam-answer-pdf .options{display:grid;grid-template-columns:1fr 1fr;column-gap:1mm;row-gap:.35mm;margin:0;padding:0}
+      .exam-answer-pdf .option{padding:.35mm .7mm;margin:0;border:1px solid #e1e1e1;border-radius:.4mm;font-size:7.4pt;line-height:1.1;white-space:normal;overflow-wrap:anywhere;min-width:0}
       .exam-answer-pdf .chosen{background:#fff1d6;border:1px solid #d97706}
       .exam-answer-pdf .correct{background:#e6f5e9;border:1px solid #16803d}
-      .exam-answer-pdf .mark{font-weight:700;margin-left:1mm;font-size:7.5pt}
-      .exam-answer-pdf .foot{border-top:1px dashed #aaa;padding-top:1mm;margin-top:1mm;font-size:8pt;line-height:1.25}
+      .exam-answer-pdf .mark{font-weight:700;margin-left:.5mm;font-size:7pt;white-space:nowrap}
+      .exam-answer-pdf .foot{display:flex;flex-wrap:wrap;align-items:baseline;column-gap:2mm;row-gap:.2mm;border-top:1px dashed #aaa;padding:.5mm 0 0;margin:.6mm 0 0;font-size:7.2pt;line-height:1.1}
+      .exam-answer-pdf .foot span{display:inline}
+      .exam-answer-pdf .submitted-time{font-size:7pt;margin:1mm 0 0;line-height:1.1}
+      .exam-answer-pdf .pdf-page{width:210mm;height:297mm;padding:4mm;background:#fff;display:flex;flex-direction:column;overflow:hidden;page-break-after:always;break-after:page}
+      .exam-answer-pdf .pdf-page:last-child{page-break-after:auto;break-after:auto}
+      .exam-answer-pdf .pdf-header{flex:0 0 auto;margin-bottom:1.5mm}
+      .exam-answer-pdf .pdf-columns{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:3mm;flex:1 1 auto;min-height:0;position:relative}
+      .exam-answer-pdf .pdf-col{height:100%;min-height:0;overflow:hidden;min-width:0}
+      .exam-answer-pdf .pdf-col:first-child{border-right:.25mm solid #bbb;padding-right:1.5mm}
+      .exam-answer-pdf .pdf-col:last-child{padding-left:1.5mm}
     </style>
+    <div class="pdf-header">
     <h2>${escExam(record.examTitle)}</h2>
     <h3>${escExam(getCollegeName(currentCollegeId))} — ${escExam(currentTrade)}</h3>
     <div class="summary">
-      <b>विद्यार्थी:</b> ${escExam(record.name)} &nbsp;&nbsp; <b>रोल नंबर:</b> ${escExam(record.roll)}<br>
-      <b>कुल प्रश्न:</b> ${record.total} &nbsp; | &nbsp; <b>हल किए:</b> ${attempted} &nbsp; | &nbsp; <b>अनुत्तरित:</b> ${record.unattempted}<br>
-      <b>सही:</b> ${correct} &nbsp; | &nbsp; <b>गलत:</b> ${wrong} &nbsp; | &nbsp; <b>प्राप्तांक:</b> ${record.score}/${record.maximum} &nbsp; | &nbsp; <b>प्रतिशत:</b> ${percent}% &nbsp; | &nbsp; <b>परिणाम:</b> ${record.status}
+      <span class="sumline"><b>विद्यार्थी:</b> ${escExam(record.name)} &nbsp; <b>रोल नंबर:</b> ${escExam(record.roll)}</span>
+      <span class="sumline"><b>कुल प्रश्न:</b> ${record.total} &nbsp; | &nbsp; <b>हल किए:</b> ${attempted} &nbsp; | &nbsp; <b>अनुत्तरित:</b> ${record.unattempted}</span>
+      <span class="sumline"><b>सही:</b> ${correct} &nbsp; | &nbsp; <b>गलत:</b> ${wrong} &nbsp; | &nbsp; <b>प्राप्तांक:</b> ${record.score}/${record.maximum} &nbsp; | &nbsp; <b>प्रतिशत:</b> ${percent}% &nbsp; | &nbsp; <b>परिणाम:</b> ${record.status}</span>
+    </div>
+    <p class="submitted-time">सबमिट समय: ${now.toLocaleString('hi-IN')}</p>
     </div>
     ${details.map(d=>`<div class="qcard">
       <div class="qtitle">${d.number}. ${escExam(d.question)}</div>
@@ -6363,20 +6376,48 @@ D) लखनऊ
         ${d.correctIndex===i?'<span class="mark" style="color:#137333">✓ सही</span>':''}
       </div>`).join('')}</div>
       <div class="foot">
-        <b>विद्यार्थी का उत्तर:</b> ${d.isAttempted?`${'ABCD'[d.selectedIndex]}. ${escExam(d.selectedText)}`:'अनुत्तरित'}<br>
-        <b>सही उत्तर:</b> ${'ABCD'[d.correctIndex]}. ${escExam(d.correctText)} &nbsp; | &nbsp;
-        <b>स्थिति:</b> <span style="font-weight:bold;color:${d.isCorrect?'#137333':d.isAttempted?'#b91c1c':'#555'}">${d.isCorrect?'सही':d.isAttempted?'गलत':'अनुत्तरित'}</span>
-        &nbsp; | &nbsp; <b>अंक:</b> ${d.obtained}/${d.marks}
+        <span><b>विद्यार्थी का उत्तर:</b> ${d.isAttempted?`${'ABCD'[d.selectedIndex]}. ${escExam(d.selectedText)}`:'अनुत्तरित'}</span>
+        <span><b>सही उत्तर:</b> ${'ABCD'[d.correctIndex]}. ${escExam(d.correctText)}</span>
+        <span><b>स्थिति:</b> <span style="font-weight:bold;color:${d.isCorrect?'#137333':d.isAttempted?'#b91c1c':'#555'}">${d.isCorrect?'सही':d.isAttempted?'गलत':'अनुत्तरित'}</span></span>
+        <span><b>अंक:</b> ${d.obtained}/${d.marks}</span>
       </div>
     </div>`).join('')}
-    <p style="margin-top:5mm">सबमिट समय: ${now.toLocaleString('hi-IN')}</p>
    </div>`;
    try{
     // Firebase पर केवल aggregate summary जाएगा; किसी विद्यार्थी का उत्तर या PDF नहीं।
     const ref=db().ref(`exam_results/${safeKey(currentCollegeId)}/${safeKey(currentTrade)}/${activeExam.id}`).push();await ref.set(record);
     $('examTakePanel').style.display='none';$('examStudentResult').style.display='block';
     $('examStudentResult').innerHTML=`<h2 style="text-align:center;color:#1e3a8a">परीक्षा परिणाम</h2><h3>${escExam(record.examTitle)}</h3><p><b>विद्यार्थी:</b> ${escExam(record.name)} | <b>रोल:</b> ${escExam(record.roll)}</p><div class="exam-grid"><div class="exam-card">प्राप्तांक <h2>${record.score}/${record.maximum}</h2></div><div class="exam-card">प्रतिशत <h2>${percent}%</h2></div><div class="exam-card">सही / गलत <h2>${correct} / ${wrong}</h2></div></div><button class="exam-action exam-primary" id="downloadExamAnswerPdf">उत्तर सहित PDF डाउनलोड करें</button>`;
-    $('downloadExamAnswerPdf').onclick=async()=>{const wrap=document.createElement('div');wrap.innerHTML=pdfHtml;wrap.style.cssText='position:fixed;left:-10000px;top:0;width:210mm;background:#fff;z-index:-1;';document.body.appendChild(wrap);const content=wrap.firstElementChild;try{await html2pdf().set({margin:0,filename:`${safeKey(record.roll)}-${safeKey(record.examTitle)}-answer.pdf`,image:{type:'jpeg',quality:.98},html2canvas:{scale:1.7,useCORS:true,backgroundColor:'#ffffff',windowWidth:794},pagebreak:{mode:['css','legacy']},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}}).from(content).save();}catch(err){console.error('Exam answer PDF error:',err);alert('PDF नहीं बन सकी: '+(err.message||err));}finally{wrap.remove();}};
+    $('downloadExamAnswerPdf').onclick=async()=>{
+      const wrap=document.createElement('div');wrap.style.cssText='position:fixed;left:-10000px;top:0;width:210mm;background:#fff;z-index:-1;';
+      const holder=document.createElement('div');holder.innerHTML=pdfHtml;const source=holder.firstElementChild;
+      const printRoot=source.cloneNode(false);printRoot.style.cssText="width:210mm;padding:0;margin:0;background:#fff;font-family:Arial,'Noto Sans Devanagari',sans-serif;color:#111;";
+      printRoot.appendChild(source.querySelector('style').cloneNode(true));
+      const header=source.querySelector('.pdf-header');const cards=Array.from(source.querySelectorAll('.qcard'));
+      let pageNo=0,currentCols=null,currentCol=0;
+      const makePage=()=>{
+        const page=document.createElement('div');page.className='pdf-page';
+        if(pageNo===0&&header)page.appendChild(header.cloneNode(true));
+        const cols=document.createElement('div');cols.className='pdf-columns';
+        const left=document.createElement('div'),right=document.createElement('div');left.className='pdf-col';right.className='pdf-col';
+        cols.append(left,right);page.appendChild(cols);printRoot.appendChild(page);
+        currentCols=[left,right];currentCol=0;pageNo++;
+      };
+      try{
+        wrap.appendChild(printRoot);document.body.appendChild(wrap);makePage();
+        for(const original of cards){
+          const card=original.cloneNode(true);let target=currentCols[currentCol];target.appendChild(card);
+          if(target.scrollHeight>target.clientHeight+2){
+            target.removeChild(card);
+            if(currentCol===0){currentCol=1;target=currentCols[1];target.appendChild(card);}
+            if(target.scrollHeight>target.clientHeight+2){target.removeChild(card);makePage();target=currentCols[0];target.appendChild(card);}
+          }
+          if(card.offsetHeight>target.clientHeight){card.style.fontSize='6.4pt';card.style.lineHeight='1.03';card.querySelectorAll('.option').forEach(o=>{o.style.fontSize='6.2pt';o.style.lineHeight='1.03';});}
+        }
+        await html2pdf().set({margin:0,filename:`${safeKey(record.roll)}-${safeKey(record.examTitle)}-answer.pdf`,image:{type:'jpeg',quality:.96},html2canvas:{scale:1.35,useCORS:true,backgroundColor:'#ffffff',windowWidth:794},pagebreak:{mode:['css','legacy'],avoid:['.qcard']},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}}).from(printRoot).save();
+      }catch(err){console.error('Exam answer PDF error:',err);alert('PDF नहीं बन सकी: '+(err.message||err));}
+      finally{wrap.remove();}
+    }
    }catch(e){alert('परिणाम सारांश दर्ज नहीं हो सका: '+e.message);examAttemptBusy=false;}
  };
  window.loadInstructorExamResults=async function(){
