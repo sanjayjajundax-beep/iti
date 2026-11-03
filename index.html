@@ -1948,7 +1948,8 @@ window.__itiLoginClick = async function(ev) {
     <div class="exam-field"><label>साझा लॉगिन आईडी</label><input id="examCredId" placeholder="जैसे COPA-EXAM"></div>
     <div class="exam-field"><label>पासवर्ड</label><input id="examCredPass" placeholder="पासवर्ड"></div>
    </div>
-   <button class="exam-action exam-primary exam-admin-only" onclick="saveExamCredential()">लॉगिन आईडी सेव करें</button>
+   <button id="examCredSaveBtn" class="exam-action exam-primary exam-admin-only" onclick="saveExamCredential()">लॉगिन आईडी सेव करें</button>
+   <button id="examCredCancelEdit" class="exam-action exam-red exam-admin-only" style="display:none" onclick="cancelEditExamCredential()">एडिट रद्द करें</button>
    <div id="examCredentialList" class="exam-admin-only" style="margin-top:12px"></div>
   </div>
   <div class="exam-panel">
@@ -6111,7 +6112,7 @@ D) लखनऊ
 /* ================= ITI EXAM DASHBOARD MODULE ================= */
 (function(){
  const $=id=>document.getElementById(id);
- let examQuestions=[], examOrder=[], examAnswers=[], examIndex=0, examTimer=null, examSeconds=0, activeExam=null, examAttemptBusy=false;
+ let examQuestions=[], examOrder=[], examAnswers=[], examIndex=0, examTimer=null, examSeconds=0, activeExam=null, examAttemptBusy=false, editingExamCredentialKey=null;
  const db=()=>firebase.database();
  const safeKey=v=>String(v||'').replace(/[.#$/\[\]]/g,'_');
  const escExam=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -6153,20 +6154,67 @@ D) लखनऊ
  };
  window.closeExamAdmin=()=>{$('examAdminModal').classList.remove('open');$('examNewCollege').disabled=false;$('examNewTrade').disabled=false;};
  window.saveExamCredential=async function(){
+   if(currentRole!=='admin'){alert('केवल सुपर एडमिन परीक्षा लॉगिन आईडी बदल सकता है।');return;}
    const collegeId=$('examCredCollege').value,trade=$('examCredTrade').value,id=$('examCredId').value.trim(),pass=$('examCredPass').value;
    if(!collegeId||!trade||!id||!pass){alert('कॉलेज, ट्रेड, लॉगिन आईडी और पासवर्ड भरें।');return;}
-   const snap=await db().ref('exam_portal/credentials').once('value'),all=snap.val()||{};
-   const duplicate=Object.values(all).some(x=>x&&x.active!==false&&String(x.id).toLowerCase()===id.toLowerCase());
-   if(duplicate){alert('यह परीक्षा लॉगिन आईडी पहले से मौजूद है। दूसरी यूनिक आईडी रखें।');return;}
-   const key=db().ref('exam_portal/credentials').push().key;
-   await db().ref('exam_portal/credentials/'+key).set({collegeId,trade,id,pass,active:true,createdAt:new Date().toISOString()});
-   $('examCredId').value='';$('examCredPass').value='';await loadExamCredentials();alert(`${trade} की परीक्षा लॉगिन आईडी सेव हो गई।`);
+   const base=db().ref('exam_portal/credentials');
+   try{
+     const snap=await base.once('value'),all=snap.val()||{};
+     const duplicate=Object.entries(all).some(([key,x])=>key!==editingExamCredentialKey&&x&&String(x.id).toLowerCase()===id.toLowerCase());
+     if(duplicate){alert('यह परीक्षा लॉगिन आईडी पहले से मौजूद है। दूसरी यूनिक आईडी रखें।');return;}
+     if(editingExamCredentialKey){
+       const old=all[editingExamCredentialKey];
+       if(!old){alert('यह लॉगिन आईडी अब उपलब्ध नहीं है। सूची फिर से लोड करें।');cancelEditExamCredential();await loadExamCredentials();return;}
+       await base.child(editingExamCredentialKey).update({collegeId,trade,id,pass,updatedAt:new Date().toISOString()});
+       cancelEditExamCredential();
+       await loadExamCredentials();
+       alert('परीक्षा लॉगिन आईडी सफलतापूर्वक अपडेट हो गई।');
+     }else{
+       const key=base.push().key;
+       await base.child(key).set({collegeId,trade,id,pass,active:true,createdAt:new Date().toISOString()});
+       $('examCredId').value='';$('examCredPass').value='';
+       await loadExamCredentials();alert(`${trade} की परीक्षा लॉगिन आईडी सेव हो गई।`);
+     }
+   }catch(e){console.error('Exam credential save/update failed:',e);alert('लॉगिन आईडी सेव नहीं हुई: '+(e.message||e));}
  };
  async function loadExamCredentials(){
-   const snap=await db().ref('exam_portal/credentials').once('value'),all=snap.val()||{};
-   $('examCredentialList').innerHTML=Object.entries(all).map(([k,x])=>`<div style="padding:9px;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><span><b>${escExam(x.trade)}</b> — ${escExam(x.id)} (${escExam(x.collegeId)})</span><span>${x.active===false?'बंद':'सक्रिय'} <button class="exam-action exam-red" onclick="toggleExamCredential('${k}',${x.active===false?'true':'false'})">${x.active===false?'चालू करें':'बंद करें'}</button></span></div>`).join('')||'अभी कोई ट्रेड परीक्षा लॉगिन नहीं बनाया गया।';
+   const list=$('examCredentialList');
+   try{
+     const snap=await db().ref('exam_portal/credentials').once('value'),all=snap.val()||{};
+     list.innerHTML=Object.entries(all).map(([k,x])=>`<div style="padding:10px;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center"><span><b>${escExam(x.trade)}</b> — ${escExam(x.id)} (${escExam(x.collegeId)})</span><span>${x.active===false?'<b style="color:#b91c1c">बंद</b>':'<b style="color:#15803d">सक्रिय</b>'} <button class="exam-action exam-primary" style="padding:5px 9px" onclick="editExamCredential('${k}')">एडिट</button> <button class="exam-action exam-red" style="padding:5px 9px" onclick="toggleExamCredential('${k}',${x.active===false?'true':'false'})">${x.active===false?'चालू करें':'बंद करें'}</button> <button class="exam-action exam-red" style="padding:5px 9px;background:#7f1d1d" onclick="deleteExamCredential('${k}')">डिलीट</button></span></div>`).join('')||'अभी कोई ट्रेड परीक्षा लॉगिन नहीं बनाया गया।';
+   }catch(e){console.error('Exam credential list failed:',e);list.textContent='लॉगिन आईडी सूची लोड नहीं हुई: '+(e.message||e);}
  }
- window.toggleExamCredential=async function(key,active){await db().ref('exam_portal/credentials/'+key+'/active').set(active);loadExamCredentials();};
+ window.editExamCredential=async function(key){
+   if(currentRole!=='admin'){alert('केवल सुपर एडमिन एडिट कर सकता है।');return;}
+   try{
+     const snap=await db().ref('exam_portal/credentials/'+key).once('value'),x=snap.val();
+     if(!x){alert('यह लॉगिन आईडी नहीं मिली।');await loadExamCredentials();return;}
+     $('examCredCollege').value=x.collegeId||'';$('examCredTrade').value=x.trade||'';
+     $('examCredId').value=x.id||'';$('examCredPass').value=x.pass||'';
+     editingExamCredentialKey=key;
+     $('examCredSaveBtn').textContent='बदलाव सेव करें';$('examCredCancelEdit').style.display='inline-block';
+     $('examCredCollege').scrollIntoView({behavior:'smooth',block:'center'});
+   }catch(e){alert('एडिट विवरण नहीं खुला: '+(e.message||e));}
+ };
+ window.cancelEditExamCredential=function(){
+   editingExamCredentialKey=null;
+   $('examCredId').value='';$('examCredPass').value='';
+   $('examCredSaveBtn').textContent='लॉगिन आईडी सेव करें';$('examCredCancelEdit').style.display='none';
+ };
+ window.deleteExamCredential=async function(key){
+   if(currentRole!=='admin'){alert('केवल सुपर एडमिन डिलीट कर सकता है।');return;}
+   if(!confirm('क्या आप यह परीक्षा लॉगिन आईडी स्थायी रूप से डिलीट करना चाहते हैं? इससे इससे जुड़ी परीक्षाएँ और परिणाम डिलीट नहीं होंगे।'))return;
+   try{
+     await db().ref('exam_portal/credentials/'+key).remove();
+     if(editingExamCredentialKey===key)cancelEditExamCredential();
+     await loadExamCredentials();alert('परीक्षा लॉगिन आईडी डिलीट हो गई।');
+   }catch(e){console.error('Exam credential delete failed:',e);alert('डिलीट नहीं हुआ: '+(e.message||e));}
+ };
+ window.toggleExamCredential=async function(key,active){
+   if(currentRole!=='admin'){alert('केवल सुपर एडमिन यह बदलाव कर सकता है।');return;}
+   try{await db().ref('exam_portal/credentials/'+key+'/active').set(active);await loadExamCredentials();}
+   catch(e){alert('स्थिति नहीं बदली: '+(e.message||e));}
+ };
  function parsePastedQuestions(text){
    let normalized=String(text||'').replace(/\r/g,'').replace(/[：]/g,':').replace(/[\u00a0\t]+/g,' ').trim();
    if(!normalized)throw new Error('पहले प्रश्न-उत्तर पेस्ट करें।');
