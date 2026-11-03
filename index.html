@@ -6333,19 +6333,20 @@ D) लखनऊ
    const details=examOrder.map((orig,i)=>{const q=examQuestions[orig],selected=examAnswers[i],isAttempted=selected!==null,isCorrect=isAttempted&&selected===q.c;if(isAttempted)attempted++;if(isCorrect)score+=q.marks;else if(isAttempted)wrong++;totalMarks+=q.marks;return{number:i+1,question:q.q,options:Array.isArray(q.a)?q.a.slice():[],selectedIndex:isAttempted?selected:null,selectedText:!isAttempted?'उत्तर नहीं दिया':q.a[selected],correctIndex:q.c,correctText:q.a[q.c],isAttempted,isCorrect,marks:q.marks,obtained:isCorrect?q.marks:0};});
    const percent=Number((totalMarks?score/totalMarks*100:0).toFixed(2)),now=new Date(),correct=details.filter(d=>d.isCorrect).length;
    const record={collegeId:currentCollegeId,trade:currentTrade,examId:activeExam.id,examTitle:activeExam.title,name:activeExam.studentName,roll:activeExam.roll,total:examQuestions.length,attempted,correct,wrong,unattempted:examQuestions.length-attempted,score:Number(score.toFixed(2)),maximum:Number(totalMarks.toFixed(2)),percent,status:percent>=40?'PASS':'FAIL',submittedAt:now.toISOString(),details};
-   const pdfHtml=`<div class="exam-answer-pdf" style="font-family:Arial,'Noto Sans Devanagari',sans-serif;color:#111;background:#fff;padding:8mm;width:190mm;box-sizing:border-box;font-size:11pt;line-height:1.45;overflow-wrap:anywhere;word-break:normal">
+   const pdfHtml=`<div class="exam-answer-pdf" style="font-family:Arial,'Noto Sans Devanagari',sans-serif;color:#111;background:#fff;padding:4mm;width:202mm;box-sizing:border-box;font-size:9pt;line-height:1.25;overflow-wrap:anywhere;word-break:normal">
     <style>
       .exam-answer-pdf *{box-sizing:border-box}
-      .exam-answer-pdf h2{font-size:20pt;text-align:center;margin:0 0 3mm}
-      .exam-answer-pdf h3{font-size:13pt;text-align:center;margin:0 0 5mm}
-      .exam-answer-pdf .summary{border:1px solid #555;padding:3mm;margin-bottom:5mm;line-height:1.8}
-      .exam-answer-pdf .qcard{border:1px solid #888;border-radius:2mm;padding:3mm;margin:0 0 4mm;page-break-inside:avoid;break-inside:avoid}
-      .exam-answer-pdf .qtitle{font-weight:700;margin-bottom:2mm}
-      .exam-answer-pdf .option{padding:1.5mm 2mm;margin:1mm 0;border:1px solid #ddd;border-radius:1mm;white-space:normal;overflow-wrap:anywhere}
-      .exam-answer-pdf .chosen{background:#fff1d6;border:1.5px solid #d97706}
-      .exam-answer-pdf .correct{background:#e6f5e9;border:1.5px solid #16803d}
-      .exam-answer-pdf .mark{font-weight:700;margin-left:2mm}
-      .exam-answer-pdf .foot{border-top:1px dashed #888;padding-top:2mm;margin-top:2mm;font-size:10pt}
+      .exam-answer-pdf h2{font-size:14pt;text-align:center;margin:0 0 1mm}
+      .exam-answer-pdf h3{font-size:9.5pt;text-align:center;margin:0 0 2mm}
+      .exam-answer-pdf .summary{border:1px solid #555;padding:1.5mm 2mm;margin-bottom:2mm;line-height:1.35;font-size:8.5pt}
+      .exam-answer-pdf .qcard{border:1px solid #999;border-radius:1mm;padding:1.5mm 2mm;margin:0 0 1.5mm;page-break-inside:avoid;break-inside:avoid}
+      .exam-answer-pdf .qtitle{font-weight:700;font-size:9pt;line-height:1.25;margin-bottom:1mm}
+      .exam-answer-pdf .options{display:grid;grid-template-columns:1fr 1fr;column-gap:2mm;row-gap:.5mm}
+      .exam-answer-pdf .option{padding:.6mm 1mm;margin:0;border:1px solid #e1e1e1;border-radius:.5mm;font-size:8pt;line-height:1.2;white-space:normal;overflow-wrap:anywhere}
+      .exam-answer-pdf .chosen{background:#fff1d6;border:1px solid #d97706}
+      .exam-answer-pdf .correct{background:#e6f5e9;border:1px solid #16803d}
+      .exam-answer-pdf .mark{font-weight:700;margin-left:1mm;font-size:7.5pt}
+      .exam-answer-pdf .foot{border-top:1px dashed #aaa;padding-top:1mm;margin-top:1mm;font-size:8pt;line-height:1.25}
     </style>
     <h2>${escExam(record.examTitle)}</h2>
     <h3>${escExam(getCollegeName(currentCollegeId))} — ${escExam(currentTrade)}</h3>
@@ -6356,11 +6357,11 @@ D) लखनऊ
     </div>
     ${details.map(d=>`<div class="qcard">
       <div class="qtitle">${d.number}. ${escExam(d.question)}</div>
-      ${(d.options||[]).map((op,i)=>`<div class="option ${d.correctIndex===i?'correct':''} ${d.selectedIndex===i?'chosen':''}">
+      <div class="options">${(d.options||[]).map((op,i)=>`<div class="option ${d.correctIndex===i?'correct':''} ${d.selectedIndex===i?'chosen':''}">
         <b>${'ABCD'[i]||i+1}.</b> ${escExam(op)}
-        ${d.selectedIndex===i?'<span class="mark" style="color:#a45b00">✓ विद्यार्थी का चुना हुआ विकल्प</span>':''}
-        ${d.correctIndex===i?'<span class="mark" style="color:#137333">✓ सही उत्तर</span>':''}
-      </div>`).join('')}
+        ${d.selectedIndex===i?'<span class="mark" style="color:#a45b00">✓ चुना</span>':''}
+        ${d.correctIndex===i?'<span class="mark" style="color:#137333">✓ सही</span>':''}
+      </div>`).join('')}</div>
       <div class="foot">
         <b>विद्यार्थी का उत्तर:</b> ${d.isAttempted?`${'ABCD'[d.selectedIndex]}. ${escExam(d.selectedText)}`:'अनुत्तरित'}<br>
         <b>सही उत्तर:</b> ${'ABCD'[d.correctIndex]}. ${escExam(d.correctText)} &nbsp; | &nbsp;
@@ -6375,7 +6376,7 @@ D) लखनऊ
     const ref=db().ref(`exam_results/${safeKey(currentCollegeId)}/${safeKey(currentTrade)}/${activeExam.id}`).push();await ref.set(record);
     $('examTakePanel').style.display='none';$('examStudentResult').style.display='block';
     $('examStudentResult').innerHTML=`<h2 style="text-align:center;color:#1e3a8a">परीक्षा परिणाम</h2><h3>${escExam(record.examTitle)}</h3><p><b>विद्यार्थी:</b> ${escExam(record.name)} | <b>रोल:</b> ${escExam(record.roll)}</p><div class="exam-grid"><div class="exam-card">प्राप्तांक <h2>${record.score}/${record.maximum}</h2></div><div class="exam-card">प्रतिशत <h2>${percent}%</h2></div><div class="exam-card">सही / गलत <h2>${correct} / ${wrong}</h2></div></div><button class="exam-action exam-primary" id="downloadExamAnswerPdf">उत्तर सहित PDF डाउनलोड करें</button>`;
-    $('downloadExamAnswerPdf').onclick=async()=>{const wrap=document.createElement('div');wrap.innerHTML=pdfHtml;wrap.style.cssText='position:fixed;left:-10000px;top:0;width:210mm;background:#fff;z-index:-1;';document.body.appendChild(wrap);const content=wrap.firstElementChild;try{await html2pdf().set({margin:0,filename:`${safeKey(record.roll)}-${safeKey(record.examTitle)}-answer.pdf`,image:{type:'jpeg',quality:.98},html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff',windowWidth:794},pagebreak:{mode:['css','legacy']},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}}).from(content).save();}catch(err){console.error('Exam answer PDF error:',err);alert('PDF नहीं बन सकी: '+(err.message||err));}finally{wrap.remove();}};
+    $('downloadExamAnswerPdf').onclick=async()=>{const wrap=document.createElement('div');wrap.innerHTML=pdfHtml;wrap.style.cssText='position:fixed;left:-10000px;top:0;width:210mm;background:#fff;z-index:-1;';document.body.appendChild(wrap);const content=wrap.firstElementChild;try{await html2pdf().set({margin:0,filename:`${safeKey(record.roll)}-${safeKey(record.examTitle)}-answer.pdf`,image:{type:'jpeg',quality:.98},html2canvas:{scale:1.7,useCORS:true,backgroundColor:'#ffffff',windowWidth:794},pagebreak:{mode:['css','legacy']},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}}).from(content).save();}catch(err){console.error('Exam answer PDF error:',err);alert('PDF नहीं बन सकी: '+(err.message||err));}finally{wrap.remove();}};
    }catch(e){alert('परिणाम सारांश दर्ज नहीं हो सका: '+e.message);examAttemptBusy=false;}
  };
  window.loadInstructorExamResults=async function(){
