@@ -2003,7 +2003,7 @@ D) लखनऊ
    <div><b id="examTakeTitle"></b><div id="examCandidateBadge" style="font-size:13px"></div></div><div id="examTimer" style="font-size:22px;font-weight:800">30:00</div>
   </div>
   <div class="exam-question-layout" style="margin-top:14px">
-   <div><div class="exam-card"><div id="examQuestionProgress" style="font-weight:800;color:#1e3a8a"></div><div id="examQuestionText" style="font-size:19px;margin:15px 0;line-height:1.6"></div><div id="examOptions"></div></div>
+   <div><div class="exam-card"><div id="examQuestionProgress" style="font-weight:800;color:#1e3a8a"></div><div id="examTakeQuestionText" style="font-size:19px;margin:15px 0;line-height:1.6"></div><div id="examOptions"></div></div>
     <div style="display:flex;justify-content:space-between;margin-top:12px"><button class="exam-action exam-grey" onclick="examPrev()">पिछला</button><button class="exam-action exam-primary" onclick="examNext()">अगला प्रश्न</button></div>
    </div>
    <aside class="exam-card exam-no-print"><div style="display:flex;justify-content:space-between"><b>हल: <span id="examSolved">0</span></b><b>शेष: <span id="examRemaining">0</span></b></div><div class="exam-number-grid" id="examQuestionNav" style="margin-top:12px"></div><button class="exam-action exam-red" style="width:100%;margin-top:14px" onclick="submitExamAttempt(true)">फाइनल सबमिट</button></aside>
@@ -5188,7 +5188,7 @@ D) लखनऊ
             students.forEach(st=>{const r=calculateH1H2Student(currentCollegeId,currentTrade,st,period);rows.push([st.roll,st.name,...r.subjects.map(x=>x.obtained===null?'':Number(x.obtained.toFixed(2))),r.total===null?'':Number(r.total.toFixed(2)),r.maximum, r.percentage===null?'':Number(r.percentage.toFixed(2)),r.percentage===null?'':Number(r.percentage.toFixed(2)),r.subjects.filter(x=>x.score!==null).length+'/'+defs.length]);});
             const wb=XLSX.utils.book_new(),ws=XLSX.utils.aoa_to_sheet(rows);ws['!cols']=[{wch:12},{wch:28},...defs.map(()=>({wch:24})),{wch:16},{wch:14},{wch:18},{wch:14},{wch:16}];XLSX.utils.book_append_sheet(wb,ws,period+'_Report');XLSX.writeFile(wb,`${currentTrade}_${period}_Calculation_Report.xlsx`);
         }
-        function downloadH1H2StudentPDF(){
+        async function downloadH1H2StudentPDF(){
             const roll=document.getElementById('h1h2StudentSelect')?.value;if(!roll){alert('विद्यार्थी चुनें।');return;}
             const period=document.getElementById('h1h2PeriodSelect')?.value||'H1',st=getStudentList(currentCollegeId,currentTrade).find(x=>String(x.roll)===String(roll));if(!st)return;
             const r=calculateH1H2Student(currentCollegeId,currentTrade,st,period),inst=getInstituteSettings(),defs=r.subjects;
@@ -5196,7 +5196,24 @@ D) लखनऊ
             const rows=defs.map(x=>`<tr><td>${esc(x.name)}</td><td>${x.maximum||'—'}</td><td>${x.work===null?'—':x.work.toFixed(2)+'%'}</td><td>${x.test===null?'—':x.test.toFixed(2)+'%'}</td><td>${x.attendance===null?'—':x.attendance.toFixed(2)+'%'}</td><td>${x.activity===null?'—':x.activity.toFixed(2)+'%'}</td><td><b>${x.obtained===null?'—':x.obtained.toFixed(2)}</b></td></tr>`).join('');
             const html=`<div style="font-family:Arial,sans-serif;color:#111;padding:18px"><div style="text-align:center;border-bottom:2px solid #1e3a8a;padding-bottom:10px"><h2>${esc(getCollegeName(currentCollegeId))}</h2><h3>${period} Formative Assessment Marksheet</h3><p>सत्र अवधि: ${r.range.start.toLocaleDateString('en-GB')} से ${r.range.end.toLocaleDateString('en-GB')}</p></div><p><b>विद्यार्थी:</b> ${esc(st.name)} &nbsp; <b>रोल:</b> ${esc(st.roll)} &nbsp; <b>ट्रेड:</b> ${esc(currentTrade)}</p><table style="width:100%;border-collapse:collapse;font-size:11px"><thead><tr>${['विषय','पूर्णांक','नोटबुक/रिकॉर्ड %','टेस्ट %','उपस्थिति %','गतिविधि %','प्राप्तांक'].map(x=>`<th style="border:1px solid #555;padding:7px;background:#eaf1fb">${x}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table><h3 style="text-align:right">कुल: ${r.total===null?'—':r.total.toFixed(2)+' / '+r.maximum.toFixed(2)} &nbsp; Formative Assessment: ${r.percentage===null?'—':r.percentage.toFixed(2)+' / 100 ('+r.percentage.toFixed(2)+'%)'}</h3><p style="font-size:10px;color:#555">सूत्र: विषय का भारित प्रतिशत × विषय का पूर्णांक ÷ 100। अनुपलब्ध घटक को शून्य नहीं माना गया; उपलब्ध भार के अनुसार परिणाम सामान्यीकृत है।</p></div>`;
             if(typeof html2pdf==='undefined'){const w=window.open('','_blank');if(!w){alert('PDF के लिए पॉपअप अनुमति दें।');return;}w.document.write(html+'<script>window.print()<\\/script>');w.document.close();return;}
-            const box=document.createElement('div');box.innerHTML=html;html2pdf().set({margin:8,filename:`${period}_${String(st.roll)}_Progress_Card.pdf`,image:{type:'jpeg',quality:.98},html2canvas:{scale:2},jsPDF:{unit:'mm',format:'a4',orientation:'landscape'}}).from(box).save();
+            // html2canvas detached element को कई मोबाइल ब्राउज़र में खाली render करता है।
+            // इसलिए PDF DOM को अस्थायी रूप से document में जोड़कर render करें।
+            const box=document.createElement('div');
+            box.innerHTML=html;
+            box.style.cssText='position:fixed;left:-10000px;top:0;width:277mm;background:#fff;z-index:-1;';
+            document.body.appendChild(box);
+            try{
+                await html2pdf().set({
+                    margin:8,
+                    filename:`${period}_${String(st.roll)}_Progress_Card.pdf`,
+                    image:{type:'jpeg',quality:.98},
+                    html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff',logging:false},
+                    jsPDF:{unit:'mm',format:'a4',orientation:'landscape'}
+                }).from(box).save();
+            }catch(err){
+                console.error('H1/H2 student PDF error:',err);
+                alert('विद्यार्थी PDF नहीं बन सकी: '+(err.message||err));
+            }finally{box.remove();}
         }
 
         // ==================== EXCEL AND PDF EXPORTS ====================
@@ -6125,18 +6142,33 @@ D) लखनऊ
  function parsePastedQuestions(text){
    const normalized=String(text||'').replace(/\r/g,'').replace(/[：]/g,':').trim();
    if(!normalized)throw new Error('पहले प्रश्न-उत्तर पेस्ट करें।');
-   const chunks=normalized.split(/\n(?=\s*(?:प्रश्न\s*)?\d+\s*[.)।:-])/i).map(x=>x.trim()).filter(Boolean),parsed=[];
+   // 1. प्रश्न... / प्रश्न 1: ... जैसे क्रमांक से अलग-अलग प्रश्न बनाएं।
+   const chunks=normalized.split(/\n\s*(?=(?:प्रश्न\s*)?\d+\s*[.)।:-]\s*)/i).map(x=>x.trim()).filter(Boolean);
+   const parsed=[];
    for(const chunk of chunks){
      const lines=chunk.split('\n').map(x=>x.trim()).filter(Boolean);
-     const qLine=lines.find(x=>!(/^(?:[A-Da-d][).:-]|(?:सही\s*)?(?:उत्तर|ans(?:wer)?)\s*:)/i.test(x)));
+     // Word/PDF से कॉपी किए गए सभी सामान्य विकल्प फॉर्मेट स्वीकार करें:
+     // A) / (A) / A. / A: / A - / A विकल्प
+     const optionMatch=line=>line.match(/^\(?([A-Da-d])\)?\s*(?:[).:-]\s*|\s+)(.+)$/);
+     const answerMatch=line=>line.match(/^(?:(?:सही|correct)\s*)?(?:उत्तर|ans(?:wer)?)\s*[:：-]?\s*(.*)$/i);
+     const qLine=lines.find(line=>!optionMatch(line)&&!answerMatch(line));
      if(!qLine)continue;
-     const q=qLine.replace(/^(?:(?:प्रश्न\s*)?\d+\s*[.)।:-]\s*)/i,'').trim(),opts={};
-     lines.forEach(line=>{const m=line.match(/^([A-Da-d])\s*[).:-]\s*(.+)$/);if(m)opts[m[1].toUpperCase()]=m[2].trim();});
-     const ansLine=lines.find(x=>/^(?:सही\s*)?(?:उत्तर|ans(?:wer)?)\s*:/i.test(x));if(!ansLine)continue;
-     let ans=ansLine.split(':').slice(1).join(':').trim().toUpperCase(),am=ans.match(/[A-D]/);if(am)ans=am[0];
-     const keys=['A','B','C','D'].filter(k=>opts[k]);if(q&&keys.length>=2&&keys.includes(ans))parsed.push({q,a:keys.map(k=>opts[k]),c:keys.indexOf(ans)});
+     const q=qLine.replace(/^(?:(?:प्रश्न\s*)?\d+\s*[.)।:-]\s*)/i,'').trim();
+     const opts={};
+     lines.forEach(line=>{const m=optionMatch(line);if(m)opts[m[1].toUpperCase()]=m[2].trim();});
+     const ansLine=lines.find(line=>answerMatch(line));
+     if(!ansLine)continue;
+     const ansRaw=(answerMatch(ansLine)?.[1]||'').trim();
+     const letter=ansRaw.match(/(?:^|\b)([A-D])(?:\b|$)/i);
+     let ans=letter?letter[1].toUpperCase():null;
+     const keys=['A','B','C','D'].filter(k=>opts[k]);
+     if(!ans){
+       const byText=keys.find(k=>opts[k].toLowerCase()===ansRaw.toLowerCase());
+       if(byText)ans=byText;
+     }
+     if(q&&keys.length>=2&&ans&&keys.includes(ans))parsed.push({q,a:keys.map(k=>opts[k]),c:keys.indexOf(ans)});
    }
-   if(!parsed.length)throw new Error('कोई पूरा प्रश्न नहीं मिला। प्रत्येक प्रश्न में A)/B)/C)/D) विकल्प और "उत्तर: B" अवश्य लिखें।');
+   if(!parsed.length)throw new Error('कोई पूरा प्रश्न नहीं मिला। विकल्प A) / (A) / A. / A विकल्प जैसे अलग-अलग पंक्तियों में लिखें और सही उत्तर: उत्तर: B या Ans: D लिखें।');
    return parsed;
  }
  function validateExamQuestions(qs,defaultMarks=1){
@@ -6152,11 +6184,24 @@ D) लखनऊ
     if(!collegeId||!trade||!title)throw new Error('कॉलेज, ट्रेड और परीक्षा का नाम भरें।');
     let qs=validateExamQuestions(parsePastedQuestions($('examQuestionText').value),defaultMarks);
     const limit=Math.max(0,parseInt($('examNewQuestionLimit').value)||0);if(limit)qs=qs.slice(0,limit);if(!qs.length)throw new Error('चुनी गई प्रश्न संख्या के अनुसार प्रश्न उपलब्ध नहीं हैं।');
-    const ref=db().ref(`exam_portal/exams/${safeKey(collegeId)}/${safeKey(trade)}`).push();
-    await ref.set({title,minutes,questions:qs,active:true,createdAt:new Date().toISOString(),createdBy:currentRole==='instructor'?(loggedInInstructor?.name||'instructor'):'admin',createdById:currentRole==='instructor'?(loggedInInstructor?.id||''):'admin'});
-    $('examImportStatus').textContent=`सफलता: ${qs.length} प्रश्न और ${qs.reduce((a,q)=>a+q.marks,0)} कुल अंक सेव हुए।`;$('examNewTitle').value='';$('examQuestionText').value='';$('examNewQuestionLimit').value='';
-    if(currentRole==='instructor')await loadInstructorExamResults();
-   }catch(e){$('examImportStatus').textContent='त्रुटि: '+e.message;}
+    const saveBtn=document.querySelector('#examAdminModal button[onclick="createExamFromAdmin()"]');
+    if(saveBtn){saveBtn.disabled=true;saveBtn.dataset.oldText=saveBtn.textContent;saveBtn.textContent='सेव हो रहा है...';}
+    $('examImportStatus').style.color='#1d4ed8';
+    $('examImportStatus').textContent=`${qs.length} प्रश्न तैयार हैं। Firebase में सेव किया जा रहा है...`;
+    try{
+      const ref=db().ref(`exam_portal/exams/${safeKey(collegeId)}/${safeKey(trade)}`).push();
+      const examRecord={title,minutes,questions:qs,active:true,createdAt:new Date().toISOString(),createdBy:currentRole==='instructor'?(loggedInInstructor?.name||'instructor'):'admin',createdById:currentRole==='instructor'?(loggedInInstructor?.id||''):'admin'};
+      await ref.set(examRecord);
+      $('examImportStatus').style.color='#15803d';
+      $('examImportStatus').textContent=`सफलता: ${qs.length} प्रश्न और ${qs.reduce((a,q)=>a+q.marks,0)} कुल अंक Firebase में सेव हुए।`;
+      $('examNewTitle').value='';$('examQuestionText').value='';$('examNewQuestionLimit').value='';
+      // परीक्षा सेव हो चुकी है; परिणाम सूची refresh की विफलता को save failure न बताएं।
+      if(currentRole==='instructor'){
+        try{await loadInstructorExamResults();}
+        catch(refreshError){console.warn('Exam saved; result list refresh failed:',refreshError);}
+      }
+    }finally{if(saveBtn){saveBtn.disabled=false;saveBtn.textContent=saveBtn.dataset.oldText||'परीक्षा और प्रश्न सेव करें';}}
+   }catch(e){console.error('Exam save error:',e);$('examImportStatus').textContent='सेव नहीं हुआ: '+(e.code?e.code+' — ':'')+e.message;}
  };
  window.loadAvailableExams=async function(){
    $('examStudentTradeLabel').textContent=`कॉलेज: ${getCollegeName(currentCollegeId)} | ट्रेड: ${currentTrade}`;
@@ -6185,7 +6230,7 @@ D) लखनऊ
  function updateExamTimer(){const m=Math.floor(Math.max(0,examSeconds)/60),s=Math.max(0,examSeconds)%60;$('examTimer').textContent=`${m}:${String(s).padStart(2,'0')}`;}
  function drawExamQuestion(){
    const q=examQuestions[examOrder[examIndex]];$('examQuestionProgress').textContent=`प्रश्न ${examIndex+1} / ${examQuestions.length}`;
-   $('examQuestionText').textContent=q.q;$('examOptions').innerHTML='';
+   $('examTakeQuestionText').textContent=q.q;$('examOptions').innerHTML='';
    q.a.forEach((v,i)=>{const b=document.createElement('button');b.className='exam-q-option'+(examAnswers[examIndex]===i?' selected':'');b.textContent=`${'ABCD'[i]||i+1}. ${v}`;b.onclick=()=>{examAnswers[examIndex]=i;drawExamQuestion();};$('examOptions').appendChild(b);});
    examQuestions.forEach((_,i)=>{const b=$('examNum'+i);b.classList.toggle('answered',examAnswers[i]!==null);b.classList.toggle('current',i===examIndex);});
    const done=examAnswers.filter(x=>x!==null).length;$('examSolved').textContent=done;$('examRemaining').textContent=examQuestions.length-done;
