@@ -1039,15 +1039,6 @@ window.__itiLoginClick = async function(ev) {
 <button class="app-btn app-btn-dark" onclick="syncWithFirebase()"><i class="fa-solid fa-cloud-arrow-up"></i> Firebase सेव करें</button>
 </div>
 </div>
-<div id="sessionalRubricNotice" style="margin:10px 0;padding:12px 14px;border:1px solid #f0c36d;border-left:5px solid #d97706;border-radius:9px;background:#fffbeb;color:#78350f;">
-<strong style="display:block;margin-bottom:6px;">📌 अनुदेशक हेतु सत्रीय अंक निर्धारण — H1 / H2</strong>
-<div style="font-size:0.82rem;line-height:1.65;">
-<span id="sessionalRubricPeriodText"><b>H1:</b> सत्र की पहली आधी अवधि &nbsp; | &nbsp; <b>H2:</b> सत्र की दूसरी आधी अवधि।</span> दोनों भागों के अंक अलग-अलग बनेंगे और प्रत्येक भाग में उस अवधि के सभी मासिक मूल्यांकनों का औसत लिया जाएगा।<br>
-<b>प्रायोगिक रिकॉर्ड (50):</b> A+ उत्कृष्ट = 48/50 · A पूर्ण = 44/50 · B सुधार अपेक्षित = 36/50 · C अपूर्ण = 28/50।<br>
-<b>सैद्धांतिक डायरी / नोट्स (30):</b> नियमित = 27.5/30 · अनियमित = 21/30 · जाँच लंबित = 15/30।<br>
-<b>गतिविधि / अनुशासन (10):</b> उत्कृष्ट / सक्रिय = 9.5/10 · संतोषजनक / सामान्य = 7.5/10 · सुधार जरूरी / उदासीन = 5/10।<br>
-<b>अन्य घटक:</b> प्रायोगिक टेस्ट 30 अंक, सैद्धांतिक टेस्ट 50 अंक और उपस्थिति 10 अंक — संबंधित H1/H2 अवधि के आँकड़ों से।
-</div></div>
 <div class="max-marks-banner">
 <div style="font-weight: 700; color: #1e3a8a; font-size: 0.88rem;">
 <i class="fa-solid fa-sliders"></i> इस माह के टेस्ट का विषयवार पूर्णांक (Max Marks) सेट करें:
@@ -2091,43 +2082,6 @@ window.__itiLoginClick = async function(ev) {
                 appData.sessionConfig = { startDate: "2026-08-10", endDate: "2027-06-30" };
             }
             return appData.sessionConfig;
-        }
-
-        // सत्र की कुल अवधि को दिनों के आधार पर दो लगभग बराबर हिस्सों में बाँटें।
-        // मासिक रिकॉर्ड उस हिस्से में जाएगा जिसमें उस महीने की 15 तारीख आती है।
-        // पहले/अंतिम अधूरे महीने में 15 तारीख सत्र से बाहर हो तो निकटतम सत्र-तिथि ली जाएगी।
-        function getSessionHalfInfo() {
-            const conf = getSessionConfig();
-            const start = new Date(conf.startDate + 'T00:00:00');
-            const end = new Date(conf.endDate + 'T00:00:00');
-            const dayMs = 24 * 60 * 60 * 1000;
-            const totalDays = Math.floor((Date.UTC(end.getFullYear(), end.getMonth(), end.getDate()) - Date.UTC(start.getFullYear(), start.getMonth(), start.getDate())) / dayMs) + 1;
-            const h1Days = Math.ceil(totalDays / 2);
-            const split = new Date(start.getFullYear(), start.getMonth(), start.getDate() + h1Days - 1);
-            const h2Start = new Date(split.getFullYear(), split.getMonth(), split.getDate() + 1);
-            const fmt = d => `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
-            return { start, end, split, h2Start, totalDays, h1Days, h2Days: totalDays - h1Days,
-                h1Label: `${fmt(start)} से ${fmt(split)}`,
-                h2Label: totalDays > h1Days ? `${fmt(h2Start)} से ${fmt(end)}` : 'लागू नहीं' };
-        }
-
-        function getMonthHalfKey(monthValue) {
-            const { start, end, split } = getSessionHalfInfo();
-            const parts = String(monthValue).split('-');
-            const year = Number(parts[0]), month = Number(parts[1]);
-            if (!year || !month) return 'H1';
-            // महीने की 15 तारीख प्रतिनिधि तिथि है; आंशिक माह में इसे सत्र सीमा तक सीमित करें।
-            let representative = new Date(year, month - 1, 15);
-            if (representative < start) representative = new Date(start.getFullYear(), start.getMonth(), start.getDate());
-            if (representative > end) representative = new Date(end.getFullYear(), end.getMonth(), end.getDate());
-            return representative <= split ? 'H1' : 'H2';
-        }
-
-        function updateSessionalRubricNotice() {
-            const el = document.getElementById('sessionalRubricPeriodText');
-            if (!el) return;
-            const info = getSessionHalfInfo();
-            el.innerHTML = `<b>H1:</b> ${info.h1Label} &nbsp; | &nbsp; <b>H2:</b> ${info.h2Label}। दोनों भागों के अंक अलग-अलग बनेंगे। प्रत्येक महीने का रिकॉर्ड उस भाग में जाएगा जिसमें उस महीने की 15 तारीख आती है।`;
         }
 
         function isDateInSession(dateObj) {
@@ -3676,7 +3630,6 @@ window.__itiLoginClick = async function(ev) {
             syncWithFirebase();
             closeModal('sessionConfigModal');
             updateAdminSessionBadge();
-            updateSessionalRubricNotice();
             if (currentRole === 'instructor') { renderRegister(); renderEvaluationTable(); }
             showToast("प्रशिक्षण सत्र अवधि सुरक्षित कर दी गई!");
         }
@@ -3921,7 +3874,6 @@ window.__itiLoginClick = async function(ev) {
         }
 
         function renderEvaluationTable() {
-            updateSessionalRubricNotice();
             if (!currentCollegeId || !currentTrade) return;
             let monthVal = document.getElementById('evalSelectedMonth')?.value;
             if (!monthVal) {
@@ -4251,11 +4203,6 @@ window.__itiLoginClick = async function(ev) {
             let sumTTObt = 0, sumTTMax = 0;
             let sumTPObt = 0, sumTPMax = 0;
             
-            // H1/H2 की सीमा एडमिन द्वारा निर्धारित सत्र की कुल अवधि से स्वतः निकलेगी।
-            const halfStats = {
-                H1: { months: 0, present: 0, working: 0, ttObt: 0, ttMax: 0, tpObt: 0, tpMax: 0, rec: [], diary: [], activity: [] },
-                H2: { months: 0, present: 0, working: 0, ttObt: 0, ttMax: 0, tpObt: 0, tpMax: 0, rec: [], diary: [], activity: [] }
-            };
             const allRecScores = [], allDiaryScores = [], allActivityScores = [];
             const scoreRecord = v => ({'A+':48, 'A':44, 'B':36, 'C':28}[v] ?? null);
             const scoreDiary = v => ({'नियमित':27.5, 'अनियमित':21, 'लंबित':15}[v] ?? null);
@@ -4310,9 +4257,6 @@ window.__itiLoginClick = async function(ev) {
 
                 yearlyPortalW += mWorking;
                 yearlyPortalP += mPresent;
-                const halfKey = getMonthHalfKey(mVal);
-                halfStats[halfKey].working += mWorking;
-                halfStats[halfKey].present += mPresent;
 
                 const mAttPct = mWorking > 0 ? ((mPresent / mWorking) * 100).toFixed(1) : "0.0";
 
@@ -4372,20 +4316,15 @@ window.__itiLoginClick = async function(ev) {
 
                     totalObt += mTotalObt;
                     totalMax += mTotalMM;
-                    halfStats[halfKey].months++;
-                    halfStats[halfKey].ttObt += tt;
-                    halfStats[halfKey].ttMax += mmTT;
-                    halfStats[halfKey].tpObt += tp;
-                    halfStats[halfKey].tpMax += mmTP;
                 }
 
                 if (sEval) {
                     const rScore = scoreRecord(sEval.recStatus);
                     const dScore = scoreDiary(sEval.diaryStatus);
                     const aScore = scoreActivity(sEval.disc, sEval.act);
-                    if (rScore !== null) { allRecScores.push(rScore); halfStats[halfKey].rec.push(rScore); }
-                    if (dScore !== null) { allDiaryScores.push(dScore); halfStats[halfKey].diary.push(dScore); }
-                    if (aScore !== null) { allActivityScores.push(aScore); halfStats[halfKey].activity.push(aScore); }
+                    if (rScore !== null) allRecScores.push(rScore);
+                    if (dScore !== null) allDiaryScores.push(dScore);
+                    if (aScore !== null) allActivityScores.push(aScore);
                 }
 
                 let enggCols = '';
@@ -4440,14 +4379,6 @@ window.__itiLoginClick = async function(ev) {
             const notesScore = average(allDiaryScores).toFixed(1);
             const activityScore = average(allActivityScores).toFixed(1);
 
-            const halfScore = (h, halfKey) => {
-                if (typeof window.calculateHalfAssessmentForStudent === 'function') {
-                    return window.calculateHalfAssessmentForStudent(sRoll, halfKey, collegeId, trade);
-                }
-                return {practical:'—',theory:'—',subjectMarks:{tp:0,tt:0,wcs:0,ed:0,es:0},subjectPct:{},total:'अपूर्ण',rawTotal:'0',attendancePct:'0',complete:false};
-            };
-            const h1Score = halfScore(halfStats.H1, 'H1');
-            const h2Score = halfScore(halfStats.H2, 'H2');
 
             const totalPracticalSessional = (parseFloat(pracWorkScore) + parseFloat(tpTestWeightScore) + parseFloat(attWeightScore) + parseFloat(activityScore)).toFixed(1);
             const totalTheorySessional = (parseFloat(notesScore) + parseFloat(ttTestWeightScore) + parseFloat(attWeightScore) + parseFloat(activityScore)).toFixed(1);
@@ -4514,25 +4445,6 @@ window.__itiLoginClick = async function(ev) {
                             ${monthsTableRows || '<tr><td colspan="10">कोई रिकॉर्ड उपलब्ध नहीं है</td></tr>'}
                         </tbody>
                     </table>
-                </div>
-
-                <div style="margin:10px 0 12px;padding:9px;border:1px solid #cbd5e1;border-radius:8px;background:#f8fafc;">
-                    <h3 style="margin:0 0 8px;color:#1e3a8a;font-size:0.95rem;">H1 / H2 अर्धवार्षिक सत्रीय मूल्यांकन</h3>
-                    <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;">
-                        <div style="border:1px solid #bfdbfe;border-radius:6px;padding:8px;background:#eff6ff;">
-                            <b>H1 — ${getSessionHalfInfo().h1Label}</b>
-                            <div style="font-size:.76rem;line-height:1.65">Practical: ${(h1Score.subjectPct.tp===null?'अपूर्ण':h1Score.subjectMarks.tp.toFixed(1))}/125 · Theory: ${(h1Score.subjectPct.tt===null?'अपूर्ण':h1Score.subjectMarks.tt.toFixed(1))}/50<br>WC&S: ${isEngg ? (h1Score.subjectPct.wcs===null?'अपूर्ण':h1Score.subjectMarks.wcs.toFixed(1))+'/10' : 'लागू नहीं'} · ED: ${isEngg ? (h1Score.subjectPct.ed===null?'अपूर्ण':h1Score.subjectMarks.ed.toFixed(1))+'/10' : 'लागू नहीं'} · ES: ${(h1Score.subjectPct.es===null?'अपूर्ण':h1Score.subjectMarks.es.toFixed(1))}/25</div>
-                            <div>Formative Assessment: <b>${h1Score.total}/100</b></div>
-                            <small>Attendance: ${h1Score.attendancePct}%</small>
-                        </div>
-                        <div style="border:1px solid #99f6e4;border-radius:6px;padding:8px;background:#f0fdfa;">
-                            <b>H2 — ${getSessionHalfInfo().h2Label}</b>
-                            <div style="font-size:.76rem;line-height:1.65">Practical: ${(h2Score.subjectPct.tp===null?'अपूर्ण':h2Score.subjectMarks.tp.toFixed(1))}/125 · Theory: ${(h2Score.subjectPct.tt===null?'अपूर्ण':h2Score.subjectMarks.tt.toFixed(1))}/50<br>WC&S: ${isEngg ? (h2Score.subjectPct.wcs===null?'अपूर्ण':h2Score.subjectMarks.wcs.toFixed(1))+'/10' : 'लागू नहीं'} · ED: ${isEngg ? (h2Score.subjectPct.ed===null?'अपूर्ण':h2Score.subjectMarks.ed.toFixed(1))+'/10' : 'लागू नहीं'} · ES: ${(h2Score.subjectPct.es===null?'अपूर्ण':h2Score.subjectMarks.es.toFixed(1))}/25</div>
-                            <div>Formative Assessment: <b>${h2Score.total}/100</b></div>
-                            <small>Attendance: ${h2Score.attendancePct}%</small>
-                        </div>
-                    </div>
-                    <div style="font-size:0.72rem;color:#475569;margin-top:6px;">H1/H2 में विषयवार अंक Practical /125, Theory /50, WC&S /10, ED /10 और ES /25 के अनुपात में निकाले जाते हैं। इनका योग 220 में से लेकर (योग ÷ 220 × 100) से Formative Assessment /100 बनता है। Attendance वास्तविक अटेंडेंस रिकॉर्ड से स्वतः आती है।</div>
                 </div>
 
                 <div style="font-size: 0.82rem; font-weight: 700; margin-bottom: 5px; color: #831843;">
@@ -5868,171 +5780,7 @@ window.__itiLoginClick = async function(ev) {
   const oldRoute=window.setupUIRoute; if(oldRoute)window.setupUIRoute=function(){oldRoute.apply(this,arguments);setTimeout(()=>{inject();renderCompletionModules();},0);};
 })();
 
-/* ===== H1/H2 assessment: automatic calculation from existing monthly records ===== */
-(function(){
- const subjects=[
-  {key:'tt',label:'Internal Assessment - Theory',short:'Theory',kind:'theory',aLabel:'Notes Book'},
-  {key:'wcs',label:'Internal Assessment - Workshop Calculation and Science',short:'Workshop Calculation & Science',kind:'theory',aLabel:'Notes Book',engg:true},
-  {key:'tp',label:'Internal Assessment - Practical',short:'Practical',kind:'practical',aLabel:'Regular Work'},
-  {key:'ed',label:'Internal Assessment - Engineering Drawing',short:'Engineering Drawing',kind:'practical',aLabel:'Regular Work',engg:true},
-  {key:'es',label:'Internal Assessment - Employability Skills',short:'Employability Skills',kind:'theory',aLabel:'Notes Book'}
- ];
- const weights={theory:{A:30,B:50,C:10,D:10},practical:{A:50,B:30,C:10,D:10}};
- const $=id=>document.getElementById(id);
- function listSubjects(){return subjects.filter(x=>!x.engg||isEnggTrade(currentTrade));}
- function getHalfAttendance(roll,half,colId=currentCollegeId,tr=currentTrade){
-  let working=0,present=0;
-  const st=getStudentList(colId,tr).find(x=>String(x.roll).trim()===String(roll).trim());
-  if(!st)return 0;
-  const months=(appData.records&&appData.records[colId]&&appData.records[colId][tr])||{};
-  Object.keys(months).forEach(m=>{
-   if(typeof getMonthHalfKey==='function'&&getMonthHalfKey(m)!==half)return;
-   const [y,mo]=m.split('-').map(Number),days=new Date(y,mo,0).getDate();
-   for(let d=1;d<=days;d++){
-    const dt=new Date(y,mo-1,d);
-    if(typeof isDateInSession==='function'&&!isDateInSession(dt))continue;
-    if(typeof isDateAfterAdmission==='function'&&!isDateAfterAdmission(dt,st))continue;
-    if(dt.getDay()===0||dt>new Date())continue;
-    const holidays=(appData.holidays&&appData.holidays[colId]&&appData.holidays[colId][tr]&&appData.holidays[colId][tr][m])||[];
-    if(holidays.map(Number).includes(d))continue;
-    const day=months[m]&&months[m][String(st.roll).trim()]||{};
-    const morning=day[d+'_m'],evening=day[d+'_e'];
-    if(!['P','A','L'].includes(morning)&&!['P','A','L'].includes(evening))continue;
-    working++; if(morning==='P'||evening==='P')present++;
-   }
-  });
-  return working?present/working*100:0;
- }
- const scoreRecord=v=>({'A+':48,'A':44,'B':36,'C':28}[v]??null); // out of 50
- const scoreDiary=v=>({'नियमित':27.5,'अनियमित':21,'लंबित':15}[v]??null); // out of 30
- const scoreActivity=(disc,act)=>{
-  if(disc==='उत्कृष्ट'||act==='सक्रिय')return 9.5;
-  if(disc==='संतोषजनक'||act==='सामान्य')return 7.5;
-  if(disc==='सुधार जरूरी'||act==='उदासीन')return 5;
-  return null;
- };
- function monthsForHalf(half,colId=currentCollegeId,tr=currentTrade){
-  const ev=(appData.evaluations&&appData.evaluations[colId]&&appData.evaluations[colId][tr])||{};
-  return Object.keys(ev).filter(m=>typeof getMonthHalfKey!=='function'||getMonthHalfKey(m)===half).sort();
- }
- function testPercentForStudent(roll,key,half,colId=currentCollegeId,tr=currentTrade){
-  const ev=(appData.evaluations&&appData.evaluations[colId]&&appData.evaluations[colId][tr])||{};
-  let obtained=0,max=0,has=false,invalid=false;
-  monthsForHalf(half,colId,tr).forEach(month=>{
-   const row=ev[month]&&ev[month][String(roll).trim()];
-   if(!row||row[key]===undefined||row[key]===null||row[key]==='')return;
-   const score=Number(row[key]); if(!Number.isFinite(score)||score<0)return;
-   // प्रत्येक कॉलेज + ट्रेड + माह के लिए उसी विषय का वास्तविक पूर्णांक लें।
-   // Engineering और Non-Engineering के पूर्णांक आपस में कभी साझा नहीं होंगे।
-   const mm=getMaxMarksConfig(colId,tr,month)||{};
-   const configured=Number(mm[key]);
-   const full=Number.isFinite(configured)&&configured>0?configured:null;
-   if(full===null){invalid=true;return;}
-   if(score>full){invalid=true;return;}
-   obtained+=score;max+=full;has=true;
-  });
-  return has&&max>0&&!invalid?obtained/max*100:null;
- }
- function average(values){const a=values.filter(v=>v!==null&&Number.isFinite(v));return a.length?a.reduce((s,v)=>s+v,0)/a.length:null;}
- function getAutoInputs(roll,key,kind,half,colId=currentCollegeId,tr=currentTrade){
-  const ev=(appData.evaluations&&appData.evaluations[colId]&&appData.evaluations[colId][tr])||{};
-  const aScores=[],dScores=[];
-  monthsForHalf(half,colId,tr).forEach(month=>{
-   const row=ev[month]&&ev[month][String(roll).trim()];
-   if(!row)return;
-   if(kind==='practical'){
-    const v=scoreRecord(row.recStatus);
-    if(v!==null)aScores.push(v/50*100);
-   }else{
-    const v=scoreDiary(row.diaryStatus);
-    if(v!==null)aScores.push(v/30*100);
-   }
-   const act=scoreActivity(row.disc,row.act);
-   if(act!==null)dScores.push(act/10*100);
-  });
-  return {A:average(aScores),B:testPercentForStudent(roll,key,half,colId,tr),D:average(dScores)};
- }
- function calculate(roll,key,half,colId=currentCollegeId,tr=currentTrade){
-  const sub=subjects.find(x=>x.key===key); if(!sub)return null;
-  const input=getAutoInputs(roll,key,sub.kind,half,colId,tr),att=getHalfAttendance(roll,half,colId,tr),w=weights[sub.kind];
-  const available=[input.A,input.B,input.D].every(v=>v!==null);
-  const a=input.A===null?null:input.A*w.A/100;
-  const b=input.B===null?null:input.B*w.B/100;
-  const c=att*w.C/100;
-  const d=input.D===null?null:input.D*w.D/100;
-  const total=available?(a+b+c+d):null;
-  return {A:input.A,B:input.B,C:att,D:input.D,a,b,c,d,total,complete:available,kind:sub.kind};
- }
- window.calculateHalfAssessmentForStudent=function(roll,half,colId=currentCollegeId,tr=currentTrade){
-  const defs=[['tp','practical',125],['tt','theory',50],['wcs','theory',isEnggTrade(tr)?10:0],['ed','practical',isEnggTrade(tr)?10:0],['es','theory',25]];
-  const att=getHalfAttendance(roll,half,colId,tr),subjectMarks={},subjectPct={},details={};
-  let raw=0,allComplete=true;
-  defs.forEach(([key,kind,max])=>{
-   if(!max){subjectMarks[key]=0;subjectPct[key]=0;return;}
-   const v=calculate(roll,key,half,colId,tr);details[key]=v;
-   if(!v||v.total===null){allComplete=false;subjectMarks[key]=0;subjectPct[key]=null;}
-   else {subjectPct[key]=v.total;subjectMarks[key]=v.total*max/100;raw+=subjectMarks[key];}
-  });
-  const total=allComplete?raw/2:null; // Excel formula: SUM(P:T)/200% (divide by 2)
-  return {subjectMarks,subjectPct,details,total:total===null?'अपूर्ण':total.toFixed(2),rawTotal:raw.toFixed(2),attendance:att.toFixed(2),attendancePct:att.toFixed(2),complete:allComplete};
- };
- function ensureModal(){
-  if($('halfAssessmentModal'))return;
-  const el=document.createElement('div');el.id='halfAssessmentModal';el.className='modal-backdrop hidden';
-  el.innerHTML=`<div class="modal-content" style="max-width:1180px;width:98%;max-height:94vh;overflow:auto">
-   <div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h3 style="color:#1e3a8a">H1 / H2 — Excel के अनुसार स्वचालित मूल्यांकन</h3><button class="app-btn app-btn-secondary" onclick="document.getElementById('halfAssessmentModal').classList.add('hidden')">✕</button></div>
-   <p style="font-size:13px;color:#475569;margin:8px 0">प्रत्येक विषय के मासिक टेस्ट के प्राप्तांक उसी कॉलेज, ट्रेड और माह के सेट किए गए पूर्णांक से मिलाए जाते हैं। H1/H2 में सभी संबंधित टेस्ट के प्राप्तांक और पूर्णांक जोड़कर प्रतिशत निकाला जाता है। पूर्णांक से अधिक प्राप्तांक या पूर्णांक सेट न होने पर उस विषय को अपूर्ण दिखाया जाएगा। C उपस्थिति Attendance Module से आती है।</p>
-   <div style="display:flex;gap:12px;flex-wrap:wrap;margin:10px 0"><label><b>अवधि:</b> <select id="haHalf" onchange="window.renderHalfAssessmentTable()" style="padding:8px"><option value="H1">H1</option><option value="H2">H2</option></select></label><label><b>मूल्यांकन:</b> <select id="haSubject" onchange="window.renderHalfAssessmentTable()" style="padding:8px"></select></label></div>
-   <div id="haWeightInfo" style="padding:9px;background:#eff6ff;border-radius:7px;margin-bottom:8px"></div>
-   <div class="table-shell" style="max-height:58vh"><table style="min-width:1050px"><thead id="haHead"></thead><tbody id="haRows"></tbody></table></div>
-   <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px;flex-wrap:wrap"><button class="app-btn app-btn-excel" onclick="window.exportHalfAssessmentExcel()"><i class="fa-solid fa-file-excel"></i> H1/H2 Excel डाउनलोड</button></div>
-  </div>`;document.body.appendChild(el);
- }
- window.openHalfAssessment=function(){
-  if(!currentCollegeId||!currentTrade){alert('पहले ट्रेड का चयन करें।');return;}
-  ensureModal();const sel=$('haSubject');sel.innerHTML='';
-  listSubjects().forEach(x=>{const o=document.createElement('option');o.value=x.key;o.textContent=x.short;sel.appendChild(o)});
-  $('halfAssessmentModal').classList.remove('hidden');window.renderHalfAssessmentTable();
- };
- window.renderHalfAssessmentTable=function(){
-  const half=$('haHalf').value,key=$('haSubject').value,sub=listSubjects().find(x=>x.key===key);if(!sub)return;
-  const w=weights[sub.kind];
-  $('haWeightInfo').innerHTML=`<b>${sub.label}</b> — ${sub.aLabel} ${w.A}% + Monthly & Achievement Test ${w.B}% + Attendance 10% + Other Activity 10% = <b>100%</b>`;
-  $('haHead').innerHTML=`<tr><th rowspan="2">Sr. No</th><th rowspan="2">Trainees Name</th><th rowspan="2">${sub.aLabel} (A) %</th><th rowspan="2">Monthly & Achievement Test (B) %</th><th rowspan="2">Attendance (C) %</th><th rowspan="2">Other Activity (D) %</th><th colspan="4">Formative Assessment Marks</th><th rowspan="2">Total /100</th></tr><tr><th>(A) ${w.A}%</th><th>(B) ${w.B}%</th><th>(C) 10%</th><th>(D) 10%</th></tr>`;
-  $('haRows').innerHTML=getStudentList(currentCollegeId,currentTrade).map((st,i)=>{
-   const v=calculate(st.roll,key,half),fmt=n=>n===null||n===undefined?'—':Number(n).toFixed(1);
-   return `<tr><td>${i+1}</td><td style="text-align:left">${st.name}</td><td>${fmt(v.A)}</td><td>${fmt(v.B)}</td><td>${fmt(v.C)}</td><td>${fmt(v.D)}</td><td>${fmt(v.a)}</td><td>${fmt(v.b)}</td><td>${fmt(v.c)}</td><td>${fmt(v.d)}</td><td><b>${v.total===null?'अपूर्ण':v.total.toFixed(1)}</b></td></tr>`;
-  }).join('');
- };
- window.saveHalfAssessment=function(){showToast('H1/H2 की गणना मौजूदा रिकॉर्ड से स्वतः होती है; अलग से सेव करने की आवश्यकता नहीं है।');};
- window.exportHalfAssessmentExcel=function(){
-  if(!window.XLSX){alert('Excel लाइब्रेरी लोड नहीं हुई।');return;}
-  const wb=XLSX.utils.book_new(),students=getStudentList(currentCollegeId,currentTrade);
-  ['H1','H2'].forEach(half=>{
-   const rows=[['Internal Assessment — '+half],['College',getCollegeName(currentCollegeId),'Trade',currentTrade],[]];
-   listSubjects().forEach(sub=>{
-    const w=weights[sub.kind];rows.push([sub.label]);
-    rows.push(['Sr. No','Trainees Name',sub.aLabel+' (A) %','Monthly & Achievement Test (B) %','Attendance (C) %','Other Activity (D) %',`(A) ${w.A}%`,`(B) ${w.B}%`,'(C) 10%','(D) 10%','Total (Excel formula /200%)']);
-    students.forEach((st,i)=>{
-     const v=calculate(st.roll,sub.key,half);
-     rows.push([i+1,st.name,v.A===null?'':Number(v.A.toFixed(2)),v.B===null?'':Number(v.B.toFixed(2)),Number(v.C.toFixed(2)),v.D===null?'':Number(v.D.toFixed(2)),v.a===null?'':Number(v.a.toFixed(2)),v.b===null?'':Number(v.b.toFixed(2)),Number(v.c.toFixed(2)),v.d===null?'':Number(v.d.toFixed(2)),v.total===null?'अपूर्ण':Number(v.total.toFixed(2))]);
-    });rows.push([]);
-   });
-   const ws=XLSX.utils.aoa_to_sheet(rows);ws['!cols']=[{wch:9},{wch:28},{wch:18},{wch:25},{wch:15},{wch:18},{wch:10},{wch:10},{wch:10},{wch:10},{wch:12}];XLSX.utils.book_append_sheet(wb,ws,half);
-   const summary=[['FORMATIVE ASSESSMENT — '+half],['College',getCollegeName(currentCollegeId),'Trade',currentTrade],[],['Sr. No','Roll Number','Name','Practical /125','Theory /50','WC&S /10','ED /10','ES /25','Total Raw','Formative Assessment (Excel /200%)','Attendance %']];
-   students.forEach((st,i)=>{
-    const result=window.calculateHalfAssessmentForStudent(st.roll,half),a=result.subjectMarks;
-    const raw=Number(result.rawTotal),complete=result.complete;
-    summary.push([i+1,st.roll,st.name,Number((a.tp||0).toFixed(2)),Number((a.tt||0).toFixed(2)),Number((a.wcs||0).toFixed(2)),Number((a.ed||0).toFixed(2)),Number((a.es||0).toFixed(2)),raw,complete?Number(result.total):'अपूर्ण',Number(result.attendancePct)]);
-   });
-   const sumWs=XLSX.utils.aoa_to_sheet(summary);sumWs['!cols']=[{wch:8},{wch:14},{wch:28},{wch:15},{wch:13},{wch:12},{wch:10},{wch:10},{wch:15},{wch:20},{wch:14}];XLSX.utils.book_append_sheet(wb,sumWs,half+'_Total');
-  });
-  XLSX.writeFile(wb,`${currentCollegeId}_${currentTrade}_H1_H2_Formative_Assessment.xlsx`);
- };
- function addButton(){const bar=document.querySelector('#instTabEvaluation .controls-right');if(bar&&!$('openHalfAssessmentBtn')){const b=document.createElement('button');b.id='openHalfAssessmentBtn';b.className='app-btn app-btn-purple';b.innerHTML='<i class="fa-solid fa-calculator"></i> H1/H2 मूल्यांकन';b.onclick=window.openHalfAssessment;bar.insertBefore(b,bar.firstChild);}}
- const oldRender=window.renderEvaluationTable;if(typeof oldRender==='function')window.renderEvaluationTable=function(){const r=oldRender.apply(this,arguments);addButton();return r;};
- document.addEventListener('DOMContentLoaded',addButton);
-})();</script>
+</script>
 
 </body>
 </html>
