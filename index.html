@@ -1971,8 +1971,8 @@ D) लखनऊ
 
 2. ..."></textarea></div>
    <div style="font-size:12px;color:#64748b">हर प्रश्न के विकल्प अलग पंक्ति में A), B), C), D) या A. B. C. D. लिखें। सही उत्तर: उत्तर: B / Ans: B लिखें।</div>
-   <button class="exam-action exam-grey" onclick="previewPastedExam()">प्रश्न जाँचें</button>
-   <button class="exam-action exam-green" onclick="createExamFromAdmin()">परीक्षा और प्रश्न सेव करें</button>
+   <button type="button" class="exam-action exam-grey" onclick="previewPastedExam()">प्रश्न जाँचें</button>
+   <button type="button" class="exam-action exam-green" onclick="createExamFromAdmin()">परीक्षा और प्रश्न सेव करें</button>
    <div id="examImportStatus" style="margin-top:8px;font-weight:700"></div>
   </div>
   <div class="exam-panel">
@@ -3081,7 +3081,7 @@ D) लखनऊ
                 if (instExamSide && !document.getElementById('openExamInstructorBtn')) {
                     const eb = document.createElement('button'); eb.id='openExamInstructorBtn'; eb.className='app-btn app-btn-success role-side-btn';
                     eb.innerHTML='<i class="fa-solid fa-file-circle-plus"></i> परीक्षा डैशबोर्ड';
-                    eb.onclick=openExamInstructor; instExamSide.appendChild(eb);
+                    eb.type='button'; eb.addEventListener('click',()=>window.openExamInstructor()); instExamSide.appendChild(eb);
                 }
                 const isEngg = isEnggTrade(currentTrade);
                 const colName = getCollegeName(currentCollegeId);
@@ -6122,7 +6122,19 @@ D) लखनऊ
    ['examCredTrade','examNewTrade','examResultTrade'].forEach(id=>{const el=$(id);if(el)el.innerHTML=trades.map(t=>`<option value="${escExam(t)}">${escExam(t)}</option>`).join('');});
  }
  window.openExamAdmin=async function(){if(currentRole!=='admin'){alert('केवल सुपर एडमिन यह पैनल खोल सकता है।');return;}fillExamSelectors();$('examAdminModal').classList.add('open');$('examAdminModal').querySelectorAll('.exam-admin-only').forEach(x=>x.style.display='');$('examNewCollege').disabled=false;$('examNewTrade').disabled=false;await loadExamCredentials();};
- window.openExamInstructor=async function(){if(currentRole!=='instructor'){alert('केवल अनुदेशक यह पैनल खोल सकता है।');return;}fillExamSelectors();$('examAdminModal').classList.add('open');$('examAdminModal').querySelectorAll('.exam-admin-only').forEach(x=>x.style.display='none');$('examNewCollege').value=currentCollegeId;$('examNewTrade').value=currentTrade;$('examNewCollege').disabled=true;$('examNewTrade').disabled=true;await loadInstructorExamResults();};
+ window.openExamInstructor=async function(){
+   try{
+     if(currentRole!=='instructor'){alert('केवल अनुदेशक यह पैनल खोल सकता है।');return;}
+     if(!currentCollegeId||!currentTrade)throw new Error('आपके लॉगिन में कॉलेज या ट्रेड की जानकारी उपलब्ध नहीं है। कृपया दोबारा लॉगिन करें।');
+     fillExamSelectors();
+     $('examAdminModal').classList.add('open');
+     $('examAdminModal').querySelectorAll('.exam-admin-only').forEach(x=>x.style.display='none');
+     $('examNewCollege').value=currentCollegeId;$('examNewTrade').value=currentTrade;
+     $('examNewCollege').disabled=true;$('examNewTrade').disabled=true;
+     const status=$('examImportStatus');if(status)status.textContent='परीक्षा पैनल तैयार है। प्रश्न कॉपी-पेस्ट करके जाँचें।';
+     await loadInstructorExamResults();
+   }catch(e){console.error('Instructor exam panel error:',e);const status=$('examImportStatus');if(status)status.textContent='पैनल खोलने में समस्या: '+e.message;else alert('परीक्षा पैनल नहीं खुला: '+e.message);}
+ };
  window.closeExamAdmin=()=>{$('examAdminModal').classList.remove('open');$('examNewCollege').disabled=false;$('examNewTrade').disabled=false;};
  window.saveExamCredential=async function(){
    const collegeId=$('examCredCollege').value,trade=$('examCredTrade').value,id=$('examCredId').value.trim(),pass=$('examCredPass').value;
@@ -6140,45 +6152,52 @@ D) लखनऊ
  }
  window.toggleExamCredential=async function(key,active){await db().ref('exam_portal/credentials/'+key+'/active').set(active);loadExamCredentials();};
  function parsePastedQuestions(text){
-   const normalized=String(text||'').replace(/\r/g,'').replace(/[：]/g,':').trim();
+   let normalized=String(text||'').replace(/\r/g,'').replace(/[：]/g,':').replace(/[\u00a0\t]+/g,' ').trim();
    if(!normalized)throw new Error('पहले प्रश्न-उत्तर पेस्ट करें।');
-   // 1. प्रश्न... / प्रश्न 1: ... जैसे क्रमांक से अलग-अलग प्रश्न बनाएं।
-   const chunks=normalized.split(/\n\s*(?=(?:प्रश्न\s*)?\d+\s*[.)।:-]\s*)/i).map(x=>x.trim()).filter(Boolean);
+   // कॉपी किए हुए पेपर में /A), /B) जैसे विकल्प अक्सर उसी पंक्ति में होते हैं।
+   normalized=normalized.replace(/[ ]*\/(?=\s*\(?[A-Da-d]\)?\s*[).:：\-–])/g,'\n');
+   normalized=normalized.replace(/\n\s*\/(?=\s*\(?[A-Da-d]\)?\s*[).:：\-–])/g,'\n');
+   // Q1., Question 1., 1., प्रश्न 1: आदि से प्रश्न अलग करें।
+   const chunks=normalized.split(/\n\s*(?=(?:(?:Q(?:uestion)?|प्रश्न)\s*)?\d+\s*[.)।:-]\s*)/i).map(x=>x.trim()).filter(Boolean);
    const parsed=[];
    for(const chunk of chunks){
-     const lines=chunk.split('\n').map(x=>x.trim()).filter(Boolean);
-     // Word/PDF से कॉपी किए गए सभी सामान्य विकल्प फॉर्मेट स्वीकार करें:
-     // A) / (A) / A. / A: / A - / A विकल्प
-     const optionMatch=line=>line.match(/^\(?([A-Da-d])\)?\s*(?:[).:-]\s*|\s+)(.+)$/);
-     const answerMatch=line=>line.match(/^(?:(?:सही|correct)\s*)?(?:उत्तर|ans(?:wer)?)\s*[:：-]?\s*(.*)$/i);
-     const qLine=lines.find(line=>!optionMatch(line)&&!answerMatch(line));
-     if(!qLine)continue;
-     const q=qLine.replace(/^(?:(?:प्रश्न\s*)?\d+\s*[.)।:-]\s*)/i,'').trim();
+     const lines=chunk.split('\n').map(line=>line.trim()).filter(Boolean);
+     const optionMatch=line=>line.match(/^\/?\s*\(?([A-Da-d])\)?\s*(?:[).:：\-–]\s*|\s+)(.+)$/);
+     const answerMatch=line=>line.match(/^(?:(?:सही|correct)\s*)?(?:उत्तर|ans(?:wer)?)\s*[:：\-]?\s*(.*)$/i);
+     const questionLines=lines.filter(line=>!optionMatch(line)&&!answerMatch(line));
+     if(!questionLines.length)continue;
+     const q=questionLines.join(' ').replace(/^(?:(?:Q(?:uestion)?|प्रश्न)\s*)?\d+\s*[.)।:-]\s*/i,'').trim();
      const opts={};
      lines.forEach(line=>{const m=optionMatch(line);if(m)opts[m[1].toUpperCase()]=m[2].trim();});
      const ansLine=lines.find(line=>answerMatch(line));
      if(!ansLine)continue;
      const ansRaw=(answerMatch(ansLine)?.[1]||'').trim();
-     const letter=ansRaw.match(/(?:^|\b)([A-D])(?:\b|$)/i);
+     const letter=ansRaw.match(/(?:^|[^A-Za-z])([A-D])(?:$|[^A-Za-z])/i);
      let ans=letter?letter[1].toUpperCase():null;
      const keys=['A','B','C','D'].filter(k=>opts[k]);
-     if(!ans){
-       const byText=keys.find(k=>opts[k].toLowerCase()===ansRaw.toLowerCase());
-       if(byText)ans=byText;
-     }
+     if(!ans){const byText=keys.find(k=>opts[k].toLowerCase()===ansRaw.toLowerCase());if(byText)ans=byText;}
      if(q&&keys.length>=2&&ans&&keys.includes(ans))parsed.push({q,a:keys.map(k=>opts[k]),c:keys.indexOf(ans)});
    }
-   if(!parsed.length)throw new Error('कोई पूरा प्रश्न नहीं मिला। विकल्प A) / (A) / A. / A विकल्प जैसे अलग-अलग पंक्तियों में लिखें और सही उत्तर: उत्तर: B या Ans: D लिखें।');
+   if(!parsed.length)throw new Error('कोई पूरा प्रश्न नहीं मिला। प्रत्येक प्रश्न को Q1. या 1. से शुरू करें, विकल्प A) से D) अलग पंक्तियों में लिखें और सही उत्तर: A लिखें।');
    return parsed;
  }
  function validateExamQuestions(qs,defaultMarks=1){
    if(!Array.isArray(qs)||!qs.length)throw new Error('कम से कम एक प्रश्न आवश्यक है।');
    return qs.map((q,i)=>{if(!q.q||!Array.isArray(q.a)||q.a.length<2||!Number.isInteger(Number(q.c))||Number(q.c)<0||Number(q.c)>=q.a.length)throw new Error(`प्रश्न ${i+1} का फॉर्मेट गलत है।`);return{q:String(q.q),a:q.a.map(String),c:Number(q.c),marks:Math.max(.5,Number(q.marks)||defaultMarks)};});
  }
- window.previewPastedExam=function(){try{const qs=validateExamQuestions(parsePastedQuestions($('examQuestionText').value),Number($('examNewMarks').value)||1);$('examImportStatus').innerHTML=`<span style="color:#15803d">${qs.length} प्रश्न पहचाने गए। कुल पूर्णांक: ${qs.reduce((a,q)=>a+q.marks,0)}</span>`;}catch(e){$('examImportStatus').textContent='त्रुटि: '+e.message;}};
+ window.previewPastedExam=function(){
+   const status=$('examImportStatus');
+   try{
+     const qs=validateExamQuestions(parsePastedQuestions($('examQuestionText').value),Number($('examNewMarks').value)||1);
+     const total=qs.reduce((a,q)=>a+q.marks,0);
+     status.style.color='#15803d';
+     status.innerHTML=`<b>${qs.length} प्रश्न पहचाने गए। कुल पूर्णांक: ${total}</b><div style="margin-top:7px;font-weight:400;color:#334155">${qs.slice(0,3).map((q,i)=>`<div style="padding:5px 0;border-top:1px solid #dbeafe">${i+1}. ${escExam(q.q)} <small>(${q.a.length} विकल्प)</small></div>`).join('')}${qs.length>3?`<small>और ${qs.length-3} प्रश्न...</small>`:''}</div>`;
+   }catch(e){status.style.color='#b91c1c';status.textContent='त्रुटि: '+e.message;}
+ };
  window.createExamFromAdmin=async function(){
    try{
-    if(!['instructor','admin'].includes(currentRole))throw new Error('केवल अनुदेशक परीक्षा बना सकता है।');
+    if(!['instructor','admin'].includes(currentRole))throw new Error('केवल अनुदेशक या सुपर एडमिन परीक्षा बना सकता है।');
+    if(typeof firebase==='undefined'||!firebase.apps||!firebase.apps.length||!firebase.database)throw new Error('Firebase कनेक्शन तैयार नहीं है। पेज रीफ्रेश करके दोबारा प्रयास करें।');
     const collegeId=currentRole==='instructor'?currentCollegeId:$('examNewCollege').value,trade=currentRole==='instructor'?currentTrade:$('examNewTrade').value;
     const title=$('examNewTitle').value.trim(),minutes=Math.max(1,Number($('examNewMinutes').value)||30),defaultMarks=Math.max(.5,Number($('examNewMarks').value)||1);
     if(!collegeId||!trade||!title)throw new Error('कॉलेज, ट्रेड और परीक्षा का नाम भरें।');
@@ -6201,7 +6220,7 @@ D) लखनऊ
         catch(refreshError){console.warn('Exam saved; result list refresh failed:',refreshError);}
       }
     }finally{if(saveBtn){saveBtn.disabled=false;saveBtn.textContent=saveBtn.dataset.oldText||'परीक्षा और प्रश्न सेव करें';}}
-   }catch(e){console.error('Exam save error:',e);$('examImportStatus').textContent='सेव नहीं हुआ: '+(e.code?e.code+' — ':'')+e.message;}
+   }catch(e){console.error('Exam save error:',e);const status=$('examImportStatus');status.style.color='#b91c1c';status.textContent='सेव नहीं हुआ: '+(e.code?e.code+' — ':'')+e.message+(e.code==='PERMISSION_DENIED'?' | Firebase Realtime Database Rules में exam_portal path की write अनुमति जाँचें।':'');}
  };
  window.loadAvailableExams=async function(){
    $('examStudentTradeLabel').textContent=`कॉलेज: ${getCollegeName(currentCollegeId)} | ट्रेड: ${currentTrade}`;
