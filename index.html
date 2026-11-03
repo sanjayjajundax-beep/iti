@@ -703,6 +703,24 @@
         .instructor-role-layout .role-side-btn{font-size:.86rem}
         .student-side-nav{display:flex;flex-direction:column;gap:7px;max-width:230px;float:left;margin:0 16px 16px 0}
         @media(max-width:760px){.role-sidebar-layout{grid-template-columns:108px minmax(0,1fr);gap:7px}.role-sidebar{top:75px;padding:6px;gap:5px;max-height:calc(100vh - 88px)}.role-side-heading{font-size:.72rem;padding:7px 3px 9px;line-height:1.25}.role-side-btn{font-size:.68rem!important;padding:9px 5px!important;min-height:38px;gap:5px!important;line-height:1.25}.role-side-btn i{width:14px;flex:0 0 14px}.role-dashboard-heading{padding:9px;font-size:.88rem}.student-side-nav{max-width:100%;float:none;margin:0 0 12px 0}}
+
+        /* सभी स्टाफ डैशबोर्ड में नेविगेशन अब मुख्य डेटा के ऊपर पूरी चौड़ाई में */
+        .role-sidebar-layout{display:flex!important;flex-direction:column!important;gap:12px!important;width:100%}
+        .role-sidebar-layout>.role-sidebar{position:relative!important;top:auto!important;left:auto!important;width:100%!important;max-width:100%!important;max-height:none!important;overflow-x:auto!important;overflow-y:hidden!important;display:flex!important;flex-direction:row!important;align-items:stretch!important;flex-wrap:nowrap!important;gap:8px!important;padding:9px!important;margin:0 0 2px!important;scrollbar-width:thin; -webkit-overflow-scrolling:touch}
+        .role-sidebar>.role-side-heading{flex:0 0 auto!important;display:flex;align-items:center;padding:8px 10px!important;margin:0!important;border:0!important;border-right:1px solid #e2e8f0!important;white-space:nowrap;font-size:.82rem!important}
+        .role-sidebar>.role-side-btn{flex:0 0 auto!important;width:auto!important;min-width:145px;max-width:230px;min-height:42px!important;text-align:center!important;justify-content:center!important;white-space:normal!important;padding:9px 12px!important;font-size:.82rem!important;line-height:1.25!important}
+        .role-sidebar>.role-side-btn i{flex:0 0 auto!important;width:auto!important}
+        .role-main{width:100%!important;min-width:0!important}
+        .sup-layout{display:flex!important;flex-direction:column!important;gap:12px!important;width:100%}
+        .sup-layout>.sup-sidebar{position:relative!important;top:auto!important;width:100%!important;max-width:100%!important;max-height:none!important;overflow-x:auto!important;overflow-y:hidden!important;display:flex!important;flex-direction:row!important;align-items:stretch!important;flex-wrap:nowrap!important;gap:8px!important;padding:9px!important;margin:0 0 2px!important;scrollbar-width:thin;-webkit-overflow-scrolling:touch}
+        .sup-side-heading{flex:0 0 auto!important;padding:8px 10px!important;margin:0!important;border:0!important;border-right:1px solid #e2e8f0!important;white-space:nowrap;font-size:.82rem!important}
+        .sup-nav-btn{flex:0 0 auto!important;width:auto!important;min-width:135px;max-width:210px;min-height:42px!important;justify-content:center!important;text-align:center!important;padding:9px 12px!important;font-size:.82rem!important;line-height:1.25!important;align-items:center!important}
+        .sup-nav-btn i{width:auto!important;flex:0 0 auto!important}
+        .sup-sidebar-foot{display:none!important}
+        .sup-main-content{width:100%!important;min-width:0!important}
+        #subjectAnnualEvaluationPanel{width:100%;max-width:100%;overflow:hidden;scroll-margin-top:90px}
+        #subjectAnnualEvaluationPanel .table-shell{max-width:100%;overflow-x:auto!important;-webkit-overflow-scrolling:touch}
+        @media(max-width:760px){.role-sidebar-layout>.role-sidebar,.sup-layout>.sup-sidebar{position:relative!important;top:auto!important}.role-sidebar>.role-side-btn{min-width:132px;font-size:.76rem!important}.sup-nav-btn{min-width:125px;font-size:.76rem!important}.role-dashboard-heading{width:100%}}
 </style>
 
 <script>
@@ -4912,10 +4930,25 @@ window.__itiLoginClick = async function(ev) {
         }
         function toggleSubjectAnnualEvaluation(forceOpen) {
             const panel=document.getElementById('subjectAnnualEvaluationPanel');
-            if(!panel)return;
+            if(!panel) { showToast('विषयवार मूल्यांकन पैनल उपलब्ध नहीं है।'); return; }
             const open = forceOpen===undefined ? panel.classList.contains('hidden') : !!forceOpen;
+            // यदि पैनल किसी छिपे हुए टैब के भीतर हो तो पहले संबंधित टैब सक्रिय करें।
+            const evaluationTab=document.getElementById('instTabEvaluation');
+            if(open && evaluationTab && evaluationTab.classList.contains('hidden')) {
+                switchInstructorTab('evaluation');
+            }
             panel.classList.toggle('hidden',!open);
-            if(open) renderSubjectAnnualEvaluation();
+            if(open) {
+                try {
+                    renderSubjectAnnualEvaluation();
+                    requestAnimationFrame(()=>panel.scrollIntoView({behavior:'smooth',block:'start'}));
+                } catch(err) {
+                    console.error('Subject annual evaluation render error:',err);
+                    const body=document.getElementById('subjectAnnualEvaluationBody');
+                    if(body) body.innerHTML='<tr><td colspan="9" style="color:#b91c1c;padding:16px">मूल्यांकन लोड नहीं हो सका: '+String(err.message||err)+'</td></tr>';
+                    showToast('विषयवार मूल्यांकन लोड करने में त्रुटि।');
+                }
+            }
         }
         function getAnnualAttendancePercent(collegeId,trade,student) {
             let working=parseInt(student.pastWorkingDays)||0, present=parseInt(student.pastPresentDays)||0;
@@ -4923,7 +4956,8 @@ window.__itiLoginClick = async function(ev) {
             const today=new Date(); today.setHours(23,59,59,999);
             Object.keys(months).filter(isMonthInSession).forEach(m=>{
                 const [yy,mm]=m.split('-').map(Number), days=new Date(yy,mm,0).getDate();
-                const holidays=((appData.holidays||{})[collegeId]||{})[trade]?.[m]||[];
+                const holidayRaw=((appData.holidays||{})[collegeId]||{})[trade]?.[m]||[];
+                const holidays=Array.isArray(holidayRaw)?holidayRaw:Object.values(holidayRaw);
                 const rec=months[m]?.[String(student.roll).trim()]||{};
                 for(let d=1;d<=days;d++){
                     const dt=new Date(yy,mm-1,d);
