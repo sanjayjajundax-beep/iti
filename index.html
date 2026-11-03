@@ -6115,6 +6115,22 @@ D) लखनऊ
  const db=()=>firebase.database();
  const safeKey=v=>String(v||'').replace(/[.#$/\[\]]/g,'_');
  const escExam=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ // मुख्य पोर्टल पहले से portal_data path पर डेटा सेव करता है। परीक्षा रिकॉर्ड भी
+ // उसी अधिकृत डेटा शाखा में सेव होंगे; पुराने exam_portal रिकॉर्ड पढ़ने का fallback रहेगा।
+ const examPath=(college,trade)=>`portal_data/examPortal/exams/${safeKey(college)}/${safeKey(trade)}`;
+ async function readExamCollection(college,trade){
+   const currentSnap=await db().ref(examPath(college,trade)).once('value');
+   let legacyData={};
+   // पुराने exam_portal path पर अनुमति न हो तो भी नए रिकॉर्ड पढ़ने में रुकावट न आए।
+   try{const legacySnap=await db().ref(`exam_portal/exams/${safeKey(college)}/${safeKey(trade)}`).once('value');legacyData=legacySnap.val()||{};}catch(legacyError){console.warn('Legacy exam path not readable; using portal_data exam records.',legacyError);}
+   return {...legacyData,...(currentSnap.val()||{})};
+ }
+ async function readExamRecord(college,trade,key){
+   const current=await db().ref(`${examPath(college,trade)}/${key}`).once('value');
+   if(current.exists())return current.val();
+   try{const legacy=await db().ref(`exam_portal/exams/${safeKey(college)}/${safeKey(trade)}/${key}`).once('value');return legacy.val();}
+   catch(legacyError){console.warn('Legacy exam record not readable.',legacyError);return null;}
+ }
  function fillExamSelectors(){
    const colleges=(typeof getCollegesList==='function'?getCollegesList():[])||[];
    const trades=(typeof getTradesList==='function'?getTradesList():[])||[];
@@ -6208,7 +6224,7 @@ D) लखनऊ
     $('examImportStatus').style.color='#1d4ed8';
     $('examImportStatus').textContent=`${qs.length} प्रश्न तैयार हैं। Firebase में सेव किया जा रहा है...`;
     try{
-      const ref=db().ref(`exam_portal/exams/${safeKey(collegeId)}/${safeKey(trade)}`).push();
+      const ref=db().ref(examPath(collegeId,trade)).push();
       const examRecord={title,minutes,questions:qs,active:true,createdAt:new Date().toISOString(),createdBy:currentRole==='instructor'?(loggedInInstructor?.name||'instructor'):'admin',createdById:currentRole==='instructor'?(loggedInInstructor?.id||''):'admin'};
       await ref.set(examRecord);
       $('examImportStatus').style.color='#15803d';
@@ -6220,20 +6236,26 @@ D) लखनऊ
         catch(refreshError){console.warn('Exam saved; result list refresh failed:',refreshError);}
       }
     }finally{if(saveBtn){saveBtn.disabled=false;saveBtn.textContent=saveBtn.dataset.oldText||'परीक्षा और प्रश्न सेव करें';}}
-   }catch(e){console.error('Exam save error:',e);const status=$('examImportStatus');status.style.color='#b91c1c';status.textContent='सेव नहीं हुआ: '+(e.code?e.code+' — ':'')+e.message+(e.code==='PERMISSION_DENIED'?' | Firebase Realtime Database Rules में exam_portal path की write अनुमति जाँचें।':'');}
+   }catch(e){
+     console.error('Exam save error:',e);
+     const status=$('examImportStatus');status.style.color='#b91c1c';
+     const code=e&&e.code?String(e.code):'';
+     status.textContent='सेव नहीं हुआ: '+(code?code+' — ':'')+(e&&e.message?e.message:String(e))+
+       (code==='PERMISSION_DENIED'?' | पोर्टल के portal_data path पर Firebase write अनुमति नहीं मिली। Firebase Rules में बदलाव किए बिना इसे सुरक्षित रूप से सेव नहीं किया जा सकता।':'')+
+       (code==='NETWORK_ERROR'||/network|offline|disconnected/i.test((e&&e.message)||'')?' | इंटरनेट कनेक्शन जाँचकर दोबारा प्रयास करें।':'');
+   }
  };
  window.loadAvailableExams=async function(){
    $('examStudentTradeLabel').textContent=`कॉलेज: ${getCollegeName(currentCollegeId)} | ट्रेड: ${currentTrade}`;
    $('examStudentHome').style.display='block';$('examTakePanel').style.display='none';$('examStudentResult').style.display='none';
-   const snap=await db().ref(`exam_portal/exams/${safeKey(currentCollegeId)}/${safeKey(currentTrade)}`).once('value'),data=snap.val()||{};
+   const data=await readExamCollection(currentCollegeId,currentTrade);
    const rows=Object.entries(data).filter(([,x])=>x&&x.active!==false);
    $('examAvailableList').innerHTML=rows.length?rows.map(([key,x])=>`<div class="exam-card"><h3>${escExam(x.title)}</h3><p>${(x.questions||[]).length} प्रश्न • ${x.minutes||30} मिनट</p><button class="exam-action exam-green" onclick="beginTradeExam('${key}')">परीक्षा दें</button></div>`).join(''):'इस ट्रेड के लिए अभी कोई परीक्षा उपलब्ध नहीं है।';
  };
  window.beginTradeExam=async function(key){
    const name=$('examCandidateName').value.trim(),roll=$('examCandidateRoll').value.trim();
    if(!name||!roll){alert('विद्यार्थी का नाम और रोल नंबर भरें।');return;}
-   const snap=await db().ref(`exam_portal/exams/${safeKey(currentCollegeId)}/${safeKey(currentTrade)}/${key}`).once('value');
-   activeExam=snap.val();if(!activeExam||!activeExam.questions){alert('परीक्षा उपलब्ध नहीं है।');return;}
+   activeExam=await readExamRecord(currentCollegeId,currentTrade,key);if(!activeExam||!activeExam.questions){alert('परीक्षा उपलब्ध नहीं है।');return;}
    // उसी परीक्षा में एक रोल नंबर का दूसरा प्रयास रोकें।
    const old=await db().ref(`exam_results/${safeKey(currentCollegeId)}/${safeKey(currentTrade)}/${key}`).orderByChild('roll').equalTo(roll).once('value');
    if(old.exists()){alert('इस रोल नंबर से यह परीक्षा पहले ही दी जा चुकी है।');return;}
@@ -6274,13 +6296,13 @@ D) लखनऊ
  };
  window.loadInstructorExamResults=async function(){
    if(currentRole!=='instructor')return;
-   const college=currentCollegeId,trade=currentTrade,exSnap=await db().ref(`exam_portal/exams/${safeKey(college)}/${safeKey(trade)}`).once('value'),exams=exSnap.val()||{};let rows=[];
+   const college=currentCollegeId,trade=currentTrade,exams=await readExamCollection(college,trade);let rows=[];
    for(const [id,ex] of Object.entries(exams)){const rs=await db().ref(`exam_results/${safeKey(college)}/${safeKey(trade)}/${id}`).once('value');Object.values(rs.val()||{}).forEach(r=>rows.push(r));}
    $('examAdminResults').innerHTML=rows.length?`<table class="result-table"><thead><tr><th>परीक्षा</th><th>विद्यार्थी</th><th>रोल</th><th>हल</th><th>सही</th><th>गलत</th><th>अंक</th><th>%</th><th>तिथि</th></tr></thead><tbody>${rows.sort((a,b)=>String(b.submittedAt).localeCompare(String(a.submittedAt))).map(r=>`<tr><td>${escExam(r.examTitle)}</td><td>${escExam(r.name)}</td><td>${escExam(r.roll)}</td><td>${r.attempted}/${r.total}</td><td>${r.correct}</td><td>${r.wrong}</td><td>${r.score}/${r.maximum}</td><td>${r.percent}%</td><td>${new Date(r.submittedAt).toLocaleString('hi-IN')}</td></tr>`).join('')}</tbody></table>`:'अभी किसी विद्यार्थी ने परीक्षा सबमिट नहीं की है।';
  };
  window.loadExamResultsAdmin=async function(){
    const college=$('examResultCollege').value,trade=$('examResultTrade').value;
-   const exSnap=await db().ref(`exam_portal/exams/${safeKey(college)}/${safeKey(trade)}`).once('value'),exams=exSnap.val()||{};
+   const exams=await readExamCollection(college,trade);
    let rows=[];
    for(const [id,ex] of Object.entries(exams)){const rs=await db().ref(`exam_results/${safeKey(college)}/${safeKey(trade)}/${id}`).once('value');Object.values(rs.val()||{}).forEach(r=>rows.push(r));}
    $('examAdminResults').innerHTML=rows.length?`<table class="result-table"><thead><tr><th>परीक्षा</th><th>विद्यार्थी</th><th>रोल</th><th>हल/सही/गलत</th><th>अंक</th><th>%</th><th>परिणाम</th><th>तिथि</th></tr></thead><tbody>${rows.sort((a,b)=>String(b.submittedAt).localeCompare(String(a.submittedAt))).map(r=>`<tr><td>${escExam(r.examTitle)}</td><td>${escExam(r.name)}</td><td>${escExam(r.roll)}</td><td>${r.attempted}/${r.total} / ${r.correct} / ${r.wrong}</td><td>${r.score}/${r.maximum||r.total}</td><td>${r.percent}</td><td>${r.status}</td><td>${new Date(r.submittedAt).toLocaleString('hi-IN')}</td></tr>`).join('')}</tbody></table>`:'इस कॉलेज/ट्रेड का कोई परिणाम उपलब्ध नहीं है।';
