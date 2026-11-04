@@ -6394,60 +6394,68 @@ D) लखनऊ
       holder.innerHTML=pdfHtml;
       const source=holder.firstElementChild;
       const printRoot=source.cloneNode(false);
-      // A4 portrait की usable चौड़ाई: 210mm में दोनों ओर 7mm margin.
-      printRoot.style.cssText="display:block;width:196mm;max-width:196mm;min-width:196mm;padding:0;margin:0;background:#fff;font-family:Arial,'Noto Sans Devanagari',sans-serif;color:#111;box-sizing:border-box;overflow:visible;";
+      // A4 portrait: 210mm total width, 7mm safe margin on both sides.
+      printRoot.style.cssText="display:block!important;direction:ltr!important;writing-mode:horizontal-tb!important;transform:none!important;float:none!important;width:196mm!important;min-width:196mm!important;max-width:196mm!important;padding:0!important;margin:0!important;background:#fff!important;font-family:Arial,'Noto Sans Devanagari',sans-serif;color:#111;box-sizing:border-box!important;overflow:visible!important;";
       printRoot.appendChild(source.querySelector('style').cloneNode(true));
       const header=source.querySelector('.pdf-header');
       const cards=Array.from(source.querySelectorAll('.qcard'));
       try{
-        wrap.style.cssText='position:absolute;left:0;top:0;width:196mm;margin:0;padding:0;background:#fff;z-index:-1;overflow:visible;pointer-events:none;';
+        wrap.style.cssText='position:fixed;left:0;top:0;width:196mm;margin:0;padding:0;background:#fff;z-index:2147483000;overflow:visible;pointer-events:none;direction:ltr;';
         document.body.appendChild(wrap);
         wrap.appendChild(printRoot);
-
-        // शीर्षक और विद्यार्थी विवरण सबसे पहले; हर प्रश्न एक ही A4 चौड़ाई में।
         if(header)printRoot.appendChild(header.cloneNode(true));
-        const questionList=document.createElement('div');
-        questionList.className='pdf-question-list';
-        questionList.style.cssText='display:block;width:100%;max-width:100%;min-width:0;box-sizing:border-box;';
-        cards.forEach(card=>{
+
+        // Keep the original paper's left column on the PDF left and right column on PDF right.
+        const table=document.createElement('table');
+        table.className='pdf-two-col-table';
+        table.setAttribute('dir','ltr');
+        table.style.cssText='direction:ltr!important;display:table!important;table-layout:fixed!important;border-collapse:collapse!important;border-spacing:0!important;width:196mm!important;max-width:196mm!important;min-width:196mm!important;margin:0!important;padding:0!important;transform:none!important;';
+        const colgroup=document.createElement('colgroup');
+        const col1=document.createElement('col');col1.style.width='50%';
+        const col2=document.createElement('col');col2.style.width='50%';
+        colgroup.append(col1,col2);table.appendChild(colgroup);
+        const tbody=document.createElement('tbody');
+        const tr=document.createElement('tr');
+        tr.style.cssText='direction:ltr!important;vertical-align:top!important;';
+        const left=document.createElement('td');
+        const right=document.createElement('td');
+        left.setAttribute('dir','ltr');right.setAttribute('dir','ltr');
+        left.style.cssText='direction:ltr!important;writing-mode:horizontal-tb!important;vertical-align:top!important;width:50%!important;padding:0 2mm 0 0!important;border:0!important;border-right:.25mm solid #aaa!important;';
+        right.style.cssText='direction:ltr!important;writing-mode:horizontal-tb!important;vertical-align:top!important;width:50%!important;padding:0 0 0 2mm!important;border:0!important;';
+        const half=Math.ceil(cards.length/2);
+        cards.forEach((card,index)=>{
           const item=card.cloneNode(true);
-          item.style.cssText='display:block;width:100%;max-width:100%;min-width:0;box-sizing:border-box;margin:0 0 2mm;padding:1.5mm 2mm;overflow:visible;white-space:normal;page-break-inside:avoid;break-inside:avoid;';
-          questionList.appendChild(item);
+          item.style.cssText='direction:ltr!important;writing-mode:horizontal-tb!important;transform:none!important;float:none!important;display:block!important;width:100%!important;min-width:0!important;max-width:100%!important;height:auto!important;box-sizing:border-box!important;overflow:visible!important;white-space:normal!important;margin:0 0 2mm!important;padding:1.5mm!important;page-break-inside:avoid!important;break-inside:avoid!important;';
+          (index<half?left:right).appendChild(item);
         });
-        printRoot.appendChild(questionList);
+        tr.append(left,right);tbody.appendChild(tr);table.appendChild(tbody);
+        printRoot.appendChild(table);
 
         const extra=document.createElement('style');
         extra.textContent=`
-          .exam-answer-pdf,.exam-answer-pdf *{box-sizing:border-box!important}
-          .exam-answer-pdf{width:196mm!important;max-width:196mm!important;min-width:196mm!important;overflow:visible!important}
-          .exam-answer-pdf .pdf-header{display:block!important;width:100%!important;max-width:100%!important;margin:0 0 3mm!important;flex:none!important}
-          .exam-answer-pdf .summary{display:block!important;width:100%!important;max-width:100%!important;white-space:normal!important;overflow-wrap:anywhere!important}
-          .exam-answer-pdf .pdf-question-list{display:block!important;width:100%!important;max-width:100%!important;overflow:visible!important}
-          .exam-answer-pdf .qcard{display:block!important;width:100%!important;max-width:100%!important;min-width:0!important;height:auto!important;overflow:visible!important;margin:0 0 2mm!important;padding:1.5mm 2mm!important;white-space:normal!important;page-break-inside:avoid!important;break-inside:avoid!important}
-          .exam-answer-pdf .qtitle,.exam-answer-pdf .option,.exam-answer-pdf .foot{white-space:normal!important;overflow-wrap:anywhere!important;word-break:normal!important}
-          .exam-answer-pdf .options{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:1mm!important;width:100%!important}
-          .exam-answer-pdf .option{min-width:0!important;max-width:100%!important}
+          .exam-answer-pdf,.exam-answer-pdf *{box-sizing:border-box!important;direction:ltr!important;writing-mode:horizontal-tb!important;transform:none!important;}
+          .exam-answer-pdf{width:196mm!important;min-width:196mm!important;max-width:196mm!important;overflow:visible!important;}
+          .exam-answer-pdf .pdf-header{display:block!important;width:100%!important;max-width:100%!important;margin:0 0 3mm!important;float:none!important;}
+          .exam-answer-pdf .summary{display:block!important;width:100%!important;max-width:100%!important;white-space:normal!important;overflow-wrap:anywhere!important;}
+          .exam-answer-pdf .pdf-two-col-table{direction:ltr!important;display:table!important;table-layout:fixed!important;border-collapse:collapse!important;width:196mm!important;max-width:196mm!important;min-width:196mm!important;margin:0!important;}
+          .exam-answer-pdf .pdf-two-col-table tbody,.exam-answer-pdf .pdf-two-col-table tr{direction:ltr!important;}
+          .exam-answer-pdf .pdf-two-col-table td{direction:ltr!important;vertical-align:top!important;width:50%!important;}
+          .exam-answer-pdf .qcard{display:block!important;width:100%!important;max-width:100%!important;min-width:0!important;height:auto!important;overflow:visible!important;margin:0 0 2mm!important;padding:1.5mm!important;white-space:normal!important;page-break-inside:avoid!important;break-inside:avoid!important;}
+          .exam-answer-pdf .qtitle,.exam-answer-pdf .option,.exam-answer-pdf .foot{white-space:normal!important;overflow-wrap:anywhere!important;word-break:normal!important;}
+          .exam-answer-pdf .options{display:grid!important;direction:ltr!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:1mm!important;width:100%!important;}
+          .exam-answer-pdf .option{min-width:0!important;max-width:100%!important;}
         `;
         printRoot.appendChild(extra);
 
         await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
-        const placed=questionList.querySelectorAll('.qcard').length;
+        const placed=table.querySelectorAll('.qcard').length;
         if(placed!==cards.length)throw new Error(`PDF में ${placed}/${cards.length} प्रश्न जोड़े गए।`);
-
         await html2pdf().set({
           margin:[7,7,7,7],
           filename:`${safeKey(record.roll)}-${safeKey(record.examTitle)}-answer.pdf`,
           image:{type:'jpeg',quality:.98},
-          html2canvas:{
-            scale:2,
-            useCORS:true,
-            backgroundColor:'#ffffff',
-            logging:false,
-            windowWidth:794,
-            scrollX:0,
-            scrollY:0
-          },
-          pagebreak:{mode:['css','legacy'],avoid:['.qcard']},
+          html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff',logging:false,windowWidth:794,windowHeight:1123,scrollX:0,scrollY:0},
+          pagebreak:{mode:['css','legacy'],avoid:['.qcard','.pdf-header','.summary']},
           jsPDF:{unit:'mm',format:'a4',orientation:'portrait',compress:true}
         }).from(printRoot).save();
       }catch(err){
