@@ -6391,133 +6391,103 @@ D) लखनऊ
     $('downloadExamAnswerPdf').onclick=async()=>{
       const btn=$('downloadExamAnswerPdf');
       const oldLabel=btn.textContent;
-      btn.disabled=true;btn.textContent='PDF तैयार हो रही है...';
+      btn.disabled=true;
+      btn.textContent='PDF तैयार हो रही है...';
       let wrap=null;
       try{
-        // html2pdf की auto-pagination से होने वाली horizontal shifting/cropping से बचने के लिए
-        // प्रत्येक header/question को निश्चित 740px चौड़ाई पर render करके A4 में रखा जाता है।
-        const html2canvasFn=window.html2canvas;
-        const JsPDF=window.jspdf&&window.jspdf.jsPDF ? window.jspdf.jsPDF : window.jsPDF;
-        if(typeof html2canvasFn!=='function'||typeof JsPDF!=='function'){
-          throw new Error('PDF लाइब्रेरी लोड नहीं हुई। पेज refresh करके दोबारा प्रयास करें।');
+        // इस पेज में html2pdf.bundle.min.js पहले से शामिल है।
+        // Bundle स्वयं html2canvas और jsPDF दोनों संभालता है; अलग globals की जरूरत नहीं।
+        if(typeof window.html2pdf!=='function'){
+          throw new Error('html2pdf लाइब्रेरी लोड नहीं हुई। इंटरनेट कनेक्शन जाँचें और पेज refresh करें।');
         }
 
         const holder=document.createElement('div');
         holder.innerHTML=pdfHtml;
         const source=holder.firstElementChild;
-        const sourceHeader=source.querySelector('.pdf-header');
-        const sourceCards=Array.from(source.querySelectorAll('.qcard'));
-        if(!sourceHeader||!sourceCards.length)throw new Error('PDF में हेडिंग या प्रश्न नहीं मिले।');
+        if(!source)throw new Error('PDF का कंटेंट तैयार नहीं हुआ।');
 
         wrap=document.createElement('div');
         wrap.setAttribute('dir','ltr');
         wrap.style.cssText=[
-          'position:fixed','left:0','top:0','width:740px','min-width:740px','max-width:740px',
-          'margin:0','padding:0','background:#ffffff','z-index:-1','pointer-events:none',
-          'direction:ltr','writing-mode:horizontal-tb','overflow:visible'
+          'position:fixed','left:-10000px','top:0','width:190mm',
+          'margin:0','padding:0','background:#fff','z-index:-1',
+          'direction:ltr','overflow:visible'
         ].join(';');
-        const root=document.createElement('div');
-        root.className='exam-answer-pdf';
+
+        const root=source.cloneNode(true);
         root.setAttribute('dir','ltr');
         root.style.cssText=[
-          'display:block','width:740px','min-width:740px','max-width:740px',
-          'margin:0','padding:0','box-sizing:border-box','background:#fff','color:#111',
-          "font-family:Arial,'Noto Sans Devanagari',sans-serif",'font-size:13px',
-          'line-height:1.25','direction:ltr','writing-mode:horizontal-tb',
-          'text-align:left','overflow:visible'
+          'display:block','width:190mm','min-width:0','max-width:190mm',
+          'margin:0','padding:0','box-sizing:border-box',
+          'background:#fff','color:#111',
+          "font-family:Arial,'Noto Sans Devanagari',sans-serif",
+          'font-size:8.2pt','line-height:1.2',
+          'direction:ltr','text-align:left','overflow:visible',
+          'position:static','transform:none'
         ].join(';');
-        const style=source.querySelector('style');
-        if(style)root.appendChild(style.cloneNode(true));
 
-        const override=document.createElement('style');
-        override.textContent=`
+        const fix=document.createElement('style');
+        fix.textContent=`
           .exam-answer-pdf,.exam-answer-pdf *{
-            box-sizing:border-box!important;direction:ltr!important;
-            writing-mode:horizontal-tb!important;transform:none!important;
-            float:none!important;max-width:100%!important;
+            box-sizing:border-box!important;
+            direction:ltr!important;
+            writing-mode:horizontal-tb!important;
+            transform:none!important;
+            letter-spacing:normal!important;
+            word-spacing:normal!important;
           }
-          .exam-answer-pdf{width:740px!important;min-width:740px!important;max-width:740px!important;padding:0!important;margin:0!important;overflow:visible!important}
-          .exam-answer-pdf .pdf-header{display:block!important;width:740px!important;min-width:740px!important;max-width:740px!important;margin:0 0 12px!important;padding:0!important}
+          .exam-answer-pdf{width:190mm!important;min-width:0!important;max-width:190mm!important;overflow:visible!important}
+          .exam-answer-pdf .pdf-header{display:block!important;width:100%!important;max-width:100%!important;margin:0 0 3mm!important}
           .exam-answer-pdf .summary{display:block!important;width:100%!important;max-width:100%!important;white-space:normal!important;overflow-wrap:anywhere!important}
-          .exam-answer-pdf .qcard{display:block!important;width:740px!important;min-width:740px!important;max-width:740px!important;height:auto!important;min-height:0!important;overflow:visible!important;margin:0 0 10px!important;padding:8px!important;white-space:normal!important;page-break-inside:avoid!important;break-inside:avoid!important}
-          .exam-answer-pdf .qtitle{display:block!important;width:100%!important;white-space:normal!important;overflow-wrap:anywhere!important;word-break:normal!important;font-size:13px!important;line-height:1.3!important}
-          .exam-answer-pdf .options{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;column-gap:8px!important;row-gap:4px!important;width:100%!important;min-width:0!important}
-          .exam-answer-pdf .option{display:block!important;width:auto!important;min-width:0!important;max-width:100%!important;white-space:normal!important;overflow-wrap:anywhere!important;font-size:12px!important;line-height:1.25!important}
-          .exam-answer-pdf .foot{display:flex!important;flex-wrap:wrap!important;width:100%!important;white-space:normal!important;overflow-wrap:anywhere!important;font-size:11px!important;line-height:1.25!important}
+          .exam-answer-pdf .qcard{display:block!important;width:100%!important;min-width:0!important;max-width:100%!important;height:auto!important;min-height:0!important;overflow:visible!important;margin:0 0 2mm!important;padding:1.5mm 2mm!important;page-break-inside:avoid!important;break-inside:avoid!important}
+          .exam-answer-pdf .qtitle{display:block!important;width:100%!important;max-width:100%!important;white-space:normal!important;overflow-wrap:anywhere!important;line-height:1.25!important}
+          .exam-answer-pdf .options{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;column-gap:2mm!important;row-gap:1mm!important;width:100%!important;min-width:0!important}
+          .exam-answer-pdf .option{display:block!important;width:auto!important;min-width:0!important;max-width:100%!important;white-space:normal!important;overflow-wrap:anywhere!important}
+          .exam-answer-pdf .foot{display:flex!important;flex-wrap:wrap!important;width:100%!important;max-width:100%!important;white-space:normal!important;overflow-wrap:anywhere!important}
         `;
-        root.appendChild(override);
+        root.appendChild(fix);
         wrap.appendChild(root);
         document.body.appendChild(wrap);
-
-        const header=sourceHeader.cloneNode(true);
-        header.setAttribute('dir','ltr');
-        header.style.cssText='display:block!important;width:740px!important;min-width:740px!important;max-width:740px!important;margin:0 0 12px!important;padding:0!important;box-sizing:border-box!important;direction:ltr!important;overflow:visible!important;';
-        root.appendChild(header);
-
-        const cards=sourceCards.map(card=>{
-          const clone=card.cloneNode(true);
-          clone.setAttribute('dir','ltr');
-          clone.style.cssText='display:block!important;width:740px!important;min-width:740px!important;max-width:740px!important;height:auto!important;min-height:0!important;overflow:visible!important;margin:0 0 10px!important;padding:8px!important;box-sizing:border-box!important;direction:ltr!important;white-space:normal!important;page-break-inside:avoid!important;break-inside:avoid!important;';
-          root.appendChild(clone);
-          return clone;
-        });
 
         await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
         if(document.fonts&&document.fonts.ready)await document.fonts.ready;
 
-        const pdf=new JsPDF({orientation:'portrait',unit:'mm',format:'a4',compress:true});
-        const pageW=210,pageH=297,marginX=7,marginTop=7,marginBottom=7;
-        const usableW=pageW-marginX*2;
-        const usableH=pageH-marginTop-marginBottom;
-        let y=marginTop;
-        let pageCount=1;
+        const actualQuestions=root.querySelectorAll('.qcard').length;
+        const expectedQuestions=record.details.length;
+        if(actualQuestions!==expectedQuestions){
+          throw new Error(`PDF में ${actualQuestions}/${expectedQuestions} प्रश्न मिले।`);
+        }
 
-        async function addElementToPdf(element){
-          const canvas=await html2canvasFn(element,{
+        await window.html2pdf().set({
+          margin:[7,7,7,7],
+          filename:`${safeKey(record.roll)}-${safeKey(record.examTitle)}-answer.pdf`,
+          image:{type:'jpeg',quality:0.97},
+          html2canvas:{
             scale:2,
-            backgroundColor:'#ffffff',
             useCORS:true,
             allowTaint:false,
+            backgroundColor:'#ffffff',
             logging:false,
-            width:740,
+            width:718,
             windowWidth:794,
             scrollX:0,
             scrollY:0
-          });
-          if(!canvas.width||!canvas.height)throw new Error('किसी प्रश्न की PDF इमेज खाली बनी है।');
-          const ratio=usableW/canvas.width;
-          let imgW=usableW;
-          let imgH=canvas.height*ratio;
+          },
+          pagebreak:{
+            mode:['css','legacy'],
+            avoid:['.qcard','.pdf-header','.summary']
+          },
+          jsPDF:{unit:'mm',format:'a4',orientation:'portrait',compress:true},
+          enableLinks:false
+        }).from(root).save();
 
-          // यदि एक ही प्रश्न असामान्य रूप से बहुत लंबा हो तो उसे पेज की ऊँचाई में समायोजित करें।
-          if(imgH>usableH){
-            const shrink=usableH/imgH;
-            imgW*=shrink;
-            imgH=usableH;
-          }
-          if(y+imgH>pageH-marginBottom){
-            pdf.addPage('a4','portrait');
-            pageCount++;
-            y=marginTop;
-          }
-          const x=(pageW-imgW)/2;
-          const data=canvas.toDataURL('image/jpeg',0.96);
-          pdf.addImage(data,'JPEG',x,y,imgW,imgH,undefined,'FAST');
-          y+=imgH+2;
-          canvas.width=1;canvas.height=1;
-        }
-
-        await addElementToPdf(header);
-        for(const card of cards)await addElementToPdf(card);
-
-        pdf.save(`${safeKey(record.roll)}-${safeKey(record.examTitle)}-answer.pdf`);
-        console.info(`Exam PDF generated: ${cards.length} questions, ${pageCount} A4 pages.`);
       }catch(err){
         console.error('Exam answer PDF error:',err);
         alert('PDF नहीं बन सकी: '+(err&&err.message?err.message:err));
       }finally{
         if(wrap)wrap.remove();
-        btn.disabled=false;btn.textContent=oldLabel;
+        btn.disabled=false;
+        btn.textContent=oldLabel;
       }
     }
    }catch(e){alert('परिणाम सारांश दर्ज नहीं हो सका: '+e.message);examAttemptBusy=false;}
