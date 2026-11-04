@@ -6390,65 +6390,72 @@ D) लखनऊ
     $('examStudentResult').innerHTML=`<h2 style="text-align:center;color:#1e3a8a">परीक्षा परिणाम</h2><h3>${escExam(record.examTitle)}</h3><p><b>विद्यार्थी:</b> ${escExam(record.name)} | <b>रोल:</b> ${escExam(record.roll)}</p><div class="exam-grid"><div class="exam-card">प्राप्तांक <h2>${record.score}/${record.maximum}</h2></div><div class="exam-card">प्रतिशत <h2>${percent}%</h2></div><div class="exam-card">सही / गलत <h2>${correct} / ${wrong}</h2></div></div><button class="exam-action exam-primary" id="downloadExamAnswerPdf">उत्तर सहित PDF डाउनलोड करें</button>`;
     $('downloadExamAnswerPdf').onclick=async()=>{
       const wrap=document.createElement('div');
-      wrap.style.cssText='position:fixed;left:-12000px;top:0;width:210mm;background:#fff;z-index:0;overflow:visible;';
-      const holder=document.createElement('div');holder.innerHTML=pdfHtml;const source=holder.firstElementChild;
+      const holder=document.createElement('div');
+      holder.innerHTML=pdfHtml;
+      const source=holder.firstElementChild;
       const printRoot=source.cloneNode(false);
-      printRoot.style.cssText="display:block;width:202mm;max-width:202mm;padding:2.5mm;margin:0;background:#fff;font-family:Arial,'Noto Sans Devanagari',sans-serif;color:#111;box-sizing:border-box;overflow:visible;";
+      // A4 portrait की usable चौड़ाई: 210mm में दोनों ओर 7mm margin.
+      printRoot.style.cssText="display:block;width:196mm;max-width:196mm;min-width:196mm;padding:0;margin:0;background:#fff;font-family:Arial,'Noto Sans Devanagari',sans-serif;color:#111;box-sizing:border-box;overflow:visible;";
       printRoot.appendChild(source.querySelector('style').cloneNode(true));
       const header=source.querySelector('.pdf-header');
       const cards=Array.from(source.querySelectorAll('.qcard'));
       try{
-        wrap.appendChild(printRoot);document.body.appendChild(wrap);
-        // मूल परीक्षा शीर्षक, विद्यार्थी विवरण, रोल नंबर और अंक-सारांश यथावत रखें।
+        wrap.style.cssText='position:absolute;left:0;top:0;width:196mm;margin:0;padding:0;background:#fff;z-index:-1;overflow:visible;pointer-events:none;';
+        document.body.appendChild(wrap);
+        wrap.appendChild(printRoot);
+
+        // शीर्षक और विद्यार्थी विवरण सबसे पहले; हर प्रश्न एक ही A4 चौड़ाई में।
         if(header)printRoot.appendChild(header.cloneNode(true));
+        const questionList=document.createElement('div');
+        questionList.className='pdf-question-list';
+        questionList.style.cssText='display:block;width:100%;max-width:100%;min-width:0;box-sizing:border-box;';
+        cards.forEach(card=>{
+          const item=card.cloneNode(true);
+          item.style.cssText='display:block;width:100%;max-width:100%;min-width:0;box-sizing:border-box;margin:0 0 2mm;padding:1.5mm 2mm;overflow:visible;white-space:normal;page-break-inside:avoid;break-inside:avoid;';
+          questionList.appendChild(item);
+        });
+        printRoot.appendChild(questionList);
 
-        // CSS Grid की जगह HTML table: html2canvas में दोनों कॉलम की चौड़ाई स्थिर रहती है।
-        const table=document.createElement('table');
-        table.className='pdf-two-col-table';
-        table.style.cssText='width:100%;table-layout:fixed;border-collapse:collapse;border-spacing:0;display:table;';
-        const tbody=document.createElement('tbody');
-        table.appendChild(tbody);
-        const half=Math.ceil(cards.length/2);
-        const leftCards=cards.slice(0,half);
-        const rightCards=cards.slice(half);
-        for(let i=0;i<half;i++){
-          const tr=document.createElement('tr');
-          tr.style.cssText='page-break-inside:avoid;break-inside:avoid;';
-          const td1=document.createElement('td');
-          const td2=document.createElement('td');
-          td1.style.cssText='width:50%;vertical-align:top;padding:0 1.2mm 0 0;border-right:.25mm solid #bbb;';
-          td2.style.cssText='width:50%;vertical-align:top;padding:0 0 0 1.2mm;';
-          if(leftCards[i])td1.appendChild(leftCards[i].cloneNode(true));
-          if(rightCards[i])td2.appendChild(rightCards[i].cloneNode(true));
-          tr.append(td1,td2);tbody.appendChild(tr);
-        }
-        printRoot.appendChild(table);
-
-        // आवश्यक styles को स्पष्ट रूप से लागू करें; table cells को बराबर चौड़ाई दें।
         const extra=document.createElement('style');
         extra.textContent=`
-          .exam-answer-pdf .pdf-two-col-table{width:100%!important;table-layout:fixed!important;border-collapse:collapse!important;display:table!important}
-          .exam-answer-pdf .pdf-two-col-table tr{page-break-inside:avoid!important;break-inside:avoid!important}
-          .exam-answer-pdf .pdf-two-col-table td{width:50%!important;vertical-align:top!important}
-          .exam-answer-pdf .pdf-two-col-table .qcard{display:block!important;width:100%!important;margin:0 0 1.2mm!important;page-break-inside:avoid!important;break-inside:avoid!important}
-          .exam-answer-pdf .pdf-header{display:block!important;width:100%!important;margin:0 0 2mm!important}
-          .exam-answer-pdf .summary{display:block!important;width:100%!important}
+          .exam-answer-pdf,.exam-answer-pdf *{box-sizing:border-box!important}
+          .exam-answer-pdf{width:196mm!important;max-width:196mm!important;min-width:196mm!important;overflow:visible!important}
+          .exam-answer-pdf .pdf-header{display:block!important;width:100%!important;max-width:100%!important;margin:0 0 3mm!important;flex:none!important}
+          .exam-answer-pdf .summary{display:block!important;width:100%!important;max-width:100%!important;white-space:normal!important;overflow-wrap:anywhere!important}
+          .exam-answer-pdf .pdf-question-list{display:block!important;width:100%!important;max-width:100%!important;overflow:visible!important}
+          .exam-answer-pdf .qcard{display:block!important;width:100%!important;max-width:100%!important;min-width:0!important;height:auto!important;overflow:visible!important;margin:0 0 2mm!important;padding:1.5mm 2mm!important;white-space:normal!important;page-break-inside:avoid!important;break-inside:avoid!important}
+          .exam-answer-pdf .qtitle,.exam-answer-pdf .option,.exam-answer-pdf .foot{white-space:normal!important;overflow-wrap:anywhere!important;word-break:normal!important}
+          .exam-answer-pdf .options{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:1mm!important;width:100%!important}
+          .exam-answer-pdf .option{min-width:0!important;max-width:100%!important}
         `;
         printRoot.appendChild(extra);
 
         await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
-        const placed=table.querySelectorAll('.qcard').length;
+        const placed=questionList.querySelectorAll('.qcard').length;
         if(placed!==cards.length)throw new Error(`PDF में ${placed}/${cards.length} प्रश्न जोड़े गए।`);
+
         await html2pdf().set({
-          margin:[5,5,5,5],
+          margin:[7,7,7,7],
           filename:`${safeKey(record.roll)}-${safeKey(record.examTitle)}-answer.pdf`,
           image:{type:'jpeg',quality:.98},
-          html2canvas:{scale:1.6,useCORS:true,backgroundColor:'#ffffff',logging:false,windowWidth:794,scrollX:0,scrollY:0},
-          pagebreak:{mode:['css','legacy'],avoid:['.qcard','.pdf-header','.summary']},
+          html2canvas:{
+            scale:2,
+            useCORS:true,
+            backgroundColor:'#ffffff',
+            logging:false,
+            windowWidth:794,
+            scrollX:0,
+            scrollY:0
+          },
+          pagebreak:{mode:['css','legacy'],avoid:['.qcard']},
           jsPDF:{unit:'mm',format:'a4',orientation:'portrait',compress:true}
         }).from(printRoot).save();
-      }catch(err){console.error('Exam answer PDF error:',err);alert('PDF नहीं बन सकी: '+(err.message||err));}
-      finally{wrap.remove();}
+      }catch(err){
+        console.error('Exam answer PDF error:',err);
+        alert('PDF नहीं बन सकी: '+(err.message||err));
+      }finally{
+        wrap.remove();
+      }
     }
    }catch(e){alert('परिणाम सारांश दर्ज नहीं हो सका: '+e.message);examAttemptBusy=false;}
  };
