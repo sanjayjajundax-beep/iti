@@ -6350,16 +6350,14 @@ D) लखनऊ
       .exam-answer-pdf .foot{display:flex;flex-wrap:wrap;align-items:baseline;column-gap:2mm;row-gap:.2mm;border-top:1px dashed #aaa;padding:.5mm 0 0;margin:.6mm 0 0;font-size:7.2pt;line-height:1.1}
       .exam-answer-pdf .foot span{display:inline}
       .exam-answer-pdf .submitted-time{font-size:7pt;margin:1mm 0 0;line-height:1.1}
-      .exam-answer-pdf .pdf-content{display:block;width:100%;margin:0;padding:0;overflow:visible}
-      .exam-answer-pdf .pdf-question-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:3mm;row-gap:1mm;width:100%;align-items:start;overflow:visible}
-      .exam-answer-pdf .qcard{display:block;min-width:0;break-inside:avoid!important;page-break-inside:avoid!important;overflow:visible}
-      .exam-answer-pdf .pdf-header{display:block;margin:0 0 2mm;padding:0;break-inside:avoid;page-break-inside:avoid}
-      .exam-answer-pdf .summary{break-inside:avoid;page-break-inside:avoid}
-      .exam-answer-pdf .pdf-page,.exam-answer-pdf .pdf-columns,.exam-answer-pdf .pdf-col{height:auto!important;min-height:0!important;max-height:none!important;overflow:visible!important}
-      .exam-answer-pdf .qtitle{font-size:7.8pt;line-height:1.12}
-      .exam-answer-pdf .option{font-size:7pt;line-height:1.08}
-      .exam-answer-pdf .foot{font-size:6.8pt;line-height:1.08}
-      </style>
+      .exam-answer-pdf .pdf-page{width:210mm;height:297mm;padding:4mm;background:#fff;display:flex;flex-direction:column;overflow:hidden;page-break-after:always;break-after:page}
+      .exam-answer-pdf .pdf-page:last-child{page-break-after:auto;break-after:auto}
+      .exam-answer-pdf .pdf-header{flex:0 0 auto;margin-bottom:1.5mm}
+      .exam-answer-pdf .pdf-columns{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:3mm;flex:1 1 auto;min-height:0;position:relative}
+      .exam-answer-pdf .pdf-col{height:100%;min-height:0;overflow:hidden;min-width:0}
+      .exam-answer-pdf .pdf-col:first-child{border-right:.25mm solid #bbb;padding-right:1.5mm}
+      .exam-answer-pdf .pdf-col:last-child{padding-left:1.5mm}
+    </style>
     <div class="pdf-header">
     <h2>${escExam(record.examTitle)}</h2>
     <h3>${escExam(getCollegeName(currentCollegeId))} — ${escExam(currentTrade)}</h3>
@@ -6395,28 +6393,57 @@ D) लखनऊ
       wrap.style.cssText='position:fixed;left:-12000px;top:0;width:210mm;background:#fff;z-index:0;overflow:visible;';
       const holder=document.createElement('div');holder.innerHTML=pdfHtml;const source=holder.firstElementChild;
       const printRoot=source.cloneNode(false);
-      printRoot.style.cssText="display:block;width:210mm;max-width:210mm;padding:4mm;margin:0;background:#fff;font-family:Arial,'Noto Sans Devanagari',sans-serif;color:#111;box-sizing:border-box;overflow:visible;";
+      printRoot.style.cssText="display:block;width:202mm;max-width:202mm;padding:2.5mm;margin:0;background:#fff;font-family:Arial,'Noto Sans Devanagari',sans-serif;color:#111;box-sizing:border-box;overflow:visible;";
       printRoot.appendChild(source.querySelector('style').cloneNode(true));
       const header=source.querySelector('.pdf-header');
       const cards=Array.from(source.querySelectorAll('.qcard'));
-      const pdfHeader=header?header.cloneNode(true):null;
-      const questionGrid=document.createElement('div');
-      questionGrid.className='pdf-question-grid';
       try{
         wrap.appendChild(printRoot);document.body.appendChild(wrap);
-        if(pdfHeader)printRoot.appendChild(pdfHeader);
-        const content=document.createElement('div');content.className='pdf-content';
-        content.appendChild(questionGrid);printRoot.appendChild(content);
-        // हर प्रश्न को ठीक एक बार grid में जोड़ें; manual height calculation नहीं।
-        cards.forEach(original=>questionGrid.appendChild(original.cloneNode(true)));
+        // मूल परीक्षा शीर्षक, विद्यार्थी विवरण, रोल नंबर और अंक-सारांश यथावत रखें।
+        if(header)printRoot.appendChild(header.cloneNode(true));
+
+        // CSS Grid की जगह HTML table: html2canvas में दोनों कॉलम की चौड़ाई स्थिर रहती है।
+        const table=document.createElement('table');
+        table.className='pdf-two-col-table';
+        table.style.cssText='width:100%;table-layout:fixed;border-collapse:collapse;border-spacing:0;display:table;';
+        const tbody=document.createElement('tbody');
+        table.appendChild(tbody);
+        const half=Math.ceil(cards.length/2);
+        const leftCards=cards.slice(0,half);
+        const rightCards=cards.slice(half);
+        for(let i=0;i<half;i++){
+          const tr=document.createElement('tr');
+          tr.style.cssText='page-break-inside:avoid;break-inside:avoid;';
+          const td1=document.createElement('td');
+          const td2=document.createElement('td');
+          td1.style.cssText='width:50%;vertical-align:top;padding:0 1.2mm 0 0;border-right:.25mm solid #bbb;';
+          td2.style.cssText='width:50%;vertical-align:top;padding:0 0 0 1.2mm;';
+          if(leftCards[i])td1.appendChild(leftCards[i].cloneNode(true));
+          if(rightCards[i])td2.appendChild(rightCards[i].cloneNode(true));
+          tr.append(td1,td2);tbody.appendChild(tr);
+        }
+        printRoot.appendChild(table);
+
+        // आवश्यक styles को स्पष्ट रूप से लागू करें; table cells को बराबर चौड़ाई दें।
+        const extra=document.createElement('style');
+        extra.textContent=`
+          .exam-answer-pdf .pdf-two-col-table{width:100%!important;table-layout:fixed!important;border-collapse:collapse!important;display:table!important}
+          .exam-answer-pdf .pdf-two-col-table tr{page-break-inside:avoid!important;break-inside:avoid!important}
+          .exam-answer-pdf .pdf-two-col-table td{width:50%!important;vertical-align:top!important}
+          .exam-answer-pdf .pdf-two-col-table .qcard{display:block!important;width:100%!important;margin:0 0 1.2mm!important;page-break-inside:avoid!important;break-inside:avoid!important}
+          .exam-answer-pdf .pdf-header{display:block!important;width:100%!important;margin:0 0 2mm!important}
+          .exam-answer-pdf .summary{display:block!important;width:100%!important}
+        `;
+        printRoot.appendChild(extra);
+
         await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
-        const placed=questionGrid.querySelectorAll('.qcard').length;
-        if(placed!==cards.length)throw new Error(`PDF में ${placed}/${cards.length} प्रश्न ही जोड़े गए। कृपया पुनः प्रयास करें।`);
+        const placed=table.querySelectorAll('.qcard').length;
+        if(placed!==cards.length)throw new Error(`PDF में ${placed}/${cards.length} प्रश्न जोड़े गए।`);
         await html2pdf().set({
-          margin:[4,4,4,4],
+          margin:[5,5,5,5],
           filename:`${safeKey(record.roll)}-${safeKey(record.examTitle)}-answer.pdf`,
           image:{type:'jpeg',quality:.98},
-          html2canvas:{scale:1.5,useCORS:true,backgroundColor:'#ffffff',logging:false,windowWidth:794,scrollX:0,scrollY:0},
+          html2canvas:{scale:1.6,useCORS:true,backgroundColor:'#ffffff',logging:false,windowWidth:794,scrollX:0,scrollY:0},
           pagebreak:{mode:['css','legacy'],avoid:['.qcard','.pdf-header','.summary']},
           jsPDF:{unit:'mm',format:'a4',orientation:'portrait',compress:true}
         }).from(printRoot).save();
