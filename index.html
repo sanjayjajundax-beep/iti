@@ -6350,11 +6350,11 @@ D) लखनऊ
       .exam-answer-pdf .foot{display:flex;flex-wrap:wrap;align-items:baseline;column-gap:2mm;row-gap:.2mm;border-top:1px dashed #aaa;padding:.5mm 0 0;margin:.6mm 0 0;font-size:7.2pt;line-height:1.1}
       .exam-answer-pdf .foot span{display:inline}
       .exam-answer-pdf .submitted-time{font-size:7pt;margin:1mm 0 0;line-height:1.1}
-      .exam-answer-pdf .pdf-page{width:210mm;min-width:210mm;max-width:210mm;height:297mm;min-height:297mm;max-height:297mm;padding:4mm;background:#fff;display:flex;flex-direction:column;overflow:hidden;box-sizing:border-box;page-break-after:always;break-after:page}
-      .exam-answer-pdf .pdf-page:last-child{page-break-after:auto;break-after:auto}
-      .exam-answer-pdf .pdf-header{flex:0 0 auto;margin-bottom:1.5mm}
-      .exam-answer-pdf .pdf-columns{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:3mm;flex:1 1 auto;min-height:0;position:relative}
-      .exam-answer-pdf .pdf-col{height:100%;min-height:0;overflow:hidden;min-width:0}
+      .exam-answer-pdf .pdf-page{display:block;position:relative;width:210mm;min-width:210mm;max-width:210mm;height:297mm;min-height:297mm;max-height:297mm;padding:4mm;margin:0;background:#fff;overflow:hidden;box-sizing:border-box}
+      .exam-answer-pdf .pdf-header{display:block;margin:0 0 1.5mm;padding:0}
+      .exam-answer-pdf .pdf-columns{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:3mm;width:100%;height:250mm;min-height:250mm;max-height:250mm;position:relative;box-sizing:border-box}
+      .exam-answer-pdf .pdf-page:not(:has(.pdf-header)) .pdf-columns{height:285mm;min-height:285mm;max-height:285mm}
+      .exam-answer-pdf .pdf-col{display:block;width:100%;height:100%;min-height:100%;max-height:100%;overflow:hidden;min-width:0;box-sizing:border-box}
       .exam-answer-pdf .pdf-col:first-child{border-right:.25mm solid #bbb;padding-right:1.5mm}
       .exam-answer-pdf .pdf-col:last-child{padding-left:1.5mm}
     </style>
@@ -6389,39 +6389,68 @@ D) लखनऊ
     $('examTakePanel').style.display='none';$('examStudentResult').style.display='block';
     $('examStudentResult').innerHTML=`<h2 style="text-align:center;color:#1e3a8a">परीक्षा परिणाम</h2><h3>${escExam(record.examTitle)}</h3><p><b>विद्यार्थी:</b> ${escExam(record.name)} | <b>रोल:</b> ${escExam(record.roll)}</p><div class="exam-grid"><div class="exam-card">प्राप्तांक <h2>${record.score}/${record.maximum}</h2></div><div class="exam-card">प्रतिशत <h2>${percent}%</h2></div><div class="exam-card">सही / गलत <h2>${correct} / ${wrong}</h2></div></div><button class="exam-action exam-primary" id="downloadExamAnswerPdf">उत्तर सहित PDF डाउनलोड करें</button>`;
     $('downloadExamAnswerPdf').onclick=async()=>{
-      const wrap=document.createElement('div');wrap.style.cssText='position:fixed;left:-10000px;top:0;width:210mm;min-width:210mm;max-width:210mm;background:#fff;z-index:0;overflow:visible;';
+      const wrap=document.createElement('div');
+      wrap.style.cssText='position:fixed;left:-12000px;top:0;width:210mm;min-width:210mm;max-width:210mm;background:#fff;z-index:0;overflow:visible;';
       const holder=document.createElement('div');holder.innerHTML=pdfHtml;const source=holder.firstElementChild;
-      const printRoot=source.cloneNode(false);printRoot.style.cssText="width:210mm;min-width:210mm;max-width:210mm;padding:0;margin:0;background:#fff;font-family:Arial,'Noto Sans Devanagari',sans-serif;color:#111;box-sizing:border-box;";
+      const printRoot=source.cloneNode(false);
+      printRoot.style.cssText="display:block;width:210mm;min-width:210mm;max-width:210mm;padding:0;margin:0;background:#fff;font-family:Arial,'Noto Sans Devanagari',sans-serif;color:#111;box-sizing:border-box;";
       printRoot.appendChild(source.querySelector('style').cloneNode(true));
-      const header=source.querySelector('.pdf-header');const cards=Array.from(source.querySelectorAll('.qcard'));
+      const header=source.querySelector('.pdf-header');
+      const cards=Array.from(source.querySelectorAll('.qcard'));
       let pageNo=0,currentCols=null,currentCol=0;
       const makePage=()=>{
         const page=document.createElement('div');page.className='pdf-page';
         if(pageNo===0&&header)page.appendChild(header.cloneNode(true));
         const cols=document.createElement('div');cols.className='pdf-columns';
-        const left=document.createElement('div'),right=document.createElement('div');left.className='pdf-col';right.className='pdf-col';
+        if(pageNo>0){cols.style.height='285mm';cols.style.minHeight='285mm';cols.style.maxHeight='285mm';}
+        const left=document.createElement('div'),right=document.createElement('div');
+        left.className='pdf-col';right.className='pdf-col';
         cols.append(left,right);page.appendChild(cols);printRoot.appendChild(page);
         currentCols=[left,right];currentCol=0;pageNo++;
       };
+      const isOverflow=(col)=>col.scrollHeight>col.clientHeight+2;
+      const compactCard=(card)=>{
+        card.style.fontSize='6.2pt';card.style.lineHeight='1.0';
+        card.style.padding='0.45mm 0.8mm';card.style.marginBottom='0.5mm';
+        card.querySelectorAll('.qtitle').forEach(x=>{x.style.fontSize='6.8pt';x.style.lineHeight='1.0';});
+        card.querySelectorAll('.option').forEach(x=>{x.style.fontSize='6.1pt';x.style.lineHeight='1.0';x.style.padding='0.2mm 0.5mm';});
+        card.querySelectorAll('.foot').forEach(x=>{x.style.fontSize='6pt';x.style.lineHeight='1.0';x.style.marginTop='0.3mm';});
+      };
       try{
-        wrap.appendChild(printRoot);document.body.appendChild(wrap);makePage();
+        wrap.appendChild(printRoot);document.body.appendChild(wrap);
+        await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+        makePage();
         for(const original of cards){
-          const card=original.cloneNode(true);let target=currentCols[currentCol];target.appendChild(card);
-          if(target.scrollHeight>target.clientHeight+2){
+          const card=original.cloneNode(true);
+          let target=currentCols[currentCol];
+          target.appendChild(card);
+          if(isOverflow(target)){
             target.removeChild(card);
-            if(currentCol===0){currentCol=1;target=currentCols[1];target.appendChild(card);}
-            if(target.scrollHeight>target.clientHeight+2){target.removeChild(card);makePage();target=currentCols[0];target.appendChild(card);}
+            if(currentCol===0){
+              currentCol=1;target=currentCols[1];target.appendChild(card);
+            }
+            if(isOverflow(target)){
+              target.removeChild(card);
+              makePage();target=currentCols[0];target.appendChild(card);
+            }
           }
-          if(card.offsetHeight>target.clientHeight){card.style.fontSize='6.4pt';card.style.lineHeight='1.03';card.querySelectorAll('.option').forEach(o=>{o.style.fontSize='6.2pt';o.style.lineHeight='1.03';});}
+          if(isOverflow(target) && target.children.length===1){
+            compactCard(card);
+            if(isOverflow(target)){
+              card.style.transform='scale(.88)';
+              card.style.transformOrigin='top left';
+              card.style.width='113.6%';
+            }
+          }
         }
-        // प्रत्येक .pdf-page पहले से A4 आकार में तैयार है और प्रश्न दो कॉलम में
-        // बाँटे जा चुके हैं। html2pdf को प्रश्नों के बीच अतिरिक्त page-break न लगाने दें।
+        const placed=printRoot.querySelectorAll('.qcard').length;
+        if(placed!==cards.length)throw new Error(`PDF में ${placed}/${cards.length} प्रश्न ही जोड़े गए।`);
         await html2pdf().set({
           margin:0,
           filename:`${safeKey(record.roll)}-${safeKey(record.examTitle)}-answer.pdf`,
           image:{type:'jpeg',quality:.98},
-          html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff',logging:false,windowWidth:794,scrollX:0,scrollY:0},
-          pagebreak:{mode:['css']},
+          html2canvas:{scale:1.5,useCORS:true,backgroundColor:'#ffffff',logging:false,windowWidth:794,scrollX:0,scrollY:0},
+          pagebreak:{mode:[]},
           jsPDF:{unit:'mm',format:'a4',orientation:'portrait',compress:true}
         }).from(printRoot).save();
       }catch(err){console.error('Exam answer PDF error:',err);alert('PDF नहीं बन सकी: '+(err.message||err));}
