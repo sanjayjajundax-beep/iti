@@ -5969,9 +5969,37 @@ D) लखनऊ
       <h4 style="margin-top:18px">कमजोर विद्यार्थी एवं सुधार योजना</h4><div class="sup-form-grid"><div class="input-group"><label>विद्यार्थी</label><select id="instWeakStudent"></select></div><div class="input-group"><label>कमजोरी / विषय</label><input id="instWeakArea" placeholder="किस विषय में सहायता चाहिए"></div><div class="input-group"><label>सुधार योजना</label><textarea id="instWeakPlan" rows="2" placeholder="अतिरिक्त अभ्यास / मार्गदर्शन"></textarea></div><div class="input-group"><label>अगली समीक्षा तारीख</label><input id="instWeakReview" type="date"></div></div><button class="app-btn app-btn-warning" onclick="saveWeakStudentPlan()">सुधार रिकॉर्ड सेव करें</button>
       </div>`);
     if(!$('studentExtraPanel')) $('studentSection').insertAdjacentHTML('beforeend',`
-      <div class="glass-card" id="studentExtraPanel" style="padding:16px;margin:14px 0"><h3>विद्यार्थी सेवाएँ</h3><h4>अवकाश आवेदन</h4><div class="sup-form-grid"><div class="input-group"><label>प्रारंभ तारीख</label><input id="studentLeaveFrom" type="date"></div><div class="input-group"><label>अंतिम तारीख</label><input id="studentLeaveTo" type="date"></div><div class="input-group"><label>अवकाश का कारण</label><textarea id="studentLeaveReason" rows="2"></textarea></div></div><button class="app-btn app-btn-primary" onclick="submitStudentLeave()">अवकाश आवेदन भेजें</button><div id="studentLeaveHistory" style="margin-top:10px"></div>
-      <h4 style="margin-top:18px">कक्षा समय-सारणी</h4><div id="studentTimetable">समय-सारणी संस्थान द्वारा प्रकाशित होने पर यहाँ दिखेगी।</div>
-      <h4 style="margin-top:18px">मासिक प्रगति रिपोर्ट</h4><button class="app-btn app-btn-excel" onclick="downloadStudentMonthlyReport()">मासिक रिपोर्ट डाउनलोड / प्रिंट</button></div>`);
+      <div class="glass-card" id="studentExtraPanel" style="padding:16px;margin:14px 0">
+        <h3>विद्यार्थी सेवाएँ</h3>
+        <h4>अवकाश आवेदन</h4>
+        <div class="sup-form-grid">
+          <div class="input-group"><label for="studentLeavePhone">मोबाइल नंबर *</label>
+            <input id="studentLeavePhone" type="tel" inputmode="numeric" maxlength="10" pattern="[0-9]{10}" placeholder="10 अंकों का मोबाइल नंबर दर्ज करें" required oninput="resetStudentLeavePhoneVerification()">
+            <small style="color:#64748b">अवकाश आवेदन से पहले इस नंबर का OTP द्वारा सत्यापन अनिवार्य है।</small>
+          </div>
+          <div class="input-group" style="align-self:end">
+            <button type="button" class="app-btn app-btn-primary" id="sendStudentLeaveOtpBtn" onclick="sendStudentLeaveOtp()">OTP भेजें</button>
+          </div>
+          <div class="input-group" id="studentLeaveOtpWrap" style="display:none">
+            <label for="studentLeaveOtp">OTP दर्ज करें *</label>
+            <input id="studentLeaveOtp" type="text" inputmode="numeric" maxlength="6" placeholder="6 अंकों का OTP">
+          </div>
+          <div class="input-group" id="studentLeaveVerifyWrap" style="display:none;align-self:end">
+            <button type="button" class="app-btn app-btn-success" onclick="verifyStudentLeaveOtp()">मोबाइल सत्यापित करें</button>
+          </div>
+        </div>
+        <div id="studentLeavePhoneStatus" role="status" style="font-size:.85rem;margin:4px 0 12px;color:#b45309">मोबाइल नंबर सत्यापित नहीं है।</div>
+        <div class="sup-form-grid">
+          <div class="input-group"><label for="studentLeaveFrom">प्रारंभ तारीख *</label><input id="studentLeaveFrom" type="date" required></div>
+          <div class="input-group"><label for="studentLeaveTo">अंतिम तारीख *</label><input id="studentLeaveTo" type="date" required></div>
+          <div class="input-group"><label for="studentLeaveReason">अवकाश का कारण *</label><textarea id="studentLeaveReason" rows="2" required></textarea></div>
+        </div>
+        <button class="app-btn app-btn-primary" id="submitStudentLeaveBtn" onclick="submitStudentLeave()" disabled>अवकाश आवेदन भेजें</button>
+        <div id="leaveRecaptchaContainer"></div>
+        <div id="studentLeaveHistory" style="margin-top:10px"></div>
+        <h4 style="margin-top:18px">कक्षा समय-सारणी</h4>
+        <div id="studentTimetable">समय-सारणी संस्थान द्वारा प्रकाशित होने पर यहाँ दिखेगी।</div>
+      </div>`);
   }
   function attendanceCount(cid,trade,month){
     const root=appData.records?.[cid]?.[trade]?.[month]||{};let p=0,a=0,entries=0;
@@ -6130,7 +6158,81 @@ D) लखनऊ
   window.saveInstructorSyllabus=function(){if(!collegeGuard('instructor'))return;const topic=$('instSyllabusTopic').value.trim(),pct=Number($('instSyllabusPct').value);if(!topic||!Number.isFinite(pct)||pct<0||pct>100){alert('पाठ का नाम और 0 से 100 तक प्रगति प्रतिशत भरें।');return;}sd().syllabus.push({id:'SYL'+Date.now(),kind:'पाठ्यक्रम',collegeId:currentCollegeId,instructorId:loggedInInstructor.id,instructorName:loggedInInstructor.name,trade:currentTrade,topic,percent:pct,note:$('instSyllabusNote').value.trim(),date:new Date().toISOString().slice(0,10)});syncWithFirebase();renderCompletionModules();showToast('पाठ्यक्रम प्रगति सेव हुई।');};
   window.saveInstructorTeachingRecord=function(){if(!collegeGuard('instructor'))return;const subject=$('instTeachSubject').value.trim();if(!subject){alert('विषय / प्रयोग लिखें।');return;}sd().teachingRecords.push({id:'TR'+Date.now(),kind:'शिक्षण रिकॉर्ड',type:$('instTeachType').value,subject,date:$('instTeachDate').value||new Date().toISOString().slice(0,10),students:Number($('instTeachCount').value)||0,collegeId:currentCollegeId,instructorId:loggedInInstructor.id,instructorName:loggedInInstructor.name,trade:currentTrade});syncWithFirebase();renderCompletionModules();showToast('थ्योरी / प्रैक्टिकल रिकॉर्ड सेव हुआ।');};
   window.saveWeakStudentPlan=function(){if(!collegeGuard('instructor'))return;const id=$('instWeakStudent').value,st=getStudentList(currentCollegeId,currentTrade).find(x=>String(x.studentId)===id),area=$('instWeakArea').value.trim(),plan=$('instWeakPlan').value.trim();if(!st||!area||!plan){alert('विद्यार्थी, कमजोरी और सुधार योजना भरें।');return;}sd().weakStudents.push({id:'WK'+Date.now(),kind:'कमजोर विद्यार्थी सुधार',collegeId:currentCollegeId,instructorId:loggedInInstructor.id,studentId:id,studentName:st.name,trade:currentTrade,area,plan,review:$('instWeakReview').value,status:'सुधार जारी'});syncWithFirebase();renderCompletionModules();showToast('विद्यार्थी सुधार रिकॉर्ड सेव हुआ।');};
-  window.submitStudentLeave=function(){if(!collegeGuard('student'))return;const from=$('studentLeaveFrom').value,to=$('studentLeaveTo').value,reason=$('studentLeaveReason').value.trim();if(!from||!to||to<from||!reason){alert('सही तारीखें और अवकाश का कारण भरें।');return;}sd().leaveRequests.push({id:'LV'+Date.now(),collegeId:currentCollegeId,trade:currentTrade,studentId:String(loggedInStudent.studentId),studentName:loggedInStudent.name,from,to,reason,status:'लंबित',createdAt:new Date().toISOString()});syncWithFirebase();renderCompletionModules();showToast('अवकाश आवेदन अधीक्षक को भेजा गया।');};
+  // Student leave applications require Firebase Phone Authentication OTP verification.
+  let leavePhoneConfirmation=null, leavePhoneVerifier=null, verifiedLeavePhone='';
+  window.resetStudentLeavePhoneVerification=function(){
+    verifiedLeavePhone='';leavePhoneConfirmation=null;
+    const phone=$('studentLeavePhone'),status=$('studentLeavePhoneStatus'),btn=$('submitStudentLeaveBtn');
+    if(status){status.textContent='मोबाइल नंबर सत्यापित नहीं है। OTP भेजकर सत्यापन करें।';status.style.color='#b45309';}
+    if(btn)btn.disabled=true;
+    const sendBtn=$('sendStudentLeaveOtpBtn');if(sendBtn){sendBtn.disabled=false;sendBtn.textContent='OTP भेजें';}
+    const phoneInput=$('studentLeavePhone');if(phoneInput)phoneInput.readOnly=false;
+    const otpWrap=$('studentLeaveOtpWrap'),verifyWrap=$('studentLeaveVerifyWrap');
+    if(otpWrap)otpWrap.style.display='none';if(verifyWrap)verifyWrap.style.display='none';
+    if($('studentLeaveOtp'))$('studentLeaveOtp').value='';
+  };
+  window.sendStudentLeaveOtp=async function(){
+    if(!collegeGuard('student'))return;
+    const raw=($('studentLeavePhone')?.value||'').replace(/\D/g,'');
+    if(!/^[6-9]\d{9}$/.test(raw)){alert('कृपया सही 10 अंकों का भारतीय मोबाइल नंबर दर्ज करें।');return;}
+    if(!window.firebase||!firebase.auth){alert('Firebase Phone Authentication उपलब्ध नहीं है।');return;}
+    const btn=$('sendStudentLeaveOtpBtn');if(btn){btn.disabled=true;btn.textContent='OTP भेजा जा रहा है…';}
+    try{
+      const auth=firebase.auth();
+      if(!leavePhoneVerifier){
+        leavePhoneVerifier=new firebase.auth.RecaptchaVerifier('leaveRecaptchaContainer',{size:'invisible'},auth);
+      }
+      leavePhoneConfirmation=await auth.signInWithPhoneNumber('+91'+raw,leavePhoneVerifier);
+      const ow=$('studentLeaveOtpWrap'),vw=$('studentLeaveVerifyWrap');
+      if(ow)ow.style.display='block';if(vw)vw.style.display='block';
+      const status=$('studentLeavePhoneStatus');
+      if(status){status.textContent='OTP भेज दिया गया है। SMS में आया 6 अंकों का OTP दर्ज करें।';status.style.color='#1d4ed8';}
+      if($('studentLeaveOtp'))$('studentLeaveOtp').focus();
+    }catch(err){
+      console.error('Leave OTP send error:',err);
+      const status=$('studentLeavePhoneStatus');
+      if(status){status.textContent='OTP नहीं भेजा जा सका: '+(err.message||err.code||'त्रुटि')+'। Firebase में Phone provider और अधिकृत डोमेन जाँचें।';status.style.color='#b91c1c';}
+      try{if(leavePhoneVerifier)await leavePhoneVerifier.render().then(id=>grecaptcha.reset(id));}catch(_){}
+      leavePhoneVerifier=null;leavePhoneConfirmation=null;
+    }finally{if(btn){btn.disabled=false;btn.textContent='OTP पुनः भेजें';}}
+  };
+  window.verifyStudentLeaveOtp=async function(){
+    if(!leavePhoneConfirmation){alert('पहले मोबाइल नंबर पर OTP भेजें।');return;}
+    const code=($('studentLeaveOtp')?.value||'').trim();
+    if(!/^\d{6}$/.test(code)){alert('6 अंकों का सही OTP दर्ज करें।');return;}
+    try{
+      const result=await leavePhoneConfirmation.confirm(code);
+      const verified=result.user&&result.user.phoneNumber?result.user.phoneNumber:'';
+      const typed='+91'+($('studentLeavePhone')?.value||'').replace(/\D/g,'');
+      if(verified!==typed){verifiedLeavePhone='';alert('सत्यापित मोबाइल नंबर दर्ज किए गए नंबर से मेल नहीं खाता।');return;}
+      verifiedLeavePhone=verified;
+      try{if(leavePhoneVerifier)leavePhoneVerifier.clear();}catch(_){}
+      leavePhoneVerifier=null;leavePhoneConfirmation=null;
+      const status=$('studentLeavePhoneStatus'),btn=$('submitStudentLeaveBtn'),phone=$('studentLeavePhone');
+      if(status){status.textContent='मोबाइल नंबर '+verified+' सफलतापूर्वक OTP से सत्यापित है।';status.style.color='#15803d';}
+      if(btn)btn.disabled=false;if(phone)phone.readOnly=true;
+      const send=$('sendStudentLeaveOtpBtn');if(send)send.disabled=true;
+      showToast('मोबाइल नंबर सत्यापित हो गया।');
+    }catch(err){
+      console.error('Leave OTP verify error:',err);
+      alert('OTP सत्यापन विफल। OTP जाँचें या नया OTP भेजें।');
+    }
+  };
+  window.submitStudentLeave=function(){
+    if(!collegeGuard('student'))return;
+    const from=$('studentLeaveFrom')?.value||'',to=$('studentLeaveTo')?.value||'',reason=$('studentLeaveReason')?.value.trim()||'';
+    const raw=($('studentLeavePhone')?.value||'').replace(/\D/g,'');
+    const typed='+91'+raw;
+    if(!/^[6-9]\d{9}$/.test(raw)){alert('सही 10 अंकों का मोबाइल नंबर दर्ज करें।');return;}
+    if(!verifiedLeavePhone||verifiedLeavePhone!==typed){alert('अवकाश आवेदन भेजने से पहले मोबाइल नंबर का OTP सत्यापन अनिवार्य है।');return;}
+    if(!from||!to||to<from||!reason){alert('सही तारीखें और अवकाश का कारण भरें।');return;}
+    sd().leaveRequests.push({id:'LV'+Date.now(),collegeId:currentCollegeId,trade:currentTrade,studentId:String(loggedInStudent.studentId),studentName:loggedInStudent.name,phoneNumber:verifiedLeavePhone,phoneVerified:true,phoneVerifiedAt:new Date().toISOString(),from,to,reason,status:'लंबित',createdAt:new Date().toISOString()});
+    syncWithFirebase();renderCompletionModules();showToast('सत्यापित मोबाइल नंबर के साथ अवकाश आवेदन अधीक्षक को भेजा गया।');
+    ['studentLeaveFrom','studentLeaveTo','studentLeaveReason','studentLeavePhone','studentLeaveOtp'].forEach(id=>{if($(id))$(id).value='';});
+    const phone=$('studentLeavePhone');if(phone)phone.readOnly=false;
+    const send=$('sendStudentLeaveOtpBtn');if(send){send.disabled=false;send.textContent='OTP भेजें';}
+    window.resetStudentLeavePhoneVerification();
+  };
   window.publishCollegeTimetable=function(){if(!collegeGuard('superintendent'))return;const subject=$('supTtSubject').value.trim(),time=$('supTtTime').value.trim();if(!subject||!time){alert('समय और विषय भरें।');return;}sd().timetables.push({id:'TT'+Date.now(),collegeId:currentCollegeId,trade:$('supTtTrade').value,day:$('supTtDay').value,time,subject,instructor:$('supTtInstructor').value.trim(),createdAt:new Date().toISOString()});syncWithFirebase();['supTtTime','supTtSubject','supTtInstructor'].forEach(id=>$(id).value='');renderCompletionModules();showToast('समय-सारणी प्रकाशित हुई।');};
   window.reviewStudentLeave=function(id,status){if(!['superintendent','groupInstructor'].includes(currentRole)||!currentCollegeId)return;if(!['स्वीकृत','अस्वीकृत'].includes(status))return;const x=sd().leaveRequests.find(v=>v.id===id&&v.collegeId===currentCollegeId);if(!x)return;const comment=$(`leaveReviewComment_${id}`)?.value.trim()||'';x.status=status;x.reviewComment=comment;x.reviewedAt=new Date().toISOString();x.reviewedBy=loggedInSuperintendent?.name||'ग्रुप इंस्ट्रक्टर';x.reviewedByRole=currentRole==='groupInstructor'?'ग्रुप इंस्ट्रक्टर':'अधीक्षक';syncWithFirebase();renderCompletionModules();showToast(`विद्यार्थी अवकाश आवेदन ${status} कर दिया गया।`);};
   window.printGroupWeeklyPrograms=function(){
