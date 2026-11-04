@@ -6350,7 +6350,7 @@ D) लखनऊ
       .exam-answer-pdf .foot{display:flex;flex-wrap:wrap;align-items:baseline;column-gap:2mm;row-gap:.2mm;border-top:1px dashed #aaa;padding:.5mm 0 0;margin:.6mm 0 0;font-size:7.2pt;line-height:1.1}
       .exam-answer-pdf .foot span{display:inline}
       .exam-answer-pdf .submitted-time{font-size:7pt;margin:1mm 0 0;line-height:1.1}
-      .exam-answer-pdf .pdf-page{width:210mm;height:297mm;padding:4mm;background:#fff;display:flex;flex-direction:column;overflow:hidden;page-break-after:always;break-after:page}
+      .exam-answer-pdf .pdf-page{width:210mm;min-width:210mm;max-width:210mm;height:297mm;min-height:297mm;max-height:297mm;padding:4mm;background:#fff;display:flex;flex-direction:column;overflow:hidden;box-sizing:border-box;page-break-after:always;break-after:page}
       .exam-answer-pdf .pdf-page:last-child{page-break-after:auto;break-after:auto}
       .exam-answer-pdf .pdf-header{flex:0 0 auto;margin-bottom:1.5mm}
       .exam-answer-pdf .pdf-columns{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:3mm;flex:1 1 auto;min-height:0;position:relative}
@@ -6389,9 +6389,9 @@ D) लखनऊ
     $('examTakePanel').style.display='none';$('examStudentResult').style.display='block';
     $('examStudentResult').innerHTML=`<h2 style="text-align:center;color:#1e3a8a">परीक्षा परिणाम</h2><h3>${escExam(record.examTitle)}</h3><p><b>विद्यार्थी:</b> ${escExam(record.name)} | <b>रोल:</b> ${escExam(record.roll)}</p><div class="exam-grid"><div class="exam-card">प्राप्तांक <h2>${record.score}/${record.maximum}</h2></div><div class="exam-card">प्रतिशत <h2>${percent}%</h2></div><div class="exam-card">सही / गलत <h2>${correct} / ${wrong}</h2></div></div><button class="exam-action exam-primary" id="downloadExamAnswerPdf">उत्तर सहित PDF डाउनलोड करें</button>`;
     $('downloadExamAnswerPdf').onclick=async()=>{
-      const wrap=document.createElement('div');wrap.style.cssText='position:fixed;left:-10000px;top:0;width:210mm;background:#fff;z-index:-1;';
+      const wrap=document.createElement('div');wrap.style.cssText='position:fixed;left:-10000px;top:0;width:210mm;min-width:210mm;max-width:210mm;background:#fff;z-index:0;overflow:visible;';
       const holder=document.createElement('div');holder.innerHTML=pdfHtml;const source=holder.firstElementChild;
-      const printRoot=source.cloneNode(false);printRoot.style.cssText="width:210mm;padding:0;margin:0;background:#fff;font-family:Arial,'Noto Sans Devanagari',sans-serif;color:#111;";
+      const printRoot=source.cloneNode(false);printRoot.style.cssText="width:210mm;min-width:210mm;max-width:210mm;padding:0;margin:0;background:#fff;font-family:Arial,'Noto Sans Devanagari',sans-serif;color:#111;box-sizing:border-box;";
       printRoot.appendChild(source.querySelector('style').cloneNode(true));
       const header=source.querySelector('.pdf-header');const cards=Array.from(source.querySelectorAll('.qcard'));
       let pageNo=0,currentCols=null,currentCol=0;
@@ -6414,7 +6414,16 @@ D) लखनऊ
           }
           if(card.offsetHeight>target.clientHeight){card.style.fontSize='6.4pt';card.style.lineHeight='1.03';card.querySelectorAll('.option').forEach(o=>{o.style.fontSize='6.2pt';o.style.lineHeight='1.03';});}
         }
-        await html2pdf().set({margin:0,filename:`${safeKey(record.roll)}-${safeKey(record.examTitle)}-answer.pdf`,image:{type:'jpeg',quality:.96},html2canvas:{scale:1.35,useCORS:true,backgroundColor:'#ffffff',windowWidth:794},pagebreak:{mode:['css','legacy'],avoid:['.qcard']},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}}).from(printRoot).save();
+        // प्रत्येक .pdf-page पहले से A4 आकार में तैयार है और प्रश्न दो कॉलम में
+        // बाँटे जा चुके हैं। html2pdf को प्रश्नों के बीच अतिरिक्त page-break न लगाने दें।
+        await html2pdf().set({
+          margin:0,
+          filename:`${safeKey(record.roll)}-${safeKey(record.examTitle)}-answer.pdf`,
+          image:{type:'jpeg',quality:.98},
+          html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff',logging:false,windowWidth:794,scrollX:0,scrollY:0},
+          pagebreak:{mode:['css']},
+          jsPDF:{unit:'mm',format:'a4',orientation:'portrait',compress:true}
+        }).from(printRoot).save();
       }catch(err){console.error('Exam answer PDF error:',err);alert('PDF नहीं बन सकी: '+(err.message||err));}
       finally{wrap.remove();}
     }
