@@ -931,7 +931,7 @@ window.__itiLoginClick = async function(ev) {
 <aside aria-label="अधीक्षक मेन्यू" class="sup-sidebar">
 <div class="sup-side-heading"><i class="fa-solid fa-building-columns"></i><span>अधीक्षक मेन्यू</span></div>
 <button class="sup-nav-btn active" data-view="overview" onclick="switchSupView('overview',this)"><i class="fa-solid fa-gauge-high"></i><span>डैशबोर्ड</span></button>
-<button class="sup-nav-btn" data-view="performance" onclick="switchSupView('performance',this)"><i class="fa-solid fa-chart-line"></i><span>अनुदेशक प्रदर्शन</span></button>
+<button class="sup-nav-btn" data-view="performance" onclick="switchSupView('performance',this)"><i class="fa-solid fa-chart-line"></i><span>अनुदेशक कार्य रिपोर्ट</span></button>
 <button class="sup-nav-btn" data-view="instructors" onclick="switchSupView('instructors',this)"><i class="fa-solid fa-chalkboard-user"></i><span>अनुदेशक रिकॉर्ड</span></button>
 <button class="sup-nav-btn" data-view="inspection" onclick="switchSupView('inspection',this)"><i class="fa-solid fa-clipboard-check"></i><span>निरीक्षण रजिस्टर</span></button>
 <button class="sup-nav-btn" data-view="assets" onclick="switchSupView('assets',this)"><i class="fa-solid fa-screwdriver-wrench"></i><span>लैब / मशीनरी</span></button>
@@ -959,7 +959,7 @@ window.__itiLoginClick = async function(ev) {
 <div class="glass-card sup-panel hidden" id="groupInstructorMonitoringPanel"><h3><i class="fa-solid fa-user-check"></i> ग्रुप इंस्ट्रक्टर निगरानी रिपोर्ट</h3><p class="sup-help">यहाँ ग्रुप इंस्ट्रक्टर द्वारा दर्ज निरीक्षण, निरीक्षण की स्थिति और To-Do कार्यों की प्रगति दिखाई जाएगी।</p><div class="sup-alert-grid" id="groupMonitoringSummary"></div><h4>ग्रुप इंस्ट्रक्टर के निरीक्षण</h4><div class="table-shell"><table><thead><tr><th>तारीख</th><th>निरीक्षणकर्ता</th><th>प्रकार / स्थान</th><th>निष्कर्ष</th><th>सुधार निर्देश</th><th>स्थिति</th></tr></thead><tbody id="groupMonitoringInspectionBody"></tbody></table></div><h4 style="margin-top:18px">ग्रुप इंस्ट्रक्टर के कार्यों की स्थिति</h4><div class="table-shell"><table><thead><tr><th>कार्य</th><th>अंतिम तारीख</th><th>स्थिति</th><th>टिप्पणी</th></tr></thead><tbody id="groupMonitoringTaskBody"></tbody></table></div></div>
 </div>
 <div class="sup-view-panel hidden" id="supViewPerformance">
-<div class="glass-card sup-panel"><h3><i class="fa-solid fa-chart-line"></i> अनुदेशक प्रदर्शन ग्राफ</h3><p class="sup-help">ग्राफ मौजूदा उपस्थिति रिकॉर्ड, मूल्यांकन डेटा और दर्ज निरीक्षण/कार्य गतिविधियों पर आधारित है। जहाँ डेटा उपलब्ध नहीं है, वहाँ शून्य दिखेगा।</p><div class="sup-chart-list" id="supPerformanceChart"></div></div>
+<div class="glass-card sup-panel"><h3><i class="fa-solid fa-clipboard-list"></i> अनुदेशक कार्य एवं प्रगति रिपोर्ट</h3><p class="sup-help">यह रिपोर्ट वास्तविक सेव रिकॉर्ड पर आधारित है। उपलब्ध न होने वाले डेटा को शून्य प्रदर्शन नहीं माना जाएगा। उपस्थिति और मूल्यांकन ट्रेड-स्तर के रिकॉर्ड हैं; अन्य प्रविष्टियाँ अनुदेशक-वार दिखाई गई हैं।</p><div class="table-shell"><table><thead><tr><th>अनुदेशक</th><th>ट्रेड</th><th>ट्रेड उपस्थिति</th><th>पाठ्यक्रम प्रगति</th><th>गतिविधि रिपोर्ट</th><th>साप्ताहिक रिकॉर्ड</th><th>शिक्षण रिकॉर्ड</th><th>लंबित कार्य</th><th>मूल्यांकन रिकॉर्ड</th><th>अंतिम गतिविधि</th></tr></thead><tbody id="supPerformanceChart"></tbody></table></div></div>
 </div>
 <div class="sup-view-panel hidden" id="supViewInstructors">
 <div class="glass-card sup-panel"><h3><i class="fa-solid fa-chalkboard-user"></i> अनुदेशक रिकॉर्ड की जाँच</h3><div class="table-shell"><table><thead><tr><th>अनुदेशक</th><th>ट्रेड</th><th>विद्यार्थी</th><th>उपस्थिति एंट्री</th><th>मूल्यांकन रिकॉर्ड</th><th>जमा किए गए रिकॉर्ड</th><th>अंतिम गतिविधि</th></tr></thead><tbody id="supInstructorTableBody"></tbody></table></div></div>
@@ -998,6 +998,7 @@ window.__itiLoginClick = async function(ev) {
 <div class="sup-view-panel hidden" id="supViewTasks">
 <div class="glass-card sup-panel"><h3><i class="fa-solid fa-list-check"></i> अनुदेशक कार्य गतिविधियाँ</h3><div class="sup-form-grid"><div class="input-group"><label>अनुदेशक</label><select id="supTaskInstructor"></select></div><div class="input-group"><label>कार्य / गतिविधि</label><input id="supTaskTitle" placeholder="जैसे प्रैक्टिकल रिकॉर्ड अपडेट करना"/></div><div class="input-group"><label>अंतिम तारीख</label><input id="supTaskDue" type="date"/></div><div class="input-group"><label>प्राथमिकता</label><select id="supTaskPriority"><option>सामान्य</option><option>महत्वपूर्ण</option><option>अति आवश्यक</option></select></div><div class="input-group"><label>विवरण</label><textarea id="supTaskDescription" placeholder="कार्य का विवरण" rows="2"></textarea></div></div><button class="app-btn app-btn-primary" onclick="assignSupTask()"><i class="fa-solid fa-paper-plane"></i> कार्य आवंटित करें</button></div>
 <div class="glass-card sup-panel"><h3><i class="fa-solid fa-bullhorn"></i> विद्यार्थी सूचना जारी करें</h3><div class="sup-form-grid"><div class="input-group"><label>सूचना शीर्षक</label><input id="supNoticeTitle" placeholder="जैसे परीक्षा समय-सारणी"/></div><div class="input-group"><label>ट्रेड</label><select id="supNoticeTrade"><option value="ALL">सभी ट्रेड</option></select></div><div class="input-group"><label>सूचना</label><textarea id="supNoticeMessage" rows="2" placeholder="विद्यार्थियों के लिए सूचना लिखें"></textarea></div></div><button class="app-btn app-btn-primary" onclick="publishSupNotice()">सूचना प्रकाशित करें</button><div id="supNoticeHistory"></div></div>
+<div class="glass-card sup-panel"><h3><i class="fa-solid fa-bullhorn"></i> अनुदेशक सूचना जारी करें</h3><p class="sup-help">यह सूचना केवल आपके कॉलेज के अनुदेशकों को दिखाई जाएगी। सभी अनुदेशकों या किसी एक अनुदेशक को चुनें।</p><div class="sup-form-grid"><div class="input-group"><label for="staffNoticeTitle">सूचना शीर्षक</label><input id="staffNoticeTitle" maxlength="140" placeholder="जैसे साप्ताहिक रिपोर्ट जमा करने के निर्देश"/></div><div class="input-group"><label for="staffNoticeTarget">किसे सूचना भेजें?</label><select id="staffNoticeTarget"><option value="ALL">सभी अनुदेशक</option></select></div><div class="input-group"><label for="staffNoticeMessage">सूचना का विवरण</label><textarea id="staffNoticeMessage" rows="3" maxlength="3000" placeholder="अनुदेशकों के लिए सूचना लिखें"></textarea></div></div><button class="app-btn app-btn-primary" type="button" onclick="publishStaffNotice()"><i class="fa-solid fa-paper-plane"></i> अनुदेशक सूचना प्रकाशित करें</button><div id="staffNoticeHistory" style="margin-top:12px"></div></div>
 <div class="glass-card sup-panel"><h3>आवंटित कार्य</h3><div class="table-shell"><table><thead><tr><th>अनुदेशक</th><th>कार्य</th><th>अंतिम तारीख</th><th>प्राथमिकता</th><th>स्थिति</th><th>कार्रवाई</th></tr></thead><tbody id="supTaskHistory"></tbody></table></div></div>
 <div class="glass-card sup-panel"><h3>अनुदेशकों की जमा की गई गतिविधि रिपोर्ट</h3><div class="table-shell"><table><thead><tr><th>तारीख</th><th>अनुदेशक</th><th>गतिविधि</th><th>विद्यार्थी</th><th>विवरण</th><th>स्थिति</th><th>समीक्षा / कार्रवाई</th></tr></thead><tbody id="supActivityReports"></tbody></table></div></div>
 </div>
@@ -1112,6 +1113,7 @@ window.__itiLoginClick = async function(ev) {
   <div class="input-group" style="max-width:360px;margin-top:14px;"><label for="h1h2StudentSelect">विद्यार्थी की व्यक्तिगत PDF चुनें</label><select id="h1h2StudentSelect"></select></div>
 </div>
 <div class="hidden" id="instTabWork">
+<div class="glass-card" style="padding:18px;margin-bottom:14px;border-left:5px solid #2563eb;"><h3 style="color:var(--primary);margin-bottom:8px;"><i class="fa-solid fa-bullhorn"></i> अधीक्षक / ग्रुप इंस्ट्रक्टर से प्राप्त सूचना</h3><div id="instructorStaffNoticeList"><span class="sup-help">सूचनाएँ लोड हो रही हैं…</span></div></div>
 <div class="glass-card" style="padding:18px;margin-bottom:14px;">
 <h3 style="color:var(--primary);margin-bottom:12px;"><i class="fa-solid fa-list-check"></i> अधीक्षक द्वारा सौंपे गए कार्य</h3>
 <div class="table-shell"><table><thead><tr><th>कार्य</th><th>अंतिम तारीख</th><th>प्राथमिकता</th><th>स्थिति</th><th>कार्रवाई</th></tr></thead><tbody id="instAssignedTasksBody"></tbody></table></div>
@@ -2631,7 +2633,8 @@ D) लखनऊ
                 'syllabus',
                 'teachingRecords',
                 'weeklyPrograms',
-                'weakStudents'
+                'weakStudents',
+                'staffNotices'
             ].forEach(key => { d[key] = keepList(d[key]); });
 
             appData.groupInstructorTasks = keepList(appData.groupInstructorTasks);
@@ -2675,6 +2678,7 @@ D) लखनऊ
             const list=getSupCollegeInstructors();
             const opts=list.map(i=>`<option value="${supEscape(i.id)}">${supEscape(i.name)} — ${supEscape(i.trade)}</option>`).join('');
             const nt=document.getElementById('supNoticeTrade');if(nt)nt.innerHTML='<option value="ALL">सभी ट्रेड</option>'+getTradesList().map(t=>`<option value="${supEscape(t)}">${supEscape(t)}</option>`).join('');
+            const staffTarget=document.getElementById('staffNoticeTarget');if(staffTarget){const keep=staffTarget.value;staffTarget.innerHTML='<option value="ALL">सभी अनुदेशक</option>'+list.map(i=>`<option value="${supEscape(i.id)}">${supEscape(i.name)} — ${supEscape(i.trade)}</option>`).join('');if([...staffTarget.options].some(o=>o.value===keep))staffTarget.value=keep;}
             ['supInspectionInstructor','supTaskInstructor'].forEach(id=>{const el=document.getElementById(id);if(el){const first=id==='supInspectionInstructor'?'<option value="">लागू नहीं</option>':'';el.innerHTML=first+opts;}});
         }
         function renderSuperintendentDashboard(){
@@ -2787,14 +2791,17 @@ D) लखनऊ
                 <td>${x.submissionCount} जमा रिकॉर्ड</td><td>${x.last?new Date(x.last).toLocaleDateString('hi-IN'):'अभी कोई रिकॉर्ड दर्ज नहीं'}</td></tr>`
             ).join(''):'<tr><td colspan="7">अनुदेशक रिकॉर्ड उपलब्ध नहीं हैं।</td></tr>';
             const chart=document.getElementById('supPerformanceChart');
-            if(chart)chart.innerHTML=rows.length?rows.map(x=>`<div class="sup-chart-row">
-                <strong>${supEscape(x.i.name||x.i.id)}</strong><div class="sup-chart-track"><div class="sup-chart-fill" style="width:${x.score}%"></div></div>
-                <span class="sup-chart-value">${x.score}%</span></div>
-                <div style="font-size:.78rem;color:#64748b;margin:-9px 0 10px 0;">
-                ${supEscape(x.i.trade)} · उपस्थिति ${x.attendancePct}% · पाठ्यक्रम प्रगति ${x.syllabusPct}% ·
-                गतिविधि रिपोर्ट ${x.ownReports.length} · साप्ताहिक ${x.ownWeekly.length} · शिक्षण ${x.ownTeaching.length} ·
-                सुधार योजना ${x.ownWeak.length} · मूल्यांकन ${x.evals}</div>`
-            ).join(''):'<p>अभी प्रदर्शन ग्राफ के लिए अनुदेशक डेटा उपलब्ध नहीं है।';
+            if(chart)chart.innerHTML=rows.length?rows.map(x=>{
+                const attendanceLabel=(x.stats.present+x.stats.absent)>0?`${x.attendancePct}% (${x.stats.present}/${x.stats.present+x.stats.absent})`:'रिकॉर्ड उपलब्ध नहीं';
+                const syllabusLabel=x.ownSyllabus.length?`${x.syllabusPct}% · ${x.ownSyllabus.length} रिकॉर्ड`:'रिकॉर्ड उपलब्ध नहीं';
+                const pending=x.ownTasks.filter(t=>t.status!=='पूर्ण').length;
+                const last=x.last?new Date(x.last).toLocaleDateString('hi-IN'):'रिकॉर्ड उपलब्ध नहीं';
+                return `<tr><td><strong>${supEscape(x.i.name||x.i.id)}</strong></td><td>${supEscape(x.i.trade||'-')}</td>
+                <td>${attendanceLabel}</td><td>${syllabusLabel}</td><td>${x.ownReports.length||'—'}</td>
+                <td>${x.ownWeekly.length||'—'}</td><td>${x.ownTeaching.length||'—'}</td>
+                <td><strong style="color:${pending?'#b91c1c':'#15803d'}">${x.ownTasks.length?pending:'रिकॉर्ड उपलब्ध नहीं'}</strong></td>
+                <td>${x.evals||'रिकॉर्ड उपलब्ध नहीं'}</td><td>${last}</td></tr>`;
+            }).join(''):'<tr><td colspan="10">इस कॉलेज में अभी अनुदेशक रिकॉर्ड उपलब्ध नहीं हैं।</td></tr>';
             const inspections=d.inspections.filter(x=>x.collegeId===cid).sort((a,b)=>String(b.date).localeCompare(String(a.date)));
             const ih=document.getElementById('supInspectionHistory');
             if(ih)ih.innerHTML=inspections.length?inspections.map(x=>`<tr><td>${supEscape(x.date)}</td><td>${supEscape(x.typeLabel)}</td><td>${supEscape(x.instructorName||x.location||'-')}</td><td>${supEscape(x.finding)}</td><td>${supEscape(x.action||'-')}</td><td>${supEscape(x.status)}</td><td><button class="app-btn app-btn-secondary" onclick="updateSupInspectionStatus('${x.id}')">स्थिति बदलें</button></td></tr>`).join(''):'<tr><td colspan="7">अभी निरीक्षण रिकॉर्ड नहीं है।</td></tr>';
@@ -2810,11 +2817,47 @@ D) लखनऊ
             const noticeHistory=document.getElementById('supNoticeHistory');
             if(noticeHistory){const ns=d.notices.filter(n=>n.collegeId===cid).sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt)));
                 noticeHistory.innerHTML=ns.length?ns.map(n=>`<p>• <strong>${supEscape(n.title)}</strong> (${supEscape(n.trade==='ALL'?'सभी ट्रेड':n.trade)}) — ${supEscape(n.date||'')}</p>`).join(''):'<small>अभी कोई सूचना प्रकाशित नहीं हुई है।</small>';}
+            const staffHistory=document.getElementById('staffNoticeHistory');
+            if(staffHistory){
+                const staff=d.staffNotices.filter(n=>n.collegeId===cid).slice().sort((a,b)=>String(b.createdAt||'').localeCompare(String(a.createdAt||'')));
+                staffHistory.innerHTML=staff.length?staff.map(n=>`<div style="padding:9px 0;border-bottom:1px solid #e2e8f0"><strong>${supEscape(n.title)}</strong><div>${supEscape(n.recipientInstructorId==='ALL'?'सभी अनुदेशक':(n.recipientName||'चयनित अनुदेशक'))}</div><small>${supEscape(n.date||'')} · ${supEscape(n.createdBy||'')}</small><p style="margin-top:4px;white-space:pre-wrap">${supEscape(n.message)}</p></div>`).join(''):'<small>अभी कोई अनुदेशक सूचना जारी नहीं हुई है।</small>';
+            }
             const reports=d.reports.filter(x=>x.collegeId===cid).sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt)));
             const rh=document.getElementById('supActivityReports');
             if(rh)rh.innerHTML=reports.length?reports.map(r=>`<tr><td><strong>${supEscape(r.period||'दैनिक')}</strong><br>${supEscape(r.date)}${r.endDate?' से '+supEscape(r.endDate):''}</td><td>${supEscape(r.instructorName)}</td><td>${supEscape(r.type)}</td><td>${Number(r.students)||0}</td><td>${supEscape(r.details)}${r.reviewComment?`<br><small>टिप्पणी: ${supEscape(r.reviewComment)}</small>`:''}</td><td>${supEscape(r.status||'जमा')}</td><td><button class="app-btn app-btn-success" onclick="reviewSupReport('${r.id}','approve')">स्वीकृत</button> <button class="app-btn app-btn-warning" onclick="reviewSupReport('${r.id}','return')">वापस भेजें</button></td></tr>`).join(''):'<tr><td colspan="7">अभी कोई गतिविधि रिपोर्ट जमा नहीं हुई है।</td></tr>';
         }
         function publishSupNotice(){if(!['superintendent','groupInstructor'].includes(currentRole)||!currentCollegeId)return;const title=document.getElementById('supNoticeTitle').value.trim(),message=document.getElementById('supNoticeMessage').value.trim(),trade=document.getElementById('supNoticeTrade').value;if(!title||!message){alert('सूचना का शीर्षक और विवरण दोनों भरें।');return;}ensureSupData().notices.push({id:'NOT'+Date.now(),collegeId:currentCollegeId,trade,title,message,date:new Date().toISOString().slice(0,10),createdAt:new Date().toISOString(),createdBy:loggedInSuperintendent?.name||''});syncWithFirebase();document.getElementById('supNoticeTitle').value='';document.getElementById('supNoticeMessage').value='';renderSupOperationalViews();showToast('विद्यार्थियों के लिए सूचना प्रकाशित हो गई।');}
+
+        function publishStaffNotice(){
+            if(!['superintendent','groupInstructor'].includes(currentRole)||!currentCollegeId)return;
+            const title=document.getElementById('staffNoticeTitle')?.value.trim()||'';
+            const message=document.getElementById('staffNoticeMessage')?.value.trim()||'';
+            const target=document.getElementById('staffNoticeTarget')?.value||'ALL';
+            if(!title||!message){alert('सूचना का शीर्षक और विवरण दोनों भरें।');return;}
+            const instructors=getSupCollegeInstructors();
+            const recipient=target==='ALL'?null:instructors.find(i=>String(i.id)===String(target));
+            if(target!=='ALL'&&!recipient){alert('चयनित अनुदेशक इस कॉलेज की सूची में नहीं मिला।');return;}
+            const now=new Date().toISOString(),by=loggedInSuperintendent?.name||'अधिकारी';
+            ensureSupData().staffNotices.push({
+                id:'STN'+Date.now()+'_'+Math.random().toString(36).slice(2,7),
+                collegeId:currentCollegeId,recipientInstructorId:target,
+                recipientName:recipient?.name||'सभी अनुदेशक',recipientTrade:recipient?.trade||'ALL',
+                title,message,date:now.slice(0,10),createdAt:now,createdBy:by,
+                createdByRole:currentRole==='groupInstructor'?'ग्रुप इंस्ट्रक्टर':'अधीक्षक'
+            });
+            addSupAudit('अनुदेशक सूचना जारी',`${target==='ALL'?'सभी अनुदेशक':recipient.name}: ${title}`);
+            syncWithFirebase();
+            document.getElementById('staffNoticeTitle').value='';
+            document.getElementById('staffNoticeMessage').value='';
+            if(document.getElementById('staffNoticeTarget'))document.getElementById('staffNoticeTarget').value='ALL';
+            renderSupOperationalViews();showToast('अनुदेशकों के लिए सूचना प्रकाशित हो गई।');
+        }
+        function renderInstructorStaffNotices(){
+            const host=document.getElementById('instructorStaffNoticeList');
+            if(!host||currentRole!=='instructor'||!loggedInInstructor)return;
+            const notices=ensureSupData().staffNotices.filter(n=>n.collegeId===currentCollegeId&&(n.recipientInstructorId==='ALL'||String(n.recipientInstructorId)===String(loggedInInstructor.id))).slice().sort((a,b)=>String(b.createdAt||'').localeCompare(String(a.createdAt||'')));
+            host.innerHTML=notices.length?notices.map(n=>`<article style="padding:12px;margin:8px 0;background:#f8fbff;border:1px solid #dbeafe;border-radius:10px"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><strong>${supEscape(n.title)}</strong><small>${supEscape(n.date||'')}</small></div><p style="margin:7px 0;white-space:pre-wrap">${supEscape(n.message)}</p><small style="color:#64748b">जारीकर्ता: ${supEscape(n.createdBy||'अधिकारी')} · ${supEscape(n.createdByRole||'')}</small></article>`).join(''):'<p class="sup-help">अभी आपके लिए कोई नई सूचना उपलब्ध नहीं है।</p>';
+        }
 
         function addSupAudit(action, details, targetId=''){
             const d=ensureSupData();d.auditLog.push({id:'AUD'+Date.now(),collegeId:currentCollegeId,actor:loggedInSuperintendent?.name||'सुपर एडमिन',role:currentRole,action,details,targetId,at:new Date().toISOString()});
@@ -3206,7 +3249,7 @@ D) लखनऊ
 
         function toggleActivityPeriodFields(){const period=document.getElementById('instActivityPeriod')?.value||'दैनिक';const wrap=document.getElementById('instActivityEndWrap');if(wrap)wrap.style.display=period==='दैनिक'?'none':'block';}
         function renderInstructorWorkPanel(){
-            if(currentRole!=='instructor'||!loggedInInstructor)return;const d=ensureSupData();const tasks=d.tasks.filter(t=>t.collegeId===currentCollegeId&&t.instructorId===loggedInInstructor.id);const body=document.getElementById('instAssignedTasksBody');if(body)body.innerHTML=tasks.length?tasks.map(t=>`<tr><td>${supEscape(t.title)}<br><small>${supEscape(t.description||'')}</small></td><td>${supEscape(t.due||'-')}</td><td>${supEscape(t.priority)}</td><td>${supEscape(t.status)}</td><td>${t.status==='पूर्ण'?'—':`<button class="app-btn app-btn-success" onclick="completeInstructorTask('${t.id}')">पूर्ण करें</button>`}</td></tr>`).join(''):'<tr><td colspan="5">अधीक्षक ने अभी कोई कार्य नहीं दिया है।</td></tr>';
+            if(currentRole!=='instructor'||!loggedInInstructor)return;const d=ensureSupData();renderInstructorStaffNotices();const tasks=d.tasks.filter(t=>t.collegeId===currentCollegeId&&t.instructorId===loggedInInstructor.id);const body=document.getElementById('instAssignedTasksBody');if(body)body.innerHTML=tasks.length?tasks.map(t=>`<tr><td>${supEscape(t.title)}<br><small>${supEscape(t.description||'')}</small></td><td>${supEscape(t.due||'-')}</td><td>${supEscape(t.priority)}</td><td>${supEscape(t.status)}</td><td>${t.status==='पूर्ण'?'—':`<button class="app-btn app-btn-success" onclick="completeInstructorTask('${t.id}')">पूर्ण करें</button>`}</td></tr>`).join(''):'<tr><td colspan="5">अधीक्षक ने अभी कोई कार्य नहीं दिया है।</td></tr>';
             renderInstructorRequestHistory();const reports=d.reports.filter(r=>r.collegeId===currentCollegeId&&r.instructorId===loggedInInstructor.id).slice().reverse();const hist=document.getElementById('instActivityHistory');if(hist)hist.innerHTML=reports.length?'<strong>मेरी हाल की रिपोर्ट</strong><ul style="padding-left:20px;margin-top:7px;">'+reports.slice(0,12).map(r=>`<li>${supEscape(r.period||'दैनिक')} · ${supEscape(r.date)}${r.endDate?' से '+supEscape(r.endDate):''} — ${supEscape(r.type)} (${supEscape(r.status||'जमा')})${r.reviewComment?`<br><small>अधीक्षक टिप्पणी: ${supEscape(r.reviewComment)}</small>`:''}${r.status==='सुधार हेतु वापस'?` <button class="app-btn app-btn-warning" onclick="resubmitReturnedReport('${r.id}')">सुधार करके दोबारा भेजें</button>`:''}</li>`).join('')+'</ul>':'<span style="color:#64748b;font-size:.84rem;">अभी कोई रिपोर्ट जमा नहीं की गई है।</span>';
         }
         function completeInstructorTask(id){if(currentRole!=='instructor'||!loggedInInstructor)return;const t=ensureSupData().tasks.find(x=>x.id===id&&x.collegeId===currentCollegeId&&x.instructorId===loggedInInstructor.id);if(!t)return;t.status='पूर्ण';t.completedAt=new Date().toISOString();t.completedBy=loggedInInstructor.name;syncWithFirebase();renderInstructorWorkPanel();showToast('कार्य पूर्ण चिह्नित हो गया।');}
