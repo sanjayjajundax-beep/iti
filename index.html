@@ -1016,6 +1016,13 @@ window.__itiLoginClick = async function(ev) {
 </section>
 <!-- 4. INSTRUCTOR DASHBOARD -->
 <section class="hidden" id="instructorSection">
+<div class="exam-panel" id="instructorExamCredentialsDashboard" style="border:2px solid #2563eb;background:#eff6ff;margin-bottom:14px">
+ <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap">
+  <div><h3 style="color:#1e3a8a">🔐 आपके ट्रेड की परीक्षा लॉगिन जानकारी</h3><p style="font-size:13px;color:#475569">यह Exam ID और Password अपने ट्रेड के विद्यार्थियों को बताएं।</p></div>
+  <button type="button" class="exam-action exam-primary" onclick="loadInstructorExamCredentials()">रीफ्रेश करें</button>
+ </div>
+ <div id="instructorExamCredentialsList">लॉगिन जानकारी लोड हो रही है...</div>
+</div>
 
 <!-- Tab 1: Attendance -->
 
@@ -3136,6 +3143,7 @@ D) लखनऊ
                 document.getElementById('evalTradeBadge').innerText = `${currentTrade} मूल्यांकन`;
                 document.getElementById('evalTradeTypeBadge').innerText = isEngg ? 'इंजीनियरिंग' : 'नॉन-इंजीनियरिंग';
                 document.getElementById('roleLabel').innerHTML = `<i class="fa-solid fa-chalkboard-user"></i> ${currentTrade} (${colName})`;
+                loadInstructorExamCredentials();
                 switchInstructorTab('attendance');
             } else if (currentRole === 'superintendent' || currentRole === 'groupInstructor') {
                 document.getElementById('superintendentSection').classList.remove('hidden');
@@ -6184,9 +6192,11 @@ D) लखनऊ
      fillExamSelectors();
      $('examAdminModal').classList.add('open');
      $('examAdminModal').querySelectorAll('.exam-admin-only').forEach(x=>x.style.display='none');
+     
      $('examNewCollege').value=currentCollegeId;$('examNewTrade').value=currentTrade;
      $('examNewCollege').disabled=true;$('examNewTrade').disabled=true;
      const status=$('examImportStatus');if(status)status.textContent='परीक्षा पैनल तैयार है। प्रश्न कॉपी-पेस्ट करके जाँचें।';
+     await loadInstructorExamCredentials();
      await loadInstructorExamResults();
    }catch(e){console.error('Instructor exam panel error:',e);const status=$('examImportStatus');if(status)status.textContent='पैनल खोलने में समस्या: '+e.message;else alert('परीक्षा पैनल नहीं खुला: '+e.message);}
  };
@@ -6517,56 +6527,20 @@ D) लखनऊ
     await db().ref(`exam_paper_snapshots/${safeKey(currentCollegeId)}/${safeKey(currentTrade)}/${activeExam.id}`).transaction(existing=>existing||paperSnapshot);
     const ref=db().ref(`exam_results/${safeKey(currentCollegeId)}/${safeKey(currentTrade)}/${activeExam.id}`).push();await ref.set(savedRecord);
     $('examTakePanel').style.display='none';$('examStudentResult').style.display='block';
-    $('examStudentResult').innerHTML=`<h2 style="text-align:center;color:#1e3a8a">परीक्षा परिणाम</h2><h3>${escExam(record.examTitle)}</h3><p><b>विद्यार्थी:</b> ${escExam(record.name)} | <b>रोल:</b> ${escExam(record.roll)}</p><div class="exam-grid"><div class="exam-card">प्राप्तांक <h2>${record.score}/${record.maximum}</h2></div><div class="exam-card">प्रतिशत <h2>${percent}%</h2></div><div class="exam-card">सही / गलत <h2>${correct} / ${wrong}</h2></div></div><button class="exam-action exam-primary" id="downloadExamAnswerPdf">उत्तर सहित PDF डाउनलोड करें</button>`;
-    $('downloadExamAnswerPdf').onclick=()=>{
-      const holder=document.createElement('div');
-      holder.innerHTML=pdfHtml;
-      const source=holder.firstElementChild;
-      if(!source){alert('PDF का कंटेंट तैयार नहीं हुआ।');return;}
-      const printWindow=window.open('','_blank');
-      if(!printWindow){alert('PDF/Print विंडो नहीं खुली। ब्राउज़र में Pop-ups की अनुमति दें और फिर प्रयास करें।');return;}
-      const header=source.querySelector('.pdf-header');
-      const table=source.querySelector('.result-table');
-      const rows=table?table.querySelectorAll('tbody tr').length:0;
-      if(!header||!table||rows!==record.details.length){
-        printWindow.close();
-        alert(`PDF में सभी प्रश्न नहीं मिले (${rows}/${record.details.length})।`);
-        return;
-      }
-      const safeTitle=String(record.examTitle||'CBT Result Card').replace(/[<>]/g,'');
-      const printCss=`
-        @page{size:A4 portrait;margin:8mm}
-        *{box-sizing:border-box!important}
-        html,body{margin:0!important;padding:0!important;width:100%!important;background:#fff!important;color:#111!important;font-family:Arial,"Noto Sans Devanagari",sans-serif!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
-        body{font-size:9pt;line-height:1.25}
-        #printRoot{display:block!important;width:100%!important;max-width:100%!important;min-width:0!important;margin:0!important;padding:0!important;overflow:visible!important}
-        #printRoot .pdf-header{display:block!important;width:100%!important;margin:0 0 3mm!important;padding:0 0 3mm!important;break-after:avoid-page!important;page-break-after:avoid!important}
-        #printRoot .institute{font-size:17pt!important;text-align:center!important}
-        #printRoot .trade-title{font-size:13pt!important;text-align:center!important}
-        #printRoot .instructor{font-size:11pt!important;text-align:center!important}
-        #printRoot .student-meta{display:grid!important;grid-template-columns:1fr 1fr!important;gap:1.5mm 8mm!important}
-        #printRoot table{display:table!important;width:100%!important;table-layout:fixed!important;border-collapse:collapse!important;font-size:8.5pt!important}
-        #printRoot thead{display:table-header-group!important}
-        #printRoot tr{break-inside:avoid-page!important;page-break-inside:avoid!important}
-        #printRoot th,#printRoot td{border:1px solid #aeb4b8!important;padding:1.5mm 1.7mm!important;vertical-align:top!important;white-space:normal!important;overflow-wrap:anywhere!important}
-        #printRoot th{background:#f1f3f5!important}
-        #printRoot .answer-correct{color:#168653!important}
-        #printRoot .answer-wrong{color:#c62828!important}
-        @media screen{body{padding:8mm!important;background:#eee!important}#printRoot{width:194mm!important;max-width:194mm!important;margin:0 auto!important;padding:8mm!important;background:#fff!important;box-shadow:0 0 4mm #aaa}}
-        @media print{html,body{width:auto!important}#printRoot{width:100%!important;max-width:100%!important}}
-      `;
-      const doc=printWindow.document;
-      doc.open();
-      doc.write(`<!doctype html><html lang="hi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${safeTitle} - ${escExam(record.roll)}</title><style>${printCss}</style></head><body><main id="printRoot"></main></body></html>`);
-      doc.close();
-      const target=doc.getElementById('printRoot');
-      target.className='exam-answer-pdf';
-      target.appendChild(source.querySelector('style').cloneNode(true));
-      target.appendChild(header.cloneNode(true));
-      target.appendChild(table.cloneNode(true));
-      setTimeout(()=>{try{printWindow.focus();printWindow.print();}catch(e){console.warn('Print dialog could not auto-open:',e);}},700);
-    };
+    $('examStudentResult').innerHTML=`<h2 style="text-align:center;color:#1e3a8a">परीक्षा परिणाम</h2><h3>${escExam(record.examTitle)}</h3><p><b>विद्यार्थी:</b> ${escExam(record.name)} | <b>रोल:</b> ${escExam(record.roll)}</p><div class="exam-grid"><div class="exam-card">प्राप्तांक <h2>${record.score}/${record.maximum}</h2></div><div class="exam-card">प्रतिशत <h2>${percent}%</h2></div><div class="exam-card">सही / गलत <h2>${correct} / ${wrong}</h2></div></div><p style="margin-top:12px;text-align:center;color:#64748b;font-weight:700">आपकी परीक्षा सफलतापूर्वक सबमिट हो गई है।</p>`;
    }catch(e){alert('परीक्षा परिणाम सेव नहीं हो सका: '+e.message);examAttemptBusy=false;}
+ };
+ window.loadInstructorExamCredentials=async function(){
+   if(currentRole!=='instructor'||!currentCollegeId||!currentTrade)return;
+   const hosts=[$('instructorExamCredentialsList')].filter(Boolean);if(!hosts.length)return;
+   hosts.forEach(host=>host.textContent='लॉगिन जानकारी लोड हो रही है...');
+   try{
+     const snap=await db().ref('exam_portal/credentials').once('value');
+     const all=snap.val()||{};
+     const matches=Object.values(all).filter(x=>x&&x.active!==false&&String(x.collegeId||'')===String(currentCollegeId)&&String(x.trade||'').trim().toLowerCase()===String(currentTrade).trim().toLowerCase());
+     const html=matches.length?matches.map(x=>`<div style="background:#fff;border:1px solid #bfdbfe;border-radius:10px;padding:12px;margin:8px 0"><div style="font-weight:800;color:#1e3a8a;margin-bottom:8px">${escExam(x.trade)} — ${escExam(getCollegeName(x.collegeId))}</div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px"><div><small style="color:#64748b">Exam ID</small><div style="font-size:17px;font-weight:800;word-break:break-all">${escExam(x.id)}</div></div><div><small style="color:#64748b">Password</small><div style="font-size:17px;font-weight:800;word-break:break-all">${escExam(x.pass)}</div></div></div></div>`).join(''):'<p style="color:#64748b">आपके कॉलेज और ट्रेड के लिए अभी एडमिन ने कोई सक्रिय परीक्षा लॉगिन ID / Password नहीं बनाया है।</p>';
+     hosts.forEach(host=>host.innerHTML=html);
+   }catch(e){console.error('Instructor exam credentials load failed:',e);hosts.forEach(host=>host.textContent='परीक्षा लॉगिन जानकारी लोड नहीं हुई: '+(e.message||e));}
  };
  window.loadInstructorExamResults=async function(){
    if(currentRole!=='instructor')return;
