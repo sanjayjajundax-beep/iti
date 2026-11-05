@@ -1016,14 +1016,6 @@ window.__itiLoginClick = async function(ev) {
 </section>
 <!-- 4. INSTRUCTOR DASHBOARD -->
 <section class="hidden" id="instructorSection">
-<div class="exam-panel" id="instructorExamCredentialsDashboard" style="border:2px solid #2563eb;background:#eff6ff;margin-bottom:14px">
- <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap">
-  <div><h3 style="color:#1e3a8a">🔐 आपके ट्रेड की परीक्षा लॉगिन जानकारी</h3><p style="font-size:13px;color:#475569">यह Exam ID और Password अपने ट्रेड के विद्यार्थियों को बताएं।</p></div>
-  <button type="button" class="exam-action exam-primary" onclick="loadInstructorExamCredentials()">रीफ्रेश करें</button>
- </div>
- <div id="instructorExamCredentialsList">लॉगिन जानकारी लोड हो रही है...</div>
-</div>
-
 <!-- Tab 1: Attendance -->
 
 <!-- Tab 2: Evaluations -->
@@ -1960,6 +1952,13 @@ window.__itiLoginClick = async function(ev) {
    <button id="examCredSaveBtn" class="exam-action exam-primary exam-admin-only" onclick="saveExamCredential()">लॉगिन आईडी सेव करें</button>
    <button id="examCredCancelEdit" class="exam-action exam-red exam-admin-only" style="display:none" onclick="cancelEditExamCredential()">एडिट रद्द करें</button>
    <div id="examCredentialList" class="exam-admin-only" style="margin-top:12px"></div>
+  </div>
+  <div class="exam-panel" id="instructorExamCredentialsDashboard" style="border:2px solid #2563eb;background:#eff6ff;margin-bottom:14px">
+   <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap">
+    <div><h3 style="color:#1e3a8a">🔐 आपके ट्रेड की परीक्षा लॉगिन जानकारी</h3><p style="font-size:13px;color:#475569">यह Exam ID और Password अपने ट्रेड के विद्यार्थियों को बताएं।</p></div>
+    <button type="button" class="exam-action exam-primary" onclick="loadInstructorExamCredentials()">रीफ्रेश करें</button>
+   </div>
+   <div id="instructorExamCredentialsList">लॉगिन जानकारी लोड हो रही है...</div>
   </div>
   <div class="exam-panel">
    <h3>नई परीक्षा तैयार करें</h3>
@@ -3143,7 +3142,6 @@ D) लखनऊ
                 document.getElementById('evalTradeBadge').innerText = `${currentTrade} मूल्यांकन`;
                 document.getElementById('evalTradeTypeBadge').innerText = isEngg ? 'इंजीनियरिंग' : 'नॉन-इंजीनियरिंग';
                 document.getElementById('roleLabel').innerHTML = `<i class="fa-solid fa-chalkboard-user"></i> ${currentTrade} (${colName})`;
-                loadInstructorExamCredentials();
                 switchInstructorTab('attendance');
             } else if (currentRole === 'superintendent' || currentRole === 'groupInstructor') {
                 document.getElementById('superintendentSection').classList.remove('hidden');
