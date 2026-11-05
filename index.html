@@ -6365,6 +6365,83 @@ D) लखनऊ
  }
  window.examGo=i=>{examIndex=i;drawExamQuestion();};window.examPrev=()=>{if(examIndex>0){examIndex--;drawExamQuestion();}};
  window.examNext=()=>{if(examIndex<examQuestions.length-1){examIndex++;drawExamQuestion();}else submitExamAttempt(true);};
+
+ // सेव किए गए परीक्षा परिणाम को बाद में Firebase से दोबारा बनाकर PDF/Print करने का फ़ंक्शन।
+ window.printSavedExamResult=async function(college,trade,examId,resultKey){
+   let win=null;
+   try{
+     const resultRef=db().ref(`exam_results/${safeKey(college)}/${safeKey(trade)}/${safeKey(examId)}/${safeKey(resultKey)}`);
+     const resultSnap=await resultRef.once('value');
+     const record=resultSnap.val();
+     if(!record)throw new Error('इस विद्यार्थी का परिणाम Firebase में नहीं मिला।');
+     const snapRef=db().ref(`exam_paper_snapshots/${safeKey(college)}/${safeKey(trade)}/${safeKey(examId)}`);
+     const paperSnap=await snapRef.once('value');
+     let paper=paperSnap.val();
+     if(!paper)paper=await readExamRecord(college,trade,examId);
+     if(!paper||!Array.isArray(paper.questions))throw new Error('इस परीक्षा का मूल प्रश्नपत्र नहीं मिला।');
+     let details=Array.isArray(record.details)?record.details:null;
+     if(!details){
+       const qs=validateExamQuestions(paper.questions);
+       const order=Array.isArray(record.questionOrder)?record.questionOrder:qs.map((_,i)=>i);
+       const answers=Array.isArray(record.answers)?record.answers:[];
+       details=order.map((originalIndex,shownIndex)=>{
+         const q=qs[originalIndex];if(!q)return null;
+         const selected=Number.isInteger(answers[originalIndex])&&answers[originalIndex]>=0?answers[originalIndex]:null;
+         const isAttempted=selected!==null,isCorrect=isAttempted&&selected===q.c;
+         return {number:shownIndex+1,question:q.q,options:q.a.slice(),selectedIndex:selected,
+           selectedText:isAttempted?q.a[selected]:'उत्तर नहीं दिया',correctIndex:q.c,correctText:q.a[q.c],
+           isAttempted,isCorrect,marks:q.marks,obtained:isCorrect?q.marks:0};
+       }).filter(Boolean);
+     }
+     if(!details.length)throw new Error('इस परिणाम के प्रश्न/उत्तर पुनः तैयार नहीं हो सके।');
+     const instituteName=record.instituteName||getCollegeName(college);
+     const title=record.examTitle||paper.title||'CBT Result Card';
+     const date=new Date(record.submittedAt||Date.now());
+     const pct=Number(record.percent||0);
+     const safeTitle=String(title).replace(/[<>]/g,'');
+     const html=`<div class="exam-answer-pdf">
+       <style>
+       .exam-answer-pdf{font-family:Arial,"Noto Sans Devanagari",sans-serif;color:#111;background:#fff;width:100%;font-size:9pt;line-height:1.25}
+       .pdf-header{text-align:center;border-bottom:1px solid #888;padding:0 0 3mm;margin:0 0 3mm}
+       .institute{font-size:17pt;font-weight:800;margin:0 0 1.5mm;text-transform:uppercase}
+       .trade-title{font-size:13pt;font-weight:800;color:#b58b00;margin:0 0 1.5mm}
+       .instructor{font-size:11pt;font-weight:700;color:#b42323;margin:0 0 2mm}
+       .student-meta{display:grid;grid-template-columns:1fr 1fr;gap:1.5mm 8mm;text-align:left;font-size:10pt;margin-top:2mm}
+       table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:8.5pt}
+       th,td{border:1px solid #aeb4b8;padding:1.5mm 1.7mm;text-align:left;vertical-align:top;overflow-wrap:anywhere}
+       th{background:#f1f3f5}th:nth-child(1),td:nth-child(1){width:5%;text-align:center}
+       th:nth-child(2),td:nth-child(2){width:55%}th:nth-child(3),td:nth-child(3){width:16%}
+       th:nth-child(4),td:nth-child(4){width:18%}th:nth-child(5),td:nth-child(5){width:6%;text-align:center}
+       .answer-correct{color:#168653;font-weight:700}.answer-wrong{color:#c62828;font-weight:700}
+       tr{break-inside:avoid-page;page-break-inside:avoid}
+       @page{size:A4 portrait;margin:8mm}
+       </style>
+       <div class="pdf-header">
+        <div class="institute">${escExam(instituteName)}</div>
+        <div class="trade-title">${escExam(trade)} TRADE — CBT RESULT CARD</div>
+        <div class="instructor">अनुदेशक / परीक्षा निर्माता: ${escExam(record.instructorName||paper.createdBy||'Admin')}</div>
+        <div class="student-meta">
+         <div><b>छात्र का नाम:</b> ${escExam(record.name)}</div><div><b>रोल नंबर:</b> ${escExam(record.roll)}</div>
+         <div><b>परीक्षा तिथि:</b> ${date.toLocaleDateString('hi-IN')}</div><div><b>सबमिट समय:</b> ${date.toLocaleTimeString('en-IN')}</div>
+         <div><b>प्राप्तांक:</b> ${record.score} / ${record.maximum}</div>
+         <div><b>परिणाम:</b> ${escExam(record.status)} (${pct}%)</div>
+        </div>
+       </div>
+       <table><thead><tr><th>#</th><th>प्रश्न</th><th>आपका उत्तर</th><th>सही उत्तर</th><th>परिणाम</th></tr></thead>
+       <tbody>${details.map(d=>`<tr><td>${d.number}</td><td>${escExam(d.question)}</td>
+        <td class="${d.isCorrect?'answer-correct':d.isAttempted?'answer-wrong':''}">${d.isAttempted?`${'ABCD'[d.selectedIndex]||d.selectedIndex+1} (${escExam(d.selectedText)})`:'अनुत्तरित'}</td>
+        <td class="answer-correct">${'ABCD'[d.correctIndex]||d.correctIndex+1} (${escExam(d.correctText)})</td>
+        <td class="${d.isCorrect?'answer-correct':'answer-wrong'}">${d.isCorrect?'✓':'✗'}</td></tr>`).join('')}</tbody></table>
+      </div>`;
+     win=window.open('','_blank');
+     if(!win)throw new Error('पॉपअप ब्लॉक है। ब्राउज़र में Pop-ups की अनुमति दें।');
+     win.document.open();
+     win.document.write(`<!doctype html><html lang="hi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${safeTitle} - ${escExam(record.roll)}</title>
+      <style>*{box-sizing:border-box}html,body{margin:0;padding:0;width:100%;font-family:Arial,"Noto Sans Devanagari",sans-serif}#printRoot{width:100%;max-width:194mm;margin:0 auto;padding:0}@media screen{body{padding:8mm;background:#eee}#printRoot{padding:8mm;background:white;box-shadow:0 0 4mm #aaa}}@media print{#printRoot{width:100%;max-width:100%;padding:0}}</style></head><body><main id="printRoot">${html}</main>
+      <script>window.onload=()=>setTimeout(()=>window.print(),400);<\/script></body></html>`);
+     win.document.close();
+   }catch(e){if(win&&!win.closed)win.close();alert('PDF तैयार नहीं हुई: '+(e.message||e));}
+ };
  window.submitExamAttempt=async function(confirmSubmit){
    if(examAttemptBusy)return;if(confirmSubmit&&!confirm(`आपने ${examAnswers.filter(x=>x!==null).length}/${examQuestions.length} प्रश्न हल किए हैं। क्या परीक्षा सबमिट करें?`))return;
    examAttemptBusy=true;if(examTimer)clearInterval(examTimer);
@@ -6436,6 +6513,8 @@ D) लखनऊ
    </div>`;
    try{
     // Firebase में compact summary + answer indexes ही सेव होंगे; प्रश्न और विकल्प snapshot में केवल एक बार हैं।
+    const paperSnapshot={collegeId:currentCollegeId,trade:currentTrade,examId:activeExam.id,title:activeExam.title,createdBy:activeExam.createdBy||'Admin',questions:examQuestions.map(q=>({q:q.q,a:q.a.slice(),c:q.c,marks:q.marks}))};
+    await db().ref(`exam_paper_snapshots/${safeKey(currentCollegeId)}/${safeKey(currentTrade)}/${activeExam.id}`).transaction(existing=>existing||paperSnapshot);
     const ref=db().ref(`exam_results/${safeKey(currentCollegeId)}/${safeKey(currentTrade)}/${activeExam.id}`).push();await ref.set(savedRecord);
     $('examTakePanel').style.display='none';$('examStudentResult').style.display='block';
     $('examStudentResult').innerHTML=`<h2 style="text-align:center;color:#1e3a8a">परीक्षा परिणाम</h2><h3>${escExam(record.examTitle)}</h3><p><b>विद्यार्थी:</b> ${escExam(record.name)} | <b>रोल:</b> ${escExam(record.roll)}</p><div class="exam-grid"><div class="exam-card">प्राप्तांक <h2>${record.score}/${record.maximum}</h2></div><div class="exam-card">प्रतिशत <h2>${percent}%</h2></div><div class="exam-card">सही / गलत <h2>${correct} / ${wrong}</h2></div></div><button class="exam-action exam-primary" id="downloadExamAnswerPdf">उत्तर सहित PDF डाउनलोड करें</button>`;
@@ -6492,16 +6571,17 @@ D) लखनऊ
  window.loadInstructorExamResults=async function(){
    if(currentRole!=='instructor')return;
    const college=currentCollegeId,trade=currentTrade,exams=await readExamCollection(college,trade);let rows=[];
-   for(const [id,ex] of Object.entries(exams)){const rs=await db().ref(`exam_results/${safeKey(college)}/${safeKey(trade)}/${id}`).once('value');Object.values(rs.val()||{}).forEach(r=>rows.push(r));}
-   $('examAdminResults').innerHTML=rows.length?`<table class="result-table"><thead><tr><th>परीक्षा</th><th>विद्यार्थी</th><th>रोल</th><th>हल</th><th>सही</th><th>गलत</th><th>अंक</th><th>%</th><th>तिथि</th></tr></thead><tbody>${rows.sort((a,b)=>String(b.submittedAt).localeCompare(String(a.submittedAt))).map(r=>`<tr><td>${escExam(r.examTitle)}</td><td>${escExam(r.name)}</td><td>${escExam(r.roll)}</td><td>${r.attempted}/${r.total}</td><td>${r.correct}</td><td>${r.wrong}</td><td>${r.score}/${r.maximum}</td><td>${r.percent}%</td><td>${new Date(r.submittedAt).toLocaleString('hi-IN')}</td></tr>`).join('')}</tbody></table>`:'अभी किसी विद्यार्थी ने परीक्षा सबमिट नहीं की है।';
+   for(const [id,ex] of Object.entries(exams)){const rs=await db().ref(`exam_results/${safeKey(college)}/${safeKey(trade)}/${id}`).once('value');Object.entries(rs.val()||{}).forEach(([rk,r])=>rows.push({...r,_key:rk,examId:id}));}
+   $('examAdminResults').innerHTML=rows.length?`<table class="result-table"><thead><tr><th>परीक्षा</th><th>विद्यार्थी</th><th>रोल</th><th>हल</th><th>सही</th><th>गलत</th><th>अंक</th><th>%</th><th>तिथि</th><th>PDF / प्रिंट</th></tr></thead><tbody>${rows.sort((a,b)=>String(b.submittedAt).localeCompare(String(a.submittedAt))).map(r=>`<tr><td>${escExam(r.examTitle)}</td><td>${escExam(r.name)}</td><td>${escExam(r.roll)}</td><td>${r.attempted}/${r.total}</td><td>${r.correct}</td><td>${r.wrong}</td><td>${r.score}/${r.maximum}</td><td>${r.percent}%</td><td>${new Date(r.submittedAt).toLocaleString('hi-IN')}</td><td><button class="exam-action exam-primary saved-result-pdf" data-exam="${escExam(r.examId||'')}" data-result="${escExam(r._key||'')}" data-college="${escExam(college)}" data-trade="${escExam(trade)}">PDF / प्रिंट</button></td></tr>`).join('')}</tbody></table>`:'अभी किसी विद्यार्थी ने परीक्षा सबमिट नहीं की है。';
  };
  window.loadExamResultsAdmin=async function(){
    const college=$('examResultCollege').value,trade=$('examResultTrade').value;
    const exams=await readExamCollection(college,trade);
    let rows=[];
-   for(const [id,ex] of Object.entries(exams)){const rs=await db().ref(`exam_results/${safeKey(college)}/${safeKey(trade)}/${id}`).once('value');Object.values(rs.val()||{}).forEach(r=>rows.push(r));}
-   $('examAdminResults').innerHTML=rows.length?`<table class="result-table"><thead><tr><th>परीक्षा</th><th>विद्यार्थी</th><th>रोल</th><th>हल/सही/गलत</th><th>अंक</th><th>%</th><th>परिणाम</th><th>तिथि</th></tr></thead><tbody>${rows.sort((a,b)=>String(b.submittedAt).localeCompare(String(a.submittedAt))).map(r=>`<tr><td>${escExam(r.examTitle)}</td><td>${escExam(r.name)}</td><td>${escExam(r.roll)}</td><td>${r.attempted}/${r.total} / ${r.correct} / ${r.wrong}</td><td>${r.score}/${r.maximum||r.total}</td><td>${r.percent}</td><td>${r.status}</td><td>${new Date(r.submittedAt).toLocaleString('hi-IN')}</td></tr>`).join('')}</tbody></table>`:'इस कॉलेज/ट्रेड का कोई परिणाम उपलब्ध नहीं है।';
+   for(const [id,ex] of Object.entries(exams)){const rs=await db().ref(`exam_results/${safeKey(college)}/${safeKey(trade)}/${id}`).once('value');Object.entries(rs.val()||{}).forEach(([rk,r])=>rows.push({...r,_key:rk,examId:id}));}
+   $('examAdminResults').innerHTML=rows.length?`<table class="result-table"><thead><tr><th>परीक्षा</th><th>विद्यार्थी</th><th>रोल</th><th>हल/सही/गलत</th><th>अंक</th><th>%</th><th>परिणाम</th><th>तिथि</th><th>PDF / प्रिंट</th></tr></thead><tbody>${rows.sort((a,b)=>String(b.submittedAt).localeCompare(String(a.submittedAt))).map(r=>`<tr><td>${escExam(r.examTitle)}</td><td>${escExam(r.name)}</td><td>${escExam(r.roll)}</td><td>${r.attempted}/${r.total} / ${r.correct} / ${r.wrong}</td><td>${r.score}/${r.maximum||r.total}</td><td>${r.percent}</td><td>${r.status}</td><td>${new Date(r.submittedAt).toLocaleString('hi-IN')}</td><td><button class="exam-action exam-primary saved-result-pdf" data-exam="${escExam(r.examId||'')}" data-result="${escExam(r._key||'')}" data-college="${escExam(college)}" data-trade="${escExam(trade)}">PDF / प्रिंट</button></td></tr>`).join('')}</tbody></table>`:'इस कॉलेज/ट्रेड का कोई परिणाम उपलब्ध नहीं है।';
  };
+ document.addEventListener('click',ev=>{const b=ev.target.closest('.saved-result-pdf');if(!b)return;window.printSavedExamResult(b.dataset.college,b.dataset.trade,b.dataset.exam,b.dataset.result);});
  document.addEventListener('DOMContentLoaded',()=>{fillExamSelectors();});
 })();
 
