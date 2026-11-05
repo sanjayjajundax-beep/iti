@@ -6341,6 +6341,7 @@ D) लखनऊ
  window.beginTradeExam=async function(key){
    const name=$('examCandidateName').value.trim(),roll=$('examCandidateRoll').value.trim();
    if(!name||!roll){alert('विद्यार्थी का नाम और रोल नंबर भरें।');return;}
+   // मास्टर पेपर exams path में केवल एक बार रहता है; हर विद्यार्थी के रिकॉर्ड में प्रश्न/विकल्प कॉपी नहीं होते।
    activeExam=await readExamRecord(currentCollegeId,currentTrade,key);if(!activeExam||!activeExam.questions){alert('परीक्षा उपलब्ध नहीं है।');return;}
    // उसी परीक्षा में एक रोल नंबर का दूसरा प्रयास रोकें।
    const old=await db().ref(`exam_results/${safeKey(currentCollegeId)}/${safeKey(currentTrade)}/${key}`).orderByChild('roll').equalTo(roll).once('value');
@@ -6374,6 +6375,11 @@ D) लखनऊ
    const instructorName=(!examCreator||/^admin$/i.test(examCreator))?'Admin':examCreator;
    const instituteName=getCollegeName(currentCollegeId);
    const record={collegeId:currentCollegeId,instituteName,trade:currentTrade,instructorName,examId:activeExam.id,examTitle:activeExam.title,name:activeExam.studentName,roll:activeExam.roll,total:examQuestions.length,attempted,correct,wrong,unattempted:examQuestions.length-attempted,score:Number(score.toFixed(2)),maximum:Number(totalMarks.toFixed(2)),percent,status:percent>=40?'PASS':'FAIL',submittedAt:now.toISOString(),details};
+   // Firebase में प्रश्न/विकल्प दोहराने के बजाय केवल मूल प्रश्न क्रम के अनुसार चुने गए विकल्प सेव करें। -1 = अनुत्तरित।
+   const compactAnswers=Array(examQuestions.length).fill(-1);
+   examOrder.forEach((originalIndex,shownIndex)=>{compactAnswers[originalIndex]=examAnswers[shownIndex]===null?-1:examAnswers[shownIndex];});
+   const savedRecord={...record,storageVersion:2,answers:compactAnswers,questionOrder:examOrder.slice()};
+   delete savedRecord.details;
    const examDate=now.toLocaleDateString('hi-IN');
    const examTime=now.toLocaleTimeString('en-IN');
    const pdfHtml=`<div class="exam-answer-pdf">
@@ -6429,8 +6435,8 @@ D) लखनऊ
     </table>
    </div>`;
    try{
-    // Firebase पर केवल aggregate summary जाएगा; किसी विद्यार्थी का उत्तर या PDF नहीं।
-    const ref=db().ref(`exam_results/${safeKey(currentCollegeId)}/${safeKey(currentTrade)}/${activeExam.id}`).push();await ref.set(record);
+    // Firebase में compact summary + answer indexes ही सेव होंगे; प्रश्न और विकल्प snapshot में केवल एक बार हैं।
+    const ref=db().ref(`exam_results/${safeKey(currentCollegeId)}/${safeKey(currentTrade)}/${activeExam.id}`).push();await ref.set(savedRecord);
     $('examTakePanel').style.display='none';$('examStudentResult').style.display='block';
     $('examStudentResult').innerHTML=`<h2 style="text-align:center;color:#1e3a8a">परीक्षा परिणाम</h2><h3>${escExam(record.examTitle)}</h3><p><b>विद्यार्थी:</b> ${escExam(record.name)} | <b>रोल:</b> ${escExam(record.roll)}</p><div class="exam-grid"><div class="exam-card">प्राप्तांक <h2>${record.score}/${record.maximum}</h2></div><div class="exam-card">प्रतिशत <h2>${percent}%</h2></div><div class="exam-card">सही / गलत <h2>${correct} / ${wrong}</h2></div></div><button class="exam-action exam-primary" id="downloadExamAnswerPdf">उत्तर सहित PDF डाउनलोड करें</button>`;
     $('downloadExamAnswerPdf').onclick=()=>{
@@ -6481,7 +6487,7 @@ D) लखनऊ
       target.appendChild(table.cloneNode(true));
       setTimeout(()=>{try{printWindow.focus();printWindow.print();}catch(e){console.warn('Print dialog could not auto-open:',e);}},700);
     };
-   }catch(e){alert('परिणाम सारांश दर्ज नहीं हो सका: '+e.message);examAttemptBusy=false;}
+   }catch(e){alert('परीक्षा परिणाम सेव नहीं हो सका: '+e.message);examAttemptBusy=false;}
  };
  window.loadInstructorExamResults=async function(){
    if(currentRole!=='instructor')return;
