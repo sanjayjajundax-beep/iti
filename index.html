@@ -5996,7 +5996,31 @@ D) लखनऊ
   const esc=v=>typeof supEscape==='function'?supEscape(v):String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   function sd(){const d=ensureSupData();['syllabus','weakStudents','teachingRecords','weeklyPrograms','leaveRequests','timetables'].forEach(k=>{if(!Array.isArray(d[k]))d[k]=[]});return d;}
   function collegeGuard(role){return currentRole===role&&!!currentCollegeId;}
-  function inject(){
+  function restoreTrade(trade){
+   const saved=ensureSupData().timetables||[];const rows=saved.filter(x=>x.collegeId===currentCollegeId&&String(x.trade)===String(trade));if(!rows.length)return;
+   const body=$('bulkTimetableEditor')?.querySelector(`.bulk-period-body[data-trade="${CSS.escape(trade)}"]`);if(!body)return;
+   const maxPeriod=Math.max(0,...rows.map(x=>Number(x.period||1)-1));while(body.querySelectorAll('tr').length<=maxPeriod)appendTradeRow(trade,body.querySelectorAll('tr').length);
+   const years=[...new Set(rows.map(x=>x.year).filter(Boolean))];const yearSel=$('bulkTimetableEditor')?.querySelector(`.bulk-year[data-trade="${CSS.escape(trade)}"]`);if(yearSel&&years[0])yearSel.value=years[0];
+   rows.forEach(x=>{const row=body.querySelectorAll('tr')[Math.max(0,Number(x.period||1)-1)];if(!row)return;const inp=row.querySelector(`.bulk-subject[data-day="${CSS.escape(x.day)}"]`);if(!inp)return;inp.value=x.subject||'';const td=inp.closest('td');const cat=td.querySelector('.bulk-category');if(cat&&[...cat.options].some(o=>o.value===(x.category||'Theory')))cat.value=x.category||'Theory';const common=td.querySelector('.bulk-common-instructor');if(common){common.checked=!!x.commonInstructor;const sel=td.querySelector('.bulk-instructor');if(sel){sel.innerHTML=instructorOptions(trade,common.checked);sel.value=x.instructorId||'';}}});
+   const setTime=(selector,value)=>{const el=$(selector);if(el&&value)el.value=value;};const settings=ensureSupData().timetableSettings?.[`${currentCollegeId}_${trade}`]||{};setTime('bulkLunchStart',settings.lunchStart||rows[0].lunchStart);setTime('bulkLunchEnd',settings.lunchEnd||rows[0].lunchEnd);setTime('bulkPracticalStart',settings.practicalStart);setTime('bulkPracticalEnd',settings.practicalEnd);const eff=$('bulkEffectiveFrom');if(eff&&settings.effectiveFrom)eff.value=settings.effectiveFrom;
+   rows.forEach(x=>{const row=body.querySelectorAll('tr')[Math.max(0,Number(x.period||1)-1)];if(row){const a=row.querySelector('.bulk-period-start'),b=row.querySelector('.bulk-period-end');if(a&&x.startTime)a.value=x.startTime;if(b&&x.endTime)b.value=x.endTime;}});
+ }
+ function timeLabel(t){if(!t)return '—';const m=String(t).match(/^(\d{2}):(\d{2})$/);if(!m)return t;let h=+m[1],amp=h>=12?'PM':'AM';h=h%12||12;return `${String(h).padStart(2,'0')}:${m[2]} ${amp}`;}
+ function printTrade(trade){
+   const store=ensureSupData(),rows=(store.timetables||[]).filter(x=>x.collegeId===currentCollegeId&&String(x.trade)===String(trade));if(!rows.length){alert('इस ट्रेड की प्रकाशित समय-सारणी उपलब्ध नहीं है। पहले इसे प्रकाशित करें।');return;}
+   const year=rows[0].year||'First Year',settings=store.timetableSettings?.[`${currentCollegeId}_${trade}`]||{};const days=['सोमवार','मंगलवार','बुधवार','गुरुवार','शुक्रवार','शनिवार'];
+   const theory=rows.filter(x=>!['Practical','PRACTICAL'].includes(String(x.category||'').toUpperCase())&&String(x.category||'').toLowerCase()!=='practical');
+   const periods=[...new Set(theory.map(x=>Number(x.period||1)))].sort((a,b)=>a-b);const timeByPeriod={};periods.forEach(n=>{const r=theory.find(x=>Number(x.period||1)===n);timeByPeriod[n]=r?.time||'—';});
+   const color=c=>({Theory:'#e99696',TH:'#e99696',ES:'#6b9628',WCS:'#ffe9a8',ED:'#29a9d8',Practical:'#d7d7d7',Other:'#fff0c2'}[c]||'#e8eef6');
+   const code=x=>String(x.subject||'').trim().toUpperCase();const descriptions={TH:'Theory (Trade Theory)',THEORY:'Theory (Trade Theory)',ES:'Employability Skills',WCS:'Workshop Calculation & Science',WC:'Workshop Calculation & Science',ED:'Engineering Drawing',PW:'Plantation Work',MW:'Maintenance Work','IT LAB':'Information Technology Lab',LIBRARY:'Library Session',SPORTS:'Physical Education & Sports',PRACTICAL:'Trade Practical'};
+   const cells=periods.map(n=>`<tr><th>${timeByPeriod[n]}</th>${days.map(day=>{const x=theory.find(z=>Number(z.period||1)===n&&z.day===day);return `<td style="background:${x?color(x.category):'#fff'}">${x?escT(x.subject):'—'}</td>`;}).join('')}</tr>`).join('');
+   const practical=rows.filter(x=>String(x.category||'').toLowerCase()==='practical'||String(x.subject||'').toUpperCase()==='PRACTICAL');const practicalNames=[...new Set(practical.map(x=>x.subject).filter(Boolean))];
+   const lunchStart=settings.lunchStart||rows[0].lunchStart||'13:00',lunchEnd=settings.lunchEnd||rows[0].lunchEnd||'13:30',pStart=settings.practicalStart||'13:30',pEnd=settings.practicalEnd||'17:30';
+   const codes=[...new Set(rows.map(x=>String(x.subject||'').trim()).filter(Boolean))];const abbrev=codes.map(c=>`<tr><td><b>${escT(c)}</b></td><td>${escT(descriptions[c.toUpperCase()]||c)}</td></tr>`).join('');
+   const w=window.open('','_blank');if(!w){alert('प्रिंट विंडो खुल नहीं सकी। ब्राउज़र में Pop-up की अनुमति दें।');return;}
+   w.document.write(`<!doctype html><html lang="hi"><head><meta charset="utf-8"><title>${escT(trade)} Time Table</title><style>@page{size:A4 portrait;margin:10mm}body{font-family:Arial,sans-serif;color:#111}h1{font-size:20px;color:#174d69;margin:0 0 8px}h2{font-size:15px;background:#285b98;color:white;padding:8px;margin:16px 0 0}p{text-align:center;margin:6px 0 12px;color:#555}table{width:100%;border-collapse:collapse;table-layout:fixed}th,td{border:1px solid #222;padding:9px 5px;text-align:center;vertical-align:middle}thead th{background:#075578;color:white}tbody th{width:18%;background:#fff}td{font-size:14px;font-weight:bold;min-height:38px} .meta{border:2px solid #222;padding:12px;text-align:center} .small td{font-size:12px;font-weight:normal;text-align:left}.small td:first-child{text-align:center;width:30%}.break td{background:#fff0c2;font-weight:normal}.muted{font-size:11px;text-align:center;margin-top:8px}@media print{button{display:none}}</style></head><body><div class="meta"><div>ITI KOTRI BHILWARA, RAJASTHAN</div><h1>TIME TABLE FOR TRAINING SESSION 2026-27</h1><p>Trade: ${escT(trade)} (${escT(year)}) | Effective From: ${escT(settings.effectiveFrom||'—')}</p></div><h2>1. THEORY SCHEDULE</h2><table><thead><tr><th>Time</th>${days.map(d=>`<th>${d}</th>`).join('')}</tr></thead><tbody>${cells}</tbody></table><h2>2. LUNCH BREAK & PRACTICAL SCHEDULE</h2><table class="break"><thead><tr><th>Activity</th><th>Time Slot</th><th>Days</th></tr></thead><tbody><tr><td>Lunch Break</td><td>${timeLabel(lunchStart)} - ${timeLabel(lunchEnd)}</td><td>Monday to Saturday</td></tr><tr><td>Practical Training${practicalNames.length?' — '+escT(practicalNames.join(', ')):''}</td><td>${timeLabel(pStart)} - ${timeLabel(pEnd)}</td><td>Monday to Saturday</td></tr></tbody></table><h2>3. ABBREVIATIONS / SHORT CODES</h2><table class="small"><thead><tr><th>Code</th><th>Full Description</th></tr></thead><tbody>${abbrev}</tbody></table><p class="muted">Generated from the published timetable. Print or Save as PDF.</p><script>window.onload=()=>setTimeout(()=>window.print(),400)<\/script></body></html>`);w.document.close();
+ }
+ function inject(){
     if(!$('supViewPerformance'))return;
     const perf=$('supViewPerformance');
     if(!$('supComparisonPanel')) perf.insertAdjacentHTML('beforeend',`
@@ -6783,10 +6807,6 @@ D) लखनऊ
  }
  function cell(trade,day,period){
    return `<td class="bulk-tt-cell" style="width:245px;min-width:245px;max-width:245px;box-sizing:border-box;padding:8px;border:1px solid #cbd5e1;vertical-align:top">
-    <div class="bulk-time-grid" style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px;width:100%;box-sizing:border-box">
-      <label style="display:block;min-width:0;font-size:11px;line-height:1.4">शुरू<br><input type="time" class="bulk-start" value="10:00" style="display:block;width:100%;min-width:0;max-width:100%;height:38px;box-sizing:border-box;padding:4px"></label>
-      <label style="display:block;min-width:0;font-size:11px;line-height:1.4">समाप्त<br><input type="time" class="bulk-end" value="11:00" style="display:block;width:100%;min-width:0;max-width:100%;height:38px;box-sizing:border-box;padding:4px"></label>
-    </div>
     <input class="bulk-subject" data-trade="${escT(trade)}" data-day="${day}" data-period="${period}" placeholder="विषय कोड / नाम" style="display:block;width:100%;min-width:0;max-width:100%;height:38px;box-sizing:border-box;margin:7px 0;padding:6px">
     <select class="bulk-category" style="display:block;width:100%;min-width:0;max-width:100%;height:38px;box-sizing:border-box;margin:0 0 6px;padding:4px">${cats.map(([v,l])=>`<option value="${v}">${l}</option>`).join('')}</select>
     <label style="display:flex;align-items:center;gap:6px;font-size:12px;margin:2px 0 5px"><input type="checkbox" class="bulk-common-instructor" style="width:auto"> कॉमन इंस्ट्रक्टर</label>
@@ -6800,62 +6820,77 @@ D) लखनऊ
     <div class="sup-form-grid" style="padding:10px;background:#f8fafc;border-radius:10px;margin-bottom:12px">
       <div class="input-group"><label>लंच शुरू होने का समय</label><input id="bulkLunchStart" type="time" value="13:00"></div>
       <div class="input-group"><label>लंच समाप्त होने का समय</label><input id="bulkLunchEnd" type="time" value="13:30"></div>
+      <div class="input-group"><label>प्रैक्टिकल शुरू</label><input id="bulkPracticalStart" type="time" value="13:30"></div>
+      <div class="input-group"><label>प्रैक्टिकल समाप्त</label><input id="bulkPracticalEnd" type="time" value="17:30"></div>
+      <div class="input-group"><label>लागू होने की तारीख</label><input id="bulkEffectiveFrom" type="date" value="2026-10-05"></div>
     </div>
-    <p class="sup-help">हर क्लास का शुरू और समाप्त होने का समय अलग-अलग बदल सकते हैं। Practical सहित किसी भी क्लास के लिए समय फिक्स नहीं है। जरूरत के अनुसार पीरियड जोड़ें। लंच का समय भी बदला जा सकता है।</p>
+    <p class="sup-help">हर पीरियड का शुरू और समाप्त होने का समय केवल एक बार पीरियड के सामने सेट करें। वही समय सोमवार से शनिवार तक लागू होगा। हर दिन केवल विषय, श्रेणी और अनुदेशक चुनें। जरूरत के अनुसार पीरियड जोड़ें। लंच का समय भी बदला जा सकता है।</p>
     ${trades.map(trade=>`<details open style="border:1px solid #cbd5e1;border-radius:10px;padding:10px;margin:12px 0"><summary style="font-weight:800;cursor:pointer">${escT(trade)} — ट्रेड टाइम टेबल</summary>
-      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:10px 0"><label>वर्ष <select class="bulk-year" data-trade="${escT(trade)}"><option value="First Year">प्रथम वर्ष</option><option value="Second Year">द्वितीय वर्ष</option></select></label><button type="button" class="app-btn bulk-add-period" data-trade="${escT(trade)}">+ एक और पीरियड जोड़ें</button></div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:10px 0"><label>वर्ष <select class="bulk-year" data-trade="${escT(trade)}"><option value="First Year">प्रथम वर्ष</option><option value="Second Year">द्वितीय वर्ष</option></select></label><button type="button" class="app-btn bulk-add-period" data-trade="${escT(trade)}">+ एक और पीरियड जोड़ें</button><button type="button" class="app-btn app-btn-primary bulk-publish-trade" data-trade="${escT(trade)}">${escT(trade)} की समय-सारणी प्रकाशित करें</button><button type="button" class="app-btn bulk-print-trade" data-trade="${escT(trade)}">${escT(trade)} का PDF / प्रिंट</button></div>
       <div style="display:block;width:100%;max-width:100%;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;border:1px solid #dbe3ee;border-radius:8px"><table style="table-layout:fixed;width:1760px;min-width:1760px;border-collapse:collapse"><colgroup><col style="width:100px">${days.map(()=>'<col style="width:276px">').join('')}</colgroup><thead><tr><th style="width:100px;padding:10px;border:1px solid #cbd5e1;background:#f1f5f9">पीरियड</th>${days.map(d=>`<th style="width:276px;min-width:276px;padding:10px;border:1px solid #cbd5e1;background:#f1f5f9">${d}</th>`).join('')}</tr></thead><tbody class="bulk-period-body" data-trade="${escT(trade)}"></tbody></table></div>
     </details>`).join('')}`;
    trades.forEach(trade=>renderTradeRows(trade,rowCount));
    host.querySelectorAll('.bulk-add-period').forEach(btn=>btn.addEventListener('click',()=>{const trade=btn.dataset.trade;const body=host.querySelector(`.bulk-period-body[data-trade="${CSS.escape(trade)}"]`);const n=body.querySelectorAll('tr').length;appendTradeRow(trade,n);}));
+   host.querySelectorAll('.bulk-publish-trade').forEach(btn=>btn.addEventListener('click',()=>publish(btn.dataset.trade)));
+   host.querySelectorAll('.bulk-print-trade').forEach(btn=>btn.addEventListener('click',()=>printTrade(btn.dataset.trade)));
+   trades.forEach(trade=>restoreTrade(trade));
    host.querySelectorAll('.bulk-subject').forEach(inp=>inp.addEventListener('change',()=>{const cat=inp.closest('td')?.querySelector('.bulk-category');if(cat)cat.value=categoryFor(inp.value);}));
    host.querySelectorAll('.bulk-common-instructor').forEach(chk=>chk.addEventListener('change',()=>{const td=chk.closest('td'),sel=td?.querySelector('.bulk-instructor');if(!sel)return;const trade=sel.dataset.trade,keep=sel.value;sel.innerHTML=instructorOptions(trade,chk.checked);if([...sel.options].some(o=>o.value===keep))sel.value=keep;}));
  }
  function renderTradeRows(trade,count){for(let i=0;i<count;i++)appendTradeRow(trade,i);}
  function appendTradeRow(trade,index){
    const body=$('bulkTimetableEditor')?.querySelector(`.bulk-period-body[data-trade="${CSS.escape(trade)}"]`);if(!body)return;
-   const tr=document.createElement('tr');tr.innerHTML=`<th style="width:100px;min-width:100px;padding:8px;border:1px solid #cbd5e1;background:#f8fafc;vertical-align:middle">पीरियड ${index+1}</th>${days.map(day=>cell(trade,day,index)).join('')}`;body.appendChild(tr);
+   const tr=document.createElement('tr');tr.innerHTML=`<th style="width:100px;min-width:100px;padding:8px;border:1px solid #cbd5e1;background:#f8fafc;vertical-align:middle">पीरियड ${index+1}<div style="display:grid;gap:5px;margin-top:8px;text-align:left;font-size:11px"><label>शुरू<input type="time" class="bulk-period-start" value="10:00" style="display:block;width:100%;box-sizing:border-box"></label><label>समाप्त<input type="time" class="bulk-period-end" value="11:00" style="display:block;width:100%;box-sizing:border-box"></label></div></th>${days.map(day=>cell(trade,day,index)).join('')}`;body.appendChild(tr);
  }
  function inject(){
    const panel=$('supTimetablePanel');if(!panel||!allowed())return;
    panel.style.display='none';
    let bulk=$('bulkTimetablePanel');
-   if(!bulk){panel.insertAdjacentHTML('afterend',`<div class="glass-card sup-panel" id="bulkTimetablePanel" style="margin-top:14px"><h3>सभी ट्रेडों की समय-सारणी प्रकाशित करें</h3><p class="sup-help">अधीक्षक और ग्रुप इंस्ट्रक्टर दोनों पूरे कॉलेज का ट्रेडवार टाइम टेबल प्रकाशित कर सकते हैं। प्रत्येक दिन और पीरियड के लिए समय, विषय, श्रेणी और अनुदेशक चुनें।</p><div id="bulkTimetableEditor"></div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="app-btn app-btn-primary" type="button" id="bulkPublishTimetable">सभी ट्रेडों की समय-सारणी प्रकाशित करें</button><button class="app-btn" type="button" id="bulkClearTimetable">फॉर्म साफ करें</button></div><div id="bulkTimetableStatus" class="sup-help" style="margin-top:8px"></div></div>`);bulk=$('bulkTimetablePanel');
-    $('bulkPublishTimetable').addEventListener('click',publish);$('bulkClearTimetable').addEventListener('click',()=>{if(confirm('भरा हुआ टाइम टेबल साफ करें?')){rowCount=3;build();}});
+   if(!bulk){panel.insertAdjacentHTML('afterend',`<div class="glass-card sup-panel" id="bulkTimetablePanel" style="margin-top:14px"><h3>ट्रेडवार अलग-अलग समय-सारणी प्रकाशित करें</h3><p class="sup-help">हर ट्रेड के नीचे उसी ट्रेड का अलग प्रकाशित करें बटन है। एक ट्रेड प्रकाशित करने पर दूसरे ट्रेडों का पुराना डेटा सुरक्षित रहेगा।</p><div id="bulkTimetableEditor"></div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="app-btn" type="button" id="bulkClearTimetable">फॉर्म साफ करें</button></div><div id="bulkTimetableStatus" class="sup-help" style="margin-top:8px"></div></div>`);bulk=$('bulkTimetablePanel');
+    $('bulkClearTimetable').addEventListener('click',()=>{if(confirm('भरा हुआ टाइम टेबल साफ करें?')){rowCount=3;build();}});
    }
    build();
  }
- function publish(){
+ function publish(selectedTrade){
    if(!allowed()){alert('यह सुविधा केवल अधीक्षक और ग्रुप इंस्ट्रक्टर के लिए है।');return;}
+   if(!selectedTrade){alert('कृपया संबंधित ट्रेड के अंदर दिए गए प्रकाशित करें बटन का उपयोग करें।');return;}
    const host=$('bulkTimetableEditor');if(!host)return;
-   const lunchStart=$('bulkLunchStart')?.value||'',lunchEnd=$('bulkLunchEnd')?.value||'';
+   const body=host.querySelector(`.bulk-period-body[data-trade="${CSS.escape(selectedTrade)}"]`);if(!body)return;
+   const lunchStart=$('bulkLunchStart')?.value||'',lunchEnd=$('bulkLunchEnd')?.value||'',practicalStart=$('bulkPracticalStart')?.value||'13:30',practicalEnd=$('bulkPracticalEnd')?.value||'17:30',effectiveFrom=$('bulkEffectiveFrom')?.value||'';
    if(lunchStart&&lunchEnd&&timeToMinutes(lunchEnd)<=timeToMinutes(lunchStart)){alert('लंच समाप्ति का समय, शुरू होने के समय से बाद का होना चाहिए।');return;}
+   if(!Number.isFinite(timeToMinutes(practicalStart))||!Number.isFinite(timeToMinutes(practicalEnd))||timeToMinutes(practicalEnd)<=timeToMinutes(practicalStart)){alert('प्रैक्टिकल का समय सही भरें।');return;}
    const rows=[],invalid=[];
-   host.querySelectorAll('.bulk-subject').forEach(inp=>{
+   body.querySelectorAll('tr').forEach(periodRow=>{
+    const start=periodRow.querySelector('.bulk-period-start')?.value||'',end=periodRow.querySelector('.bulk-period-end')?.value||'';
+    periodRow.querySelectorAll('.bulk-subject').forEach(inp=>{
      const subject=inp.value.trim();if(!subject)return;
-     const td=inp.closest('td'),start=td.querySelector('.bulk-start')?.value||'',end=td.querySelector('.bulk-end')?.value||'';
+     const td=inp.closest('td');
      const category=td.querySelector('.bulk-category')?.value||categoryFor(subject),instructorId=td.querySelector('.bulk-instructor')?.value||'',commonInstructor=!!td.querySelector('.bulk-common-instructor')?.checked;
-     const trade=inp.dataset.trade,day=inp.dataset.day,year=host.querySelector(`.bulk-year[data-trade="${CSS.escape(trade)}"]`)?.value||'First Year';
+     const trade=selectedTrade,day=inp.dataset.day,year=host.querySelector(`.bulk-year[data-trade="${CSS.escape(trade)}"]`)?.value||'First Year';
      const inst=(typeof getSupCollegeInstructors==='function'?getSupCollegeInstructors():[]).find(x=>String(x.id)===String(instructorId));
      const startMinutes=timeToMinutes(start),endMinutes=timeToMinutes(end);
      if(!Number.isFinite(startMinutes)||!Number.isFinite(endMinutes)||endMinutes<=startMinutes){invalid.push(`${trade} / ${day}: समय गलत/अधूरा है (शुरू: ${start||'खाली'}, समाप्त: ${end||'खाली'})`);return;}
      if(!instructorId||!inst){invalid.push(`${trade} / ${day}: अनुदेशक नहीं चुना गया`);return;}
      if(!commonInstructor&&String(inst.trade||'').trim()&&String(inst.trade).trim()!==String(trade).trim()){invalid.push(`${trade} / ${day}: दूसरे ट्रेड के अनुदेशक के लिए कॉमन इंस्ट्रक्टर विकल्प चुनें`);return;}
-     rows.push({id:'TT'+Date.now()+'_'+Math.random().toString(36).slice(2,8),collegeId:currentCollegeId,trade,year,day,time:`${start} - ${end}`,subject,category,instructor:inst.name,instructorId:inst.id,instructorHomeTrade:inst.trade||'',commonInstructor:commonInstructor||String(inst.trade||'').trim()!==String(trade).trim(),lunchStart,lunchEnd,createdAt:new Date().toISOString(),createdBy:loggedInSuperintendent?.name||'अधिकारी',createdByRole:currentRole,bulkPublished:true});
+     rows.push({id:'TT'+Date.now()+'_'+Math.random().toString(36).slice(2,8),collegeId:currentCollegeId,trade,year,period:Number(inp.dataset.period)+1,day,time:`${start} - ${end}`,startTime:start,endTime:end,subject,category,instructor:inst.name,instructorId:inst.id,instructorHomeTrade:inst.trade||'',commonInstructor:commonInstructor||String(inst.trade||'').trim()!==String(trade).trim(),lunchStart,lunchEnd,createdAt:new Date().toISOString(),createdBy:loggedInSuperintendent?.name||'अधिकारी',createdByRole:currentRole,bulkPublished:true});
+    });
    });
    if(invalid.length){alert(invalid.slice(0,12).join('\n')+(invalid.length>12?`\nऔर ${invalid.length-12} त्रुटियाँ`:''));return;}
-   if(!rows.length){alert('कम से कम एक विषय / क्लास भरें।');return;}
-   if(!confirm(`कुल ${rows.length} क्लास स्लॉट प्रकाशित होंगे। क्या आगे बढ़ें?`))return;
+   if(!rows.length){alert(`${selectedTrade} में कम से कम एक विषय / क्लास भरें।`);return;}
+   if(!confirm(`${selectedTrade} की कुल ${rows.length} क्लास स्लॉट प्रकाशित होंगे। दूसरे ट्रेड की समय-सारणी सुरक्षित रहेगी। क्या आगे बढ़ें?`))return;
    const store=ensureSupData();if(!Array.isArray(store.timetables))store.timetables=[];
-   store.timetables=store.timetables.filter(x=>x.collegeId!==currentCollegeId);
+   // Replace only this trade's timetable. All other trades remain untouched.
+   store.timetables=store.timetables.filter(x=>!(x.collegeId===currentCollegeId&&String(x.trade)===String(selectedTrade)));
    rows.forEach(x=>store.timetables.push(x));
-   store.timetableSettings=store.timetableSettings||{};store.timetableSettings[currentCollegeId]={lunchStart,lunchEnd,updatedAt:new Date().toISOString(),updatedBy:currentRole};
-   if(typeof addSupAudit==='function')addSupAudit('सभी ट्रेडों की समय-सारणी प्रकाशित',`${rows.length} क्लास स्लॉट प्रकाशित किए गए।`);
+   store.timetableSettings=store.timetableSettings||{};
+   store.timetableSettings[`${currentCollegeId}_${selectedTrade}`]={collegeId:currentCollegeId,trade:selectedTrade,lunchStart,lunchEnd,practicalStart,practicalEnd,effectiveFrom,updatedAt:new Date().toISOString(),updatedBy:currentRole};
+   if(typeof addSupAudit==='function')addSupAudit(`${selectedTrade} की समय-सारणी प्रकाशित`,`${rows.length} क्लास स्लॉट प्रकाशित किए गए।`);
    syncWithFirebase();
-   const status=$('bulkTimetableStatus');if(status)status.textContent=`सफलतापूर्वक ${rows.length} क्लास स्लॉट प्रकाशित हुए।`;
+   const status=$('bulkTimetableStatus');if(status)status.textContent=`${selectedTrade} की ${rows.length} क्लास स्लॉट प्रकाशित हुईं। अन्य ट्रेड का डेटा सुरक्षित रखा गया।`;
    if(typeof renderCompletionModules==='function')renderCompletionModules();if(typeof renderTimetableHoursMonitor==='function')renderTimetableHoursMonitor();
-   if(typeof showToast==='function')showToast('सभी ट्रेडों की समय-सारणी प्रकाशित हो गई।');
+   if(typeof showToast==='function')showToast(`${selectedTrade} की समय-सारणी प्रकाशित हो गई।`);
  }
+
  const oldInject=window.renderCompletionModules;if(oldInject)window.renderCompletionModules=function(){oldInject.apply(this,arguments);inject();};
  const oldDash=window.renderSuperintendentDashboard;if(oldDash)window.renderSuperintendentDashboard=function(){oldDash.apply(this,arguments);setTimeout(inject,0);};
  document.addEventListener('DOMContentLoaded',()=>setTimeout(inject,400));
