@@ -6773,6 +6773,14 @@ D) लखनऊ
    return '<option value="">अनुदेशक चुनें</option>'+list.map(i=>`<option value="${escT(i.id)}">${escT(i.name)}${i.trade?' — '+escT(i.trade):''}</option>`).join('');
  }
  function categoryFor(code){const s=String(code||'').trim().toUpperCase();if(s==='ES')return 'ES';if(s==='ED')return 'ED';if(['WC','WCS'].includes(s))return 'WCS';if(['PW','PRACTICAL','IT LAB','MW'].includes(s))return 'Practical';if(['TH','THEORY'].includes(s))return 'Theory';return 'Theory';}
+ // Browser time inputs normally return HH:MM; accept 12-hour text too for robust validation.
+ function timeToMinutes(value){
+   const v=String(value||'').trim().toUpperCase();if(!v)return NaN;
+   let m=v.match(/^(\d{1,2}):(\d{2})(?::\d{2})?\s*(AM|PM)?$/);if(!m)return NaN;
+   let h=Number(m[1]),min=Number(m[2]);if(min>59)return NaN;
+   if(m[3]){if(h<1||h>12)return NaN;h=h%12+(m[3]==='PM'?12:0);}else if(h>23)return NaN;
+   return h*60+min;
+ }
  function cell(trade,day,period){
    return `<td class="bulk-tt-cell" style="width:245px;min-width:245px;max-width:245px;box-sizing:border-box;padding:8px;border:1px solid #cbd5e1;vertical-align:top">
     <div class="bulk-time-grid" style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px;width:100%;box-sizing:border-box">
@@ -6821,7 +6829,7 @@ D) लखनऊ
    if(!allowed()){alert('यह सुविधा केवल अधीक्षक और ग्रुप इंस्ट्रक्टर के लिए है।');return;}
    const host=$('bulkTimetableEditor');if(!host)return;
    const lunchStart=$('bulkLunchStart')?.value||'',lunchEnd=$('bulkLunchEnd')?.value||'';
-   if(lunchStart&&lunchEnd&&lunchEnd<=lunchStart){alert('लंच समाप्ति का समय, शुरू होने के समय से बाद का होना चाहिए।');return;}
+   if(lunchStart&&lunchEnd&&timeToMinutes(lunchEnd)<=timeToMinutes(lunchStart)){alert('लंच समाप्ति का समय, शुरू होने के समय से बाद का होना चाहिए।');return;}
    const rows=[],invalid=[];
    host.querySelectorAll('.bulk-subject').forEach(inp=>{
      const subject=inp.value.trim();if(!subject)return;
@@ -6829,7 +6837,8 @@ D) लखनऊ
      const category=td.querySelector('.bulk-category')?.value||categoryFor(subject),instructorId=td.querySelector('.bulk-instructor')?.value||'',commonInstructor=!!td.querySelector('.bulk-common-instructor')?.checked;
      const trade=inp.dataset.trade,day=inp.dataset.day,year=host.querySelector(`.bulk-year[data-trade="${CSS.escape(trade)}"]`)?.value||'First Year';
      const inst=(typeof getSupCollegeInstructors==='function'?getSupCollegeInstructors():[]).find(x=>String(x.id)===String(instructorId));
-     if(!start||!end||end<=start){invalid.push(`${trade} / ${day}: क्लास का समय गलत या अधूरा है`);return;}
+     const startMinutes=timeToMinutes(start),endMinutes=timeToMinutes(end);
+     if(!Number.isFinite(startMinutes)||!Number.isFinite(endMinutes)||endMinutes<=startMinutes){invalid.push(`${trade} / ${day}: समय गलत/अधूरा है (शुरू: ${start||'खाली'}, समाप्त: ${end||'खाली'})`);return;}
      if(!instructorId||!inst){invalid.push(`${trade} / ${day}: अनुदेशक नहीं चुना गया`);return;}
      if(!commonInstructor&&String(inst.trade||'').trim()&&String(inst.trade).trim()!==String(trade).trim()){invalid.push(`${trade} / ${day}: दूसरे ट्रेड के अनुदेशक के लिए कॉमन इंस्ट्रक्टर विकल्प चुनें`);return;}
      rows.push({id:'TT'+Date.now()+'_'+Math.random().toString(36).slice(2,8),collegeId:currentCollegeId,trade,year,day,time:`${start} - ${end}`,subject,category,instructor:inst.name,instructorId:inst.id,instructorHomeTrade:inst.trade||'',commonInstructor:commonInstructor||String(inst.trade||'').trim()!==String(trade).trim(),lunchStart,lunchEnd,createdAt:new Date().toISOString(),createdBy:loggedInSuperintendent?.name||'अधिकारी',createdByRole:currentRole,bulkPublished:true});
