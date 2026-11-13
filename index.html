@@ -1764,8 +1764,25 @@ window.__itiLoginClick = async function(ev) {
 <select id="instAssignCollege" required=""></select>
 </div>
 <div class="input-group">
+<label>अनुदेशक का प्रकार:</label>
+<select id="instAssignKind" onchange="toggleCommonInstructorFields()" style="width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:8px">
+<option value="trade">ट्रेड अनुदेशक</option>
+<option value="common">कॉमन विषय अनुदेशक (सभी ट्रेडों के लिए)</option>
+</select>
+</div>
+<div class="input-group" id="instAssignTradeWrap">
 <label>ट्रेड चुनें:</label>
 <select id="instAssignTrade" required=""></select>
+</div>
+<div class="input-group hidden" id="instAssignCommonWrap">
+<label>कॉमन विषय चुनें:</label>
+<select id="instAssignCommonSubject" style="width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:8px">
+<option value="ES">Employability Skills (ES)</option>
+<option value="WCS">Workshop Calculation & Science (WCS)</option>
+<option value="Library">Library (लाइब्रेरी)</option>
+<option value="Other">अन्य कॉमन विषय</option>
+</select>
+<input id="instAssignCommonOther" type="text" placeholder="अन्य विषय का नाम लिखें" style="display:none;margin-top:8px;width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:8px">
 </div>
 <div class="input-group">
 <label>अनुदेशक का पूरा नाम:</label>
@@ -2391,6 +2408,12 @@ D) लखनऊ
                     opt.textContent = `${cleanTrade} (${typeLabel})`;
                     el.appendChild(opt);
                 });
+                if (id === 'loginInstTrade' && ![...el.options].some(o => o.value === 'COMMON')) {
+                    const commonOpt = document.createElement('option');
+                    commonOpt.value = 'COMMON';
+                    commonOpt.textContent = 'कॉमन विषय अनुदेशक';
+                    el.appendChild(commonOpt);
+                }
                 if (prevVal && [...el.options].some(o => o.value === prevVal)) {
                     el.value = prevVal;
                 }
@@ -3056,7 +3079,7 @@ D) लखनऊ
                 setupUIRoute();
                 renderRegister();
                 renderEvaluationTable();
-                showToast(`${getCollegeName(colId)} - ${trade} अनुदेशक लॉगिन सफल!`);
+                showToast(`${getCollegeName(colId)} - ${inst.instructorType === 'common' ? (inst.commonSubject || 'कॉमन विषय') : trade} अनुदेशक लॉगिन सफल!`);
             } else {
                 alert("अमान्य विवरण! चुने गए कॉलेज में यह अनुदेशक आईडी/पासवर्ड/ट्रेड मैच नहीं हुआ।");
             }
@@ -3287,10 +3310,13 @@ D) लखनऊ
             }
 
             instructors.forEach((inst, idx) => {
+                const isCommon = inst.instructorType === 'common' || String(inst.trade).toUpperCase() === 'COMMON';
                 const isEngg = isEnggTrade(inst.trade);
-                const typeText = isEngg 
-                    ? '<span class="badge-type" style="background:#e0f2fe; color:#0369a1; border:none;">इंजीनियरिंग</span>' 
-                    : '<span class="badge-type" style="background:#fef3c7; color:#92400e; border:none;">नॉन-इंजीनियरिंग</span>';
+                const typeText = isCommon
+                    ? '<span class="badge-type" style="background:#ede9fe;color:#6d28d9;border:none;">कॉमन विषय</span>'
+                    : (isEngg
+                    ? '<span class="badge-type" style="background:#e0f2fe; color:#0369a1; border:none;">इंजीनियरिंग</span>'
+                    : '<span class="badge-type" style="background:#fef3c7; color:#92400e; border:none;">नॉन-इंजीनियरिंग</span>');
                 
                 const isVisible = isGlobalPasswordVisible || !!showPasswordsState[idx];
                 const displayPass = isVisible ? `<code>${inst.pass}</code>` : `<span class="masked-pass">••••••••</span>`;
@@ -3301,7 +3327,7 @@ D) लखनऊ
                     <tr>
                         <td><strong>${idx + 1}</strong></td>
                         <td style="font-weight:700; color:var(--primary); text-align:left;">${colName}</td>
-                        <td><strong>${inst.trade}</strong></td>
+                        <td><strong>${isCommon ? (inst.commonSubject || 'कॉमन विषय') : inst.trade}</strong></td>
                         <td>${typeText}</td>
                         <td style="font-weight:600;">${inst.name}</td>
                         <td><code>${inst.id}</code></td>
@@ -3392,19 +3418,47 @@ D) लखनऊ
             }
         }
 
+        function toggleCommonInstructorFields() {
+            const kind = document.getElementById('instAssignKind')?.value || 'trade';
+            const isCommon = kind === 'common';
+            const tradeWrap = document.getElementById('instAssignTradeWrap');
+            const commonWrap = document.getElementById('instAssignCommonWrap');
+            const tradeSelect = document.getElementById('instAssignTrade');
+            const subjectSelect = document.getElementById('instAssignCommonSubject');
+            const otherInput = document.getElementById('instAssignCommonOther');
+            if (tradeWrap) tradeWrap.classList.toggle('hidden', isCommon);
+            if (commonWrap) commonWrap.classList.toggle('hidden', !isCommon);
+            if (tradeSelect) tradeSelect.required = !isCommon;
+            if (subjectSelect) subjectSelect.required = isCommon;
+            if (otherInput) otherInput.style.display = isCommon && subjectSelect?.value === 'Other' ? 'block' : 'none';
+        }
+        document.addEventListener('change', function(e) {
+            if (e.target?.id === 'instAssignCommonSubject') toggleCommonInstructorFields();
+        });
+
+        document.addEventListener('click', function(e) {
+            const trigger = e.target.closest('[onclick*="addInstructorModal"]');
+            if (trigger) setTimeout(toggleCommonInstructorFields, 0);
+        });
+
         function saveNewInstructor() {
             const collegeId = document.getElementById('instAssignCollege').value;
-            const trade = document.getElementById('instAssignTrade').value.trim();
+            const kind = document.getElementById('instAssignKind')?.value || 'trade';
+            const isCommon = kind === 'common';
+            const commonChoice = document.getElementById('instAssignCommonSubject')?.value || '';
+            const customSubject = document.getElementById('instAssignCommonOther')?.value.trim() || '';
+            const commonSubject = isCommon ? (commonChoice === 'Other' ? customSubject : commonChoice) : '';
+            const trade = isCommon ? 'COMMON' : document.getElementById('instAssignTrade').value.trim();
             const name = document.getElementById('newInstName').value.trim();
             const id = document.getElementById('newInstId').value.trim();
             const pass = document.getElementById('newInstPass').value.trim();
 
-            if (!collegeId || !trade || !name || !id || !pass) { alert("सभी विवरण भरें!"); return; }
+            if (!collegeId || !trade || !name || !id || !pass || (isCommon && !commonSubject)) { alert("सभी आवश्यक विवरण भरें!"); return; }
 
             let instructors = getInstructorsList();
             if (instructors.some(i => i.id === id)) { alert("यह लॉगिन आईडी पहले से उपयोग में है!"); return; }
 
-            instructors.push({ collegeId, trade, name, id, pass });
+            instructors.push({ collegeId, trade, name, id, pass, instructorType: isCommon ? 'common' : 'trade', commonSubject: isCommon ? commonSubject : '' });
             appData.instructors = instructors;
 
             syncWithFirebase();
@@ -3414,6 +3468,9 @@ D) लखनऊ
             document.getElementById('newInstName').value = '';
             document.getElementById('newInstId').value = '';
             document.getElementById('newInstPass').value = '';
+            const kindEl = document.getElementById('instAssignKind'); if (kindEl) kindEl.value = 'trade';
+            const commonOther = document.getElementById('instAssignCommonOther'); if (commonOther) commonOther.value = '';
+            toggleCommonInstructorFields();
         }
 
         function openEditInstructorModal(idx) {
