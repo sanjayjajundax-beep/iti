@@ -6710,11 +6710,14 @@ D) लखनऊ
  }
  function categoryFor(code){const s=String(code||'').trim().toUpperCase();if(s==='ES')return 'ES';if(s==='ED')return 'ED';if(['WC','WCS'].includes(s))return 'WCS';if(['PW','PRACTICAL','IT LAB','MW'].includes(s))return 'Practical';if(['TH','THEORY'].includes(s))return 'Theory';return 'Theory';}
  function cell(trade,day,period){
-   return `<td style="min-width:205px;padding:6px;border:1px solid #cbd5e1">
-    <div style="display:flex;gap:4px"><label style="flex:1;font-size:11px">शुरू <input type="time" class="bulk-start" value="10:00" style="width:100%"></label><label style="flex:1;font-size:11px">समाप्त <input type="time" class="bulk-end" value="11:00" style="width:100%"></label></div>
-    <input class="bulk-subject" data-trade="${escT(trade)}" data-day="${day}" data-period="${period}" placeholder="विषय कोड / नाम" style="width:100%;margin:5px 0">
-    <select class="bulk-category" style="width:100%;margin-bottom:5px">${cats.map(([v,l])=>`<option value="${v}">${l}</option>`).join('')}</select>
-    <select class="bulk-instructor" style="width:100%">${instructorOptions(trade)}</select></td>`;
+   return `<td class="bulk-tt-cell" style="width:245px;min-width:245px;max-width:245px;box-sizing:border-box;padding:8px;border:1px solid #cbd5e1;vertical-align:top">
+    <div class="bulk-time-grid" style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px;width:100%;box-sizing:border-box">
+      <label style="display:block;min-width:0;font-size:11px;line-height:1.4">शुरू<br><input type="time" class="bulk-start" value="10:00" style="display:block;width:100%;min-width:0;max-width:100%;height:38px;box-sizing:border-box;padding:4px"></label>
+      <label style="display:block;min-width:0;font-size:11px;line-height:1.4">समाप्त<br><input type="time" class="bulk-end" value="11:00" style="display:block;width:100%;min-width:0;max-width:100%;height:38px;box-sizing:border-box;padding:4px"></label>
+    </div>
+    <input class="bulk-subject" data-trade="${escT(trade)}" data-day="${day}" data-period="${period}" placeholder="विषय कोड / नाम" style="display:block;width:100%;min-width:0;max-width:100%;height:38px;box-sizing:border-box;margin:7px 0;padding:6px">
+    <select class="bulk-category" style="display:block;width:100%;min-width:0;max-width:100%;height:38px;box-sizing:border-box;margin:0 0 6px;padding:4px">${cats.map(([v,l])=>`<option value="${v}">${l}</option>`).join('')}</select>
+    <select class="bulk-instructor" style="display:block;width:100%;min-width:0;max-width:100%;height:38px;box-sizing:border-box;padding:4px">${instructorOptions(trade)}</select></td>`;
  }
  function build(){
    const host=$('bulkTimetableEditor');if(!host||!allowed())return;
@@ -6728,7 +6731,7 @@ D) लखनऊ
     <p class="sup-help">हर क्लास का शुरू और समाप्त होने का समय अलग-अलग बदल सकते हैं। Practical सहित किसी भी क्लास के लिए समय फिक्स नहीं है। जरूरत के अनुसार पीरियड जोड़ें। लंच का समय भी बदला जा सकता है।</p>
     ${trades.map(trade=>`<details open style="border:1px solid #cbd5e1;border-radius:10px;padding:10px;margin:12px 0"><summary style="font-weight:800;cursor:pointer">${escT(trade)} — ट्रेड टाइम टेबल</summary>
       <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:10px 0"><label>वर्ष <select class="bulk-year" data-trade="${escT(trade)}"><option value="First Year">प्रथम वर्ष</option><option value="Second Year">द्वितीय वर्ष</option></select></label><button type="button" class="app-btn bulk-add-period" data-trade="${escT(trade)}">+ एक और पीरियड जोड़ें</button></div>
-      <div style="overflow-x:auto"><table style="min-width:1400px;width:100%;border-collapse:collapse"><thead><tr><th>पीरियड</th>${days.map(d=>`<th>${d}</th>`).join('')}</tr></thead><tbody class="bulk-period-body" data-trade="${escT(trade)}"></tbody></table></div>
+      <div style="display:block;width:100%;max-width:100%;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;border:1px solid #dbe3ee;border-radius:8px"><table style="table-layout:fixed;width:1760px;min-width:1760px;border-collapse:collapse"><colgroup><col style="width:100px">${days.map(()=>'<col style="width:276px">').join('')}</colgroup><thead><tr><th style="width:100px;padding:10px;border:1px solid #cbd5e1;background:#f1f5f9">पीरियड</th>${days.map(d=>`<th style="width:276px;min-width:276px;padding:10px;border:1px solid #cbd5e1;background:#f1f5f9">${d}</th>`).join('')}</tr></thead><tbody class="bulk-period-body" data-trade="${escT(trade)}"></tbody></table></div>
     </details>`).join('')}`;
    trades.forEach(trade=>renderTradeRows(trade,rowCount));
    host.querySelectorAll('.bulk-add-period').forEach(btn=>btn.addEventListener('click',()=>{const trade=btn.dataset.trade;const body=host.querySelector(`.bulk-period-body[data-trade="${CSS.escape(trade)}"]`);const n=body.querySelectorAll('tr').length;appendTradeRow(trade,n);}));
@@ -6737,7 +6740,7 @@ D) लखनऊ
  function renderTradeRows(trade,count){for(let i=0;i<count;i++)appendTradeRow(trade,i);}
  function appendTradeRow(trade,index){
    const body=$('bulkTimetableEditor')?.querySelector(`.bulk-period-body[data-trade="${CSS.escape(trade)}"]`);if(!body)return;
-   const tr=document.createElement('tr');tr.innerHTML=`<th style="padding:6px;border:1px solid #cbd5e1">पीरियड ${index+1}</th>${days.map(day=>cell(trade,day,index)).join('')}`;body.appendChild(tr);
+   const tr=document.createElement('tr');tr.innerHTML=`<th style="width:100px;min-width:100px;padding:8px;border:1px solid #cbd5e1;background:#f8fafc;vertical-align:middle">पीरियड ${index+1}</th>${days.map(day=>cell(trade,day,index)).join('')}`;body.appendChild(tr);
  }
  function inject(){
    const panel=$('supTimetablePanel');if(!panel||!allowed())return;
