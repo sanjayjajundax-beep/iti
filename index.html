@@ -6601,14 +6601,18 @@ D) लखनऊ
     return '';
   }
   function instructorTimetable(inst){
-    return d().timetables.filter(x=>x&&x.collegeId===currentCollegeId&&(x.trade==='ALL'||x.trade===inst.trade)&&(norm(x.instructor)===norm(inst.name)||String(x.instructorId||'')===String(inst.id)));
+    return d().timetables.filter(x=>x&&x.collegeId===currentCollegeId&&(
+      String(x.instructorId||'')===String(inst.id)||
+      ((x.trade==='ALL'||x.trade===inst.trade)&&norm(x.instructor)===norm(inst.name))
+    ));
   }
   function statusFor(date,slot,inst){return d().classMonitoring.find(x=>x.collegeId===currentCollegeId&&x.date===date&&x.timetableId===slot.id&&(String(x.instructorId||'')===String(inst.id)||norm(x.instructorName)===norm(inst.name)));}
   function daySlots(inst,date){
-    const dt=new Date(date+'T00:00:00'),day=weekdays[dt.getDay()],holiday=tradeHoliday(currentCollegeId,inst.trade,date);
-    if(holiday)return {holiday,slots:[]};
-    const slots=instructorTimetable(inst).filter(x=>x.day===day).map(x=>({...x,hours:parseHours(x.time),category:inferCategory(x)}));
-    return {holiday:'',slots};
+    const dt=new Date(date+'T00:00:00'),day=weekdays[dt.getDay()];
+    const assigned=instructorTimetable(inst).filter(x=>x.day===day);
+    const slots=[],holidayReasons=[];
+    assigned.forEach(x=>{const h=tradeHoliday(currentCollegeId,x.trade||inst.trade,date);if(h){holidayReasons.push(`${x.trade||inst.trade}: ${h}`);return;}slots.push({...x,hours:parseHours(x.time),category:inferCategory(x)});});
+    return {holiday:slots.length?'':(holidayReasons.length?[...new Set(holidayReasons)].join(' / '):''),slots};
   }
   function aggregate(inst,weekNo){
     const range=weekRange(weekNo),today=localISO(new Date()),end=range.to<today?range.to:today;
@@ -6704,9 +6708,10 @@ D) लखनऊ
  const escT=v=>typeof supEscape==='function'?supEscape(v):String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const allowed=()=>['superintendent','groupInstructor'].includes(currentRole)&&!!currentCollegeId;
  let rowCount=3;
- function instructorOptions(trade){
-   const list=(typeof getSupCollegeInstructors==='function'?getSupCollegeInstructors():[]).filter(i=>!trade||String(i.trade).trim()===String(trade).trim());
-   return '<option value="">अनुदेशक चुनें</option>'+list.map(i=>`<option value="${escT(i.id)}">${escT(i.name)}</option>`).join('');
+ function instructorOptions(trade,common=false){
+   const all=typeof getSupCollegeInstructors==='function'?getSupCollegeInstructors():[];
+   const list=common?all:all.filter(i=>!trade||String(i.trade).trim()===String(trade).trim());
+   return '<option value="">अनुदेशक चुनें</option>'+list.map(i=>`<option value="${escT(i.id)}">${escT(i.name)}${i.trade?' — '+escT(i.trade):''}</option>`).join('');
  }
  function categoryFor(code){const s=String(code||'').trim().toUpperCase();if(s==='ES')return 'ES';if(s==='ED')return 'ED';if(['WC','WCS'].includes(s))return 'WCS';if(['PW','PRACTICAL','IT LAB','MW'].includes(s))return 'Practical';if(['TH','THEORY'].includes(s))return 'Theory';return 'Theory';}
  function cell(trade,day,period){
@@ -6717,7 +6722,8 @@ D) लखनऊ
     </div>
     <input class="bulk-subject" data-trade="${escT(trade)}" data-day="${day}" data-period="${period}" placeholder="विषय कोड / नाम" style="display:block;width:100%;min-width:0;max-width:100%;height:38px;box-sizing:border-box;margin:7px 0;padding:6px">
     <select class="bulk-category" style="display:block;width:100%;min-width:0;max-width:100%;height:38px;box-sizing:border-box;margin:0 0 6px;padding:4px">${cats.map(([v,l])=>`<option value="${v}">${l}</option>`).join('')}</select>
-    <select class="bulk-instructor" style="display:block;width:100%;min-width:0;max-width:100%;height:38px;box-sizing:border-box;padding:4px">${instructorOptions(trade)}</select></td>`;
+    <label style="display:flex;align-items:center;gap:6px;font-size:12px;margin:2px 0 5px"><input type="checkbox" class="bulk-common-instructor" style="width:auto"> कॉमन इंस्ट्रक्टर</label>
+    <select class="bulk-instructor" data-trade="${escT(trade)}" style="display:block;width:100%;min-width:0;max-width:100%;height:38px;box-sizing:border-box;padding:4px">${instructorOptions(trade)}</select></td>`;
  }
  function build(){
    const host=$('bulkTimetableEditor');if(!host||!allowed())return;
@@ -6736,6 +6742,7 @@ D) लखनऊ
    trades.forEach(trade=>renderTradeRows(trade,rowCount));
    host.querySelectorAll('.bulk-add-period').forEach(btn=>btn.addEventListener('click',()=>{const trade=btn.dataset.trade;const body=host.querySelector(`.bulk-period-body[data-trade="${CSS.escape(trade)}"]`);const n=body.querySelectorAll('tr').length;appendTradeRow(trade,n);}));
    host.querySelectorAll('.bulk-subject').forEach(inp=>inp.addEventListener('change',()=>{const cat=inp.closest('td')?.querySelector('.bulk-category');if(cat)cat.value=categoryFor(inp.value);}));
+   host.querySelectorAll('.bulk-common-instructor').forEach(chk=>chk.addEventListener('change',()=>{const td=chk.closest('td'),sel=td?.querySelector('.bulk-instructor');if(!sel)return;const trade=sel.dataset.trade,keep=sel.value;sel.innerHTML=instructorOptions(trade,chk.checked);if([...sel.options].some(o=>o.value===keep))sel.value=keep;}));
  }
  function renderTradeRows(trade,count){for(let i=0;i<count;i++)appendTradeRow(trade,i);}
  function appendTradeRow(trade,index){
@@ -6760,12 +6767,13 @@ D) लखनऊ
    host.querySelectorAll('.bulk-subject').forEach(inp=>{
      const subject=inp.value.trim();if(!subject)return;
      const td=inp.closest('td'),start=td.querySelector('.bulk-start')?.value||'',end=td.querySelector('.bulk-end')?.value||'';
-     const category=td.querySelector('.bulk-category')?.value||categoryFor(subject),instructorId=td.querySelector('.bulk-instructor')?.value||'';
+     const category=td.querySelector('.bulk-category')?.value||categoryFor(subject),instructorId=td.querySelector('.bulk-instructor')?.value||'',commonInstructor=!!td.querySelector('.bulk-common-instructor')?.checked;
      const trade=inp.dataset.trade,day=inp.dataset.day,year=host.querySelector(`.bulk-year[data-trade="${CSS.escape(trade)}"]`)?.value||'First Year';
      const inst=(typeof getSupCollegeInstructors==='function'?getSupCollegeInstructors():[]).find(x=>String(x.id)===String(instructorId));
      if(!start||!end||end<=start){invalid.push(`${trade} / ${day}: क्लास का समय गलत या अधूरा है`);return;}
      if(!instructorId||!inst){invalid.push(`${trade} / ${day}: अनुदेशक नहीं चुना गया`);return;}
-     rows.push({id:'TT'+Date.now()+'_'+Math.random().toString(36).slice(2,8),collegeId:currentCollegeId,trade,year,day,time:`${start} - ${end}`,subject,category,instructor:inst.name,instructorId:inst.id,lunchStart,lunchEnd,createdAt:new Date().toISOString(),createdBy:loggedInSuperintendent?.name||'अधिकारी',createdByRole:currentRole,bulkPublished:true});
+     if(!commonInstructor&&String(inst.trade||'').trim()&&String(inst.trade).trim()!==String(trade).trim()){invalid.push(`${trade} / ${day}: दूसरे ट्रेड के अनुदेशक के लिए कॉमन इंस्ट्रक्टर विकल्प चुनें`);return;}
+     rows.push({id:'TT'+Date.now()+'_'+Math.random().toString(36).slice(2,8),collegeId:currentCollegeId,trade,year,day,time:`${start} - ${end}`,subject,category,instructor:inst.name,instructorId:inst.id,instructorHomeTrade:inst.trade||'',commonInstructor:commonInstructor||String(inst.trade||'').trim()!==String(trade).trim(),lunchStart,lunchEnd,createdAt:new Date().toISOString(),createdBy:loggedInSuperintendent?.name||'अधिकारी',createdByRole:currentRole,bulkPublished:true});
    });
    if(invalid.length){alert(invalid.slice(0,12).join('\n')+(invalid.length>12?`\nऔर ${invalid.length-12} त्रुटियाँ`:''));return;}
    if(!rows.length){alert('कम से कम एक विषय / क्लास भरें।');return;}
