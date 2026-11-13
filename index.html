@@ -6559,5 +6559,140 @@ D) लखनऊ
 
 </script>
 
+<script>
+/* ================= TIMETABLE-BASED TRAINING HOURS & CLASS MONITORING ================= */
+(function(){
+  const $=id=>document.getElementById(id);
+  const esc=v=>typeof supEscape==='function'?supEscape(v):String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const categories=['Theory','Practical','WCS','ED','ES','Other'];
+  const labels={Theory:'थ्योरी',Practical:'प्रैक्टिकल',WCS:'WCS',ED:'ED',ES:'ES',Other:'अन्य'};
+  const weekdays=['रविवार','सोमवार','मंगलवार','बुधवार','गुरुवार','शुक्रवार','शनिवार'];
+  const d=()=>{const x=ensureSupData();['timetables','classMonitoring'].forEach(k=>{if(!Array.isArray(x[k]))x[k]=[]});return x;};
+  const localISO=dt=>`${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
+  const addDays=(iso,n)=>{const x=new Date(iso+'T00:00:00');x.setDate(x.getDate()+n);return localISO(x);};
+  const norm=s=>String(s||'').trim().toLowerCase().replace(/\s+/g,' ');
+  function sessionStart(){return appData.sessionConfig?.startDate||'2026-08-10';}
+  function weekRange(no){const from=addDays(sessionStart(),(no-1)*7);return {from,to:addDays(from,6)};}
+  function currentWeekNo(){const days=Math.floor((new Date(localISO(new Date())+'T00:00:00')-new Date(sessionStart()+'T00:00:00'))/86400000);return Math.max(1,Math.min(40,Math.floor(days/7)+1));}
+  function parseHours(time){
+    const s=String(time||'').trim();
+    const m=s.match(/(\d{1,2}):(\d{2})\s*(?:-|–|—|to|से)\s*(\d{1,2}):(\d{2})/i);
+    if(!m)return 0;
+    const a=Number(m[1])*60+Number(m[2]),b=Number(m[3])*60+Number(m[4]);
+    let mins=b-a;if(mins<=0)mins+=24*60;
+    return mins>0&&mins<=12*60?mins/60:0;
+  }
+  function inferCategory(x){
+    if(categories.includes(x.category))return x.category;
+    const s=norm(x.subject);
+    if(/\bwcs\b|workshop calculation|वर्कशॉप कैलकुलेशन/.test(s))return 'WCS';
+    if(/\bed\b|engineering drawing|इंजीनियरिंग ड्राइंग|इंजीनियरिंग ड्रॉइंग/.test(s))return 'ED';
+    if(/\bes\b|employability skills|एम्प्लॉयबिलिटी/.test(s))return 'ES';
+    if(/practical|प्रैक्टिकल|प्रयोगशाला|वर्कशॉप|workshop|lab|प्रयोग/.test(s))return 'Practical';
+    if(/theory|थ्योरी/.test(s))return 'Theory';
+    return 'Theory';
+  }
+  function tradeHoliday(cid,trade,iso){
+    const dt=new Date(iso+'T00:00:00');if(dt.getDay()===0)return 'रविवार';
+    const month=iso.slice(0,7),day=Number(iso.slice(8,10));
+    const root=appData.holidays?.[cid]||{};
+    const lists=trade==='ALL'?Object.values(root).map(v=>v?.[month]||[]):[root?.[trade]?.[month]||[]];
+    if(lists.some(a=>Array.isArray(a)&&a.map(Number).includes(day)))return 'दैनिक उपस्थिति रजिस्टर का अवकाश';
+    return '';
+  }
+  function instructorTimetable(inst){
+    return d().timetables.filter(x=>x&&x.collegeId===currentCollegeId&&(x.trade==='ALL'||x.trade===inst.trade)&&(norm(x.instructor)===norm(inst.name)||String(x.instructorId||'')===String(inst.id)));
+  }
+  function statusFor(date,slot,inst){return d().classMonitoring.find(x=>x.collegeId===currentCollegeId&&x.date===date&&x.timetableId===slot.id&&(String(x.instructorId||'')===String(inst.id)||norm(x.instructorName)===norm(inst.name)));}
+  function daySlots(inst,date){
+    const dt=new Date(date+'T00:00:00'),day=weekdays[dt.getDay()],holiday=tradeHoliday(currentCollegeId,inst.trade,date);
+    if(holiday)return {holiday,slots:[]};
+    const slots=instructorTimetable(inst).filter(x=>x.day===day).map(x=>({...x,hours:parseHours(x.time),category:inferCategory(x)}));
+    return {holiday:'',slots};
+  }
+  function aggregate(inst,weekNo){
+    const range=weekRange(weekNo),today=localISO(new Date()),end=range.to<today?range.to:today;
+    const totals={Theory:0,Practical:0,WCS:0,ED:0,ES:0,Other:0};let total=0,workingDays=0,holidays=0,notHeld=0,held=0,unmarked=0,invalid=0;
+    const dayRows=[];
+    if(end<range.from)return {range,totals,total,workingDays,holidays,notHeld,held,unmarked,invalid,dayRows};
+    for(let date=range.from;date<=end;date=addDays(date,1)){
+      const result=daySlots(inst,date);if(result.holiday){holidays++;dayRows.push({date,holiday:result.holiday,slots:[]});continue;}
+      workingDays++;let dayTotal=0;
+      result.slots.forEach(slot=>{
+        if(!slot.hours){invalid++;return;}
+        totals[slot.category]+=slot.hours;total+=slot.hours;dayTotal+=slot.hours;
+        const status=statusFor(date,slot,inst);
+        if(status?.status==='not_held')notHeld++;else if(status?.status==='held')held++;else unmarked++;
+      });
+      dayRows.push({date,holiday:'',slots:result.slots,dayTotal});
+    }
+    return {range,totals,total,workingDays,holidays,notHeld,held,unmarked,invalid,dayRows};
+  }
+  function ensurePanels(){
+    if($('supHoursMonitorPanel')||!$('supViewTasks'))return;
+    $('supViewTasks').insertAdjacentHTML('beforeend',`<div class="glass-card sup-panel" id="supHoursMonitorPanel" style="margin-top:14px"><h3>टाइम टेबल आधारित प्रशिक्षण घंटे मॉनिटरिंग</h3><p class="sup-help">घंटे प्रकाशित टाइम टेबल के विषय और समय-अवधि से स्वतः गिने जाते हैं। Working Day पर निर्धारित क्लास के घंटे जुड़ेंगे, भले ही क्लास नहीं ली गई हो। अवकाश के घंटे नहीं जुड़ेंगे।</p><div class="sup-form-grid"><div class="input-group"><label>ट्रेड</label><select id="hoursTradeFilter" onchange="renderTimetableHoursMonitor()"><option value="ALL">सभी ट्रेड</option></select></div><div class="input-group"><label>अनुदेशक</label><select id="hoursInstructorFilter" onchange="renderTimetableHoursMonitor()"><option value="ALL">सभी अनुदेशक</option></select></div><div class="input-group"><label>सप्ताह</label><select id="hoursWeekFilter" onchange="renderTimetableHoursMonitor()"></select></div></div><div id="hoursMonitorSummary" class="sup-alert-grid" style="margin:12px 0"></div><h4>चयनित सप्ताह — विषयवार घंटे</h4><div class="table-shell"><table><thead><tr><th>विषय</th><th>इस सप्ताह</th><th>सत्र में अब तक</th></tr></thead><tbody id="hoursSubjectBody"></tbody></table></div><h4 style="margin-top:16px">सप्ताहवार घंटे</h4><div class="table-shell"><table><thead><tr><th>सप्ताह</th><th>तारीख</th><th>Working Days</th><th>अवकाश</th><th>Theory</th><th>Practical</th><th>WCS</th><th>ED</th><th>ES</th><th>अन्य</th><th>कुल घंटे</th><th>क्लास नहीं ली (पीरियड)</th></tr></thead><tbody id="hoursWeeklyBody"></tbody></table></div><p class="sup-help">नोट: अभी कुल CTS लक्ष्य घंटे ट्रेडवार सेट नहीं हैं, इसलिए यह रिपोर्ट टाइम टेबल से निर्धारित/गिने गए घंटे दिखाती है।</p></div>`);
+    if($('supTtSubject')&&!$('supTtCategory'))$('supTtSubject').parentElement.insertAdjacentHTML('afterend',`<div class="input-group"><label>विषय श्रेणी</label><select id="supTtCategory"><option value="Theory">Theory</option><option value="Practical">Practical</option><option value="WCS">WCS</option><option value="ED">ED</option><option value="ES">ES</option><option value="Other">अन्य</option></select></div>`);
+    if($('instTabWork')&&!$('instDailyClassMonitor'))$('instTabWork').insertAdjacentHTML('afterbegin',`<div class="glass-card" id="instDailyClassMonitor" style="padding:16px;margin:12px 0"><h3>आज की टाइम टेबल क्लास स्थिति</h3><p class="sup-help">निर्धारित क्लास के घंटे टाइम टेबल के अनुसार जुड़ेंगे। यदि क्लास नहीं ली गई तो लाल मार्किंग करें; घंटे फिर भी कुल प्रशिक्षण घंटों में जुड़ेंगे।</p><div class="input-group"><label>दिनांक</label><input type="date" id="instClassMarkDate" onchange="renderInstructorClassMarking()" style="max-width:220px"></div><div id="instClassMarkList" style="margin-top:10px"></div></div>`);
+  }
+  window.saveTimetableClassStatus=function(timetableId,status){
+    if(currentRole!=='instructor'||!loggedInInstructor||!currentCollegeId)return;
+    const date=$('instClassMarkDate')?.value||localISO(new Date()),inst=loggedInInstructor;
+    const slot=d().timetables.find(x=>x.id===timetableId&&x.collegeId===currentCollegeId);if(!slot)return;
+    const reason=status==='not_held'?(prompt('क्लास नहीं लेने का कारण लिखें (वैकल्पिक):')||'') : '';
+    const rows=d().classMonitoring,idx=rows.findIndex(x=>x.collegeId===currentCollegeId&&x.date===date&&x.timetableId===timetableId&&(String(x.instructorId||'')===String(inst.id)||norm(x.instructorName)===norm(inst.name)));
+    const record={id:'CM'+currentCollegeId+'_'+date+'_'+timetableId+'_'+inst.id,collegeId:currentCollegeId,instructorId:inst.id,instructorName:inst.name,trade:currentTrade,date,timetableId,status,reason,updatedAt:new Date().toISOString()};
+    if(idx>=0)rows[idx]=record;else rows.push(record);
+    syncWithFirebase();renderInstructorClassMarking();
+    if(typeof showToast==='function')showToast(status==='not_held'?'क्लास नहीं लेने की मार्किंग सेव हुई।':'क्लास संचालित मार्किंग सेव हुई।');
+  };
+  window.renderInstructorClassMarking=function(){
+    const host=$('instClassMarkList');if(!host||currentRole!=='instructor'||!loggedInInstructor)return;
+    const date=$('instClassMarkDate')?.value||localISO(new Date()),inst=loggedInInstructor,result=daySlots(inst,date);
+    if(result.holiday){host.innerHTML=`<div class="sup-alert-item"><strong>अवकाश</strong><span>${esc(result.holiday)} — आज कोई घंटे नहीं जुड़ेंगे।</span></div>`;return;}
+    if(!result.slots.length){host.innerHTML='<p class="sup-help">इस दिन आपके नाम से कोई टाइम टेबल क्लास निर्धारित नहीं है।</p>';return;}
+    host.innerHTML=result.slots.map(slot=>{const status=statusFor(date,slot,inst),st=status?.status||'unmarked',color=st==='not_held'?'#dc2626':st==='held'?'#15803d':'#64748b',label=st==='not_held'?'क्लास नहीं ली गई':st==='held'?'क्लास ली गई':'स्थिति दर्ज नहीं';return `<div class="sup-alert-item" style="display:block;margin:8px 0;border-left:5px solid ${color}"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><strong>${esc(slot.subject)} (${esc(labels[slot.category])})</strong><b style="color:${color}">${label}</b></div><span>समय: ${esc(slot.time)} · घंटे: ${slot.hours.toFixed(2)} · सप्ताह के कुल घंटे में शामिल</span>${status?.reason?`<p>कारण: ${esc(status.reason)}</p>`:''}<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><button class="app-btn app-btn-success" onclick="saveTimetableClassStatus('${esc(slot.id)}','held')">क्लास ली गई</button><button class="app-btn app-btn-danger" onclick="saveTimetableClassStatus('${esc(slot.id)}','not_held')">क्लास नहीं ली</button></div></div>`;}).join('');
+  };
+  window.renderTimetableHoursMonitor=function(){
+    if(!['groupInstructor','superintendent'].includes(currentRole)||!currentCollegeId)return;
+    const all=getSupCollegeInstructors(),tradeSel=$('hoursTradeFilter'),instSel=$('hoursInstructorFilter'),weekSel=$('hoursWeekFilter');
+    if(!tradeSel||!instSel||!weekSel)return;
+    const oldTrade=tradeSel.value||'ALL';tradeSel.innerHTML='<option value="ALL">सभी ट्रेड</option>'+getTradesList().map(t=>`<option value="${esc(t)}">${esc(t)}</option>`).join('');tradeSel.value=[...getTradesList(),'ALL'].includes(oldTrade)?oldTrade:'ALL';
+    const filtered=all.filter(i=>tradeSel.value==='ALL'||i.trade===tradeSel.value),oldInst=instSel.value||'ALL';instSel.innerHTML='<option value="ALL">सभी अनुदेशक</option>'+filtered.map(i=>`<option value="${esc(i.id)}">${esc(i.name)} — ${esc(i.trade)}</option>`).join('');instSel.value=filtered.some(i=>String(i.id)===oldInst)?oldInst:'ALL';
+    const maxWeek=currentWeekNo(),oldWeek=Number(weekSel.value)||maxWeek;weekSel.innerHTML=Array.from({length:40},(_,i)=>`<option value="${i+1}">सप्ताह ${i+1}</option>`).join('');weekSel.value=String(Math.min(40,Math.max(1,oldWeek)));
+    const chosen=filtered.filter(i=>instSel.value==='ALL'||String(i.id)===instSel.value),week=Number(weekSel.value);
+    const weekTotals={Theory:0,Practical:0,WCS:0,ED:0,ES:0,Other:0},cumTotals={Theory:0,Practical:0,WCS:0,ED:0,ES:0,Other:0};
+    let wTotal=0,cTotal=0,wDays=0,wHolidays=0,wNotHeld=0,wUnmarked=0,wInvalid=0;const weekly=[];
+    for(let n=1;n<=maxWeek;n++){
+      const aggList=chosen.map(i=>aggregate(i,n));const row={Theory:0,Practical:0,WCS:0,ED:0,ES:0,Other:0,total:0,days:0,holidays:0,notHeld:0,unmarked:0,invalid:0};
+      aggList.forEach(a=>{categories.forEach(k=>row[k]+=a.totals[k]);row.total+=a.total;row.days=Math.max(row.days,a.workingDays);row.holidays=Math.max(row.holidays,a.holidays);row.notHeld+=a.notHeld;row.unmarked+=a.unmarked;row.invalid+=a.invalid;});
+      if(n===week){Object.assign(weekTotals,row);wTotal=row.total;wDays=row.days;wHolidays=row.holidays;wNotHeld=row.notHeld;wUnmarked=row.unmarked;wInvalid=row.invalid;}
+      if(n<=week){categories.forEach(k=>cumTotals[k]+=row[k]);cTotal+=row.total;}
+      weekly.push({n,range:weekRange(n),...row});
+    }
+    const summary=$('hoursMonitorSummary');if(summary)summary.innerHTML=`<div class="sup-alert-item"><strong>${wTotal.toFixed(2)}</strong><span>चयनित सप्ताह के घंटे</span></div><div class="sup-alert-item"><strong>${cTotal.toFixed(2)}</strong><span>सत्र में अब तक घंटे</span></div><div class="sup-alert-item"><strong>${wDays}</strong><span>Working Days</span></div><div class="sup-alert-item"><strong>${wHolidays}</strong><span>अवकाश</span></div><div class="sup-alert-item" style="border-left:4px solid #dc2626"><strong style="color:#dc2626">${wNotHeld}</strong><span>क्लास नहीं ली गई</span></div><div class="sup-alert-item"><strong>${wUnmarked}</strong><span>स्थिति दर्ज नहीं</span></div>${wInvalid?`<div class="sup-alert-item" style="border-left:4px solid #d97706"><strong>${wInvalid}</strong><span>समय प्रारूप जाँचें</span></div>`:''}`;
+    const sb=$('hoursSubjectBody');if(sb)sb.innerHTML=categories.map(k=>`<tr><td>${labels[k]}</td><td>${weekTotals[k].toFixed(2)}</td><td>${cumTotals[k].toFixed(2)}</td></tr>`).join('')+`<tr><th>कुल</th><th>${wTotal.toFixed(2)}</th><th>${cTotal.toFixed(2)}</th></tr>`;
+    const body=$('hoursWeeklyBody');if(body)body.innerHTML=weekly.filter(x=>x.n<=week).map(x=>`<tr><td>सप्ताह ${x.n}</td><td>${x.range.from} से ${x.range.to}</td><td>${x.days}</td><td>${x.holidays}</td><td>${x.Theory.toFixed(2)}</td><td>${x.Practical.toFixed(2)}</td><td>${x.WCS.toFixed(2)}</td><td>${x.ED.toFixed(2)}</td><td>${x.ES.toFixed(2)}</td><td>${x.Other.toFixed(2)}</td><td><b>${x.total.toFixed(2)}</b></td><td style="color:${x.notHeld?'#dc2626':'inherit'}">${x.notHeld}</td></tr>`).join('')||'<tr><td colspan="12">अभी कोई सप्ताह उपलब्ध नहीं है।</td></tr>';
+  };
+  function inject(){ensurePanels();
+    const cat=$('supTtCategory');if(cat&&!cat.dataset.bound){cat.dataset.bound='1';}
+    if($('instClassMarkDate')&&!$('instClassMarkDate').value)$('instClassMarkDate').value=localISO(new Date());
+  }
+  const oldPublish=window.publishCollegeTimetable;
+  window.publishCollegeTimetable=function(){
+    if(currentRole!=='superintendent'||!currentCollegeId){if(oldPublish)return oldPublish();return;}
+    const subject=$('supTtSubject')?.value.trim()||'',time=$('supTtTime')?.value.trim()||'',category=$('supTtCategory')?.value||'Theory';
+    if(!subject||!time){alert('समय और विषय भरें।');return;}
+    if(!parseHours(time)){alert('समय इस प्रारूप में लिखें: 10:00 - 11:00 ताकि घंटे स्वतः गिने जा सकें।');return;}
+    const data=d();data.timetables.push({id:'TT'+Date.now(),collegeId:currentCollegeId,trade:$('supTtTrade')?.value||'ALL',day:$('supTtDay')?.value||'सोमवार',time,subject,category,instructor:$('supTtInstructor')?.value.trim()||'',createdAt:new Date().toISOString()});
+    syncWithFirebase();['supTtTime','supTtSubject','supTtInstructor'].forEach(id=>{if($(id))$(id).value='';});renderCompletionModules();if(typeof showToast==='function')showToast('समय-सारणी प्रकाशित हुई। घंटे अब स्वतः गिने जाएंगे।');
+  };
+  const oldRender=window.renderCompletionModules;
+  if(oldRender)window.renderCompletionModules=function(){oldRender.apply(this,arguments);inject();if(currentRole==='instructor')renderInstructorClassMarking();if(['groupInstructor','superintendent'].includes(currentRole))renderTimetableHoursMonitor();};
+  const oldSwitch=window.switchSupView;
+  if(oldSwitch)window.switchSupView=function(){oldSwitch.apply(this,arguments);if(['groupInstructor','superintendent'].includes(currentRole)){inject();renderTimetableHoursMonitor();}};
+  document.addEventListener('DOMContentLoaded',()=>{inject();setTimeout(()=>{if(currentRole==='instructor')renderInstructorClassMarking();if(['groupInstructor','superintendent'].includes(currentRole))renderTimetableHoursMonitor();},300);});
+})();
+</script>
+
 </body>
 </html>
