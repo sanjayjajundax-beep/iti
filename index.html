@@ -6518,7 +6518,7 @@ D) लखनऊ
        <div class="pdf-header">
         <div class="institute">${escExam(instituteName)}</div>
         <div class="trade-title">${escExam(trade)} TRADE — CBT RESULT CARD</div>
-        <div class="instructor">अनुदेशक / परीक्षा निर्माता: ${escExam(record.instructorName||paper.createdBy||'Admin')}</div>
+        <div class="instructor">परीक्षा लेने वाले अनुदेशक: ${escExam(record.instructorName||paper.createdBy||'Admin')}</div>
         <div class="student-meta">
          <div><b>छात्र का नाम:</b> ${escExam(record.name)}</div><div><b>रोल नंबर:</b> ${escExam(record.roll)}</div>
          <div><b>परीक्षा तिथि:</b> ${date.toLocaleDateString('hi-IN')}</div><div><b>सबमिट समय:</b> ${date.toLocaleTimeString('en-IN')}</div>
@@ -6547,10 +6547,16 @@ D) लखनऊ
    let score=0,totalMarks=0,attempted=0,wrong=0;
    const details=examOrder.map((orig,i)=>{const q=examQuestions[orig],selected=examAnswers[i],isAttempted=selected!==null,isCorrect=isAttempted&&selected===q.c;if(isAttempted)attempted++;if(isCorrect)score+=q.marks;else if(isAttempted)wrong++;totalMarks+=q.marks;return{number:i+1,question:q.q,options:Array.isArray(q.a)?q.a.slice():[],selectedIndex:isAttempted?selected:null,selectedText:!isAttempted?'उत्तर नहीं दिया':q.a[selected],correctIndex:q.c,correctText:q.a[q.c],isAttempted,isCorrect,marks:q.marks,obtained:isCorrect?q.marks:0};});
    const percent=Number((totalMarks?score/totalMarks*100:0).toFixed(2)),now=new Date(),correct=details.filter(d=>d.isCorrect).length;
+   // Result card shows the instructor who actually conducted this exam,
+   // not the trade instructor who may have originally created the question paper.
    const examCreator=String(activeExam.createdBy||'').trim();
-   const instructorName=(!examCreator||/^admin$/i.test(examCreator))?'Admin':examCreator;
+   const instructorName=currentRole==='instructor'
+     ? String(loggedInInstructor?.name||examCreator||'अनुदेशक').trim()
+     : ((!examCreator||/^admin$/i.test(examCreator))?'Admin':examCreator);
+   const examConductedById=currentRole==='instructor'?(loggedInInstructor?.id||loggedInInstructor?.uid||''):'';
+   const examConductedByRole=currentRole==='instructor'?(loggedInInstructor?.instructorType==='common'?'commonInstructor':'instructor'):currentRole;
    const instituteName=getCollegeName(currentCollegeId);
-   const record={collegeId:currentCollegeId,instituteName,trade:currentTrade,instructorName,examId:activeExam.id,examTitle:activeExam.title,name:activeExam.studentName,roll:activeExam.roll,total:examQuestions.length,attempted,correct,wrong,unattempted:examQuestions.length-attempted,score:Number(score.toFixed(2)),maximum:Number(totalMarks.toFixed(2)),percent,status:percent>=40?'PASS':'FAIL',submittedAt:now.toISOString(),details};
+   const record={collegeId:currentCollegeId,instituteName,trade:currentTrade,instructorName,examConductedById,examConductedByRole,examId:activeExam.id,examTitle:activeExam.title,name:activeExam.studentName,roll:activeExam.roll,total:examQuestions.length,attempted,correct,wrong,unattempted:examQuestions.length-attempted,score:Number(score.toFixed(2)),maximum:Number(totalMarks.toFixed(2)),percent,status:percent>=40?'PASS':'FAIL',submittedAt:now.toISOString(),details};
    // Firebase में प्रश्न/विकल्प दोहराने के बजाय केवल मूल प्रश्न क्रम के अनुसार चुने गए विकल्प सेव करें। -1 = अनुत्तरित।
    const compactAnswers=Array(examQuestions.length).fill(-1);
    examOrder.forEach((originalIndex,shownIndex)=>{compactAnswers[originalIndex]=examAnswers[shownIndex]===null?-1:examAnswers[shownIndex];});
@@ -6589,7 +6595,7 @@ D) लखनऊ
     <div class="pdf-header">
       <div class="institute">${escExam(instituteName)}</div>
       <div class="trade-title">${escExam(currentTrade)} TRADE — CBT RESULT CARD</div>
-      <div class="instructor">अनुदेशक / परीक्षा निर्माता: ${escExam(instructorName)}</div>
+      <div class="instructor">परीक्षा लेने वाले अनुदेशक: ${escExam(instructorName)}</div>
       <div class="student-meta">
         <div><b>छात्र का नाम:</b> ${escExam(record.name)}</div>
         <div><b>रोल नंबर:</b> ${escExam(record.roll)}</div>
