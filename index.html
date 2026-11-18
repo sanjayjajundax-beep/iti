@@ -2006,7 +2006,7 @@ D) लखनऊ
    <button type="button" class="exam-action exam-green" onclick="createExamFromAdmin()">परीक्षा और प्रश्न सेव करें</button>
    <div id="examImportStatus" style="margin-top:8px;font-weight:700"></div>
   </div>
-  <div class="exam-panel">
+  <div class="exam-panel" id="examResultsPanel">
    <h3>विद्यार्थियों के परीक्षा परिणाम</h3>
    <div class="exam-grid">
     <div class="exam-field"><label>कॉलेज</label><select id="examResultCollege"></select></div>
@@ -3183,6 +3183,17 @@ D) लखनऊ
                 document.getElementById('supCollegeBadge').innerText = getCollegeName(currentCollegeId);
                 const dt=document.getElementById("supInspectionDate"); if(dt && !dt.value) dt.value=new Date().toISOString().slice(0,10);
                 const isGroup=currentRole==='groupInstructor';
+                // ग्रुप इंस्ट्रक्टर और अधीक्षक के लिए सभी ट्रेडों के परीक्षा परिणाम देखने का अलग, read-only विकल्प।
+                const supExamNav=document.querySelector('#superintendentSection .sup-sidebar');
+                if(supExamNav && !document.getElementById('openSupervisorExamResultsBtn')){
+                    const examBtn=document.createElement('button');
+                    examBtn.id='openSupervisorExamResultsBtn';
+                    examBtn.type='button';
+                    examBtn.className='sup-nav-btn';
+                    examBtn.innerHTML='<i class="fa-solid fa-file-pdf"></i><span>सभी ट्रेड के परीक्षा परिणाम</span>';
+                    examBtn.addEventListener('click',()=>window.openExamResultsSupervisor());
+                    supExamNav.appendChild(examBtn);
+                }
                 // दोनों भूमिकाओं को सभी संचालन मॉड्यूल दिखें; अधीक्षक को To-Do निगरानी भी मिले।
                 document.querySelectorAll('#superintendentSection .sup-nav-btn').forEach(btn=>btn.classList.remove('hidden'));
                 const todoLabel=document.getElementById('groupTodoNavLabel');
@@ -6251,7 +6262,23 @@ D) लखनऊ
    ['examCredCollege','examNewCollege','examResultCollege'].forEach(id=>{const el=$(id);if(el)el.innerHTML=colleges.map(c=>`<option value="${escExam(c.id)}">${escExam(c.name)}</option>`).join('');});
    ['examCredTrade','examNewTrade','examResultTrade'].forEach(id=>{const el=$(id);if(el)el.innerHTML=trades.map(t=>`<option value="${escExam(t)}">${escExam(t)}</option>`).join('');});
  }
- window.openExamAdmin=async function(){if(currentRole!=='admin'){alert('केवल सुपर एडमिन यह पैनल खोल सकता है।');return;}fillExamSelectors();$('examAdminModal').classList.add('open');$('examAdminModal').querySelectorAll('.exam-admin-only').forEach(x=>x.style.display='');$('examNewCollege').disabled=false;$('examNewTrade').disabled=false;await loadExamCredentials();};
+ window.openExamAdmin=async function(){if(currentRole!=='admin'){alert('केवल सुपर एडमिन यह पैनल खोल सकता है।');return;}fillExamSelectors();$('examAdminModal').classList.add('open');$('examAdminModal').querySelectorAll('.exam-panel').forEach(x=>x.style.display='');$('examAdminModal').querySelectorAll('.exam-admin-only').forEach(x=>x.style.display='');$('examNewCollege').disabled=false;$('examNewTrade').disabled=false;await loadExamCredentials();};
+ window.openExamResultsSupervisor=async function(){
+   if(currentRole!=='superintendent'&&currentRole!=='groupInstructor'){alert('यह सुविधा केवल ग्रुप इंस्ट्रक्टर और अधीक्षक के लिए है।');return;}
+   if(!currentCollegeId){alert('कॉलेज की जानकारी उपलब्ध नहीं है।');return;}
+   fillExamSelectors();
+   $('examAdminModal').querySelectorAll('.exam-panel').forEach(x=>x.style.display='none');
+   $('examResultsPanel').style.display='block';
+   $('examAdminModal').querySelectorAll('.exam-admin-only').forEach(x=>x.style.display='none');
+   const creds=$('instructorExamCredentialsDashboard');if(creds)creds.style.display='none';
+   $('examAdminModeTitle').textContent='📄 सभी ट्रेड के परीक्षा परिणाम';
+   $('examResultCollege').value=currentCollegeId;$('examResultCollege').disabled=true;
+   $('examResultTrade').disabled=false;
+   $('examResultTrade').value=(getTradesList()[0]||'');
+   $('examAdminResults').innerHTML='';
+   $('examAdminModal').classList.add('open');
+   await loadExamResultsAdmin();
+ };
  let commonExamReturnTrade=null;
  window.openExamInstructor=async function(){
    try{
@@ -6287,6 +6314,11 @@ D) लखनऊ
  };
  window.closeExamAdmin=()=>{
    $('examAdminModal').classList.remove('open');$('examNewCollege').disabled=false;$('examNewTrade').disabled=false;
+   $('examResultCollege').disabled=false;$('examResultTrade').disabled=false;
+   $('examAdminModal').querySelectorAll('.exam-panel').forEach(x=>x.style.display='');
+   $('examAdminModal').querySelectorAll('.exam-admin-only').forEach(x=>x.style.display='');
+   const creds=$('instructorExamCredentialsDashboard');if(creds)creds.style.display='';
+   $('examAdminModeTitle').textContent='📝 परीक्षा डैशबोर्ड प्रबंधन';
    if(commonExamReturnTrade!==null){currentTrade=commonExamReturnTrade;commonExamReturnTrade=null;}
    const picker=$('commonExamTradePicker');if(picker)picker.remove();
  };
@@ -6469,6 +6501,13 @@ D) लखनऊ
  window.printSavedExamResult=async function(college,trade,examId,resultKey){
    let win=null;
    try{
+     const role=currentRole;
+     const isSupervisor=role==='superintendent'||role==='groupInstructor';
+     const isInstructor=role==='instructor';
+     if(role!=='admin'&&!isSupervisor&&!isInstructor)throw new Error('आपको परीक्षा परिणाम देखने की अनुमति नहीं है।');
+     if(isSupervisor&&String(college)!==String(currentCollegeId))throw new Error('आप केवल अपने कॉलेज के परिणाम देख सकते हैं।');
+     const isCommonInstructor=isInstructor&&loggedInInstructor&&(loggedInInstructor.instructorType==='common'||String(loggedInInstructor.trade||'').toUpperCase()==='COMMON');
+     if(isInstructor&&(isCommonInstructor||String(college)!==String(currentCollegeId)||String(trade).trim().toLowerCase()!==String(currentTrade).trim().toLowerCase()))throw new Error('आप केवल अपनी निर्धारित ट्रेड का परीक्षा परिणाम देख सकते हैं।');
      const resultRef=db().ref(`exam_results/${safeKey(college)}/${safeKey(trade)}/${safeKey(examId)}/${safeKey(resultKey)}`);
      const resultSnap=await resultRef.once('value');
      const record=resultSnap.val();
@@ -6639,18 +6678,35 @@ D) लखनऊ
  };
  window.loadInstructorExamResults=async function(){
    if(currentRole!=='instructor')return;
+   const isCommonInstructor=loggedInInstructor&&(loggedInInstructor.instructorType==='common'||String(loggedInInstructor.trade||'').toUpperCase()==='COMMON');
+   if(isCommonInstructor){$('examAdminResults').textContent='कॉमन इंस्ट्रक्टर को ट्रेड-विशिष्ट परीक्षा परिणाम देखने की अनुमति नहीं है।';return;}
    const college=currentCollegeId,trade=currentTrade,exams=await readExamCollection(college,trade);let rows=[];
    for(const [id,ex] of Object.entries(exams)){const rs=await db().ref(`exam_results/${safeKey(college)}/${safeKey(trade)}/${id}`).once('value');Object.entries(rs.val()||{}).forEach(([rk,r])=>rows.push({...r,_key:rk,examId:id}));}
    $('examAdminResults').innerHTML=rows.length?`<table class="result-table"><thead><tr><th>परीक्षा</th><th>विद्यार्थी</th><th>रोल</th><th>हल</th><th>सही</th><th>गलत</th><th>अंक</th><th>%</th><th>तिथि</th><th>PDF / प्रिंट</th></tr></thead><tbody>${rows.sort((a,b)=>String(b.submittedAt).localeCompare(String(a.submittedAt))).map(r=>`<tr><td>${escExam(r.examTitle)}</td><td>${escExam(r.name)}</td><td>${escExam(r.roll)}</td><td>${r.attempted}/${r.total}</td><td>${r.correct}</td><td>${r.wrong}</td><td>${r.score}/${r.maximum}</td><td>${r.percent}%</td><td>${new Date(r.submittedAt).toLocaleString('hi-IN')}</td><td><button class="exam-action exam-primary saved-result-pdf" data-exam="${escExam(r.examId||'')}" data-result="${escExam(r._key||'')}" data-college="${escExam(college)}" data-trade="${escExam(trade)}">PDF / प्रिंट</button></td></tr>`).join('')}</tbody></table>`:'अभी किसी विद्यार्थी ने परीक्षा सबमिट नहीं की है。';
  };
  window.loadExamResultsAdmin=async function(){
-   const college=$('examResultCollege').value,trade=$('examResultTrade').value;
+   const role=currentRole;
+   const isSupervisor=role==='superintendent'||role==='groupInstructor';
+   const isInstructor=role==='instructor';
+   if(role!=='admin'&&!isSupervisor&&!isInstructor){alert('आपको परीक्षा परिणाम देखने की अनुमति नहीं है।');return;}
+   let college=$('examResultCollege').value,trade=$('examResultTrade').value;
+   if(isSupervisor){
+     college=currentCollegeId;
+     $('examResultCollege').value=college;
+     $('examResultCollege').disabled=true;
+   }else if(isInstructor){
+     college=currentCollegeId;trade=currentTrade;
+     $('examResultCollege').value=college;$('examResultTrade').value=trade;
+     $('examResultCollege').disabled=true;$('examResultTrade').disabled=true;
+   }
+   if(!college||!trade){$('examAdminResults').textContent='कॉलेज और ट्रेड चुनें।';return;}
    const exams=await readExamCollection(college,trade);
    let rows=[];
    for(const [id,ex] of Object.entries(exams)){const rs=await db().ref(`exam_results/${safeKey(college)}/${safeKey(trade)}/${id}`).once('value');Object.entries(rs.val()||{}).forEach(([rk,r])=>rows.push({...r,_key:rk,examId:id}));}
    $('examAdminResults').innerHTML=rows.length?`<table class="result-table"><thead><tr><th>परीक्षा</th><th>विद्यार्थी</th><th>रोल</th><th>हल/सही/गलत</th><th>अंक</th><th>%</th><th>परिणाम</th><th>तिथि</th><th>PDF / प्रिंट</th></tr></thead><tbody>${rows.sort((a,b)=>String(b.submittedAt).localeCompare(String(a.submittedAt))).map(r=>`<tr><td>${escExam(r.examTitle)}</td><td>${escExam(r.name)}</td><td>${escExam(r.roll)}</td><td>${r.attempted}/${r.total} / ${r.correct} / ${r.wrong}</td><td>${r.score}/${r.maximum||r.total}</td><td>${r.percent}</td><td>${r.status}</td><td>${new Date(r.submittedAt).toLocaleString('hi-IN')}</td><td><button class="exam-action exam-primary saved-result-pdf" data-exam="${escExam(r.examId||'')}" data-result="${escExam(r._key||'')}" data-college="${escExam(college)}" data-trade="${escExam(trade)}">PDF / प्रिंट</button></td></tr>`).join('')}</tbody></table>`:'इस कॉलेज/ट्रेड का कोई परिणाम उपलब्ध नहीं है।';
  };
  document.addEventListener('click',ev=>{const b=ev.target.closest('.saved-result-pdf');if(!b)return;window.printSavedExamResult(b.dataset.college,b.dataset.trade,b.dataset.exam,b.dataset.result);});
+ $('examResultTrade')?.addEventListener('change',()=>{if(currentRole==='superintendent'||currentRole==='groupInstructor')window.loadExamResultsAdmin();});
  document.addEventListener('DOMContentLoaded',()=>{fillExamSelectors();});
 })();
 
