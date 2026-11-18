@@ -737,6 +737,11 @@
 @media(max-width:760px){.exam-question-layout{grid-template-columns:1fr}.exam-modal-card{padding:13px}.exam-number-grid{grid-template-columns:repeat(6,1fr)}}
 @media print{#examStudentSection .exam-no-print{display:none!important}}
 
+/* Common instructor tap-to-mark attendance */
+#commonAttStudents .btn-status-toggle{min-width:42px;min-height:36px;border-radius:8px;font-weight:800;box-shadow:0 1px 3px #0f172a18}
+#commonAttStudents tr td{padding:8px 6px}
+#commonExamTradePicker{margin:0 8px 0 0}
+#commonExamTradePicker select{padding:9px 12px;border:1px solid #cbd5e1;border-radius:8px;min-width:190px;background:#f8fafc;font-weight:700}
 </style>
 
 <script>
@@ -6247,22 +6252,44 @@ D) लखनऊ
    ['examCredTrade','examNewTrade','examResultTrade'].forEach(id=>{const el=$(id);if(el)el.innerHTML=trades.map(t=>`<option value="${escExam(t)}">${escExam(t)}</option>`).join('');});
  }
  window.openExamAdmin=async function(){if(currentRole!=='admin'){alert('केवल सुपर एडमिन यह पैनल खोल सकता है।');return;}fillExamSelectors();$('examAdminModal').classList.add('open');$('examAdminModal').querySelectorAll('.exam-admin-only').forEach(x=>x.style.display='');$('examNewCollege').disabled=false;$('examNewTrade').disabled=false;await loadExamCredentials();};
+ let commonExamReturnTrade=null;
  window.openExamInstructor=async function(){
    try{
+     const commonMode=currentRole==='instructor'&&loggedInInstructor&&(loggedInInstructor.instructorType==='common'||String(loggedInInstructor.trade||'').toUpperCase()==='COMMON');
      if(currentRole!=='instructor'){alert('केवल अनुदेशक यह पैनल खोल सकता है।');return;}
-     if(!currentCollegeId||!currentTrade)throw new Error('आपके लॉगिन में कॉलेज या ट्रेड की जानकारी उपलब्ध नहीं है। कृपया दोबारा लॉगिन करें।');
+     if(!currentCollegeId)throw new Error('आपके लॉगिन में कॉलेज की जानकारी उपलब्ध नहीं है। कृपया दोबारा लॉगिन करें।');
+     let available=[];
+     if(commonMode){
+       available=getTradesList().filter(t=>getStudentList(currentCollegeId,t).length>0);
+       if(!available.length)throw new Error('आपके कॉलेज में किसी ट्रेड के विद्यार्थी उपलब्ध नहीं हैं।');
+       commonExamReturnTrade=currentTrade;
+       if(!available.includes(currentTrade))currentTrade=available[0];
+     }else if(!currentTrade)throw new Error('आपके लॉगिन में ट्रेड की जानकारी उपलब्ध नहीं है। कृपया दोबारा लॉगिन करें।');
      fillExamSelectors();
      $('examAdminModal').classList.add('open');
      $('examAdminModal').querySelectorAll('.exam-admin-only').forEach(x=>x.style.display='none');
-     
-     $('examNewCollege').value=currentCollegeId;$('examNewTrade').value=currentTrade;
-     $('examNewCollege').disabled=true;$('examNewTrade').disabled=true;
-     const status=$('examImportStatus');if(status)status.textContent='परीक्षा पैनल तैयार है। प्रश्न कॉपी-पेस्ट करके जाँचें।';
-     await loadInstructorExamCredentials();
-     await loadInstructorExamResults();
+     $('examNewCollege').value=currentCollegeId;$('examNewCollege').disabled=true;
+     $('examNewTrade').value=currentTrade;$('examNewTrade').disabled=true;
+     let picker=$('commonExamTradePicker');
+     if(commonMode){
+       const head=$('examAdminModal').querySelector('.exam-modal-card>div');
+       if(!picker){picker=document.createElement('div');picker.id='commonExamTradePicker';picker.className='exam-field';picker.style.minWidth='220px';head.insertBefore(picker,head.lastElementChild);}
+       picker.innerHTML=`<label>परीक्षा के लिए ट्रेड चुनें</label><select id="commonExamTradeSelect">${available.map(t=>`<option value="${escExam(t)}" ${t===currentTrade?'selected':''}>${escExam(t)}</option>`).join('')}</select>`;
+       $('commonExamTradeSelect').onchange=async e=>{
+         currentTrade=e.target.value;$('examNewTrade').value=currentTrade;
+         $('examImportStatus').textContent=`${currentTrade} ट्रेड के लिए परीक्षा तैयार करें।`;
+         await loadInstructorExamCredentials();await loadInstructorExamResults();
+       };
+     }else if(picker)picker.remove();
+     const status=$('examImportStatus');if(status)status.textContent=`${currentTrade} ट्रेड का परीक्षा पैनल तैयार है। प्रश्न कॉपी-पेस्ट करके जाँचें।`;
+     await loadInstructorExamCredentials();await loadInstructorExamResults();
    }catch(e){console.error('Instructor exam panel error:',e);const status=$('examImportStatus');if(status)status.textContent='पैनल खोलने में समस्या: '+e.message;else alert('परीक्षा पैनल नहीं खुला: '+e.message);}
  };
- window.closeExamAdmin=()=>{$('examAdminModal').classList.remove('open');$('examNewCollege').disabled=false;$('examNewTrade').disabled=false;};
+ window.closeExamAdmin=()=>{
+   $('examAdminModal').classList.remove('open');$('examNewCollege').disabled=false;$('examNewTrade').disabled=false;
+   if(commonExamReturnTrade!==null){currentTrade=commonExamReturnTrade;commonExamReturnTrade=null;}
+   const picker=$('commonExamTradePicker');if(picker)picker.remove();
+ };
  window.saveExamCredential=async function(){
    if(currentRole!=='admin'){alert('केवल सुपर एडमिन परीक्षा लॉगिन आईडी बदल सकता है।');return;}
    const collegeId=$('examCredCollege').value,trade=$('examCredTrade').value,id=$('examCredId').value.trim(),pass=$('examCredPass').value;
@@ -6978,7 +7005,7 @@ D) लखनऊ
  function subjectList(){const v=String(loggedInInstructor?.commonSubject||'ES');const found=(appData.commonSubjects||[]).filter(x=>x.collegeId===currentCollegeId&&x.active!==false);const defaults=[['ES','Employability Skills (ES)'],['WCS','Workshop Calculation & Science (WCS)'],['Library','Library (लाइब्रेरी)'],['Other','अन्य कॉमन विषय']];const all=[...defaults,...found.map(x=>[x.code,x.name])];if(!all.some(x=>x[0]===v))all.unshift([v,v]);return all.filter((x,i,a)=>a.findIndex(y=>y[0]===x[0])===i);}
  function keyFor(v){return String(v).trim().toLowerCase().replace(/[^a-z0-9_-]+/g,'_').slice(0,40)||'common';}
  function ensureUI(){if(!isCommon())return;const section=$('instructorSection'),side=section?.querySelector('.role-sidebar'),main=section?.querySelector('.role-main');if(!side||!main)return;
-   side.innerHTML=`<div class="role-side-heading">कॉमन अनुदेशक मेन्यू</div><button type="button" class="role-side-btn active" id="commonAttTabBtn"><i class="fa-solid fa-calendar-check"></i> 1. ट्रेड-वाइज अटेंडेंस</button><button type="button" class="role-side-btn" id="commonMarksTabBtn"><i class="fa-solid fa-pen-to-square"></i> 2. कॉमन विषय के नंबर</button><button type="button" class="role-side-btn" id="commonWeeklyTabBtn"><i class="fa-solid fa-calendar-week"></i> 3. साप्ताहिक कॉमन सिलेबस प्रोग्राम</button>`;
+   side.innerHTML=`<div class="role-side-heading">कॉमन अनुदेशक मेन्यू</div><button type="button" class="role-side-btn active" id="commonAttTabBtn"><i class="fa-solid fa-calendar-check"></i> 1. ट्रेड-वाइज अटेंडेंस</button><button type="button" class="role-side-btn" id="commonMarksTabBtn"><i class="fa-solid fa-pen-to-square"></i> 2. कॉमन विषय के नंबर</button><button type="button" class="role-side-btn" id="commonWeeklyTabBtn"><i class="fa-solid fa-calendar-week"></i> 3. साप्ताहिक कॉमन सिलेबस प्रोग्राम</button><button type="button" class="role-side-btn" id="commonExamDashboardBtn"><i class="fa-solid fa-file-circle-plus"></i> 4. परीक्षा डैशबोर्ड</button>`;
    let bar=$('commonInstructorToolbar');if(!bar){bar=document.createElement('div');bar.id='commonInstructorToolbar';bar.className='controls-card';main.insertBefore(bar,main.firstChild);}
    const trades=assignedTrades();const selected=trades.includes(currentTrade)?currentTrade:(trades[0]||'');
    bar.innerHTML=`<div class="controls-left" style="width:100%;display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span class="badge-college">${esc(getCollegeName(currentCollegeId))}</span><label style="font-weight:700">ट्रेड चुनें <select id="commonInstructorTrade" style="padding:10px;border:1px solid #cbd5e1;border-radius:8px;min-width:180px">${trades.map(t=>`<option value="${esc(t)}" ${t===selected?'selected':''}>${esc(t)}</option>`).join('')}</select></label><span class="badge-type">विषय: ${esc(loggedInInstructor.commonSubject||'कॉमन विषय')}</span></div>`;
@@ -7017,7 +7044,7 @@ D) लखनऊ
    }
    const now=new Date(),month=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;if(!$('commonMarksMonth').value)$('commonMarksMonth').value=month;
    $('commonMarksSubject').innerHTML=subjectList().map(([v,l])=>`<option value="${esc(v)}">${esc(l)}</option>`).join('');
-   $('commonAttTabBtn').onclick=()=>showTab('attendance');$('commonMarksTabBtn').onclick=()=>showTab('marks');$('commonWeeklyTabBtn').onclick=()=>showTab('weekly');
+   $('commonAttTabBtn').onclick=()=>showTab('attendance');$('commonMarksTabBtn').onclick=()=>showTab('marks');$('commonWeeklyTabBtn').onclick=()=>showTab('weekly');$('commonExamDashboardBtn').onclick=()=>window.openExamInstructor();
    $('commonInstructorTrade').onchange=e=>{currentTrade=e.target.value;const isEngg=isEnggTrade(currentTrade);$('activeTradeBadge').textContent='ट्रेड: '+currentTrade;$('evalTradeBadge').textContent=currentTrade+' मूल्यांकन';$('activeTradeTypeBadge').textContent=isEngg?'इंजीनियरिंग ट्रेड':'नॉन-इंजीनियरिंग ट्रेड';$('evalTradeTypeBadge').textContent=isEngg?'इंजीनियरिंग':'नॉन-इंजीनियरिंग';if($('instWeeklyTrade'))$('instWeeklyTrade').value=currentTrade;renderRegister();renderCommonAttendance();renderCommonMarks();if($('instWeekFrom')?.value&&$('instWeekTo')?.value)renderWeeklyProgramDays();};
    $('commonMarksMonth').onchange=renderCommonMarks;$('commonMarksSubject').onchange=renderCommonMarks;$('commonMarksSave').onclick=saveCommonMarks;
    if(!currentTrade||currentTrade==='COMMON')currentTrade=selected;
@@ -7048,16 +7075,22 @@ D) लखनऊ
    const c=appData.commonInstructorAttendance;
    const slotKey=String(slot.id||`${slot.trade}_${slot.day}_${slot.time}_${slot.subject}_${slot.instructorId}`).replace(/[^a-zA-Z0-9_-]/g,'_');
    const existing=c[currentCollegeId]?.[currentTrade]?.[date]?.[slotKey]?.students||{};
-   host.innerHTML=`<div style="margin:12px 0;padding:12px;background:#eff6ff;border-radius:10px"><b>${esc(slot.subject||slot.category||'कॉमन विषय')}</b><br>ट्रेड: ${esc(currentTrade)} | दिन: ${esc(day)} | समय: ${esc(slot.time||'—')}<br><small>अलग कॉमन अटेंडेंस रजिस्टर — ट्रेड अटेंडेंस पर कोई प्रभाव नहीं पड़ेगा।</small></div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px"><button type="button" class="app-btn" id="commonMarkAllP">सभी उपस्थित</button><button type="button" class="app-btn" id="commonMarkAllA">सभी अनुपस्थित</button></div>
-    <div class="table-shell"><table><thead><tr><th>रोल</th><th>विद्यार्थी का नाम</th><th>उपस्थिति</th></tr></thead><tbody id="commonAttStudents">${students.map(st=>{const roll=String(st.roll).trim(),v=existing[roll]||'';return `<tr><td>${esc(roll)}</td><td>${esc(st.name)}</td><td><select data-common-att-roll="${esc(roll)}" style="padding:8px"><option value="">चुनें</option><option value="P" ${v==='P'?'selected':''}>P - उपस्थित</option><option value="A" ${v==='A'?'selected':''}>A - अनुपस्थित</option><option value="L" ${v==='L'?'selected':''}>L - अवकाश</option></select></td></tr>`;}).join('')}</tbody></table></div>
-    <button type="button" class="app-btn app-btn-success" id="commonAttSave" style="margin-top:12px">इस क्लास की अटेंडेंस सुरक्षित करें</button>`;
-   $('commonMarkAllP').onclick=()=>host.querySelectorAll('[data-common-att-roll]').forEach(x=>x.value='P');
-   $('commonMarkAllA').onclick=()=>host.querySelectorAll('[data-common-att-roll]').forEach(x=>x.value='A');
+   host.innerHTML=`<div style="margin:12px 0;padding:12px;background:#eff6ff;border-radius:10px"><b>${esc(slot.subject||slot.category||'कॉमन विषय')}</b><br>ट्रेड: ${esc(currentTrade)} | दिन: ${esc(day)} | समय: ${esc(slot.time||'—')}<br><small>अलग कॉमन अटेंडेंस रजिस्टर — ट्रेड की मुख्य अटेंडेंस पर कोई प्रभाव नहीं पड़ेगा।</small></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px"><button type="button" class="app-btn app-btn-success" id="commonMarkAllP">✓ सभी उपस्थित (M + E)</button><button type="button" class="app-btn app-btn-danger" id="commonMarkAllA">✕ सभी अनुपस्थित (M + E)</button><button type="button" class="app-btn app-btn-warning" id="commonMarkAllL">L सभी अवकाश (M + E)</button></div>
+    <div class="table-shell"><table><thead><tr><th>रोल</th><th style="text-align:left">विद्यार्थी का नाम</th><th>सुबह (M)</th><th>शाम (E)</th></tr></thead><tbody id="commonAttStudents">${students.map(st=>{const roll=String(st.roll).trim(),raw=existing[roll],m=(raw&&typeof raw==='object'?raw.m:raw)||existing[roll+'_m']||'-',e=(raw&&typeof raw==='object'?raw.e:existing[roll+'_e'])||'-';return `<tr><td><b>${esc(roll)}</b></td><td style="text-align:left;font-weight:600">${esc(st.name)}</td><td><button type="button" class="btn-status-toggle ${m==='-'?'st--':'st-'+m}" data-common-att-roll="${esc(roll)}" data-session="m" data-status="${m}" style="width:44px;height:36px;font-size:1rem" onclick="cycleCommonAttendance(this)">${m}</button></td><td><button type="button" class="btn-status-toggle ${e==='-'?'st--':'st-'+e}" data-common-att-roll="${esc(roll)}" data-session="e" data-status="${e}" style="width:44px;height:36px;font-size:1rem" onclick="cycleCommonAttendance(this)">${e}</button></td></tr>`;}).join('')}</tbody></table></div>
+    <button type="button" class="app-btn app-btn-success" id="commonAttSave" style="margin-top:12px">✓ इस क्लास की अटेंडेंस सुरक्षित करें</button>`;
+   const setAll=status=>host.querySelectorAll('[data-common-att-roll]').forEach(x=>setCommonAttendanceButton(x,status));
+   $('commonMarkAllP').onclick=()=>setAll('P');
+   $('commonMarkAllA').onclick=()=>setAll('A');
+   $('commonMarkAllL').onclick=()=>setAll('L');
    $('commonAttSave').onclick=()=>{
      const values={};let missing=0;
-     host.querySelectorAll('[data-common-att-roll]').forEach(el=>{if(!el.value)missing++;else values[el.dataset.commonAttRoll]=el.value;});
-     if(missing){alert(`${missing} विद्यार्थियों की उपस्थिति अभी नहीं चुनी गई है।`);return;}
+     host.querySelectorAll('[data-common-att-roll]').forEach(el=>{
+       const roll=el.dataset.commonAttRoll,session=el.dataset.session,v=el.dataset.status||'-';
+       if(!values[roll])values[roll]={};
+       if(v==='-')missing++;else values[roll][session]=v;
+     });
+     if(missing){alert(`${missing} सत्रों की उपस्थिति अभी नहीं चुनी गई है।`);return;}
      if(!appData.commonInstructorAttendance)appData.commonInstructorAttendance={};
      const root=appData.commonInstructorAttendance;
      if(!root[currentCollegeId])root[currentCollegeId]={};
@@ -7065,10 +7098,18 @@ D) लखनऊ
      if(!root[currentCollegeId][currentTrade][date])root[currentCollegeId][currentTrade][date]={};
      root[currentCollegeId][currentTrade][date][slotKey]={collegeId:currentCollegeId,trade:currentTrade,date,day,slotId:slot.id||slotKey,subject:slot.subject||slot.category||'',category:slot.category||'',time:slot.time||'',instructorId:loggedInInstructor.id||loggedInInstructor.uid||'',instructorName:loggedInInstructor.name||'',students:values,updatedAt:new Date().toISOString(),recordType:'common_subject_attendance'};
      syncWithFirebase();
-     $('commonAttStatus').textContent=`${slot.subject||'कॉमन विषय'} (${slot.time}) की ${Object.keys(values).length} विद्यार्थियों की अलग अटेंडेंस सुरक्षित हुई।`;
-     showToast('कॉमन विषय की अलग अटेंडेंस सुरक्षित हो गई।');
+     $('commonAttStatus').textContent=`${slot.subject||'कॉमन विषय'} (${slot.time}) की ${Object.keys(values).length} विद्यार्थियों की सुबह व शाम की अलग अटेंडेंस सुरक्षित हुई।`;
+     showToast('कॉमन विषय की सुबह और शाम की अटेंडेंस सुरक्षित हो गई।');
    };
  }
+ window.setCommonAttendanceButton=function(el,status){
+   if(!el)return;el.dataset.status=status;el.textContent=status;
+   el.className='btn-status-toggle '+(status==='-'?'st--':'st-'+status);
+ };
+ window.cycleCommonAttendance=function(el){
+   const current=el?.dataset.status||'-',next={'-':'P','P':'A','A':'L','L':'P'}[current]||'P';
+   window.setCommonAttendanceButton(el,next);
+ };
  function renderCommonMarks(){if(!isCommon()||!currentTrade||currentTrade==='COMMON')return;const body=$('commonMarksBody');if(!body)return;const month=$('commonMarksMonth')?.value||new Date().toISOString().slice(0,7),subject=$('commonMarksSubject')?.value||subjectList()[0]?.[0],k=keyFor(subject),students=getStudentList(currentCollegeId,currentTrade);if(!appData.commonSubjectMarks)appData.commonSubjectMarks={};if(!appData.commonSubjectMarks[currentCollegeId])appData.commonSubjectMarks[currentCollegeId]={};if(!appData.commonSubjectMarks[currentCollegeId][currentTrade])appData.commonSubjectMarks[currentCollegeId][currentTrade]={};if(!appData.commonSubjectMarks[currentCollegeId][currentTrade][month])appData.commonSubjectMarks[currentCollegeId][currentTrade][month]={};const data=appData.commonSubjectMarks[currentCollegeId][currentTrade][month][k]||{};body.innerHTML=students.length?students.map(st=>{const roll=String(st.roll).trim();return `<tr><td>${esc(roll)}</td><td>${esc(st.name)}</td><td><input type="number" min="0" max="${Number($('commonMarksMax')?.value)||20}" step="0.5" data-common-roll="${esc(roll)}" value="${data[roll]??''}" style="width:100px;padding:8px"></td></tr>`;}).join(''):'<tr><td colspan="3">इस ट्रेड में विद्यार्थी उपलब्ध नहीं हैं।</td></tr>';}
  function saveCommonMarks(){if(!isCommon()||!currentTrade||currentTrade==='COMMON')return;const month=$('commonMarksMonth').value,subject=$('commonMarksSubject').value,k=keyFor(subject),max=Number($('commonMarksMax').value)||20;if(isMonthLocked(currentCollegeId,currentTrade,month)){alert('यह माह लॉक है। अंक सेव नहीं किए जा सकते।');return;}const values={};let bad=false;$('commonMarksBody').querySelectorAll('[data-common-roll]').forEach(el=>{if(el.value==='')return;const n=Number(el.value);if(!Number.isFinite(n)||n<0||n>max)bad=true;else values[el.dataset.commonRoll]=n;});if(bad){alert(`अंक 0 से ${max} के बीच दर्ज करें।`);return;}if(!appData.commonSubjectMarks)appData.commonSubjectMarks={};if(!appData.commonSubjectMarks[currentCollegeId])appData.commonSubjectMarks[currentCollegeId]={};if(!appData.commonSubjectMarks[currentCollegeId][currentTrade])appData.commonSubjectMarks[currentCollegeId][currentTrade]={};if(!appData.commonSubjectMarks[currentCollegeId][currentTrade][month])appData.commonSubjectMarks[currentCollegeId][currentTrade][month]={};appData.commonSubjectMarks[currentCollegeId][currentTrade][month][k]=values;appData.commonSubjectMarksMeta=appData.commonSubjectMarksMeta||{};appData.commonSubjectMarksMeta[`${currentCollegeId}_${currentTrade}_${month}_${k}`]={subject,subjectCode:subject, maxMarks:max, instructorId:loggedInInstructor.id,instructorName:loggedInInstructor.name,updatedAt:new Date().toISOString()};syncWithFirebase();$('commonMarksStatus').textContent=`${subject} के ${Object.keys(values).length} विद्यार्थियों के अंक सुरक्षित हुए।`;showToast('कॉमन विषय के अंक सुरक्षित हो गए।');}
  const oldSetup=window.setupUIRoute;window.setupUIRoute=function(){oldSetup.apply(this,arguments);if(isCommon())setTimeout(ensureUI,0);};
