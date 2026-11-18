@@ -1030,7 +1030,7 @@ window.__itiLoginClick = async function(ev) {
 <i class="fa-solid fa-calendar-check"></i> 1. दैनिक उपस्थिति रजिस्टर
                 </button><button class="role-side-btn inst-tab-btn" id="tabBtnEval" onclick="switchInstructorTab('evaluation')">
 <i class="fa-solid fa-pen-ruler"></i> 2. मासिक टेस्ट अंक, डायरी व रिकॉर्ड चेकिंग
-                </button><button class="role-side-btn inst-tab-btn" id="tabBtnWork" onclick="switchInstructorTab('work')"><i class="fa-solid fa-list-check"></i> 3. अधीक्षक कार्य / दैनिक गतिविधि रिपोर्ट</button></aside><div class="role-main"><div id="instTabAttendance">
+                </button><button class="role-side-btn inst-tab-btn" id="tabBtnWork" onclick="switchInstructorTab('work')"><i class="fa-solid fa-list-check"></i> 3. अधीक्षक कार्य / दैनिक गतिविधि रिपोर्ट</button><button class="role-side-btn inst-tab-btn" id="tabBtnProgress" onclick="switchInstructorTab('progress')"><i class="fa-solid fa-chart-line"></i> 4. विद्यार्थी प्रगति एवं कॉलेज विकास</button></aside><div class="role-main"><div id="instTabAttendance">
 <div class="controls-card">
 <div class="controls-left">
 <span class="badge-college" id="activeCollegeBadge">कॉलेज: -</span>
@@ -1178,7 +1178,66 @@ window.__itiLoginClick = async function(ev) {
 <button class="app-btn app-btn-success" onclick="saveInstructorActivity()"><i class="fa-solid fa-paper-plane"></i> रिपोर्ट अधीक्षक को भेजें</button>
 <div id="instActivityHistory" style="margin-top:14px;"></div>
 </div>
-</div></div></div></section>
+</div></div></div>
+<div class="hidden" id="instTabProgress">
+ <div class="glass-card" style="padding:18px;margin-bottom:14px;border-left:5px solid #0f766e">
+  <h3 style="margin:0 0 6px;color:#0f766e"><i class="fa-solid fa-chart-line"></i> विद्यार्थी व्यक्तिगत प्रगति एवं कौशल ट्रैकर</h3>
+  <p class="sup-help">उपस्थिति, मूल्यांकन और साप्ताहिक शिक्षण रिकॉर्ड के साथ विद्यार्थी की कमजोरी, सुधारात्मक कार्यवाही और प्रैक्टिकल कौशल का रिकॉर्ड रखें। पुराने मॉड्यूल का डेटा दोबारा दर्ज नहीं होगा।</p>
+  <div id="instProgressRiskSummary" class="sup-alert-grid"></div>
+ </div>
+ <div class="glass-card" style="padding:18px;margin-bottom:14px">
+  <h3>1. विद्यार्थी फॉलो-अप / काउंसलिंग / अभिभावक संपर्क</h3>
+  <div class="sup-form-grid">
+   <div class="input-group"><label>विद्यार्थी</label><select id="ipStudent"></select></div>
+   <div class="input-group"><label>फॉलो-अप का कारण</label><select id="ipReason"><option>लगातार अनुपस्थिति</option><option>कम उपस्थिति</option><option>कम परीक्षा अंक</option><option>प्रैक्टिकल में कठिनाई</option><option>व्यक्तिगत / आर्थिक समस्या</option><option>अनुशासन / व्यवहार</option><option>अन्य</option></select></div>
+   <div class="input-group"><label>अभिभावक से संपर्क</label><select id="ipParentContact"><option>नहीं किया</option><option>फोन पर बात</option><option>व्यक्तिगत मुलाकात</option><option>संदेश भेजा</option></select></div>
+   <div class="input-group"><label>अगली समीक्षा तारीख</label><input id="ipReviewDate" type="date"></div>
+   <div class="input-group" style="grid-column:1/-1"><label>समस्या, की गई कार्यवाही और अगला कदम</label><textarea id="ipFollowDetails" rows="3" maxlength="1200" placeholder="विद्यार्थी से चर्चा, अभिभावक प्रतिक्रिया, सुधार का लक्ष्य..."></textarea></div>
+  </div>
+  <button class="app-btn app-btn-primary" onclick="saveInstructorFollowup()">फॉलो-अप रिकॉर्ड सेव करें</button>
+  <div id="ipFollowupList" style="margin-top:12px"></div>
+ </div>
+ <div class="glass-card" style="padding:18px;margin-bottom:14px">
+  <h3>2. प्रैक्टिकल स्किल / जॉब दक्षता मूल्यांकन</h3>
+  <div class="sup-form-grid">
+   <div class="input-group"><label>विद्यार्थी</label><select id="ipSkillStudent"></select></div>
+   <div class="input-group"><label>जॉब / स्किल का नाम</label><input id="ipSkillName" maxlength="160" placeholder="जॉब नंबर / कार्य का नाम"></div>
+   <div class="input-group"><label>दक्षता स्तर</label><select id="ipSkillLevel"><option>स्वतंत्र रूप से कर सकता है</option><option>थोड़ी सहायता से कर सकता है</option><option>अधिक सहायता आवश्यक</option><option>अभी अभ्यास आवश्यक</option></select></div>
+   <div class="input-group"><label>कार्य की गुणवत्ता</label><select id="ipSkillQuality"><option>उत्कृष्ट</option><option>अच्छी</option><option>संतोषजनक</option><option>सुधार आवश्यक</option></select></div>
+   <div class="input-group"><label>मूल्यांकन तारीख</label><input id="ipSkillDate" type="date"></div>
+   <div class="input-group"><label>सुरक्षा नियमों का पालन</label><select id="ipSkillSafety"><option>हाँ</option><option>आंशिक</option><option>नहीं</option><option>लागू नहीं</option></select></div>
+   <div class="input-group" style="grid-column:1/-1"><label>अनुदेशक टिप्पणी / सुधार अभ्यास</label><textarea id="ipSkillNote" rows="2" maxlength="800"></textarea></div>
+  </div>
+  <button class="app-btn app-btn-success" onclick="saveInstructorSkill()">स्किल रिकॉर्ड सेव करें</button>
+  <div id="ipSkillList" style="margin-top:12px"></div>
+ </div>
+ <div class="glass-card" style="padding:18px;margin-bottom:14px">
+  <h3>3. सुधारात्मक शिक्षण / Remedial Class</h3>
+  <div class="sup-form-grid">
+   <div class="input-group"><label>विद्यार्थी</label><select id="ipRemStudent"></select></div>
+   <div class="input-group"><label>विषय / टॉपिक</label><input id="ipRemTopic" maxlength="160"></div>
+   <div class="input-group"><label>कक्षा / अभ्यास तारीख</label><input id="ipRemDate" type="date"></div>
+   <div class="input-group"><label>परिणाम</label><select id="ipRemResult"><option>प्रगति हुई</option><option>आंशिक प्रगति</option><option>अभी और अभ्यास चाहिए</option></select></div>
+   <div class="input-group" style="grid-column:1/-1"><label>दिया गया अभ्यास / टिप्पणी</label><textarea id="ipRemNote" rows="2" maxlength="800"></textarea></div>
+  </div>
+  <button class="app-btn app-btn-primary" onclick="saveInstructorRemedial()">सुधारात्मक कक्षा सेव करें</button>
+  <div id="ipRemList" style="margin-top:12px"></div>
+ </div>
+ <div class="glass-card" style="padding:18px;margin-bottom:14px">
+  <h3>4. कार्यालय कार्य, लैब / मशीन रखरखाव और कॉलेज विकास</h3>
+  <p class="sup-help">एक ही रजिस्टर में कार्यालयीय पत्राचार, मीटिंग एक्शन, उपकरण खराबी, स्टॉक आवश्यकता, उद्योग भ्रमण, प्लेसमेंट / अप्रेंटिसशिप और विद्यार्थी प्रोजेक्ट की कार्यवाही दर्ज करें।</p>
+  <div class="sup-form-grid">
+   <div class="input-group"><label>कार्य श्रेणी</label><select id="ipOfficeType"><option>कार्यालय / पत्राचार</option><option>मीटिंग एवं एक्शन पॉइंट</option><option>लैब / मशीन रखरखाव</option><option>स्टॉक / सामग्री</option><option>उद्योग संपर्क / विजिट</option><option>अप्रेंटिसशिप / प्लेसमेंट</option><option>विद्यार्थी प्रोजेक्ट / नवाचार</option><option>निरीक्षण / अनुपालन</option><option>प्रशिक्षण / स्टाफ विकास</option></select></div>
+   <div class="input-group"><label>कार्य की तारीख</label><input id="ipOfficeDate" type="date"></div>
+   <div class="input-group"><label>स्थिति</label><select id="ipOfficeStatus"><option>लंबित</option><option>प्रगति पर</option><option>पूर्ण</option><option>अनुमोदन आवश्यक</option></select></div>
+   <div class="input-group"><label>अगली तारीख / डेडलाइन</label><input id="ipOfficeDue" type="date"></div>
+   <div class="input-group" style="grid-column:1/-1"><label>विवरण / परिणाम / आवश्यक सहायता</label><textarea id="ipOfficeDetails" rows="3" maxlength="1200"></textarea></div>
+  </div>
+  <button class="app-btn app-btn-primary" onclick="saveInstructorOfficeLog()">कार्यवाही रजिस्टर में सेव करें</button>
+  <div id="ipOfficeList" style="margin-top:12px"></div>
+ </div>
+</div>
+</section>
 <!-- 4. STUDENT SCORECARD -->
 <section class="hidden" id="studentSection">
 <div class="scorecard-box">
@@ -6221,7 +6280,10 @@ D) लखनऊ
     if(!records.length){alert('अभी प्रिंट करने के लिए कोई साप्ताहिक पाठ्यक्रम रिकॉर्ड उपलब्ध नहीं है।');return;}
     const rows=records.map(x=>`<section class="week"><h3>सप्ताह ${esc(x.weekNo||'-')} — ${esc(x.trade||'-')}</h3><p><b>अनुदेशक:</b> ${esc(x.instructorName||'-')} &nbsp; <b>अवधि:</b> ${esc(x.from||'-')} से ${esc(x.to||'-')} &nbsp; <b>कार्य दिवस:</b> ${esc(x.workingDays??'-')} &nbsp; <b>अवकाश:</b> ${esc(x.holidayDays??'-')}</p><table><thead><tr><th>दिन / तारीख</th><th>थ्योरी</th><th>प्रैक्टिकल</th><th>स्थिति</th></tr></thead><tbody>${(Array.isArray(x.days)?x.days:[]).map(day=>`<tr><td>${esc(day.dayName||'-')}<br>${esc(day.date||'-')}</td><td>${esc(day.theory||'-')}</td><td>${esc(day.practical||'-')}</td><td>${day.off?'अवकाश':'कार्य दिवस'}</td></tr>`).join('')}</tbody></table><p><b>Job No.:</b> ${esc(x.jobNo||'-')} &nbsp; <b>सामग्री:</b> ${esc(x.material||'-')} &nbsp; <b>समय:</b> ${esc(x.timeAllotted||'-')}</p><p><b>अनुदेशक टिप्पणी:</b> ${esc(x.note||'-')}</p></section>`).join('');
     const w=window.open('','_blank');if(!w){alert('PDF / प्रिंट के लिए ब्राउज़र में पॉपअप अनुमति दें।');return;}
-    w.document.write(`<!doctype html><html lang="hi"><head><meta charset="utf-8"><title>साप्ताहिक पाठ्यक्रम — ${esc(getCollegeName(currentCollegeId))}</title><style>body{font-family:Arial,sans-serif;color:#111;padding:18px}h1{text-align:center;font-size:21px;margin:0 0 5px}h2{text-align:center;font-size:17px;margin:0 0 18px}.week{page-break-inside:avoid;border:1px solid #777;padding:12px;margin:0 0 16px;border-radius:6px}.week h3{margin:0 0 8px;color:#173d79}p{margin:7px 0;font-size:12px}table{width:100%;border-collapse:collapse;margin:8px 0}th,td{border:1px solid #777;padding:7px;text-align:left;vertical-align:top;font-size:12px}th{background:#eef2f7}@page{size:A4;margin:12mm}@media print{.week{break-inside:avoid}}</style></head><body><h1>${esc(getCollegeName(currentCollegeId))}</h1><h2>सभी ट्रेड के साप्ताहिक पाठ्यक्रम एवं शिक्षण रिकॉर्ड</h2><p><b>प्रिंट दिनांक:</b> ${new Date().toLocaleDateString('hi-IN')}</p>${rows}<script>window.onload=()=>window.print()<\/script></body></html>`);
+    w.document.write(`<!doctype html><html lang="hi"><head><meta charset="utf-8"><title>साप्ताहिक पाठ्यक्रम — ${esc(getCollegeName(currentCollegeId))}</title><style>body{font-family:Arial,sans-serif;color:#111;padding:18px}h1{text-align:center;font-size:21px;margin:0 0 5px}h2{text-align:center;font-size:17px;margin:0 0 18px}.week{page-break-inside:avoid;border:1px solid #777;padding:12px;margin:0 0 16px;border-radius:6px}.week h3{margin:0 0 8px;color:#173d79}p{margin:7px 0;font-size:12px}table{width:100%;border-collapse:collapse;margin:8px 0}th,td{border:1px solid #777;padding:7px;text-align:left;vertical-align:top;font-size:12px}th{background:#eef2f7}@page{size:A4;margin:12mm}@media print{.week{break-inside:avoid}}</style></head><body><h1>${esc(getCollegeName(currentCollegeId))}</h1><h2>सभी ट्रेड के साप्ताहिक पाठ्यक्रम एवं शिक्षण रिकॉर्ड</h2><p><b>प्रिंट दिनांक:</b> ${new Date().toLocaleDateString('hi-IN')}</p>${rows}<script>window.onload=()=>window.print()<\/script>
+
+
+</body></html>`);
     w.document.close();
   };
   window.exportMonthlyCollegeReport=function(format){if(!collegeGuard('superintendent'))return;const cid=currentCollegeId,month=$('supReportMonth')?.value||new Date().toISOString().slice(0,7),d=sd();const rows=[['कॉलेज',getCollegeName(cid)],['माह',month],[],['ट्रेड','अनुदेशक','विद्यार्थी','उपस्थिति एंट्री','मूल्यांकन रिकॉर्ड','गतिविधि रिपोर्ट']];getTradesList().forEach(t=>rows.push([t,getSupCollegeInstructors().filter(i=>i.trade===t).length,getStudentList(cid,t).length,attendanceCount(cid,t,month).entries,getSupEvalCount(t),d.reports.filter(r=>r.collegeId===cid&&r.trade===t&&String(r.date||'').startsWith(month)).length]));if(format==='xlsx'&&window.XLSX){const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(rows),'Monthly Progress');XLSX.writeFile(wb,`ITI_${cid}_${month}_Monthly_Progress.xlsx`);return;}if(format==='pdf'){const w=window.open('','_blank');if(!w){alert('PDF प्रिंट के लिए पॉपअप अनुमति दें।');return;}w.document.write(`<html><meta charset="utf-8"><title>मासिक कॉलेज प्रगति</title><style>body{font-family:Arial,sans-serif;padding:20px}table{border-collapse:collapse;width:100%}td,th{border:1px solid #555;padding:8px;text-align:left}h2{text-align:center}</style><h2>${esc(getCollegeName(cid))} — मासिक प्रगति रिपोर्ट (${month})</h2><table>${rows.map((r,i)=>'<tr>'+r.map(v=>`<${i===3?'th':'td'}>${esc(v??'')}</${i===3?'th':'td'}>`).join('')+'</tr>').join('')}</table><script>window.onload=()=>window.print()<\/script></html>`);w.document.close();return;}const csv='\\uFEFF'+rows.map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\\r\\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download=`ITI_${cid}_${month}_Monthly_Progress.csv`;a.click();};
@@ -7180,6 +7242,44 @@ D) लखनऊ
  window.refreshCommonInstructorDashboard=ensureUI;
 })();
 
+</script>
+<script>
+/* ITI Instructor Student Progress & College Development Extension */
+(function(){
+ const $=id=>document.getElementById(id);
+ const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const data=()=>{const d=ensureSupData();['studentFollowups','skillAssessments','remedialRecords','officeDevelopmentLogs'].forEach(k=>{if(!Array.isArray(d[k]))d[k]=[]});return d};
+ const today=()=>new Date().toISOString().slice(0,10);
+ const isManager=()=>['superintendent','groupInstructor'].includes(currentRole);
+ function scoped(){return data()}
+ function studentOptions(){const list=getStudentList(currentCollegeId,currentTrade);let html='<option value="">विद्यार्थी चुनें</option>';list.forEach(st=>{html+='<option value="'+esc(st.roll)+'">'+esc(st.roll)+' — '+esc(st.name)+'</option>';});return html;}
+ function fillStudentSelects(){['ipStudent','ipSkillStudent','ipRemStudent'].forEach(id=>{const el=$(id);if(el){const v=el.value;el.innerHTML=studentOptions();if([...el.options].some(o=>o.value===v))el.value=v;}})}
+ function render(){if(currentRole!=='instructor'||!loggedInInstructor)return;const d=scoped(),cid=currentCollegeId,trade=currentTrade;
+  fillStudentSelects();['ipReviewDate','ipSkillDate','ipRemDate','ipOfficeDate'].forEach(id=>{if($(id)&&!$(id).value)$(id).value=today()});
+  const students=getStudentList(cid,trade);let flagged=0;const month=today().slice(0,7);const root=appData.records?.[cid]?.[trade]?.[month]||{};
+  students.forEach(st=>{const row=root[String(st.roll).trim()]||{};let p=0,a=0;Object.entries(row).forEach(([k,v])=>{if(!/^\d+_[me]$/.test(k))return;if(String(v).toUpperCase()==='P')p++;if(String(v).toUpperCase()==='A')a++;});if(p+a>=4&&p/(p+a)<.75)flagged++;});
+  const risk=$('instProgressRiskSummary');if(risk){risk.innerHTML='<div class="sup-alert-item"><strong>'+students.length+'</strong><span>कुल विद्यार्थी</span></div><div class="sup-alert-item"><strong>'+flagged+'</strong><span>इस माह 75% से कम उपस्थिति वाले (रिकॉर्डेड सेशन)</span></div><div class="sup-alert-item"><strong>'+d.studentFollowups.filter(x=>x.collegeId===cid&&x.trade===trade).length+'</strong><span>कुल फॉलो-अप</span></div><div class="sup-alert-item"><strong>'+d.skillAssessments.filter(x=>x.collegeId===cid&&x.trade===trade).length+'</strong><span>कौशल मूल्यांकन</span></div>';}
+  const own=(k)=>d[k].filter(x=>x.collegeId===cid&&x.trade===trade&&x.instructorId===loggedInInstructor.id).slice().reverse();
+  const list=(id,arr,fn)=>{const el=$(id);if(!el)return;if(!arr.length){el.innerHTML='<p class="sup-help">अभी कोई रिकॉर्ड नहीं है।</p>';return;}let h='<div class="table-shell"><table><thead><tr>';fn.head.forEach(x=>{h+='<th>'+esc(x)+'</th>';});h+='</tr></thead><tbody>';arr.slice(0,30).forEach(item=>{h+=fn.row(item);});el.innerHTML=h+'</tbody></table></div>';};
+  list('ipFollowupList',own('studentFollowups'),{head:['तारीख','विद्यार्थी','कारण','अभिभावक संपर्क','अगली समीक्षा','विवरण'],row:x=>'<tr><td>'+esc(x.date)+'</td><td>'+esc(x.studentName)+' ('+esc(x.roll)+')</td><td>'+esc(x.reason)+'</td><td>'+esc(x.parentContact)+'</td><td>'+esc(x.reviewDate||'-')+'</td><td>'+esc(x.details)+'</td></tr>'});
+  list('ipSkillList',own('skillAssessments'),{head:['तारीख','विद्यार्थी','जॉब / स्किल','दक्षता','गुणवत्ता','सुरक्षा'],row:x=>'<tr><td>'+esc(x.date)+'</td><td>'+esc(x.studentName)+' ('+esc(x.roll)+')</td><td>'+esc(x.skill)+'</td><td>'+esc(x.level)+'</td><td>'+esc(x.quality)+'</td><td>'+esc(x.safety)+'</td></tr>'});
+  list('ipRemList',own('remedialRecords'),{head:['तारीख','विद्यार्थी','टॉपिक','परिणाम','टिप्पणी'],row:x=>'<tr><td>'+esc(x.date)+'</td><td>'+esc(x.studentName)+' ('+esc(x.roll)+')</td><td>'+esc(x.topic)+'</td><td>'+esc(x.result)+'</td><td>'+esc(x.note)+'</td></tr>'});
+  list('ipOfficeList',own('officeDevelopmentLogs'),{head:['तारीख','श्रेणी','स्थिति','डेडलाइन','विवरण'],row:x=>'<tr><td>'+esc(x.date)+'</td><td>'+esc(x.type)+'</td><td>'+esc(x.status)+'</td><td>'+esc(x.due||'-')+'</td><td>'+esc(x.details)+'</td></tr>'});
+ }
+ function selected(id){const el=$(id);if(!el||!el.value)return null;return getStudentList(currentCollegeId,currentTrade).find(x=>String(x.roll)===String(el.value))||null}
+ function base(){return {id:'IP'+Date.now()+Math.random().toString(36).slice(2,6),collegeId:currentCollegeId,trade:currentTrade,instructorId:loggedInInstructor.id,instructorName:loggedInInstructor.name,createdAt:new Date().toISOString()}}
+ function save(key,obj){const d=data();d[key].push({...base(),...obj});syncWithFirebase();render();showToast('रिकॉर्ड सुरक्षित हो गया।')}
+ window.saveInstructorFollowup=function(){if(currentRole!=='instructor'||!loggedInInstructor)return;const st=selected('ipStudent'),details=$('ipFollowDetails').value.trim();if(!st||!details){alert('विद्यार्थी चुनें और कार्यवाही विवरण लिखें।');return;}save('studentFollowups',{date:today(),roll:st.roll,studentName:st.name,reason:$('ipReason').value,parentContact:$('ipParentContact').value,reviewDate:$('ipReviewDate').value,details});$('ipFollowDetails').value=''};
+ window.saveInstructorSkill=function(){if(currentRole!=='instructor'||!loggedInInstructor)return;const st=selected('ipSkillStudent'),skill=$('ipSkillName').value.trim();if(!st||!skill){alert('विद्यार्थी और जॉब / स्किल का नाम भरें।');return;}save('skillAssessments',{date:$('ipSkillDate').value||today(),roll:st.roll,studentName:st.name,skill,level:$('ipSkillLevel').value,quality:$('ipSkillQuality').value,safety:$('ipSkillSafety').value,note:$('ipSkillNote').value.trim()});$('ipSkillName').value='';$('ipSkillNote').value=''};
+ window.saveInstructorRemedial=function(){if(currentRole!=='instructor'||!loggedInInstructor)return;const st=selected('ipRemStudent'),topic=$('ipRemTopic').value.trim();if(!st||!topic){alert('विद्यार्थी और विषय / टॉपिक भरें।');return;}save('remedialRecords',{date:$('ipRemDate').value||today(),roll:st.roll,studentName:st.name,topic,result:$('ipRemResult').value,note:$('ipRemNote').value.trim()});$('ipRemTopic').value='';$('ipRemNote').value=''};
+ window.saveInstructorOfficeLog=function(){if(currentRole!=='instructor'||!loggedInInstructor)return;const details=$('ipOfficeDetails').value.trim();if(!details){alert('कार्यवाही का विवरण लिखें।');return;}save('officeDevelopmentLogs',{date:$('ipOfficeDate').value||today(),type:$('ipOfficeType').value,status:$('ipOfficeStatus').value,due:$('ipOfficeDue').value,details});$('ipOfficeDetails').value=''};
+ const oldSwitch=window.switchInstructorTab;window.switchInstructorTab=function(tab){if(tab==='progress'){const map={attendance:'instTabAttendance',evaluation:'instTabEvaluation',work:'instTabWork',progress:'instTabProgress'};Object.entries(map).forEach(([k,id])=>{const el=$(id);if(el)el.classList.toggle('hidden',k!==tab)});document.querySelectorAll('#instructorSection .inst-tab-btn').forEach(b=>b.classList.remove('active'));$('tabBtnProgress')?.classList.add('active');render();return;}$('instTabProgress')?.classList.add('hidden');$('tabBtnProgress')?.classList.remove('active');oldSwitch.apply(this,arguments)};
+ const oldRoute=window.setupUIRoute;if(oldRoute)window.setupUIRoute=function(){oldRoute.apply(this,arguments);if(currentRole==='instructor')setTimeout(()=>{if(!$('instTabProgress')?.classList.contains('hidden'))render()},0);if(isManager())setTimeout(installManagerView,0)};
+ window.openSupStudentDevelopment=function(){if(!isManager())return;const section=$('superintendentSection'),main=section?.querySelector('.sup-main-content');if(!main)return;document.querySelectorAll('#superintendentSection .sup-view-panel').forEach(el=>el.classList.add('hidden'));let panel=$('supViewStudentDevelopment');if(!panel){panel=document.createElement('div');panel.id='supViewStudentDevelopment';panel.className='sup-view-panel';panel.innerHTML='<div class="glass-card" style="padding:18px"><h3>विद्यार्थी प्रगति एवं कॉलेज विकास समीक्षा</h3><p class="sup-help">अपने कॉलेज के सभी ट्रेडों के अनुदेशक द्वारा दर्ज विद्यार्थी फॉलो-अप, कौशल मूल्यांकन, सुधारात्मक कक्षाएँ और कार्यालय / विकास कार्य।</p><div id="supStudentDevelopmentSummary" class="sup-alert-grid"></div><h4>विद्यार्थी फॉलो-अप</h4><div id="supStudentFollowupReview"></div><h4>प्रैक्टिकल कौशल मूल्यांकन</h4><div id="supSkillReview"></div><h4>सुधारात्मक कक्षाएँ</h4><div id="supRemedialReview"></div><h4>कार्यालय एवं कॉलेज विकास कार्य</h4><div id="supOfficeReview"></div></div>';main.appendChild(panel);}panel.classList.remove('hidden');document.querySelectorAll('#superintendentSection .sup-nav-btn').forEach(b=>b.classList.remove('active'));$('supStudentDevelopmentNav')?.classList.add('active');renderSupDevelopment();};
+ function renderSupDevelopment(){if(!isManager()||!$('supViewStudentDevelopment'))return;const d=data(),cid=currentCollegeId;const all=k=>d[k].filter(x=>x.collegeId===cid).slice().reverse();const sets=[['studentFollowups','supStudentFollowupReview',['तारीख','ट्रेड','विद्यार्थी','कारण','अनुदेशक','कार्यवाही'],x=>[x.date,x.trade,x.studentName+' ('+x.roll+')',x.reason,x.instructorName,x.details]],['skillAssessments','supSkillReview',['तारीख','ट्रेड','विद्यार्थी','स्किल','दक्षता','अनुदेशक'],x=>[x.date,x.trade,x.studentName+' ('+x.roll+')',x.skill,x.level,x.instructorName]],['remedialRecords','supRemedialReview',['तारीख','ट्रेड','विद्यार्थी','टॉपिक','परिणाम','अनुदेशक'],x=>[x.date,x.trade,x.studentName+' ('+x.roll+')',x.topic,x.result,x.instructorName]],['officeDevelopmentLogs','supOfficeReview',['तारीख','ट्रेड','श्रेणी','स्थिति','अनुदेशक','विवरण'],x=>[x.date,x.trade,x.type,x.status,x.instructorName,x.details]]];let counts=[];sets.forEach(([key,id,heads,vals])=>{const rows=all(key),el=$(id);counts.push(rows.length);if(el)el.innerHTML=rows.length?'<div class="table-shell"><table><thead><tr>'+heads.map(h=>'<th>'+esc(h)+'</th>').join('')+'</tr></thead><tbody>'+rows.slice(0,100).map(x=>'<tr>'+vals(x).map(v=>'<td>'+esc(v)+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>':'<p class="sup-help">कोई रिकॉर्ड नहीं।</p>';});const sum=$('supStudentDevelopmentSummary');if(sum)sum.innerHTML=counts.map((n,i)=>'<div class="sup-alert-item"><strong>'+n+'</strong><span>'+['फॉलो-अप','कौशल मूल्यांकन','सुधारात्मक कक्षा','कार्यालय / विकास कार्य'][i]+'</span></div>').join('');}
+ function installManagerView(){const nav=$('superintendentSection')?.querySelector('.sup-sidebar');if(nav&&!$('supStudentDevelopmentNav')){const b=document.createElement('button');b.id='supStudentDevelopmentNav';b.className='sup-nav-btn';b.type='button';b.innerHTML='<i class="fa-solid fa-graduation-cap"></i><span>विद्यार्थी प्रगति / कॉलेज विकास</span>';b.addEventListener('click',window.openSupStudentDevelopment);nav.appendChild(b);}}
+ document.addEventListener('DOMContentLoaded',()=>{if($('instTabProgress'))render();installManagerView()});
+})();
 </script>
 </body>
 </html>
