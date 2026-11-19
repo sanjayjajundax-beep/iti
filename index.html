@@ -4346,8 +4346,10 @@ D) लखनऊ
                         <div class="mm-box"><label>ED पूर्णांक:</label><input type="number" id="mm_ed" value="${mmConfig.ed || 20}" min="1" ${disAttr} oninput="updateMaxMarksLive()"></div>
                     `;
                 }
+                const savedTestDate = appData.monthlyTestDates?.[currentCollegeId]?.[currentTrade]?.[monthVal] || '';
                 mmHTML += `
                     <div class="mm-box"><label>ES पूर्णांक:</label><input type="number" id="mm_es" value="${mmConfig.es || 20}" min="1" ${disAttr} oninput="updateMaxMarksLive()"></div>
+                    <div class="mm-box" style="background:#fff7ed;border-color:#fdba74;"><label>टेस्ट दिनांक:</label><input type="date" id="monthlyTestDate" value="${savedTestDate}" ${disAttr} style="width:145px;"></div>
                     <div class="mm-box" style="background:#e0f2fe; border-color:#93c5fd;"><strong id="totalMMDisplay">कुल पूर्णांक: 0</strong></div>
                 `;
                 mmContainer.innerHTML = mmHTML;
@@ -4505,6 +4507,13 @@ D) लखनऊ
                 mmConfig.ed = parseFloat(document.getElementById('mm_ed').value) || 20;
             }
             appData.maxMarksConfig[currentCollegeId][currentTrade][monthVal] = mmConfig;
+
+            // इस ट्रेड और माह के टेस्ट की वास्तविक आयोजित तारीख सुरक्षित करें।
+            if (!appData.monthlyTestDates) appData.monthlyTestDates = {};
+            if (!appData.monthlyTestDates[currentCollegeId]) appData.monthlyTestDates[currentCollegeId] = {};
+            if (!appData.monthlyTestDates[currentCollegeId][currentTrade]) appData.monthlyTestDates[currentCollegeId][currentTrade] = {};
+            appData.monthlyTestDates[currentCollegeId][currentTrade][monthVal] =
+                document.getElementById('monthlyTestDate')?.value || '';
 
             if (!appData.evaluations) appData.evaluations = {};
             if (!appData.evaluations[currentCollegeId]) appData.evaluations[currentCollegeId] = {};
@@ -4773,6 +4782,7 @@ D) लखनऊ
                 monthsTableRows += `
                     <tr>
                         <td style="font-weight:600;">${mVal}</td>
+                        <td style="font-weight:600;color:#9a3412;">${(appData.monthlyTestDates?.[collegeId]?.[trade]?.[mVal] || '').split('-').reverse().join('-') || '-'}</td>
                         <td>${mPresent}/${mWorking} (${mAttPct}%)</td>
                         <td style="background:#eff6ff; font-weight:700; color:#1e40af;">${progressiveP}/${progressiveW} (${progAttPct}%)</td>
                         <td>${(sEval && sEval.tt !== undefined && sEval.tt !== '') ? sEval.tt : '-'}</td>
@@ -4867,6 +4877,7 @@ D) लखनऊ
                         <thead>
                             <tr style="background:#f1f5f9;">
                                 <th>माह</th>
+                                <th>टेस्ट दिनांक</th>
                                 <th>माह उपस्थिति</th>
                                 <th style="background:#dbeafe; color:#1e40af;">संचित उपस्थिति</th>
                                 <th>TT</th>
@@ -4879,7 +4890,7 @@ D) लखनऊ
                             </tr>
                         </thead>
                         <tbody>
-                            ${monthsTableRows || '<tr><td colspan="10">कोई रिकॉर्ड उपलब्ध नहीं है</td></tr>'}
+                            ${monthsTableRows || '<tr><td colspan="11">कोई रिकॉर्ड उपलब्ध नहीं है</td></tr>'}
                         </tbody>
                     </table>
                 </div>
