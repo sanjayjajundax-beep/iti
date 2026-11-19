@@ -4216,98 +4216,161 @@ function renderAnnualAttendanceColorChart() {
         }
 
         // वार्षिक A/T/P कलर चार्ट को A4 Landscape PDF में निर्यात करें।
-        window.exportAnnualAttendanceColorChartPDF = async function() {
+        // परीक्षा परिणाम की तरह अलग Print Preview विंडो में वार्षिक कलर चार्ट प्रिंट करें।
+        window.exportAnnualAttendanceColorChartPDF = function() {
             const sourceTable = document.querySelector('#annualAttendanceColorPanel .annual-attendance-table');
-            if (!sourceTable || !sourceTable.querySelector('tbody tr')) {
+            const panel = document.getElementById('annualAttendanceColorPanel');
+            if (!sourceTable || !panel || panel.classList.contains('hidden')) {
                 alert('पहले वार्षिक कलर अटेंडेंस चार्ट खोलें।');
                 return;
             }
-            if (typeof window.html2pdf !== 'function') {
-                alert('PDF सुविधा लोड नहीं हुई है। इंटरनेट कनेक्शन जाँचकर पेज रीफ्रेश करें।');
+
+            const headRows = sourceTable.querySelectorAll('thead tr').length;
+            const bodyRows = sourceTable.querySelectorAll('tbody tr').length;
+            if (!headRows || !bodyRows || !sourceTable.querySelector('tbody td')) {
+                alert('चार्ट में प्रिंट करने योग्य रिकॉर्ड उपलब्ध नहीं हैं।');
                 return;
             }
 
-            const exportHost = document.createElement('div');
-            const instituteName = appData.instituteSettings?.name || 'राजकीय औद्योगिक प्रशिक्षण संस्थान';
-            const tradeName = currentTrade || '';
-            const collegeName = (typeof getCollegeName === 'function' && currentCollegeId)
-                ? getCollegeName(currentCollegeId) : instituteName;
-            const session = getSessionConfig();
-            const sessionText = `${session.startDate || ''} से ${session.endDate || ''}`;
-
-            const tableClone = sourceTable.cloneNode(true);
-            tableClone.querySelectorAll('button').forEach(btn => {
-                const span = document.createElement('span');
-                span.className = btn.className;
-                span.textContent = btn.textContent.trim();
-                span.style.cursor = 'default';
-                span.removeAttribute('onclick');
-                btn.replaceWith(span);
-            });
-
-            exportHost.style.cssText = 'position:absolute;left:0;top:0;width:285mm;padding:4mm;background:#fff;color:#172033;z-index:-1;box-sizing:border-box;';
-            exportHost.innerHTML = `
-              <style>
-                .annual-pdf-title{text-align:center;margin:0 0 2mm;font-size:15pt;font-weight:800;color:#142b59}
-                .annual-pdf-sub{text-align:center;margin:0 0 1.5mm;font-size:9pt;color:#334155}
-                .annual-pdf-meta{text-align:center;margin:0 0 3mm;font-size:8pt;color:#475569}
-                .annual-pdf-legend{display:flex;justify-content:center;gap:5mm;flex-wrap:wrap;margin:2mm 0 3mm;font-size:7.5pt}
-                .annual-pdf-legend span{display:inline-flex;align-items:center;gap:1.2mm}
-                .annual-pdf-legend i{width:4mm;height:4mm;border-radius:50%;display:inline-block;border:0.2mm solid #64748b}
-                .annual-pdf-table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:6.2pt;white-space:nowrap}
-                .annual-pdf-table th,.annual-pdf-table td{border:0.2mm solid #94a3b8;padding:1mm .35mm;text-align:center;vertical-align:middle;white-space:nowrap}
-                .annual-pdf-table thead th{position:static!important;background:#eaf1fb!important;color:#17376d!important;font-weight:800}
-                .annual-pdf-table .annual-roll{width:8mm;min-width:8mm}
-                .annual-pdf-table .annual-student-name{width:30mm;min-width:30mm;text-align:left;white-space:normal;font-weight:700}
-                .annual-pdf-table td span.annual-attendance-cell{display:inline-flex;align-items:center;justify-content:center;width:5.7mm!important;height:5.7mm!important;min-width:5.7mm!important;max-width:5.7mm!important;border-radius:50%!important;border:.25mm solid #64748b!important;font-size:6pt!important;font-weight:800;color:#172033!important;box-sizing:border-box}
-                .annual-pdf-table .cell-red{background:#dc2626!important}
-                .annual-pdf-table .cell-yellow{background:#facc15!important}
-                .annual-pdf-table .cell-orange{background:#f97316!important}
-                .annual-pdf-table .cell-green{background:#16a34a!important}
-                .annual-pdf-table .cell-grey{background:#cbd5e1!important}
-                .annual-pdf-foot{text-align:right;margin-top:2mm;font-size:6.5pt;color:#64748b}
-              </style>
-              <h1 class="annual-pdf-title">${String(instituteName).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}</h1>
-              <p class="annual-pdf-sub">वार्षिक उपस्थिति कलर चार्ट</p>
-              <p class="annual-pdf-meta">कॉलेज: ${String(collegeName).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))} &nbsp; | &nbsp; ट्रेड: ${String(tradeName).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))} &nbsp; | &nbsp; सत्र: ${sessionText}</p>
-              <div class="annual-pdf-legend">
-                <span><i style="background:#dc2626"></i> 40% से कम</span>
-                <span><i style="background:#facc15"></i> 40–60%</span>
-                <span><i style="background:#f97316"></i> 60–80%</span>
-                <span><i style="background:#16a34a"></i> 80–100%</span>
-                <span><i style="background:#cbd5e1"></i> रिकॉर्ड नहीं</span>
-              </div>
-              <div class="annual-pdf-table-wrap"></div>
-              <p class="annual-pdf-foot">A = सामान्य उपस्थिति | T = थ्योरी टेस्ट अंक | P = प्रैक्टिकल टेस्ट अंक</p>
-            `;
-            tableClone.classList.add('annual-pdf-table');
-            exportHost.querySelector('.annual-pdf-table-wrap').appendChild(tableClone);
-            document.body.appendChild(exportHost);
-
-            const safeTrade = String(tradeName || 'Trade').replace(/[^a-z0-9_-]/gi, '_');
-            const fileName = `Annual_Color_Attendance_${safeTrade}_${new Date().toISOString().slice(0,10)}.pdf`;
-            try {
-                await window.html2pdf().set({
-                    margin: [5, 5, 5, 5],
-                    filename: fileName,
-                    image: { type: 'jpeg', quality: 0.98 },
-                    html2canvas: {
-                        scale: 2,
-                        useCORS: true,
-                        backgroundColor: '#ffffff',
-                        scrollX: 0,
-                        scrollY: 0,
-                        windowWidth: 1200
-                    },
-                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' },
-                    pagebreak: { mode: ['css', 'legacy'], avoid: ['tr'] }
-                }).from(exportHost).save();
-            } catch (err) {
-                console.error('Annual attendance PDF export error:', err);
-                alert('PDF बनाते समय त्रुटि हुई। कृपया दोबारा प्रयास करें।');
-            } finally {
-                exportHost.remove();
+            const printWindow = window.open('', '_blank');
+            if (!printWindow) {
+                alert('प्रिंट विंडो नहीं खुली। ब्राउज़र में Pop-ups की अनुमति दें और फिर प्रयास करें।');
+                return;
             }
+
+            const instituteName = (typeof getCollegeName === 'function' && currentCollegeId)
+                ? getCollegeName(currentCollegeId)
+                : 'राजकीय औद्योगिक प्रशिक्षण संस्थान';
+            const tradeName = currentTrade || '';
+            const conf = getSessionConfig() || {};
+            const sessionText = `${conf.startDate || ''} से ${conf.endDate || ''}`;
+            const safeText = value => String(value ?? '').replace(/[&<>"]/g, ch => ({
+                '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;'
+            }[ch]));
+
+            // बटन की जगह केवल अंक वाला span रखें, ताकि प्रिंट में क्लिक/बटन स्टाइल न आए।
+            const tableClone = sourceTable.cloneNode(true);
+            tableClone.querySelectorAll('button.annual-attendance-cell').forEach(button => {
+                const cell = document.createElement('span');
+                cell.className = button.className;
+                cell.textContent = button.textContent.trim();
+                cell.setAttribute('aria-label', button.getAttribute('aria-label') || '');
+                button.replaceWith(cell);
+            });
+            tableClone.removeAttribute('id');
+
+            const printCss = `
+              @page { size: A4 landscape; margin: 7mm; }
+              * { box-sizing: border-box !important; }
+              html, body {
+                margin: 0 !important; padding: 0 !important; width: 100% !important;
+                background: #fff !important; color: #111 !important;
+                font-family: Arial, "Noto Sans Devanagari", sans-serif !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+              }
+              body { font-size: 8pt; }
+              #printRoot { width: 100%; max-width: 100%; margin: 0 auto; padding: 0; }
+              .print-heading { text-align: center; margin: 0 0 2mm; }
+              .print-heading h1 { font-size: 15pt; margin: 0 0 1mm; color: #142b59; }
+              .print-heading h2 { font-size: 11pt; margin: 0 0 1mm; }
+              .print-heading p { font-size: 8pt; margin: 0 0 2mm; }
+              .annual-print-legend { display: flex; justify-content: center; gap: 5mm; flex-wrap: wrap; margin: 2mm 0 3mm; font-size: 7.5pt; }
+              .annual-print-legend span { display: inline-flex; align-items: center; gap: 1mm; }
+              .annual-print-legend i { display: inline-block; width: 4mm; height: 4mm; border: .2mm solid #777; border-radius: 50%; }
+              .annual-attendance-scroll { width: 100% !important; overflow: visible !important; border: 0 !important; border-radius: 0 !important; }
+              table.annual-attendance-table {
+                display: table !important; width: 100% !important; min-width: 0 !important;
+                table-layout: fixed !important; border-collapse: collapse !important;
+                border-spacing: 0 !important; font-size: 6.4pt !important;
+              }
+              .annual-attendance-table thead { display: table-header-group !important; }
+              .annual-attendance-table tr { break-inside: avoid !important; page-break-inside: avoid !important; }
+              .annual-attendance-table th, .annual-attendance-table td {
+                position: static !important; border: .2mm solid #9ca3af !important;
+                padding: 1mm .45mm !important; white-space: nowrap !important;
+                text-align: center !important; vertical-align: middle !important;
+                color: #111 !important;
+              }
+              .annual-attendance-table thead th { background: #eaf1fb !important; color: #17376d !important; font-weight: 800 !important; }
+              .annual-attendance-table .annual-roll { width: 8mm !important; min-width: 8mm !important; }
+              .annual-attendance-table .annual-student-name {
+                width: 34mm !important; min-width: 34mm !important; text-align: left !important;
+                white-space: normal !important; font-weight: 700 !important;
+              }
+              .annual-attendance-cell {
+                display: inline-flex !important; align-items: center !important; justify-content: center !important;
+                width: 6mm !important; height: 6mm !important; min-width: 6mm !important;
+                max-width: 6mm !important; padding: 0 !important; border-radius: 50% !important;
+                border: .25mm solid rgba(15,23,42,.35) !important; font-size: 6pt !important;
+                font-weight: 800 !important; color: #111 !important; line-height: 1 !important;
+                background: #cbd5e1 !important;
+              }
+              .annual-attendance-cell.cell-red { background: #dc2626 !important; }
+              .annual-attendance-cell.cell-yellow { background: #facc15 !important; }
+              .annual-attendance-cell.cell-orange { background: #f97316 !important; }
+              .annual-attendance-cell.cell-green { background: #16a34a !important; }
+              .annual-attendance-cell.cell-grey { background: #cbd5e1 !important; }
+              .print-foot { margin-top: 2mm; text-align: right; font-size: 7pt; color: #475569; }
+              @media screen {
+                body { padding: 8mm !important; background: #e5e7eb !important; }
+                #printRoot { padding: 7mm !important; background: #fff !important; box-shadow: 0 0 4mm #aaa; }
+              }
+              @media print {
+                html, body { width: auto !important; }
+                #printRoot { width: 100% !important; max-width: 100% !important; padding: 0 !important; box-shadow: none !important; }
+              }
+            `;
+
+            const title = `वार्षिक कलर अटेंडेंस चार्ट - ${tradeName}`;
+            printWindow.document.open();
+            printWindow.document.write(`<!doctype html>
+              <html lang="hi">
+              <head>
+                <meta charset="utf-8">
+                <meta name="viewport" content="width=device-width,initial-scale=1">
+                <title>${safeText(title)}</title>
+                <style>${printCss}</style>
+              </head>
+              <body>
+                <main id="printRoot">
+                  <header class="print-heading">
+                    <h1>${safeText(instituteName)}</h1>
+                    <h2>वार्षिक उपस्थिति कलर चार्ट</h2>
+                    <p>ट्रेड: <b>${safeText(tradeName)}</b> &nbsp; | &nbsp; प्रशिक्षण सत्र: ${safeText(sessionText)}</p>
+                  </header>
+                  <div class="annual-print-legend">
+                    <span><i style="background:#dc2626"></i> 40% से कम</span>
+                    <span><i style="background:#facc15"></i> 40–60%</span>
+                    <span><i style="background:#f97316"></i> 60–80%</span>
+                    <span><i style="background:#16a34a"></i> 80–100%</span>
+                    <span><i style="background:#cbd5e1"></i> रिकॉर्ड नहीं</span>
+                  </div>
+                  <div id="printTableHost"></div>
+                  <p class="print-foot">A = सामान्य उपस्थिति &nbsp; | &nbsp; T = थ्योरी टेस्ट अंक &nbsp; | &nbsp; P = प्रैक्टिकल टेस्ट अंक</p>
+                </main>
+              </body>
+              </html>`);
+            printWindow.document.close();
+
+            const target = printWindow.document.getElementById('printTableHost');
+            if (!target) {
+                printWindow.close();
+                alert('प्रिंट चार्ट तैयार नहीं हो पाया।');
+                return;
+            }
+            target.appendChild(printWindow.document.importNode(tableClone, true));
+
+            // परीक्षा परिणाम की तरह प्रिंट डायलॉग खोलें; वहीं Save as PDF चुनें।
+            setTimeout(() => {
+                try {
+                    printWindow.focus();
+                    printWindow.print();
+                } catch (error) {
+                    console.error('Annual chart print error:', error);
+                    alert('प्रिंट विंडो में समस्या आई। कृपया दोबारा प्रयास करें।');
+                }
+            }, 500);
         };
 
         window.showAnnualAttendanceDetail = function(encodedKey) {
