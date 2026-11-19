@@ -4203,11 +4203,45 @@ D) लखनऊ
                         const status=(m==='P'||e==='P')?'P':(m==='A'||e==='A')?'A':'-';
                         if(status==='P'||status==='A'){total++;if(status==='P')present++;dates.push({date:`${month}-${String(d).padStart(2,'0')}`,session:'दिन',subject:'सामान्य उपस्थिति',status});}
                     }
-                } else {
-                    Object.entries(classRecords).filter(([date])=>String(date).startsWith(month+'-')).forEach(([date,types])=>{
-                        const rec=types?.[kind], status=rec?.students?.[roll];
-                        if(status==='P'||status==='A'){total++;if(status==='P')present++;dates.push({date,session:kind==='T'?'थ्योरी':'प्रैक्टिकल',subject:rec.subject|| (kind==='T'?'थ्योरी':'प्रैक्टिकल'),status});}
+                } else if (kind === 'T' || kind === 'P') {
+                    // T/P चार्ट अब अलग क्लास-हाजिरी से नहीं, रिपोर्ट कार्ड में प्रयुक्त
+                    // उसी महीने के टेस्ट अंकों के aggregate से बनेगा। औसत नहीं निकलेगा:
+                    // प्राप्तांक और पूर्णांक दोनों विषयवार जोड़कर प्रतिशत बनेगा।
+                    const monthEval = appData.evaluations?.[currentCollegeId]?.[currentTrade]?.[month] || {};
+                    const ev = monthEval[roll] || monthEval[String(student.roll)] || null;
+                    const mm = getMaxMarksConfig(currentCollegeId, currentTrade, month) || {};
+                    const isEngg = isEnggTrade(currentTrade);
+                    const subjectKeys = kind === 'T'
+                        ? (isEngg ? ['tt','wcs','es'] : ['tt','es'])
+                        : (isEngg ? ['tp','ed'] : ['tp']);
+                    let obtained = 0, maximum = 0, entered = 0;
+                    const labels = {tt:'Trade Theory',tp:'Trade Practical',wcs:'WCS',ed:'Engineering Drawing',es:'Employability Skills'};
+                    subjectKeys.forEach(key => {
+                        const raw = ev?.[key];
+                        if (raw === '' || raw === undefined || raw === null || !Number.isFinite(Number(raw))) return;
+                        const score = Math.max(0, Number(raw));
+                        let cap = Math.max(0, Number(mm[key]) || 20);
+                        if (score > cap) cap = score;
+                        obtained += score;
+                        maximum += cap;
+                        entered++;
                     });
+                    if (entered && maximum > 0) {
+                        total = maximum;
+                        present = obtained;
+                        const testDate = appData.monthlyTestDates?.[currentCollegeId]?.[currentTrade]?.[month] || `${month}-01`;
+                        const subjectText = subjectKeys.filter(key => ev?.[key] !== '' && ev?.[key] !== undefined && ev?.[key] !== null)
+                            .map(key => labels[key]).join(' + ');
+                        dates.push({
+                            date:testDate,
+                            session:'मासिक टेस्ट',
+                            subject:subjectText || (kind==='T'?'थ्योरी':'प्रैक्टिकल'),
+                            status:'MARKS',
+                            obtained,
+                            maximum,
+                            enteredSubjects:entered
+                        });
+                    }
                 }
                 return {present,total,pct:total?(present/total)*100:null,dates};
             };
@@ -4229,8 +4263,9 @@ D) लखनऊ
             const key=decodeURIComponent(encodedKey), x=window.__annualAttendanceDetailRows?.[key]; if(!x)return;
             const monthNames=['जनवरी','फरवरी','मार्च','अप्रैल','मई','जून','जुलाई','अगस्त','सितंबर','अक्टूबर','नवंबर','दिसंबर'];
             const [y,m]=x.month.split('-').map(Number), pct=x.pct===null?'—':`${x.pct.toFixed(1)}%`;
-            const rows=x.dates.length?x.dates.map(d=>`<tr><td>${d.date}</td><td>${d.session||'दिन'}</td><td>${d.subject||x.kind}</td><td><b>${d.status==='P'?'उपस्थित':d.status==='A'?'अनुपस्थित':d.status}</b></td></tr>`).join(''):'<tr><td colspan="4">इस अवधि का तारीखवार रिकॉर्ड उपलब्ध नहीं है।</td></tr>';
-            host.innerHTML=`<b>${String(x.student.name||'')} — ${monthNames[m-1]} ${y} — ${x.kind==='A'?'सामान्य उपस्थिति':x.kind==='T'?'थ्योरी':'प्रैक्टिकल'}</b><br>उपस्थित: ${x.present} / दर्ज कार्य सत्र: ${x.total} | प्रतिशत: <b>${pct}</b><div class="detail-scroll"><table><thead><tr><th>तारीख</th><th>सत्र</th><th>विषय</th><th>स्थिति</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+            const rows=x.dates.length?x.dates.map(d=>`<tr><td>${d.date}</td><td>${d.session||'दिन'}</td><td>${d.subject||x.kind}</td><td><b>${d.status==='P'?'उपस्थित':d.status==='A'?'अनुपस्थित':d.status==='MARKS'?`${d.obtained} / ${d.maximum} अंक`:d.status}</b></td></tr>`).join(''):'<tr><td colspan="4">इस अवधि का रिकॉर्ड उपलब्ध नहीं है।</td></tr>';
+            const isMarks=x.kind==='T'||x.kind==='P';
+            host.innerHTML=`<b>${String(x.student.name||'')} — ${monthNames[m-1]} ${y} — ${x.kind==='A'?'सामान्य उपस्थिति':x.kind==='T'?'थ्योरी टेस्ट अंक':'प्रैक्टिकल टेस्ट अंक'}</b><br>${isMarks?'कुल प्राप्तांक':'उपस्थित'}: ${x.present} / ${isMarks?'कुल पूर्णांक':'दर्ज कार्य सत्र'}: ${x.total} | ${isMarks?'अंक प्रतिशत':'उपस्थिति प्रतिशत'}: <b>${pct}</b><div class="detail-scroll"><table><thead><tr><th>टेस्ट दिनांक</th><th>प्रकार</th><th>विषय</th><th>${isMarks?'प्राप्तांक / पूर्णांक':'स्थिति'}</th></tr></thead><tbody>${rows}</tbody></table></div>`;
         };
 
         function renderRegister() {
