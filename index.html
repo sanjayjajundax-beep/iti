@@ -742,6 +742,10 @@
 #commonAttStudents tr td{padding:8px 6px}
 #commonExamTradePicker{margin:0 8px 0 0}
 #commonExamTradePicker select{padding:9px 12px;border:1px solid #cbd5e1;border-radius:8px;min-width:190px;background:#f8fafc;font-weight:700}
+
+/* Annual attendance colour chart */
+.annual-attendance-panel{margin:14px 0 18px;padding:14px;background:var(--card-bg,#fff);border:1px solid var(--border-color,#dbe3ee);border-radius:14px;box-shadow:0 3px 12px rgba(15,23,42,.05)}
+.annual-attendance-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}.annual-attendance-head h3{margin:0;color:var(--primary,#1e3a8a);font-size:1.05rem}.annual-attendance-head p{margin:5px 0 0;color:var(--text-muted,#64748b);font-size:.82rem}.annual-attendance-legend{display:flex;gap:12px;flex-wrap:wrap;margin:12px 0;font-size:.76rem;color:var(--text-muted,#475569)}.annual-attendance-legend span{display:flex;align-items:center;gap:5px}.att-dot{display:inline-block;width:15px;height:15px;border-radius:50%;border:1px solid rgba(15,23,42,.18)}.dot-red{background:#dc2626}.dot-yellow{background:#facc15}.dot-orange{background:#f97316}.dot-green{background:#16a34a}.dot-grey{background:#cbd5e1}.annual-attendance-scroll{width:100%;overflow:auto;border:1px solid var(--border-color,#e2e8f0);border-radius:9px}.annual-attendance-table{border-collapse:separate;border-spacing:0;min-width:760px;width:100%;font-size:.78rem;text-align:center}.annual-attendance-table th,.annual-attendance-table td{padding:7px 5px;border-right:1px solid #e2e8f0;border-bottom:1px solid #e2e8f0;white-space:nowrap}.annual-attendance-table thead th{background:#eff6ff;color:#1e3a8a;position:sticky;top:0;z-index:1}.annual-attendance-table .annual-student-name{text-align:left;min-width:150px;white-space:normal}.annual-attendance-table .annual-roll{min-width:42px}.annual-attendance-cell{width:30px;height:30px;padding:0;border:2px solid rgba(15,23,42,.13);border-radius:50%;font-size:0;background:#cbd5e1;cursor:pointer;vertical-align:middle}.annual-attendance-cell:focus{outline:3px solid #2563eb;outline-offset:2px}.annual-attendance-cell.cell-red{background:#dc2626}.annual-attendance-cell.cell-yellow{background:#facc15}.annual-attendance-cell.cell-orange{background:#f97316}.annual-attendance-cell.cell-green{background:#16a34a}.annual-attendance-cell.cell-grey{background:#cbd5e1;cursor:default}.annual-attendance-cell:disabled{opacity:.9}.annual-attendance-detail{margin-top:12px;padding:11px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:9px;font-size:.84rem;color:#334155;min-height:42px}.annual-attendance-detail table{width:100%;border-collapse:collapse;margin-top:8px}.annual-attendance-detail th,.annual-attendance-detail td{padding:6px;border-bottom:1px solid #e2e8f0;text-align:left}.annual-attendance-detail .detail-scroll{overflow:auto}
 </style>
 
 <script>
@@ -1126,6 +1130,15 @@ a{overflow-wrap:anywhere}
 <span id="workingDaysSummary" style="font-weight: 700; color: var(--primary);"></span>
 <span style="color: var(--text-muted);"><i class="fa-solid fa-circle-info"></i> <strong>M:</strong> सुबह सत्र | <strong>E:</strong> शाम सत्र (प्रवेश से पूर्व व आगामी तारीखें निष्प्रभावी रहेंगी)</span>
 </div>
+<section id="annualAttendanceColorPanel" class="annual-attendance-panel" aria-label="वार्षिक कलर अटेंडेंस चार्ट">
+  <div class="annual-attendance-head">
+    <div><h3><i class="fa-solid fa-calendar-days"></i> वार्षिक उपस्थिति कलर चार्ट</h3><p>हर महीने A = सामान्य उपस्थिति, T = थ्योरी क्लास, P = प्रैक्टिकल क्लास। रंग प्रतिशत के अनुसार बदलेंगे।</p></div>
+    <button type="button" class="app-btn app-btn-secondary" onclick="renderAnnualAttendanceColorChart()"><i class="fa-solid fa-rotate"></i> रिफ्रेश</button>
+  </div>
+  <div class="annual-attendance-legend"><span><i class="att-dot dot-red"></i> 40% से कम</span><span><i class="att-dot dot-yellow"></i> 40–60%</span><span><i class="att-dot dot-orange"></i> 60–80%</span><span><i class="att-dot dot-green"></i> 80–100%</span><span><i class="att-dot dot-grey"></i> रिकॉर्ड नहीं / लागू नहीं</span></div>
+  <div class="annual-attendance-scroll"><table class="annual-attendance-table"><thead id="annualAttendanceHead"></thead><tbody id="annualAttendanceBody"></tbody></table></div>
+  <div id="annualAttendanceDetail" class="annual-attendance-detail" aria-live="polite">किसी महीने के A, T या P रंगीन गोले पर क्लिक करके तारीखवार विवरण देखें।</div>
+</section>
 <div class="table-shell">
 <table id="attendanceTable">
 <thead id="attendanceHeader"></thead>
@@ -4096,6 +4109,85 @@ D) लखनऊ
 
         // ==================== INSTRUCTOR CORE REGISTER & EVALUATIONS ====================
 
+        // Annual A/T/P colour chart. A uses the main attendance register;
+        // T/P use separately saved timetable-based class attendance when present.
+        function renderAnnualAttendanceColorChart() {
+            const head = document.getElementById('annualAttendanceHead');
+            const body = document.getElementById('annualAttendanceBody');
+            if (!head || !body || !currentCollegeId || !currentTrade) return;
+            const students = getStudentList(currentCollegeId, currentTrade) || [];
+            const conf = getSessionConfig();
+            const start = new Date((conf.startDate || new Date().toISOString().slice(0,10)) + 'T00:00:00');
+            const end = new Date((conf.endDate || conf.startDate || new Date().toISOString().slice(0,10)) + 'T00:00:00');
+            const months = [];
+            const cursor = new Date(start.getFullYear(), start.getMonth(), 1);
+            const last = new Date(end.getFullYear(), end.getMonth(), 1);
+            while (cursor <= last && months.length < 18) {
+                months.push(`${cursor.getFullYear()}-${String(cursor.getMonth()+1).padStart(2,'0')}`);
+                cursor.setMonth(cursor.getMonth()+1);
+            }
+            if (!months.length) return;
+            const monthNames = ['जनवरी','फरवरी','मार्च','अप्रैल','मई','जून','जुलाई','अगस्त','सितंबर','अक्टूबर','नवंबर','दिसंबर'];
+            const esc = v => String(v ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+            const classify = pct => pct === null ? 'grey' : pct < 40 ? 'red' : pct < 60 ? 'yellow' : pct < 80 ? 'orange' : 'green';
+            const records = appData.records?.[currentCollegeId]?.[currentTrade] || {};
+            const common = appData.commonInstructorAttendance?.[currentCollegeId]?.[currentTrade] || {};
+            const holidays = appData.holidays?.[currentCollegeId]?.[currentTrade] || {};
+            const today = new Date(); today.setHours(0,0,0,0);
+            const detailRows = {};
+            const getStats = (student, month, kind) => {
+                const [yy,mm] = month.split('-').map(Number), days = new Date(yy,mm,0).getDate();
+                const roll = String(student.roll).trim();
+                let present=0, total=0;
+                const dates=[];
+                if (kind === 'A') {
+                    const row = records[month]?.[roll] || records[month]?.[student.roll] || {};
+                    const hol = (holidays[month] || []).map(Number);
+                    for (let d=1; d<=days; d++) {
+                        const dt = new Date(yy,mm-1,d); dt.setHours(0,0,0,0);
+                        if (dt < start || dt > end || dt > today || dt.getDay()===0 || hol.includes(d) || !isDateAfterAdmission(dt,student)) continue;
+                        total++;
+                        const m = row[`${d}_m`] || '-', e = row[`${d}_e`] || '-';
+                        const status = e !== '-' ? e : m;
+                        if (status === 'P' || status === 'A') { total++; if (status === 'P') present++; dates.push({date:`${month}-${String(d).padStart(2,'0')}`,status}); }
+                    }
+                } else {
+                    Object.entries(common).filter(([date]) => String(date).startsWith(month + '-')).forEach(([date, slots]) => {
+                        Object.values(slots || {}).forEach(slot => {
+                            const subjectText = `${slot?.category || ''} ${slot?.subject || ''}`.toLowerCase();
+                            const isTheory = /theory|थ्योरी|सिद्धांत/.test(subjectText);
+                            const isPractical = /practical|प्रैक्टिकल|प्रायोगिक|workshop/.test(subjectText);
+                            if ((kind==='T' && !isTheory) || (kind==='P' && !isPractical)) return;
+                            const raw = slot?.students?.[roll];
+                            const vals = raw && typeof raw==='object' ? [raw.m,raw.e] : [raw || slot?.students?.[roll+'_m'],slot?.students?.[roll+'_e']];
+                            vals.forEach((v,idx)=>{ if (v==='P' || v==='A') { total++; if(v==='P')present++; dates.push({date,session:idx===0?'M':'E',status:v,subject:slot.subject||slot.category||kind}); } });
+                        });
+                    });
+                }
+                return {present,total,pct:total ? (present/total)*100 : null,dates};
+            };
+            head.innerHTML = `<tr><th rowspan="2" class="annual-roll">रोल</th><th rowspan="2" class="annual-student-name">विद्यार्थी का नाम</th>${months.map(m=>{const [y,n]=m.split('-').map(Number);return `<th colspan="3">${monthNames[n-1]} ${y}</th>`;}).join('')}</tr><tr>${months.map(()=>'<th>A</th><th>T</th><th>P</th>').join('')}</tr>`;
+            if (!students.length) { body.innerHTML=`<tr><td colspan="${2+months.length*3}">इस ट्रेड में विद्यार्थी उपलब्ध नहीं हैं।</td></tr>`; return; }
+            body.innerHTML = students.map(st=>{
+                const roll=String(st.roll).trim(); let cells='';
+                months.forEach(month=>['A','T','P'].forEach(kind=>{
+                    const stats=getStats(st,month,kind), color=classify(stats.pct), pct=stats.pct===null?'रिकॉर्ड उपलब्ध नहीं':`${stats.pct.toFixed(1)}%`;
+                    const key=`${roll}|${month}|${kind}`; detailRows[key]={student:st,month,kind,...stats};
+                    cells += `<td><button type="button" class="annual-attendance-cell cell-${color}" ${stats.pct===null?'disabled':''} aria-label="${esc(st.name)} ${month} ${kind} ${pct}" title="${kind}: ${pct} — विवरण देखने के लिए क्लिक करें" onclick="showAnnualAttendanceDetail('${encodeURIComponent(key)}')">${stats.pct===null?'':Math.round(stats.pct)}</button></td>`;
+                }));
+                return `<tr><td class="annual-roll">${esc(roll)}</td><td class="annual-student-name">${esc(st.name)}</td>${cells}</tr>`;
+            }).join('');
+            window.__annualAttendanceDetailRows = detailRows;
+        }
+        window.showAnnualAttendanceDetail = function(encodedKey) {
+            const host=document.getElementById('annualAttendanceDetail'); if(!host)return;
+            const key=decodeURIComponent(encodedKey), x=window.__annualAttendanceDetailRows?.[key]; if(!x)return;
+            const monthNames=['जनवरी','फरवरी','मार्च','अप्रैल','मई','जून','जुलाई','अगस्त','सितंबर','अक्टूबर','नवंबर','दिसंबर'];
+            const [y,m]=x.month.split('-').map(Number), pct=x.pct===null?'—':`${x.pct.toFixed(1)}%`;
+            const rows=x.dates.length?x.dates.map(d=>`<tr><td>${d.date}</td><td>${d.session||'दिन'}</td><td>${d.subject||x.kind}</td><td><b>${d.status==='P'?'उपस्थित':d.status==='A'?'अनुपस्थित':d.status}</b></td></tr>`).join(''):'<tr><td colspan="4">इस अवधि का तारीखवार रिकॉर्ड उपलब्ध नहीं है।</td></tr>';
+            host.innerHTML=`<b>${String(x.student.name||'')} — ${monthNames[m-1]} ${y} — ${x.kind==='A'?'सामान्य उपस्थिति':x.kind==='T'?'थ्योरी':'प्रैक्टिकल'}</b><br>उपस्थित: ${x.present} / दर्ज कार्य सत्र: ${x.total} | प्रतिशत: <b>${pct}</b><div class="detail-scroll"><table><thead><tr><th>तारीख</th><th>सत्र</th><th>विषय</th><th>स्थिति</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+        };
+
         function renderRegister() {
             if (!currentCollegeId || !currentTrade) return;
             let monthVal = document.getElementById('selectedMonth')?.value;
@@ -4189,6 +4281,7 @@ D) लखनऊ
             tbody.innerHTML = '';
             
             const tStudents = getStudentList(currentCollegeId, currentTrade);
+            renderAnnualAttendanceColorChart();
 
             if (tStudents.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="${totalDays * 2 + 8}" style="padding: 24px; color: var(--text-muted); font-size: 0.95rem;">इस कॉलेज व ट्रेड में अभी तक कोई छात्र नहीं जोड़ा गया है।</td></tr>`;
