@@ -1137,28 +1137,15 @@ a{overflow-wrap:anywhere}
 </div>
 <div class="annual-attendance-actions" style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0">
   <button type="button" class="app-btn app-btn-primary" id="toggleAnnualAttendanceChart" onclick="toggleAnnualAttendanceChart()"><i class="fa-solid fa-chart-column"></i> वार्षिक कलर अटेंडेंस चार्ट देखें</button>
-  <button type="button" class="app-btn app-btn-success" id="toggleTradeClassAttendance" onclick="toggleTradeClassAttendance()"><i class="fa-solid fa-clipboard-check"></i> थ्योरी / प्रैक्टिकल क्लास हाजिरी दर्ज करें</button>
 </div>
 <section id="annualAttendanceColorPanel" class="annual-attendance-panel hidden" aria-label="वार्षिक कलर अटेंडेंस चार्ट">
   <div class="annual-attendance-head">
-    <div><h3><i class="fa-solid fa-calendar-days"></i> वार्षिक उपस्थिति कलर चार्ट</h3><p>हर महीने A = सामान्य उपस्थिति, T = थ्योरी क्लास, P = प्रैक्टिकल क्लास। प्रतिशत दर्ज क्लास के आधार पर बनेगा।</p></div>
+    <div><h3><i class="fa-solid fa-calendar-days"></i> वार्षिक उपस्थिति कलर चार्ट</h3><p>हर महीने A = सामान्य उपस्थिति, T = थ्योरी के मासिक टेस्ट अंक, P = प्रैक्टिकल के मासिक टेस्ट अंक। T/P का प्रतिशत प्राप्तांक और पूर्णांक के कुल योग से बनेगा।</p></div>
     <button type="button" class="app-btn app-btn-secondary" onclick="renderAnnualAttendanceColorChart()"><i class="fa-solid fa-rotate"></i> रिफ्रेश</button>
   </div>
   <div class="annual-attendance-legend"><span><i class="att-dot dot-red"></i> 40% से कम</span><span><i class="att-dot dot-yellow"></i> 40–60%</span><span><i class="att-dot dot-orange"></i> 60–80%</span><span><i class="att-dot dot-green"></i> 80–100%</span><span><i class="att-dot dot-grey"></i> रिकॉर्ड नहीं</span></div>
   <div class="annual-attendance-scroll"><table class="annual-attendance-table"><thead id="annualAttendanceHead"></thead><tbody id="annualAttendanceBody"></tbody></table></div>
   <div id="annualAttendanceDetail" class="annual-attendance-detail" aria-live="polite">किसी महीने के A, T या P रंगीन गोले पर क्लिक करके तारीखवार विवरण देखें।</div>
-</section>
-<section id="tradeClassAttendancePanel" class="annual-attendance-panel hidden" aria-label="थ्योरी प्रैक्टिकल क्लास उपस्थिति">
-  <h3 style="margin:0 0 10px;color:var(--primary)"><i class="fa-solid fa-clipboard-check"></i> थ्योरी / प्रैक्टिकल क्लास हाजिरी</h3>
-  <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:end;margin-bottom:12px">
-    <label>क्लास की तारीख <input type="date" id="tradeClassAttDate" style="padding:8px;border:1px solid var(--border-color);border-radius:8px"></label>
-    <label>क्लास का प्रकार <select id="tradeClassAttType" style="padding:8px;border:1px solid var(--border-color);border-radius:8px"><option value="T">थ्योरी (T)</option><option value="P">प्रैक्टिकल (P)</option></select></label>
-    <label>विषय / टॉपिक <input id="tradeClassAttSubject" placeholder="विषय या टॉपिक" style="padding:8px;border:1px solid var(--border-color);border-radius:8px"></label>
-  </div>
-  <p class="sup-help">यहाँ दर्ज उपस्थिति अलग सुरक्षित होगी। इससे सामान्य A रजिस्टर या परीक्षा के अंक नहीं बदलेंगे।</p>
-  <div id="tradeClassAttRoster"></div>
-  <button type="button" class="app-btn app-btn-success" id="saveTradeClassAttendance" onclick="saveTradeClassAttendance()" style="margin-top:10px">उपस्थिति सुरक्षित करें</button>
-  <span id="tradeClassAttStatus" class="sup-help" style="margin-left:8px"></span>
 </section>
 <div class="table-shell">
 <table id="attendanceTable">
@@ -4138,40 +4125,7 @@ D) लखनऊ
             if(btn)btn.innerHTML=opening?'<i class="fa-solid fa-eye-slash"></i> वार्षिक कलर चार्ट छिपाएँ':'<i class="fa-solid fa-chart-column"></i> वार्षिक कलर अटेंडेंस चार्ट देखें';
             if(opening)renderAnnualAttendanceColorChart();
         };
-        window.toggleTradeClassAttendance = function() {
-            const panel=document.getElementById('tradeClassAttendancePanel'); if(!panel)return;
-            const opening=panel.classList.contains('hidden'); panel.classList.toggle('hidden',!opening);
-            if(opening)renderTradeClassAttendanceForm();
-        };
-        function renderTradeClassAttendanceForm() {
-            const host=document.getElementById('tradeClassAttRoster'); if(!host||!currentCollegeId||!currentTrade)return;
-            const dateEl=document.getElementById('tradeClassAttDate'); if(dateEl&&!dateEl.value)dateEl.value=new Date().toISOString().slice(0,10);
-            const date=dateEl?.value||new Date().toISOString().slice(0,10), kind=document.getElementById('tradeClassAttType')?.value||'T';
-            const students=getStudentList(currentCollegeId,currentTrade)||[];
-            const saved=appData.tradeClassAttendance?.[currentCollegeId]?.[currentTrade]?.[date]?.[kind]||{};
-            host.innerHTML=`<div class="table-shell"><table><thead><tr><th>रोल</th><th style="text-align:left">विद्यार्थी का नाम</th><th>उपस्थिति</th></tr></thead><tbody>${students.map(st=>{const roll=String(st.roll).trim(),v=saved[roll]||'-';return `<tr><td>${roll}</td><td style="text-align:left">${String(st.name||'')}</td><td><select class="trade-class-att-status" data-roll="${roll}" style="padding:7px;border:1px solid var(--border-color);border-radius:7px"><option value="-" ${v==='-'?'selected':''}>चुनें</option><option value="P" ${v==='P'?'selected':''}>P – उपस्थित</option><option value="A" ${v==='A'?'selected':''}>A – अनुपस्थित</option></select></td></tr>`;}).join('')}</tbody></table></div>`;
-            if(!students.length)host.innerHTML='<p>इस ट्रेड में विद्यार्थी उपलब्ध नहीं हैं।</p>';
-        }
-        window.saveTradeClassAttendance = function() {
-            if(!currentCollegeId||!currentTrade)return;
-            const date=document.getElementById('tradeClassAttDate')?.value,kind=document.getElementById('tradeClassAttType')?.value,subject=document.getElementById('tradeClassAttSubject')?.value||'';
-            if(!date){showToast('क्लास की तारीख चुनें।');return;}
-            const selects=[...document.querySelectorAll('#tradeClassAttRoster .trade-class-att-status')];
-            if(!selects.length){showToast('विद्यार्थियों की सूची उपलब्ध नहीं है।');return;}
-            const values={};let missing=0;selects.forEach(el=>{if(el.value==='-')missing++;else values[String(el.dataset.roll)]=el.value;});
-            if(missing){showToast(`${missing} विद्यार्थियों की उपस्थिति चुनना बाकी है।`);return;}
-            if(!appData.tradeClassAttendance)appData.tradeClassAttendance={};
-            if(!appData.tradeClassAttendance[currentCollegeId])appData.tradeClassAttendance[currentCollegeId]={};
-            if(!appData.tradeClassAttendance[currentCollegeId][currentTrade])appData.tradeClassAttendance[currentCollegeId][currentTrade]={};
-            if(!appData.tradeClassAttendance[currentCollegeId][currentTrade][date])appData.tradeClassAttendance[currentCollegeId][currentTrade][date]={};
-            appData.tradeClassAttendance[currentCollegeId][currentTrade][date][kind]={subject,students:values,instructorId:loggedInInstructor?.id||loggedInInstructor?.uid||'',instructorName:loggedInInstructor?.name||'',updatedAt:new Date().toISOString()};
-            syncWithFirebase();
-            const status=document.getElementById('tradeClassAttStatus');if(status)status.textContent='उपस्थिति सुरक्षित हो गई।';
-            showToast('थ्योरी / प्रैक्टिकल क्लास की उपस्थिति सुरक्षित हो गई।');
-            if(!document.getElementById('annualAttendanceColorPanel')?.classList.contains('hidden'))renderAnnualAttendanceColorChart();
-        };
-        document.addEventListener('change',function(e){if(['tradeClassAttDate','tradeClassAttType'].includes(e.target?.id))renderTradeClassAttendanceForm();});
-        function renderAnnualAttendanceColorChart() {
+function renderAnnualAttendanceColorChart() {
             const head = document.getElementById('annualAttendanceHead');
             const body = document.getElementById('annualAttendanceBody');
             if (!head || !body || !currentCollegeId || !currentTrade) return;
@@ -4186,7 +4140,6 @@ D) लखनऊ
             const esc = v => String(v ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
             const classify = pct => pct === null ? 'grey' : pct < 40 ? 'red' : pct < 60 ? 'yellow' : pct < 80 ? 'orange' : 'green';
             const records = appData.records?.[currentCollegeId]?.[currentTrade] || {};
-            const classRecords = appData.tradeClassAttendance?.[currentCollegeId]?.[currentTrade] || {};
             const holidays = appData.holidays?.[currentCollegeId]?.[currentTrade] || {};
             const today = new Date(); today.setHours(0,0,0,0);
             const detailRows = {};
