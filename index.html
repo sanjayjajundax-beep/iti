@@ -1067,6 +1067,49 @@ a{overflow-wrap:anywhere}
 }
 </style>
 
+
+<style id="student-timetable-no-empty-columns-fix">
+/* Explicit column sizing prevents mobile browsers/global ERP table rules
+   from leaving unused white columns at the right edge. */
+#studentTimetable .student-tt-matrix,
+#studentTimetable .student-tt-practical,
+#studentTimetable .student-tt-codes{
+  display:table!important;
+  width:100%!important;
+  min-width:0!important;
+  max-width:100%!important;
+  table-layout:fixed!important;
+  border-collapse:collapse!important;
+  box-sizing:border-box!important;
+}
+#studentTimetable .student-tt-matrix col:first-child{width:25%!important}
+#studentTimetable .student-tt-matrix col:not(:first-child){width:12.5%!important}
+#studentTimetable .student-tt-practical col:nth-child(1){width:34%!important}
+#studentTimetable .student-tt-practical col:nth-child(2){width:34%!important}
+#studentTimetable .student-tt-practical col:nth-child(3){width:32%!important}
+#studentTimetable .student-tt-codes col:nth-child(1){width:28%!important}
+#studentTimetable .student-tt-codes col:nth-child(2){width:72%!important}
+#studentTimetable .student-tt-matrix thead th,
+#studentTimetable .student-tt-practical thead th,
+#studentTimetable .student-tt-codes thead th{
+  background:#075477!important;
+  color:#fff!important;
+  visibility:visible!important;
+  opacity:1!important;
+}
+#studentTimetable .student-tt-matrix th,
+#studentTimetable .student-tt-matrix td,
+#studentTimetable .student-tt-practical th,
+#studentTimetable .student-tt-practical td,
+#studentTimetable .student-tt-codes th,
+#studentTimetable .student-tt-codes td{
+  box-sizing:border-box!important;
+  max-width:none!important;
+}
+#studentTimetable .student-tt-codes td{white-space:normal!important}
+#studentTimetable .student-tt-matrix tbody td{white-space:normal!important}
+</style>
+
 </head>
 <body>
 <!-- Header -->
@@ -6915,14 +6958,14 @@ function switchStudentSection(sec) {
             return `<section class="student-timetable-sheet">
               <div class="student-tt-heading"><h4>TIME TABLE FOR TRAINING SESSION</h4><p>Trade: ${esc(currentTrade)}${year?` · ${esc(year==='First Year'?'प्रथम वर्ष':year==='Second Year'?'द्वितीय वर्ष':year)}`:''}</p></div>
               <div class="student-tt-band">1. THEORY SCHEDULE</div>
-              <table class="student-tt-matrix"><thead><tr><th>समय</th>${days.map(dy=>`<th>${esc(dayShort[dy])}</th>`).join('')}</tr></thead><tbody>${matrixRows||`<tr><td colspan="7" class="tt-no-period">थ्योरी पीरियड प्रकाशित नहीं हैं।</td></tr>`}</tbody></table>
+              <table class="student-tt-matrix"><colgroup><col style="width:25%">${days.map(()=>'<col style="width:12.5%">').join('')}</colgroup><thead><tr><th>समय</th>${days.map(dy=>`<th>${esc(dayShort[dy])}</th>`).join('')}</tr></thead><tbody>${matrixRows||`<tr><td colspan="7" class="tt-no-period">थ्योरी पीरियड प्रकाशित नहीं हैं।</td></tr>`}</tbody></table>
               <div class="student-tt-band">2. LUNCH BREAK & PRACTICAL SCHEDULE</div>
-              <table class="student-tt-practical"><thead><tr><th>गतिविधि</th><th>समय</th><th>दिन</th></tr></thead><tbody>
+              <table class="student-tt-practical"><colgroup><col style="width:34%"><col style="width:34%"><col style="width:32%"></colgroup><thead><tr><th>गतिविधि</th><th>समय</th><th>दिन</th></tr></thead><tbody>
                 ${lunchStart&&lunchEnd?`<tr class="tt-lunch-row"><td>Lunch Break</td><td>${esc(timeLabel(`${lunchStart} - ${lunchEnd}`))}</td><td>सोमवार से शनिवार</td></tr>`:''}
                 ${practicalRows||`<tr><td colspan="3">प्रैक्टिकल समय-सारणी प्रकाशित नहीं है।</td></tr>`}
               </tbody></table>
               <div class="student-tt-band">3. ABBREVIATIONS / SHORT CODES</div>
-              <table class="student-tt-codes"><thead><tr><th>Code</th><th>Full Description</th></tr></thead><tbody>${codeRows}</tbody></table>
+              <table class="student-tt-codes"><colgroup><col style="width:28%"><col style="width:72%"></colgroup><thead><tr><th>Code</th><th>Full Description</th></tr></thead><tbody>${codeRows}</tbody></table>
               <div class="student-tt-foot">कुल प्रकाशित थ्योरी पीरियड: ${periods.length} · प्रैक्टिकल गतिविधियाँ: ${practicalGroups.length}</div>
             </section>`;
           };
