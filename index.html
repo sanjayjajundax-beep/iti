@@ -389,6 +389,39 @@
             height: 26px;
         }
 
+        /* Weekly and monthly student-entry grids: scroll rows inside the grid,
+           keeping the column headings visible on mobile and desktop. */
+        .weekly-check-scroll,
+        .monthly-eval-scroll {
+            max-height: 68vh !important;
+            overflow: auto !important;
+            position: relative;
+            overscroll-behavior: contain;
+            -webkit-overflow-scrolling: touch;
+            isolation: isolate;
+        }
+        .weekly-check-scroll thead th,
+        .monthly-eval-scroll thead tr:first-child th {
+            position: sticky !important;
+            top: 0 !important;
+            z-index: 30 !important;
+            background: #eaf2ff !important;
+            color: #172554;
+            box-shadow: 0 2px 3px rgba(15,23,42,.12);
+        }
+        .monthly-eval-scroll thead tr:nth-child(2) th {
+            position: sticky !important;
+            top: 29px !important;
+            z-index: 29 !important;
+            background: #eaf2ff !important;
+            color: #172554;
+            box-shadow: 0 2px 3px rgba(15,23,42,.10);
+        }
+        @media (max-width: 640px) {
+            .weekly-check-scroll,
+            .monthly-eval-scroll { max-height: 68vh !important; }
+        }
+
         .col-sticky-roll {
             position: sticky;
             left: 0;
@@ -1180,7 +1213,7 @@ a{overflow-wrap:anywhere}
                     </div>
 <div class="max-marks-inputs" id="maxMarksInputsContainer"></div>
 </div>
-<div class="table-shell">
+<div class="table-shell monthly-eval-scroll">
 <table>
 <thead id="evalTableHeader"></thead>
 <tbody id="evaluationTableBody"></tbody>
@@ -7788,7 +7821,7 @@ document.addEventListener('click',ev=>{const b=ev.target.closest('.saved-result-
       </label>
     </div>
     <div id="weeklyCheckDateInfo" style="font-weight:700;color:#1e3a8a;margin-bottom:10px"></div>
-    <div class="table-shell"><table style="min-width:1250px"><thead><tr>
+    <div class="table-shell weekly-check-scroll"><table style="min-width:1250px"><thead><tr>
       <th>रोल</th><th>विद्यार्थी का नाम</th><th>दैनिक डायरी</th><th>थ्योरी रजिस्टर</th><th>प्रैक्टिकल रजिस्टर</th><th>प्रैक्टिकल वर्क</th><th id="weeklyOtherWorkHeading">अन्य कार्य</th><th>अनुशासन / वर्कशॉप आचरण</th><th>प्लांटेशन वर्क</th><th>टिप्पणी</th>
     </tr></thead><tbody id="weeklyRecordCheckBody"></tbody></table></div>
     <p style="font-size:.82rem;color:#64748b;margin-top:8px">हर विद्यार्थी के प्रत्येक कार्य की स्थिति अलग-अलग चुनें। मासिक सारांश इन्हीं साप्ताहिक प्रविष्टियों से अपने आप बनेगा।</p>
