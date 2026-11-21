@@ -983,6 +983,38 @@ a{overflow-wrap:anywhere}
 @media(min-width:701px){#studentSection .student-mobile-home,#studentSection .student-mobile-bottom-nav{display:none!important}}
 </style>
 
+
+<style id="student-timetable-table-style">
+.student-tt-wrap{width:100%;max-width:100%;overflow:visible;border:1px solid #d9e3eb;border-radius:12px;background:#fff}
+.student-tt-table{width:100%;table-layout:fixed;border-collapse:collapse;font-size:12px;color:#1e293b}
+.student-tt-table th{background:#e8f8fa;color:#087f8c;font-weight:800;text-align:left;padding:9px 6px;border-bottom:1px solid #cbdde3;white-space:normal}
+.student-tt-table td{padding:8px 6px;border-bottom:1px solid #e8edf1;vertical-align:middle;overflow-wrap:anywhere;line-height:1.25}
+.student-tt-table tbody tr:nth-child(even){background:#f7fbfc}
+.student-tt-table tbody tr:last-child td{border-bottom:0}
+.student-tt-table th:nth-child(1),.student-tt-table td:nth-child(1){width:19%}
+.student-tt-table th:nth-child(2),.student-tt-table td:nth-child(2){width:24%}
+.student-tt-table th:nth-child(3),.student-tt-table td:nth-child(3){width:34%}
+.student-tt-table th:nth-child(4),.student-tt-table td:nth-child(4){width:23%}
+.student-tt-day{font-weight:800;color:#087f8c}
+.student-tt-time{font-variant-numeric:tabular-nums;font-weight:700;white-space:normal}
+.student-tt-subject strong{display:block;font-size:12px}
+.student-tt-subject small{display:inline-block;margin-top:3px;padding:2px 5px;border-radius:5px;background:#e8f8fa;color:#087f8c;font-size:10px}
+.student-tt-instructor{font-size:11px;color:#475569}
+.student-tt-note{font-size:11px;color:#64748b;text-align:right;margin-top:7px}
+.student-tt-empty{padding:16px;text-align:center;color:#64748b;background:#f8fafc;border-radius:10px;font-size:13px}
+@media(max-width:700px){
+ .student-tt-table{font-size:10px}
+ .student-tt-table th{padding:7px 4px;font-size:10px}
+ .student-tt-table td{padding:7px 4px;font-size:10px}
+ .student-tt-table th:nth-child(1),.student-tt-table td:nth-child(1){width:19%}
+ .student-tt-table th:nth-child(2),.student-tt-table td:nth-child(2){width:25%}
+ .student-tt-table th:nth-child(3),.student-tt-table td:nth-child(3){width:33%}
+ .student-tt-table th:nth-child(4),.student-tt-table td:nth-child(4){width:23%}
+ .student-tt-subject strong{font-size:10px}
+ .student-tt-instructor{font-size:9px}
+}
+</style>
+
 </head>
 <body>
 <!-- Header -->
@@ -6765,8 +6797,18 @@ function switchStudentSection(sec) {
     }
     if(currentRole==='student'&&loggedInStudent){
       const d=sd();
-      const tt=d.timetables.filter(x=>x.collegeId===currentCollegeId&&(x.trade==='ALL'||x.trade===currentTrade));
-      if($('studentTimetable'))$('studentTimetable').innerHTML=tt.map(x=>`<p><b>${esc(x.day)} ${esc(x.time)}</b> · ${esc(x.subject)} · ${esc(x.instructor||'')}</p>`).join('')||'समय-सारणी अभी प्रकाशित नहीं है।';
+      const tt=d.timetables.filter(x=>x.collegeId===currentCollegeId&&(x.trade==='ALL'||String(x.trade)===String(currentTrade)));
+      if($('studentTimetable')){
+        const dayOrder=['सोमवार','मंगलवार','बुधवार','गुरुवार','शुक्रवार','शनिवार','रविवार'];
+        const timeKey=v=>{const m=String(v||'').match(/(\\d{1,2}):(\\d{2})/);return m?Number(m[1])*60+Number(m[2]):9999;};
+        const ordered=[...tt].sort((a,b)=>(dayOrder.indexOf(a.day)<0?99:dayOrder.indexOf(a.day))-(dayOrder.indexOf(b.day)<0?99:dayOrder.indexOf(b.day))||timeKey(a.time)-timeKey(b.time));
+        if(!ordered.length){
+          $('studentTimetable').innerHTML='<div class="student-tt-empty">समय-सारणी अभी संस्थान द्वारा प्रकाशित नहीं की गई है।</div>';
+        }else{
+          const rows=ordered.map((x,i)=>`<tr><td class="student-tt-day">${esc(x.day||'-')}</td><td class="student-tt-time">${esc(x.time||'-')}</td><td class="student-tt-subject"><strong>${esc(x.subject||'-')}</strong>${x.category?`<small>${esc(x.category==='Practical'?'प्रैक्टिकल':x.category==='Theory'?'थ्योरी':x.category)}</small>`:''}</td><td class="student-tt-instructor">${esc(x.instructor||'-')}</td></tr>`).join('');
+          $('studentTimetable').innerHTML=`<div class="student-tt-wrap"><table class="student-tt-table"><thead><tr><th>दिन</th><th>समय</th><th>विषय / क्लास</th><th>अनुदेशक</th></tr></thead><tbody>${rows}</tbody></table></div><div class="student-tt-note">ट्रेड: ${esc(currentTrade)} · कुल क्लास: ${ordered.length}</div>`;
+        }
+      }
     }
   };
   const WEEKDAY_HI=['रविवार','सोमवार','मंगलवार','बुधवार','गुरुवार','शुक्रवार','शनिवार'];
