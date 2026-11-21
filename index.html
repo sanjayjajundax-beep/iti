@@ -1015,6 +1015,58 @@ a{overflow-wrap:anywhere}
 }
 </style>
 
+
+<style id="student-timetable-poster-style">
+#studentExtraPanel{padding:12px!important}
+#studentExtraPanel>h3{font-size:1.1rem;font-weight:800;color:#174b69;margin-bottom:10px}
+.student-timetable-sheet{width:100%;background:#fff;border:2px solid #17212b;margin:12px 0 18px;color:#111827;overflow:hidden;box-shadow:0 3px 12px #0f172a12}
+.student-tt-heading{text-align:center;padding:12px 8px 10px;background:#fff}
+.student-tt-heading h4{margin:0;color:#245875;font-size:17px;font-weight:900;letter-spacing:.25px}
+.student-tt-heading p{margin:5px 0 0;color:#475569;font-size:12px;font-style:italic}
+.student-tt-band{background:#285b9b;color:#fff;font-weight:900;font-size:12px;padding:8px 10px;border-top:1px solid #142b48}
+.student-tt-matrix,.student-tt-practical,.student-tt-codes{width:100%;border-collapse:collapse;table-layout:fixed;font-size:11px}
+.student-tt-matrix th,.student-tt-matrix td,.student-tt-practical th,.student-tt-practical td,.student-tt-codes th,.student-tt-codes td{border:1px solid #273746;text-align:center;padding:8px 4px;overflow-wrap:anywhere}
+.student-tt-matrix thead th,.student-tt-practical thead th,.student-tt-codes thead th{background:#075477;color:#fff;font-weight:900}
+.student-tt-matrix th:first-child{width:24%}
+.student-tt-matrix tbody th.tt-time-cell{background:#fff;color:#111827;font-size:10px;font-weight:800}
+.student-tt-matrix td{height:54px;background:#fff}
+.tt-subject-code{display:inline-block;font-weight:1000;font-size:15px;line-height:1.1;color:#101827}
+.tt-code-th{color:#a43b3b}.tt-code-es{color:#356d22}.tt-code-wcs{color:#555}.tt-code-ed{color:#7650a0}.tt-code-itlab{color:#914c8b}.tt-code-practical{color:#a34d13}
+.tt-empty-cell{color:#cbd5e1;background:#fbfdff!important}
+.tt-cell-sep{color:#64748b;font-size:10px}
+.student-tt-practical th:first-child,.student-tt-practical td:first-child{width:34%}
+.student-tt-practical th:nth-child(2),.student-tt-practical td:nth-child(2){width:34%}
+.student-tt-practical th:nth-child(3),.student-tt-practical td:nth-child(3){width:32%}
+.student-tt-practical td{background:#fff}
+.student-tt-practical .tt-lunch-row td{background:#fff1c7;font-weight:800}
+.student-tt-codes th:first-child,.student-tt-codes td:first-child{width:28%;font-weight:900}
+.student-tt-codes tbody tr:nth-child(odd){background:#e8f1fa}
+.student-tt-codes tbody tr:nth-child(even){background:#fff}
+.student-tt-codes td{text-align:left;padding-left:10px}
+.student-tt-foot{font-size:10px;color:#64748b;text-align:right;padding:7px 9px;background:#f8fafc}
+.tt-no-period{padding:14px!important;color:#64748b}
+@media(max-width:700px){
+ #studentExtraPanel{margin-left:-2px!important;margin-right:-2px!important}
+ .student-timetable-sheet{border-width:1.5px;margin:9px 0 14px}
+ .student-tt-heading{padding:9px 4px 7px}
+ .student-tt-heading h4{font-size:12px}
+ .student-tt-heading p{font-size:9px}
+ .student-tt-band{font-size:9px;padding:6px 5px}
+ .student-tt-matrix,.student-tt-practical,.student-tt-codes{font-size:8px}
+ .student-tt-matrix th,.student-tt-matrix td,.student-tt-practical th,.student-tt-practical td,.student-tt-codes th,.student-tt-codes td{padding:5px 2px}
+ .student-tt-matrix th:first-child{width:25%}
+ .student-tt-matrix tbody th.tt-time-cell{font-size:7.5px;line-height:1.2}
+ .student-tt-matrix td{height:42px}
+ .tt-subject-code{font-size:10px}
+ .student-tt-practical th,.student-tt-practical td{font-size:8px}
+ .student-tt-codes td{padding-left:5px!important}
+ .student-tt-foot{font-size:8px;padding:5px}
+}
+@media print{
+ .student-timetable-sheet{break-inside:avoid;box-shadow:none}
+}
+</style>
+
 </head>
 <body>
 <!-- Header -->
@@ -6799,14 +6851,82 @@ function switchStudentSection(sec) {
       const d=sd();
       const tt=d.timetables.filter(x=>x.collegeId===currentCollegeId&&(x.trade==='ALL'||String(x.trade)===String(currentTrade)));
       if($('studentTimetable')){
-        const dayOrder=['सोमवार','मंगलवार','बुधवार','गुरुवार','शुक्रवार','शनिवार','रविवार'];
-        const timeKey=v=>{const m=String(v||'').match(/(\\d{1,2}):(\\d{2})/);return m?Number(m[1])*60+Number(m[2]):9999;};
-        const ordered=[...tt].sort((a,b)=>(dayOrder.indexOf(a.day)<0?99:dayOrder.indexOf(a.day))-(dayOrder.indexOf(b.day)<0?99:dayOrder.indexOf(b.day))||timeKey(a.time)-timeKey(b.time));
-        if(!ordered.length){
+        const days=['सोमवार','मंगलवार','बुधवार','गुरुवार','शुक्रवार','शनिवार'];
+        const dayShort={'सोमवार':'सोम','मंगलवार':'मंगल','बुधवार':'बुध','गुरुवार':'गुरु','शुक्रवार':'शुक्र','शनिवार':'शनि'};
+        const timeKey=v=>{const m=String(v||'').match(/(\d{1,2}):(\d{2})/);return m?Number(m[1])*60+Number(m[2]):99999;};
+        const timeLabel=v=>{
+          const m=String(v||'').match(/(\d{1,2}):(\d{2})\s*(?:-\s*(\d{1,2}):(\d{2}))?/);
+          if(!m)return String(v||'-');
+          const fmt=(h,mi)=>`${String(Number(h)%12||12).padStart(2,'0')}:${mi} ${Number(h)<12?'AM':'PM'}`;
+          return m[3]?`${fmt(m[1],m[2])} - ${fmt(m[3],m[4])}`:fmt(m[1],m[2]);
+        };
+        const codeFor=(subject,category)=>{
+          const v=String(subject||'').trim(),n=v.toLowerCase().replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ');
+          if(category==='Practical'||/practical/.test(n))return 'PRACTICAL';
+          if(/employability|(^|\s)es($|\s)/.test(n))return 'ES';
+          if(/workshop calculation|science|(^|\s)wcs($|\s)/.test(n))return 'WCS';
+          if(/engineering drawing|(^|\s)ed($|\s)/.test(n))return 'ED';
+          if(/trade theory|(^|\s)theory($|\s)|(^|\s)th($|\s)/.test(n))return 'TH';
+          if(/computer lab|information technology lab|it lab/.test(n))return 'IT LAB';
+          if(/plantation/.test(n))return 'PW';
+          if(/maintenance/.test(n))return 'MW';
+          if(/library/.test(n))return 'LIBRARY';
+          if(/sport|physical education/.test(n))return 'SPORTS';
+          return v.length>13?v.slice(0,12).toUpperCase()+'…':(v||'-').toUpperCase();
+        };
+        const descriptions={
+          'TH':'Theory (Trade Theory)','ES':'Employability Skills','WCS':'Workshop Calculation & Science',
+          'ED':'Engineering Drawing','IT LAB':'Information Technology Lab','PW':'Plantation Work',
+          'MW':'Maintenance Work','LIBRARY':'Library Session','SPORTS':'Physical Education & Sports',
+          'PRACTICAL':'Trade Practical'
+        };
+        const years=[...new Set(tt.map(x=>x.year||'').filter(Boolean))];
+        const settingsRoot=d.timetableSettings?.[currentCollegeId]||{};
+        const allGroups=years.length?years:[''];
+        if(!tt.length){
           $('studentTimetable').innerHTML='<div class="student-tt-empty">समय-सारणी अभी संस्थान द्वारा प्रकाशित नहीं की गई है।</div>';
         }else{
-          const rows=ordered.map((x,i)=>`<tr><td class="student-tt-day">${esc(x.day||'-')}</td><td class="student-tt-time">${esc(x.time||'-')}</td><td class="student-tt-subject"><strong>${esc(x.subject||'-')}</strong>${x.category?`<small>${esc(x.category==='Practical'?'प्रैक्टिकल':x.category==='Theory'?'थ्योरी':x.category)}</small>`:''}</td><td class="student-tt-instructor">${esc(x.instructor||'-')}</td></tr>`).join('');
-          $('studentTimetable').innerHTML=`<div class="student-tt-wrap"><table class="student-tt-table"><thead><tr><th>दिन</th><th>समय</th><th>विषय / क्लास</th><th>अनुदेशक</th></tr></thead><tbody>${rows}</tbody></table></div><div class="student-tt-note">ट्रेड: ${esc(currentTrade)} · कुल क्लास: ${ordered.length}</div>`;
+          const renderYear=year=>{
+            const records=tt.filter(x=>(x.year||'')===year);
+            const theory=records.filter(x=>x.category!=='Practical');
+            const practical=records.filter(x=>x.category==='Practical');
+            const settings=settingsRoot.byTrade?.[`${currentTrade}_${year||'First Year'}`]||settingsRoot;
+            const lunchStart=records.find(x=>x.lunchStart)?.lunchStart||settings.lunchStart||'';
+            const lunchEnd=records.find(x=>x.lunchEnd)?.lunchEnd||settings.lunchEnd||'';
+            const periods=[...new Set(theory.map(x=>x.time).filter(Boolean))].sort((a,b)=>timeKey(a)-timeKey(b));
+            const matrixRows=periods.map(time=>{
+              const cells=days.map(day=>{
+                const entries=theory.filter(x=>x.day===day&&x.time===time);
+                if(!entries.length)return '<td class="tt-empty-cell">—</td>';
+                return `<td>${entries.map(x=>{const code=codeFor(x.subject,x.category);return `<span class="tt-subject-code tt-code-${code.replace(/[^A-Z0-9]/g,'').toLowerCase()}" title="${esc(x.subject||'')} · ${esc(x.instructor||'')}">${esc(code)}</span>`;}).join('<span class="tt-cell-sep"> / </span>')}</td>`;
+              }).join('');
+              return `<tr><th class="tt-time-cell">${esc(timeLabel(time))}</th>${cells}</tr>`;
+            }).join('');
+            const practicalGroups=[];
+            practical.forEach(x=>{
+              const key=[x.subject||'प्रैक्टिकल',x.time||''].join('|');
+              let g=practicalGroups.find(z=>z.key===key);
+              if(!g){g={key,subject:x.subject||'प्रैक्टिकल',time:x.time||'',days:[]};practicalGroups.push(g);}
+              if(!g.days.includes(x.day))g.days.push(x.day);
+            });
+            const practicalRows=practicalGroups.map(x=>`<tr><td><strong>${esc(x.subject)}</strong></td><td>${esc(timeLabel(x.time))}</td><td>${esc(x.days.sort((a,b)=>days.indexOf(a)-days.indexOf(b)).join(' – '))}</td></tr>`).join('');
+            const abbreviations=[...new Set(records.map(x=>codeFor(x.subject,x.category)))];
+            const codeRows=abbreviations.map(code=>`<tr><th>${esc(code)}</th><td>${esc(descriptions[code]||records.find(x=>codeFor(x.subject,x.category)===code)?.subject||code)}</td></tr>`).join('');
+            return `<section class="student-timetable-sheet">
+              <div class="student-tt-heading"><h4>TIME TABLE FOR TRAINING SESSION</h4><p>Trade: ${esc(currentTrade)}${year?` · ${esc(year==='First Year'?'प्रथम वर्ष':year==='Second Year'?'द्वितीय वर्ष':year)}`:''}</p></div>
+              <div class="student-tt-band">1. THEORY SCHEDULE</div>
+              <table class="student-tt-matrix"><thead><tr><th>समय</th>${days.map(dy=>`<th>${esc(dayShort[dy])}</th>`).join('')}</tr></thead><tbody>${matrixRows||`<tr><td colspan="7" class="tt-no-period">थ्योरी पीरियड प्रकाशित नहीं हैं।</td></tr>`}</tbody></table>
+              <div class="student-tt-band">2. LUNCH BREAK & PRACTICAL SCHEDULE</div>
+              <table class="student-tt-practical"><thead><tr><th>गतिविधि</th><th>समय</th><th>दिन</th></tr></thead><tbody>
+                ${lunchStart&&lunchEnd?`<tr class="tt-lunch-row"><td>Lunch Break</td><td>${esc(timeLabel(`${lunchStart} - ${lunchEnd}`))}</td><td>सोमवार से शनिवार</td></tr>`:''}
+                ${practicalRows||`<tr><td colspan="3">प्रैक्टिकल समय-सारणी प्रकाशित नहीं है।</td></tr>`}
+              </tbody></table>
+              <div class="student-tt-band">3. ABBREVIATIONS / SHORT CODES</div>
+              <table class="student-tt-codes"><thead><tr><th>Code</th><th>Full Description</th></tr></thead><tbody>${codeRows}</tbody></table>
+              <div class="student-tt-foot">कुल प्रकाशित थ्योरी पीरियड: ${periods.length} · प्रैक्टिकल गतिविधियाँ: ${practicalGroups.length}</div>
+            </section>`;
+          };
+          $('studentTimetable').innerHTML=allGroups.map(renderYear).join('');
         }
       }
     }
