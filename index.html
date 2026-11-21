@@ -4732,28 +4732,10 @@ function renderAnnualAttendanceColorChart() {
                         <td id="tot_${sRoll}" style="font-weight:700; color:#1e40af; background:#f8fafc;">0</td>
                         <td id="pct_${sRoll}" style="font-weight:700; color:#15803d; background:#f8fafc;">0%</td>
                         <td id="weeklyMonthSummary_${sRoll}" style="min-width:145px;font-weight:700;color:#0f766e;">${(()=>{const x=getWeeklyRecordMonthSummary(currentCollegeId,currentTrade,sRoll,monthVal);return x.total?`${x.status} (${x.total} सप्ताह)`:'चेकिंग उपलब्ध नहीं';})()}</td>
-                        <td>
-                            <select id="diarySt_${sRoll}" style="padding:2px;" ${dis}>
-                                <option value="नियमित" ${ev.diaryStatus==='नियमित'?'selected':''}>नियमित चेक</option>
-                                <option value="अनियमित" ${ev.diaryStatus==='अनियमित'?'selected':''}>अनियमित</option>
-                                <option value="लंबित" ${ev.diaryStatus==='लंबित'?'selected':''}>जांच लंबित</option>
-                            </select>
-                        </td>
-                        <td><input type="text" id="diaryRem_${sRoll}" ${dis} value="${ev.diaryRem || ''}" placeholder="टिप्पणी" style="width:80px; padding:3px;"></td>
-                        <td>
-                            <select id="disc_${sRoll}" style="padding:2px;" ${dis}>
-                                <option value="उत्कृष्ट" ${ev.disc==='उत्कृष्ट'?'selected':''}>उत्कृष्ट</option>
-                                <option value="संतोषजनक" ${ev.disc==='संतोषजनक'?'selected':''}>संतोषजनक</option>
-                                <option value="सुधार जरूरी" ${ev.disc==='सुधार जरूरी'?'selected':''}>सुधार जरूरी</option>
-                            </select>
-                        </td>
-                        <td>
-                            <select id="act_${sRoll}" style="padding:2px;" ${dis}>
-                                <option value="सक्रिय" ${ev.act==='सक्रिय'?'selected':''}>सक्रिय</option>
-                                <option value="सामान्य" ${ev.act==='सामान्य'?'selected':''}>सामान्य</option>
-                                <option value="उदासीन" ${ev.act==='उदासीन'?'selected':''}>उदासीन</option>
-                            </select>
-                        </td>
+                        <td id="diarySt_${sRoll}" style="font-weight:700;color:#0f766e;">${getWeeklyRecordMonthSummary(currentCollegeId,currentTrade,sRoll,monthVal).diaryStatus}</td>
+                        <td id="diaryRem_${sRoll}" style="font-size:12px;min-width:100px;">${getWeeklyRecordMonthSummary(currentCollegeId,currentTrade,sRoll,monthVal).remarks.join(' | ') || '—'}</td>
+                        <td id="disc_${sRoll}" style="font-weight:700;color:#7c3aed;">${getWeeklyRecordMonthSummary(currentCollegeId,currentTrade,sRoll,monthVal).discipline}</td>
+                        <td id="act_${sRoll}" style="font-weight:700;color:#0f766e;">${getWeeklyRecordMonthSummary(currentCollegeId,currentTrade,sRoll,monthVal).plantationStatus}</td>
                     </tr>
                 `;
             });
@@ -4811,10 +4793,10 @@ function renderAnnualAttendanceColorChart() {
                     tt: elTT.value,
                     tp: document.getElementById(`tp_${sRoll}`).value,
                     es: document.getElementById(`es_${sRoll}`).value,
-                    diaryStatus: document.getElementById(`diarySt_${sRoll}`).value,
-                    diaryRem: document.getElementById(`diaryRem_${sRoll}`).value,
-                    disc: document.getElementById(`disc_${sRoll}`).value,
-                    act: document.getElementById(`act_${sRoll}`).value
+                    diaryStatus: getWeeklyRecordMonthSummary(currentCollegeId,currentTrade,sRoll,monthVal).diaryStatus,
+                    diaryRem: getWeeklyRecordMonthSummary(currentCollegeId,currentTrade,sRoll,monthVal).remarks.join(' | '),
+                    disc: getWeeklyRecordMonthSummary(currentCollegeId,currentTrade,sRoll,monthVal).discipline,
+                    act: getWeeklyRecordMonthSummary(currentCollegeId,currentTrade,sRoll,monthVal).plantationStatus
                 };
 
                 if (isEngg) {
@@ -5605,40 +5587,98 @@ function renderAnnualAttendanceColorChart() {
         // साप्ताहिक रिकॉर्ड चेकिंग से महीने का सारांश; मासिक रिकॉर्ड दोबारा सेव नहीं होता।
         function getWeeklyRecordMonthSummary(collegeId, trade, studentRoll, monthVal) {
             const weeks = appData.weeklyRecordChecks?.[collegeId]?.[trade] || {};
+            const fields = ['diary','theoryRegister','practicalRegister','practicalWork','otherWork','discipline','plantation'];
+            const labels = {diary:'दैनिक डायरी',theoryRegister:'थ्योरी रजिस्टर',practicalRegister:'प्रैक्टिकल रजिस्टर',practicalWork:'प्रैक्टिकल वर्क',otherWork:'अन्य कार्य',discipline:'अनुशासन',plantation:'प्लांटेशन वर्क'};
             const rows = [];
             Object.entries(weeks).forEach(([weekStart, record]) => {
                 const checkDate = record?._checkDate || '';
                 if (!checkDate.startsWith(monthVal)) return;
                 const entry = record?.[String(studentRoll).trim()];
-                if (entry && entry.status) rows.push({weekStart, checkDate, ...entry});
+                if (entry && (fields.some(k=>entry[k]) || entry.status)) rows.push({weekStart, checkDate, ...entry});
             });
             rows.sort((a,b)=>String(a.checkDate).localeCompare(String(b.checkDate)));
-            const counts = {'नियमित चेक':0,'अनियमित':0,'जांच लंबित':0};
-            rows.forEach(x=>{ if(counts[x.status]!==undefined) counts[x.status]++; });
+            const byField={};
+            fields.forEach(k=>{
+                const counts={'नियमित चेक':0,'अनियमित':0,'जांच लंबित':0,'लागू नहीं':0};
+                rows.forEach(x=>{const v=x[k] || (k==='theoryRegister'||k==='practicalRegister'?x.status:'');if(counts[v]!==undefined)counts[v]++;});
+                byField[k]={label:labels[k],counts};
+            });
+            const counts={'नियमित चेक':0,'अनियमित':0,'जांच लंबित':0};
+            rows.forEach(x=>{
+                const vals=fields.map(k=>x[k]).filter(Boolean);
+                if(!vals.length && x.status) vals.push(x.status);
+                if(vals.includes('जांच लंबित'))counts['जांच लंबित']++;
+                else if(vals.includes('अनियमित'))counts['अनियमित']++;
+                else if(vals.includes('नियमित चेक'))counts['नियमित चेक']++;
+            });
             let status='चेकिंग उपलब्ध नहीं';
             if(rows.length) status=counts['जांच लंबित']?'जांच लंबित':(counts['अनियमित']?'अनियमित':'नियमित चेक');
             const remarks=rows.filter(x=>x.remark).map(x=>`${x.checkDate}: ${x.remark}`);
-            return {rows, total:rows.length, counts, status, remarks};
+            const disciplinePoints={'उत्कृष्ट':5,'संतोषजनक':3.75,'सुधार जरूरी':2.5};
+            const disciplineValues=rows.map(x=>disciplinePoints[x.discipline]).filter(Number.isFinite);
+            const disciplineAverage=disciplineValues.length?disciplineValues.reduce((a,b)=>a+b,0)/disciplineValues.length:null;
+            const discipline=disciplineAverage===null?'चेकिंग उपलब्ध नहीं':(disciplineAverage>=4.25?'उत्कृष्ट':(disciplineAverage>=3.1?'संतोषजनक':'सुधार जरूरी'));
+            const diaryPoints={'नियमित चेक':100,'अनियमित':70,'जांच लंबित':40};
+            const diaryValues=rows.map(x=>diaryPoints[x.diary]).filter(Number.isFinite);
+            const diaryAverage=diaryValues.length?diaryValues.reduce((a,b)=>a+b,0)/diaryValues.length:null;
+            const diaryStatus=diaryAverage===null?'चेकिंग उपलब्ध नहीं':`${diaryAverage.toFixed(1)}% साप्ताहिक औसत`;
+            const plantationValues=rows.map(x=>x.plantation).filter(v=>v==='किया'||v==='नहीं किया');
+            const plantationDone=plantationValues.filter(v=>v==='किया').length;
+            const plantationPercent=plantationValues.length?plantationDone/plantationValues.length*100:null;
+            const plantationStatus=plantationValues.length?`${plantationDone}/${plantationValues.length} सप्ताह (${plantationPercent.toFixed(1)}%)`:'चेकिंग उपलब्ध नहीं';
+            return {rows,total:rows.length,counts,status,remarks,byField,discipline,disciplineAverage,diaryStatus,diaryAverage,plantationStatus,plantationDone,plantationWeeks:plantationValues.length,plantationPercent};
         }
         function getWeeklyRecordScore(collegeId, trade, studentRoll, periodType, range) {
             const weeks = appData.weeklyRecordChecks?.[collegeId]?.[trade] || {};
             const values=[];
+            const field=periodType==='notebookTheory'?'theoryRegister':'practicalRegister';
             Object.values(weeks).forEach(record=>{
                 const date=record?._checkDate;
                 if(!date) return;
                 const dt=new Date(date+'T12:00:00');
                 if(dt<range.start || dt>range.end) return;
                 const entry=record?.[String(studentRoll).trim()];
-                if(!entry?.status) return;
+                const value=entry?.[field] || entry?.status;
+                if(!value) return;
                 if(periodType==='notebookTheory'){
+                    // पुराने H1/H2 का वही स्केल: नियमित=27.5, अनियमित=21, लंबित=15
                     const pts={'नियमित चेक':27.5,'अनियमित':21,'जांच लंबित':15};
-                    if(pts[entry.status]!==undefined) values.push(pts[entry.status]);
+                    if(pts[value]!==undefined) values.push(pts[value]);
                 } else {
-                    const pts={'नियमित चेक':44,'अनियमित':36,'जांच लंबित':28};
-                    if(pts[entry.status]!==undefined) values.push(pts[entry.status]);
+                    // पुराने H1/H2 के Practical Work scale को बनाए रखते हुए:
+                    // नियमित=A+ (48), अनियमित=A (44), लंबित=B (36)
+                    const pts={'नियमित चेक':48,'अनियमित':44,'जांच लंबित':36};
+                    if(pts[value]!==undefined) values.push(pts[value]);
                 }
             });
             return values.length ? values.reduce((a,b)=>a+b,0)/values.length : null;
+        }
+
+        function getWeeklyActivityScore(collegeId, trade, studentRoll, range) {
+            const weeks = appData.weeklyRecordChecks?.[collegeId]?.[trade] || {};
+            const disciplinePoints = {'उत्कृष्ट':5,'संतोषजनक':3.75,'सुधार जरूरी':2.5};
+            let disciplineTotal=0, disciplineCount=0, plantationDone=0, plantationCount=0;
+            Object.values(weeks).forEach(record=>{
+                const date=record?._checkDate;
+                if(!date)return;
+                const dt=new Date(date+'T12:00:00');
+                if(dt<range.start||dt>range.end)return;
+                const entry=record?.[String(studentRoll).trim()];
+                if(!entry)return;
+                if(Object.prototype.hasOwnProperty.call(disciplinePoints,entry.discipline)){
+                    disciplineTotal+=disciplinePoints[entry.discipline];disciplineCount++;
+                }
+                if(entry.plantation==='किया'||entry.plantation==='नहीं किया'){
+                    plantationCount++;
+                    if(entry.plantation==='किया')plantationDone++;
+                }
+            });
+            if(!disciplineCount&&!plantationCount)return null;
+            const disciplineAvg=disciplineCount?disciplineTotal/disciplineCount:null;
+            const plantationMarks=plantationCount?(plantationDone/plantationCount)*5:null;
+            const available= (disciplineAvg!==null?5:0)+(plantationMarks!==null?5:0);
+            const marks=((disciplineAvg??0)+(plantationMarks??0));
+            return available?{marks,available,percent:marks/available*100,disciplineMarks:disciplineAvg,plantationMarks,disciplineCount,plantationCount,plantationDone}:null;
         }
 
         function h1h2GradePercent(value,type){
@@ -5701,14 +5741,11 @@ function renderAnnualAttendanceColorChart() {
             const months=(appData.evaluations&&appData.evaluations[collegeId]&&appData.evaluations[collegeId][trade])||{};
             const attendance=h1h2Attendance(collegeId,trade,student,range),maxMarks=getH1H2MaxMarks();
             const subjects=defs.map(d=>{
-                const notebook=[],activities=[];
-                Object.keys(months).filter(m=>h1h2MonthInRange(m,range)).forEach(m=>{
-                    const ev=months[m]?.[String(student.roll).trim()];if(!ev)return;
-                    const a=h1h2GradePercent({disc:ev.disc,act:ev.act},'activity');if(a!==null)activities.push(a);
-                });
+                const notebook=[];
                 const weeklyPoints=getWeeklyRecordScore(collegeId,trade,student.roll,d.nature==='practical'?'notebookPractical':'notebookTheory',range);
                 if(weeklyPoints!==null)notebook.push(weeklyPoints/(d.nature==='practical'?48:27.5)*100);
-                const work=h1h2Average(notebook),test=h1h2TestPercent(collegeId,trade,student,d.key,range),activity=h1h2Average(activities);
+                const weeklyActivity=getWeeklyActivityScore(collegeId,trade,student.roll,range);
+                const work=h1h2Average(notebook),test=h1h2TestPercent(collegeId,trade,student,d.key,range),activity=weeklyActivity?weeklyActivity.percent:null;
                 const weights=d.nature==='practical'?{work:50,test:30,attendance:10,activity:10}:{work:30,test:50,attendance:10,activity:10};
                 const parts=[['work',work],['test',test],['attendance',attendance],['activity',activity]];
                 let weighted=0,availableWeight=0;
@@ -5756,7 +5793,7 @@ function renderAnnualAttendanceColorChart() {
             if(college)college.textContent=getCollegeName(currentCollegeId);if(trade)trade.textContent=currentTrade;
             renderH1H2MaxMarksFields();
             const range=getH1H2DateRanges()[period],fmt=d=>d.toLocaleDateString('en-GB');
-            const info=document.getElementById('h1h2PeriodInfo');if(info)info.textContent=`${period} अवधि: ${fmt(range.start)} से ${fmt(range.end)} | ट्रेड प्रकार: ${isEnggTrade(currentTrade)?'Engineering':'Non-Engineering'} | विषयवार भारित अंक को निर्धारित पूर्णांक में बदला जाएगा।`;
+            const info=document.getElementById('h1h2PeriodInfo');if(info)info.textContent=`${period} अवधि: ${fmt(range.start)} से ${fmt(range.end)} | ट्रेड प्रकार: ${isEnggTrade(currentTrade)?'Engineering':'Non-Engineering'} | विषयवार भारित अंक को निर्धारित पूर्णांक में बदला जाएगा। रिकॉर्ड/अनुशासन/प्लांटेशन का डेटा साप्ताहिक चेकिंग से लिया जाएगा।`;
             const defs=getAnnualSubjectDefinitions(currentTrade),students=getStudentList(currentCollegeId,currentTrade),maxMarks=getH1H2MaxMarks();
             const head=document.getElementById('h1h2ReportHead'),body=document.getElementById('h1h2ReportBody');if(!head||!body)return;
             head.innerHTML=`<tr><th>रोल</th><th>विद्यार्थी</th>${defs.map(d=>`<th>${d.key.toUpperCase()}<br>प्राप्तांक / ${maxMarks[d.key]||'—'}</th>`).join('')}<th>कुल प्राप्तांक</th><th>कुल पूर्णांक</th><th>Formative Assessment अंक /100</th><th>प्रतिशत</th><th>डेटा उपलब्धता</th></tr>`;
@@ -6117,7 +6154,7 @@ function renderAnnualAttendanceColorChart() {
             let totalMM = (parseFloat(mmConfig.tt) || 20) + (parseFloat(mmConfig.tp) || 20) + (parseFloat(mmConfig.es) || 20);
             if (isEngg) totalMM += (parseFloat(mmConfig.wcs) || 20) + (parseFloat(mmConfig.ed) || 20);
 
-            headers.push(`कुल प्राप्तांक (/ ${totalMM})`, "प्रतिशत (%)", "मासिक रिकॉर्ड चेक (साप्ताहिक आधार)", "साप्ताहिक चेक टिप्पणियाँ", "दैनिक डायरी चेकिंग", "डायरी रिमार्क", "अनुशासन", "सक्रियता");
+            headers.push(`कुल प्राप्तांक (/ ${totalMM})`, "प्रतिशत (%)", "दैनिक डायरी चेकिंग", "थ्योरी रजिस्टर चेकिंग", "प्रैक्टिकल रजिस्टर चेकिंग", "प्रैक्टिकल वर्क चेकिंग", "अन्य कार्य चेकिंग", "साप्ताहिक चेक टिप्पणियाँ", "साप्ताहिक अनुशासन", "प्लांटेशन वर्क (साप्ताहिक)", "सक्रियता");
             const excelRows = [headers];
 
             tStudents.forEach(st => {
@@ -6138,7 +6175,8 @@ function renderAnnualAttendanceColorChart() {
                 row.push(ev.es !== undefined ? ev.es : '');
                 const pct = totalMM > 0 ? ((total / totalMM) * 100).toFixed(1) : 0;
                 const weeklySummary=getWeeklyRecordMonthSummary(currentCollegeId,currentTrade,sRoll,monthVal);
-                row.push(total, `${pct}%`, weeklySummary.total?`${weeklySummary.status} (${weeklySummary.total} सप्ताह)`:'चेकिंग उपलब्ध नहीं', weeklySummary.remarks.join(' | '), ev.diaryStatus || 'नियमित', ev.diaryRem || '', ev.disc || 'उत्कृष्ट', ev.act || 'सक्रिय');
+                const fieldStatus=k=>weeklySummary.rows.length?weeklySummary.rows.map(x=>x[k]||((k==='theoryRegister'||k==='practicalRegister')?x.status:'-')).filter(v=>v&&v!=='-').join(' / '):'चेकिंग उपलब्ध नहीं';
+                row.push(total, `${pct}%`, fieldStatus('diary'), fieldStatus('theoryRegister'), fieldStatus('practicalRegister'), fieldStatus('practicalWork'), fieldStatus('otherWork'), weeklySummary.remarks.join(' | '), weeklySummary.discipline, weeklySummary.plantationStatus, weeklySummary.plantationStatus);
                 excelRows.push(row);
             });
 
@@ -7744,8 +7782,16 @@ document.addEventListener('click',ev=>{const b=ev.target.closest('.saved-result-
       <button type="button" class="app-btn app-btn-primary" id="weeklyCheckLoad">सप्ताह दिखाएं</button>
       <button type="button" class="app-btn app-btn-success" id="weeklyCheckSave">इस सप्ताह की चेकिंग सुरक्षित करें</button>
     </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:end;margin:0 0 10px">
+      <label style="min-width:210px;flex:1">अन्य कार्य / रजिस्टर का नाम (वैकल्पिक)
+       <input id="weeklyOtherWorkLabel" type="text" maxlength="40" placeholder="जैसे प्रोजेक्ट फाइल / वर्कशॉप रिकॉर्ड" style="width:100%;margin-top:4px">
+      </label>
+    </div>
     <div id="weeklyCheckDateInfo" style="font-weight:700;color:#1e3a8a;margin-bottom:10px"></div>
-    <div class="table-shell"><table style="min-width:620px"><thead><tr><th>रोल</th><th>विद्यार्थी का नाम</th><th>रिकॉर्ड चेक स्थिति</th><th>टिप्पणी</th></tr></thead><tbody id="weeklyRecordCheckBody"></tbody></table></div>
+    <div class="table-shell"><table style="min-width:1250px"><thead><tr>
+      <th>रोल</th><th>विद्यार्थी का नाम</th><th>दैनिक डायरी</th><th>थ्योरी रजिस्टर</th><th>प्रैक्टिकल रजिस्टर</th><th>प्रैक्टिकल वर्क</th><th id="weeklyOtherWorkHeading">अन्य कार्य</th><th>अनुशासन / वर्कशॉप आचरण</th><th>प्लांटेशन वर्क</th><th>टिप्पणी</th>
+    </tr></thead><tbody id="weeklyRecordCheckBody"></tbody></table></div>
+    <p style="font-size:.82rem;color:#64748b;margin-top:8px">हर विद्यार्थी के प्रत्येक कार्य की स्थिति अलग-अलग चुनें। मासिक सारांश इन्हीं साप्ताहिक प्रविष्टियों से अपने आप बनेगा।</p>
     <div id="weeklyCheckStatus" role="status" style="margin-top:9px;font-weight:700"></div>`;
    const mm=host.querySelector('.max-marks-banner');host.insertBefore(panel,mm||host.firstChild);
    $('weeklyCheckDay').addEventListener('change',()=>{const x=ensureData();x.settings.day=Number($('weeklyCheckDay').value);syncWithFirebase();renderWeekly();});
@@ -7761,20 +7807,46 @@ document.addEventListener('click',ev=>{const b=ev.target.closest('.saved-result-
    const anchor=$('weeklyCheckAnchor').value||todayISO(),weekStart=mondayOf(anchor),checkDate=dateForDay(weekStart,settings.day??6);
    $('weeklyCheckDateInfo').textContent=`सप्ताह: ${weekStart} से ${dateForDay(weekStart,6)} | निर्धारित चेकिंग दिन: ${days[settings.day??6]} (${checkDate})`;
    const saved=weeks[weekStart]||{};
+   const otherLabel=settings.otherWorkLabel||'अन्य कार्य';
+   if($('weeklyOtherWorkLabel'))$('weeklyOtherWorkLabel').value=otherLabel==='अन्य कार्य'?'':otherLabel;
+   if($('weeklyOtherWorkHeading'))$('weeklyOtherWorkHeading').textContent=otherLabel;
    const students=getStudentList(currentCollegeId,currentTrade)||[];
+   const fields=[['diary','दैनिक डायरी'],['theoryRegister','थ्योरी रजिस्टर'],['practicalRegister','प्रैक्टिकल रजिस्टर'],['practicalWork','प्रैक्टिकल वर्क'],['otherWork',otherLabel]];
+   const options=['','नियमित चेक','अनियमित','जांच लंबित','लागू नहीं'];
    $('weeklyRecordCheckBody').innerHTML=students.length?students.map(st=>{
      const roll=String(st.roll).trim(),v=saved[roll]||{};
-     return `<tr><td>${esc(roll)}</td><td style="text-align:left">${esc(st.name)}</td><td><select class="weekly-status" data-roll="${esc(roll)}"><option value="नियमित चेक" ${v.status==='नियमित चेक'?'selected':''}>नियमित चेक</option><option value="अनियमित" ${v.status==='अनियमित'?'selected':''}>अनियमित</option><option value="जांच लंबित" ${v.status==='जांच लंबित'?'selected':''}>जांच लंबित</option></select></td><td><input class="weekly-remark" data-roll="${esc(roll)}" value="${esc(v.remark||'')}" placeholder="टिप्पणी लिखें" style="min-width:140px"></td></tr>`;
-   }).join(''):'<tr><td colspan="4">इस ट्रेड में विद्यार्थी उपलब्ध नहीं हैं।</td></tr>';
+     const selects=fields.map(([key])=>`<td><select class="weekly-field-status" data-field="${key}" data-roll="${esc(roll)}" style="min-width:135px">${options.map(op=>`<option value="${op}" ${(v[key]||((key==='theoryRegister'||key==='practicalRegister')?v.status:''))===op?'selected':''}>${op||'चयन करें'}</option>`).join('')}</select></td>`).join('');
+     const disciplineCell=`<td><select class="weekly-discipline" data-roll="${esc(roll)}" style="min-width:145px"><option value="">चयन करें</option><option value="उत्कृष्ट" ${v.discipline==='उत्कृष्ट'?'selected':''}>उत्कृष्ट</option><option value="संतोषजनक" ${v.discipline==='संतोषजनक'?'selected':''}>संतोषजनक</option><option value="सुधार जरूरी" ${v.discipline==='सुधार जरूरी'?'selected':''}>सुधार जरूरी</option></select></td>`;
+     const plantationCell=`<td><select class="weekly-plantation" data-roll="${esc(roll)}" style="min-width:125px"><option value="">चयन करें</option><option value="किया" ${v.plantation==='किया'?'selected':''}>किया</option><option value="नहीं किया" ${v.plantation==='नहीं किया'?'selected':''}>नहीं किया</option><option value="लागू नहीं" ${v.plantation==='लागू नहीं'?'selected':''}>लागू नहीं</option></select></td>`;
+     return `<tr><td>${esc(roll)}</td><td style="text-align:left;min-width:160px">${esc(st.name)}</td>${selects}${disciplineCell}${plantationCell}<td><input class="weekly-remark" data-roll="${esc(roll)}" value="${esc(v.remark||'')}" placeholder="टिप्पणी लिखें" style="min-width:150px"></td></tr>`;
+   }).join(''):'<tr><td colspan="10">इस ट्रेड में विद्यार्थी उपलब्ध नहीं हैं।</td></tr>';
    $('weeklyCheckStatus').textContent=saved._savedAt?`पिछली सेविंग: ${new Date(saved._savedAt).toLocaleString('hi-IN')}`:'इस सप्ताह की चेकिंग अभी सुरक्षित नहीं हुई है।';
  }
  function saveWeekly(){
    if(currentRole!=='instructor'||!currentCollegeId||!currentTrade)return;
    const {settings,weeks}=ensureData(),anchor=$('weeklyCheckAnchor').value||todayISO(),weekStart=mondayOf(anchor),checkDate=dateForDay(weekStart,settings.day??6);
-   const record={_savedAt:new Date().toISOString(),_checkDate:checkDate};
-   document.querySelectorAll('#weeklyRecordCheckBody .weekly-status').forEach(el=>{
-     const roll=el.dataset.roll,remark=document.querySelector(`#weeklyRecordCheckBody .weekly-remark[data-roll="${CSS.escape(roll)}"]`)?.value||'';
-     record[roll]={status:el.value,remark};
+   const otherLabel=$('weeklyOtherWorkLabel')?.value.trim()||'अन्य कार्य';
+   settings.otherWorkLabel=otherLabel;
+   const record={_savedAt:new Date().toISOString(),_checkDate:checkDate,_otherWorkLabel:otherLabel};
+   document.querySelectorAll('#weeklyRecordCheckBody .weekly-field-status').forEach(el=>{
+     const roll=el.dataset.roll,field=el.dataset.field;
+     if(!record[roll])record[roll]={};
+     record[roll][field]=el.value;
+   });
+   document.querySelectorAll('#weeklyRecordCheckBody .weekly-discipline').forEach(el=>{
+     const roll=el.dataset.roll;
+     if(!record[roll])record[roll]={};
+     record[roll].discipline=el.value;
+   });
+   document.querySelectorAll('#weeklyRecordCheckBody .weekly-plantation').forEach(el=>{
+     const roll=el.dataset.roll;
+     if(!record[roll])record[roll]={};
+     record[roll].plantation=el.value;
+   });
+   document.querySelectorAll('#weeklyRecordCheckBody .weekly-remark').forEach(el=>{
+     const roll=el.dataset.roll;
+     if(!record[roll])record[roll]={};
+     record[roll].remark=el.value||'';
    });
    weeks[weekStart]=record;
    syncWithFirebase();
