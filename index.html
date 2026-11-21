@@ -4350,112 +4350,7 @@ function renderAnnualAttendanceColorChart() {
                   <p class="print-foot">A = सामान्य उपस्थिति &nbsp; | &nbsp; T = थ्योरी टेस्ट अंक &nbsp; | &nbsp; P = प्रैक्टिकल टेस्ट अंक</p>
                 </main>
               
-<script>
-/* साप्ताहिक रिकॉर्ड चेकिंग + परीक्षा परिणाम Excel निर्यात */
-(function(){
- const $=id=>document.getElementById(id);
- const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
- const days=['रविवार','सोमवार','मंगलवार','बुधवार','गुरुवार','शुक्रवार','शनिवार'];
- const todayISO=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;};
- function ensureData(){
-   if(!appData.recordCheckSettings)appData.recordCheckSettings={};
-   if(!appData.weeklyRecordChecks)appData.weeklyRecordChecks={};
-   const cid=currentCollegeId,trade=currentTrade;
-   appData.recordCheckSettings[cid] ||= {};
-   appData.recordCheckSettings[cid][trade] ||= {day:6};
-   appData.weeklyRecordChecks[cid] ||= {};
-   appData.weeklyRecordChecks[cid][trade] ||= {};
-   return {settings:appData.recordCheckSettings[cid][trade],weeks:appData.weeklyRecordChecks[cid][trade]};
- }
- function mondayOf(dateStr){
-   const d=new Date(dateStr+'T12:00:00'); const diff=(d.getDay()+6)%7;d.setDate(d.getDate()-diff);
-   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
- }
- function dateForDay(monday,day){
-   const d=new Date(monday+'T12:00:00');d.setDate(d.getDate()+(Number(day)+6)%7);
-   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
- }
- function ensurePanel(){
-   const host=$('instTabEvaluation');if(!host||$('weeklyRecordCheckPanel'))return;
-   const panel=document.createElement('section');panel.id='weeklyRecordCheckPanel';panel.className='glass-card';
-   panel.style.cssText='margin:0 0 14px;padding:16px;border-left:5px solid #0d9488';
-   panel.innerHTML=`
-    <h3 style="color:#0f766e;margin:0 0 6px"><i class="fa-solid fa-calendar-week"></i> साप्ताहिक रिकॉर्ड / नोटबुक चेकिंग</h3>
-    <p style="color:#64748b;font-size:.88rem;margin-bottom:12px">सप्ताह में तय किए गए दिन सभी विद्यार्थियों की रिकॉर्ड चेकिंग करें। हर सप्ताह का रिकॉर्ड अलग सुरक्षित रहेगा।</p>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:end;margin-bottom:12px">
-      <label style="min-width:160px;flex:1">मेरा निश्चित चेकिंग दिवस
-       <select id="weeklyCheckDay" style="width:100%;margin-top:4px">${days.map((d,i)=>`<option value="${i}">${d}</option>`).join('')}</select>
-      </label>
-      <label style="min-width:160px;flex:1">इस सप्ताह की तारीख
-       <input id="weeklyCheckAnchor" type="date" style="width:100%;margin-top:4px" value="${todayISO()}">
-      </label>
-      <button type="button" class="app-btn app-btn-primary" id="weeklyCheckLoad">सप्ताह दिखाएं</button>
-      <button type="button" class="app-btn app-btn-success" id="weeklyCheckSave">इस सप्ताह की चेकिंग सुरक्षित करें</button>
-    </div>
-    <div id="weeklyCheckDateInfo" style="font-weight:700;color:#1e3a8a;margin-bottom:10px"></div>
-    <div class="table-shell"><table style="min-width:620px"><thead><tr><th>रोल</th><th>विद्यार्थी का नाम</th><th>रिकॉर्ड चेक स्थिति</th><th>टिप्पणी</th></tr></thead><tbody id="weeklyRecordCheckBody"></tbody></table></div>
-    <div id="weeklyCheckStatus" role="status" style="margin-top:9px;font-weight:700"></div>`;
-   const mm=host.querySelector('.max-marks-banner');host.insertBefore(panel,mm||host.firstChild);
-   $('weeklyCheckDay').addEventListener('change',()=>{const x=ensureData();x.settings.day=Number($('weeklyCheckDay').value);syncWithFirebase();renderWeekly();});
-   $('weeklyCheckLoad').addEventListener('click',renderWeekly);
-   $('weeklyCheckSave').addEventListener('click',saveWeekly);
-   $('weeklyCheckAnchor').addEventListener('change',renderWeekly);
- }
- function renderWeekly(){
-   if(currentRole!=='instructor'||!currentCollegeId||!currentTrade)return;
-   ensurePanel();if(!$('weeklyCheckDay'))return;
-   const {settings,weeks}=ensureData();
-   $('weeklyCheckDay').value=String(settings.day??6);
-   const anchor=$('weeklyCheckAnchor').value||todayISO(),weekStart=mondayOf(anchor),checkDate=dateForDay(weekStart,settings.day??6);
-   $('weeklyCheckDateInfo').textContent=`सप्ताह: ${weekStart} से ${dateForDay(weekStart,6)} | निर्धारित चेकिंग दिन: ${days[settings.day??6]} (${checkDate})`;
-   const saved=weeks[weekStart]||{};
-   const students=getStudentList(currentCollegeId,currentTrade)||[];
-   $('weeklyRecordCheckBody').innerHTML=students.length?students.map(st=>{
-     const roll=String(st.roll).trim(),v=saved[roll]||{};
-     return `<tr><td>${esc(roll)}</td><td style="text-align:left">${esc(st.name)}</td><td><select class="weekly-status" data-roll="${esc(roll)}"><option value="नियमित चेक" ${v.status==='नियमित चेक'?'selected':''}>नियमित चेक</option><option value="अनियमित" ${v.status==='अनियमित'?'selected':''}>अनियमित</option><option value="जांच लंबित" ${v.status==='जांच लंबित'?'selected':''}>जांच लंबित</option></select></td><td><input class="weekly-remark" data-roll="${esc(roll)}" value="${esc(v.remark||'')}" placeholder="टिप्पणी लिखें" style="min-width:140px"></td></tr>`;
-   }).join(''):'<tr><td colspan="4">इस ट्रेड में विद्यार्थी उपलब्ध नहीं हैं।</td></tr>';
-   $('weeklyCheckStatus').textContent=saved._savedAt?`पिछली सेविंग: ${new Date(saved._savedAt).toLocaleString('hi-IN')}`:'इस सप्ताह की चेकिंग अभी सुरक्षित नहीं हुई है।';
- }
- function saveWeekly(){
-   if(currentRole!=='instructor'||!currentCollegeId||!currentTrade)return;
-   const {settings,weeks}=ensureData(),anchor=$('weeklyCheckAnchor').value||todayISO(),weekStart=mondayOf(anchor),checkDate=dateForDay(weekStart,settings.day??6);
-   const record={_savedAt:new Date().toISOString(),_checkDate:checkDate};
-   document.querySelectorAll('#weeklyRecordCheckBody .weekly-status').forEach(el=>{
-     const roll=el.dataset.roll,remark=document.querySelector(`#weeklyRecordCheckBody .weekly-remark[data-roll="${CSS.escape(roll)}"]`)?.value||'';
-     record[roll]={status:el.value,remark};
-   });
-   weeks[weekStart]=record;
-   syncWithFirebase();
-   $('weeklyCheckStatus').textContent=`${days[settings.day??6]} (${checkDate}) की चेकिंग सुरक्षित हो गई।`;
-   showToast('साप्ताहिक रिकॉर्ड चेकिंग सुरक्षित हो गई।');
- }
- const oldRender=window.renderEvaluationTable;
- if(typeof oldRender==='function')window.renderEvaluationTable=function(){oldRender.apply(this,arguments);setTimeout(renderWeekly,0);};
- window.exportSelectedExamResults=function(){
-   const rows=window.__selectedExamResultRows||[],meta=window.__selectedExamResultMeta||{};
-   if(!rows.length){alert('इस परीक्षा के परिणाम उपलब्ध नहीं हैं।');return;}
-   if(typeof XLSX==='undefined'){alert('Excel लाइब्रेरी लोड नहीं हुई। इंटरनेट चालू करके दोबारा प्रयास करें।');return;}
-   const data=rows.slice().sort((a,b)=>String(a.roll||'').localeCompare(String(b.roll||''),undefined,{numeric:true})).map((r,i)=>({
-     'क्रम संख्या':i+1,'रोल नंबर':r.roll||'','विद्यार्थी का नाम':r.name||'',
-     'कुल प्रश्न':r.total??'','हल किए गए प्रश्न':r.attempted??'',
-     'सही प्रश्न':r.correct??'','गलत प्रश्न':r.wrong??'',
-     'अनुत्तरित प्रश्न':Math.max(0,Number(r.total||0)-Number(r.attempted||0)),
-     'प्राप्तांक':r.score??'','पूर्णांक':r.maximum??r.total??'',
-     'प्रतिशत (%)':r.percent??'',
-     'परीक्षा तिथि':r.submittedAt?new Date(r.submittedAt).toLocaleDateString('hi-IN'):'',
-     'सबमिट समय':r.submittedAt?new Date(r.submittedAt).toLocaleTimeString('hi-IN'):''
-   }));
-   const ws=XLSX.utils.json_to_sheet(data);
-   ws['!cols']=[{wch:10},{wch:12},{wch:28},{wch:12},{wch:16},{wch:12},{wch:12},{wch:16},{wch:12},{wch:12},{wch:14},{wch:15},{wch:15}];
-   const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'परीक्षा परिणाम');
-   const safe=(v)=>String(v||'Exam').replace(/[\\/:*?"<>|]/g,'_').slice(0,45);
-   XLSX.writeFile(wb,`${safe(meta.title)}_${safe(meta.trade)}_सभी_परिणाम.xlsx`);
- };
- document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{ensurePanel();renderWeekly();},800));
- const oldRoute=window.setupUIRoute;
- if(typeof oldRoute==='function')window.setupUIRoute=function(){oldRoute.apply(this,arguments);setTimeout(()=>{ensurePanel();renderWeekly();},150);};
-})();
-</script>
+
 
 </body>
               </html>`);
@@ -7776,6 +7671,112 @@ document.addEventListener('click',ev=>{const b=ev.target.closest('.saved-result-
  function renderSupDevelopment(){if(!isManager()||!$('supViewStudentDevelopment'))return;const d=data(),cid=currentCollegeId;const all=k=>d[k].filter(x=>x.collegeId===cid).slice().reverse();const sets=[['studentFollowups','supStudentFollowupReview',['तारीख','ट्रेड','विद्यार्थी','कारण','अनुदेशक','कार्यवाही'],x=>[x.date,x.trade,x.studentName+' ('+x.roll+')',x.reason,x.instructorName,x.details]],['skillAssessments','supSkillReview',['तारीख','ट्रेड','विद्यार्थी','स्किल','दक्षता','अनुदेशक'],x=>[x.date,x.trade,x.studentName+' ('+x.roll+')',x.skill,x.level,x.instructorName]],['remedialRecords','supRemedialReview',['तारीख','ट्रेड','विद्यार्थी','टॉपिक','परिणाम','अनुदेशक'],x=>[x.date,x.trade,x.studentName+' ('+x.roll+')',x.topic,x.result,x.instructorName]],['officeDevelopmentLogs','supOfficeReview',['तारीख','ट्रेड','श्रेणी','स्थिति','अनुदेशक','विवरण'],x=>[x.date,x.trade,x.type,x.status,x.instructorName,x.details]]];let counts=[];sets.forEach(([key,id,heads,vals])=>{const rows=all(key),el=$(id);counts.push(rows.length);if(el)el.innerHTML=rows.length?'<div class="table-shell"><table><thead><tr>'+heads.map(h=>'<th>'+esc(h)+'</th>').join('')+'</tr></thead><tbody>'+rows.slice(0,100).map(x=>'<tr>'+vals(x).map(v=>'<td>'+esc(v)+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>':'<p class="sup-help">कोई रिकॉर्ड नहीं।</p>';});const sum=$('supStudentDevelopmentSummary');if(sum)sum.innerHTML=counts.map((n,i)=>'<div class="sup-alert-item"><strong>'+n+'</strong><span>'+['फॉलो-अप','कौशल मूल्यांकन','सुधारात्मक कक्षा','कार्यालय / विकास कार्य'][i]+'</span></div>').join('');}
  function installManagerView(){const nav=$('superintendentSection')?.querySelector('.sup-sidebar');if(nav&&!$('supStudentDevelopmentNav')){const b=document.createElement('button');b.id='supStudentDevelopmentNav';b.className='sup-nav-btn';b.type='button';b.innerHTML='<i class="fa-solid fa-graduation-cap"></i><span>विद्यार्थी प्रगति / कॉलेज विकास</span>';b.addEventListener('click',window.openSupStudentDevelopment);nav.appendChild(b);}}
  document.addEventListener('DOMContentLoaded',()=>{if($('instTabProgress'))render();installManagerView()});
+})();
+</script>
+<script>
+/* साप्ताहिक रिकॉर्ड चेकिंग + परीक्षा परिणाम Excel निर्यात */
+(function(){
+ const $=id=>document.getElementById(id);
+ const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const days=['रविवार','सोमवार','मंगलवार','बुधवार','गुरुवार','शुक्रवार','शनिवार'];
+ const todayISO=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;};
+ function ensureData(){
+   if(!appData.recordCheckSettings)appData.recordCheckSettings={};
+   if(!appData.weeklyRecordChecks)appData.weeklyRecordChecks={};
+   const cid=currentCollegeId,trade=currentTrade;
+   appData.recordCheckSettings[cid] ||= {};
+   appData.recordCheckSettings[cid][trade] ||= {day:6};
+   appData.weeklyRecordChecks[cid] ||= {};
+   appData.weeklyRecordChecks[cid][trade] ||= {};
+   return {settings:appData.recordCheckSettings[cid][trade],weeks:appData.weeklyRecordChecks[cid][trade]};
+ }
+ function mondayOf(dateStr){
+   const d=new Date(dateStr+'T12:00:00'); const diff=(d.getDay()+6)%7;d.setDate(d.getDate()-diff);
+   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+ }
+ function dateForDay(monday,day){
+   const d=new Date(monday+'T12:00:00');d.setDate(d.getDate()+(Number(day)+6)%7);
+   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+ }
+ function ensurePanel(){
+   const host=$('instTabEvaluation');if(!host||$('weeklyRecordCheckPanel'))return;
+   const panel=document.createElement('section');panel.id='weeklyRecordCheckPanel';panel.className='glass-card';
+   panel.style.cssText='margin:0 0 14px;padding:16px;border-left:5px solid #0d9488';
+   panel.innerHTML=`
+    <h3 style="color:#0f766e;margin:0 0 6px"><i class="fa-solid fa-calendar-week"></i> साप्ताहिक रिकॉर्ड / नोटबुक चेकिंग</h3>
+    <p style="color:#64748b;font-size:.88rem;margin-bottom:12px">सप्ताह में तय किए गए दिन सभी विद्यार्थियों की रिकॉर्ड चेकिंग करें। हर सप्ताह का रिकॉर्ड अलग सुरक्षित रहेगा।</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:end;margin-bottom:12px">
+      <label style="min-width:160px;flex:1">मेरा निश्चित चेकिंग दिवस
+       <select id="weeklyCheckDay" style="width:100%;margin-top:4px">${days.map((d,i)=>`<option value="${i}">${d}</option>`).join('')}</select>
+      </label>
+      <label style="min-width:160px;flex:1">इस सप्ताह की तारीख
+       <input id="weeklyCheckAnchor" type="date" style="width:100%;margin-top:4px" value="${todayISO()}">
+      </label>
+      <button type="button" class="app-btn app-btn-primary" id="weeklyCheckLoad">सप्ताह दिखाएं</button>
+      <button type="button" class="app-btn app-btn-success" id="weeklyCheckSave">इस सप्ताह की चेकिंग सुरक्षित करें</button>
+    </div>
+    <div id="weeklyCheckDateInfo" style="font-weight:700;color:#1e3a8a;margin-bottom:10px"></div>
+    <div class="table-shell"><table style="min-width:620px"><thead><tr><th>रोल</th><th>विद्यार्थी का नाम</th><th>रिकॉर्ड चेक स्थिति</th><th>टिप्पणी</th></tr></thead><tbody id="weeklyRecordCheckBody"></tbody></table></div>
+    <div id="weeklyCheckStatus" role="status" style="margin-top:9px;font-weight:700"></div>`;
+   const mm=host.querySelector('.max-marks-banner');host.insertBefore(panel,mm||host.firstChild);
+   $('weeklyCheckDay').addEventListener('change',()=>{const x=ensureData();x.settings.day=Number($('weeklyCheckDay').value);syncWithFirebase();renderWeekly();});
+   $('weeklyCheckLoad').addEventListener('click',renderWeekly);
+   $('weeklyCheckSave').addEventListener('click',saveWeekly);
+   $('weeklyCheckAnchor').addEventListener('change',renderWeekly);
+ }
+ function renderWeekly(){
+   if(currentRole!=='instructor'||!currentCollegeId||!currentTrade)return;
+   ensurePanel();if(!$('weeklyCheckDay'))return;
+   const {settings,weeks}=ensureData();
+   $('weeklyCheckDay').value=String(settings.day??6);
+   const anchor=$('weeklyCheckAnchor').value||todayISO(),weekStart=mondayOf(anchor),checkDate=dateForDay(weekStart,settings.day??6);
+   $('weeklyCheckDateInfo').textContent=`सप्ताह: ${weekStart} से ${dateForDay(weekStart,6)} | निर्धारित चेकिंग दिन: ${days[settings.day??6]} (${checkDate})`;
+   const saved=weeks[weekStart]||{};
+   const students=getStudentList(currentCollegeId,currentTrade)||[];
+   $('weeklyRecordCheckBody').innerHTML=students.length?students.map(st=>{
+     const roll=String(st.roll).trim(),v=saved[roll]||{};
+     return `<tr><td>${esc(roll)}</td><td style="text-align:left">${esc(st.name)}</td><td><select class="weekly-status" data-roll="${esc(roll)}"><option value="नियमित चेक" ${v.status==='नियमित चेक'?'selected':''}>नियमित चेक</option><option value="अनियमित" ${v.status==='अनियमित'?'selected':''}>अनियमित</option><option value="जांच लंबित" ${v.status==='जांच लंबित'?'selected':''}>जांच लंबित</option></select></td><td><input class="weekly-remark" data-roll="${esc(roll)}" value="${esc(v.remark||'')}" placeholder="टिप्पणी लिखें" style="min-width:140px"></td></tr>`;
+   }).join(''):'<tr><td colspan="4">इस ट्रेड में विद्यार्थी उपलब्ध नहीं हैं।</td></tr>';
+   $('weeklyCheckStatus').textContent=saved._savedAt?`पिछली सेविंग: ${new Date(saved._savedAt).toLocaleString('hi-IN')}`:'इस सप्ताह की चेकिंग अभी सुरक्षित नहीं हुई है।';
+ }
+ function saveWeekly(){
+   if(currentRole!=='instructor'||!currentCollegeId||!currentTrade)return;
+   const {settings,weeks}=ensureData(),anchor=$('weeklyCheckAnchor').value||todayISO(),weekStart=mondayOf(anchor),checkDate=dateForDay(weekStart,settings.day??6);
+   const record={_savedAt:new Date().toISOString(),_checkDate:checkDate};
+   document.querySelectorAll('#weeklyRecordCheckBody .weekly-status').forEach(el=>{
+     const roll=el.dataset.roll,remark=document.querySelector(`#weeklyRecordCheckBody .weekly-remark[data-roll="${CSS.escape(roll)}"]`)?.value||'';
+     record[roll]={status:el.value,remark};
+   });
+   weeks[weekStart]=record;
+   syncWithFirebase();
+   $('weeklyCheckStatus').textContent=`${days[settings.day??6]} (${checkDate}) की चेकिंग सुरक्षित हो गई।`;
+   showToast('साप्ताहिक रिकॉर्ड चेकिंग सुरक्षित हो गई।');
+ }
+ const oldRender=window.renderEvaluationTable;
+ if(typeof oldRender==='function')window.renderEvaluationTable=function(){oldRender.apply(this,arguments);setTimeout(renderWeekly,0);};
+ window.exportSelectedExamResults=function(){
+   const rows=window.__selectedExamResultRows||[],meta=window.__selectedExamResultMeta||{};
+   if(!rows.length){alert('इस परीक्षा के परिणाम उपलब्ध नहीं हैं।');return;}
+   if(typeof XLSX==='undefined'){alert('Excel लाइब्रेरी लोड नहीं हुई। इंटरनेट चालू करके दोबारा प्रयास करें।');return;}
+   const data=rows.slice().sort((a,b)=>String(a.roll||'').localeCompare(String(b.roll||''),undefined,{numeric:true})).map((r,i)=>({
+     'क्रम संख्या':i+1,'रोल नंबर':r.roll||'','विद्यार्थी का नाम':r.name||'',
+     'कुल प्रश्न':r.total??'','हल किए गए प्रश्न':r.attempted??'',
+     'सही प्रश्न':r.correct??'','गलत प्रश्न':r.wrong??'',
+     'अनुत्तरित प्रश्न':Math.max(0,Number(r.total||0)-Number(r.attempted||0)),
+     'प्राप्तांक':r.score??'','पूर्णांक':r.maximum??r.total??'',
+     'प्रतिशत (%)':r.percent??'',
+     'परीक्षा तिथि':r.submittedAt?new Date(r.submittedAt).toLocaleDateString('hi-IN'):'',
+     'सबमिट समय':r.submittedAt?new Date(r.submittedAt).toLocaleTimeString('hi-IN'):''
+   }));
+   const ws=XLSX.utils.json_to_sheet(data);
+   ws['!cols']=[{wch:10},{wch:12},{wch:28},{wch:12},{wch:16},{wch:12},{wch:12},{wch:16},{wch:12},{wch:12},{wch:14},{wch:15},{wch:15}];
+   const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'परीक्षा परिणाम');
+   const safe=(v)=>String(v||'Exam').replace(/[\\/:*?"<>|]/g,'_').slice(0,45);
+   XLSX.writeFile(wb,`${safe(meta.title)}_${safe(meta.trade)}_सभी_परिणाम.xlsx`);
+ };
+ document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{ensurePanel();renderWeekly();},800));
+ const oldRoute=window.setupUIRoute;
+ if(typeof oldRoute==='function')window.setupUIRoute=function(){oldRoute.apply(this,arguments);setTimeout(()=>{ensurePanel();renderWeekly();},150);};
 })();
 </script>
 </body>
