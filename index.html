@@ -458,6 +458,42 @@
             background: #f1f5f9 !important;
         }
 
+        /* साप्ताहिक रिकॉर्ड: हेडर + पहले दो कॉलम (रोल और नाम) फ्रीज */
+        .weekly-check-scroll table { border-collapse: separate; border-spacing: 0; }
+        .weekly-check-scroll th.col-sticky-roll,
+        .weekly-check-scroll td.col-sticky-roll {
+            position: sticky !important;
+            left: 0 !important;
+            width: 60px !important;
+            min-width: 60px !important;
+            max-width: 60px !important;
+            box-sizing: border-box;
+            background: #fff !important;
+            z-index: 12 !important;
+        }
+        .weekly-check-scroll th.col-sticky-name,
+        .weekly-check-scroll td.col-sticky-name {
+            position: sticky !important;
+            left: 60px !important;
+            width: 160px !important;
+            min-width: 160px !important;
+            max-width: 160px !important;
+            box-sizing: border-box;
+            background: #fff !important;
+            z-index: 12 !important;
+        }
+        .weekly-check-scroll thead th {
+            position: sticky !important;
+            top: 0 !important;
+            z-index: 30 !important;
+            background: #eaf2ff !important;
+        }
+        .weekly-check-scroll thead th.col-sticky-roll,
+        .weekly-check-scroll thead th.col-sticky-name {
+            z-index: 45 !important;
+            background: #dceafe !important;
+        }
+
         .day-sunday { background: #fee2e2 !important; color: #991b1b; font-weight: 700; }
         .day-holiday { background: #f3e8ff !important; color: #6b21a8; font-weight: 700; }
         .day-inactive { background: #f1f5f9 !important; color: #94a3b8; font-style: italic; }
@@ -8130,7 +8166,10 @@ document.addEventListener('click',ev=>{const b=ev.target.closest('.saved-result-
     </div>
     <div id="weeklyCheckDateInfo" style="font-weight:700;color:#1e3a8a;margin-bottom:10px"></div>
     <div class="table-shell weekly-check-scroll"><table style="min-width:1550px"><thead><tr>
-      <th class="col-sticky-roll">रोल</th><th class="col-sticky-name">विद्यार्थी का नाम</th><th>दैनिक डायरी</th><th>थ्योरी रजिस्टर</th><th>थ्योरी विवरण</th><th>प्रैक्टिकल रजिस्टर</th><th>प्रैक्टिकल वर्क</th><th>प्रैक्टिकल विवरण</th><th id="weeklyOtherWorkHeading">अन्य कार्य</th><th>अनुशासन / वर्कशॉप आचरण</th><th>प्लांटेशन वर्क</th><th>टिप्पणी</th>
+      <th class="col-sticky-roll">रोल नंबर</th><th class="col-sticky-name">विद्यार्थी का नाम</th>
+      <th>दैनिक डायरी</th><th>थ्योरी रजिस्टर</th><th>थ्योरी विवरण</th>
+      <th>प्रैक्टिकल रजिस्टर</th><th>प्रैक्टिकल वर्क</th><th>प्रैक्टिकल विवरण</th>
+      <th id="weeklyOtherWorkHeading">अन्य कार्य</th><th>अनुशासन / वर्कशॉप आचरण</th><th>प्लांटेशन वर्क</th><th>टिप्पणी</th>
     </tr></thead><tbody id="weeklyRecordCheckBody"></tbody></table></div>
     <p style="font-size:.82rem;color:#64748b;margin-top:8px">हर विद्यार्थी के प्रत्येक कार्य की स्थिति अलग-अलग चुनें। मासिक सारांश इन्हीं साप्ताहिक प्रविष्टियों से अपने आप बनेगा।</p>
     <div id="weeklyCheckStatus" role="status" style="margin-top:9px;font-weight:700"></div>`;
@@ -8156,12 +8195,12 @@ document.addEventListener('click',ev=>{const b=ev.target.closest('.saved-result-
    const options=['','नियमित चेक','अनियमित','जांच लंबित','लागू नहीं'];
    $('weeklyRecordCheckBody').innerHTML=students.length?students.map(st=>{
      const roll=String(st.roll).trim(),v=saved[roll]||{};
-     const selects=fields.map(([key])=>`<td><select class="weekly-field-status" data-field="${key}" data-roll="${esc(roll)}" style="min-width:135px">${options.map(op=>`<option value="${op}" ${(v[key]||((key==='theoryRegister'||key==='practicalRegister')?v.status:''))===op?'selected':''}>${op||'चयन करें'}</option>`).join('')}</select></td>`).join('');
+     const statusCell=(key)=>`<td><select class="weekly-field-status" data-field="${key}" data-roll="${esc(roll)}" style="min-width:135px">${options.map(op=>`<option value="${op}" ${(v[key]||((key==='theoryRegister'||key==='practicalRegister')?v.status:''))===op?'selected':''}>${op||'चयन करें'}</option>`).join('')}</select></td>`;
      const theoryDetailsCell=`<td><input class="weekly-theory-details" data-roll="${esc(roll)}" value="${esc(v.theoryDetails||'')}" placeholder="टॉपिक / अध्याय विवरण" style="min-width:190px"></td>`;
      const practicalDetailsCell=`<td><input class="weekly-practical-details" data-roll="${esc(roll)}" value="${esc(v.practicalDetails||'')}" placeholder="प्रैक्टिकल नं. / जॉब विवरण" style="min-width:210px"></td>`;
      const disciplineCell=`<td><select class="weekly-discipline" data-roll="${esc(roll)}" style="min-width:145px"><option value="">चयन करें</option><option value="उत्कृष्ट" ${v.discipline==='उत्कृष्ट'?'selected':''}>उत्कृष्ट</option><option value="संतोषजनक" ${v.discipline==='संतोषजनक'?'selected':''}>संतोषजनक</option><option value="सुधार जरूरी" ${v.discipline==='सुधार जरूरी'?'selected':''}>सुधार जरूरी</option></select></td>`;
      const plantationCell=`<td><select class="weekly-plantation" data-roll="${esc(roll)}" style="min-width:125px"><option value="">चयन करें</option><option value="किया" ${v.plantation==='किया'?'selected':''}>किया</option><option value="नहीं किया" ${v.plantation==='नहीं किया'?'selected':''}>नहीं किया</option><option value="लागू नहीं" ${v.plantation==='लागू नहीं'?'selected':''}>लागू नहीं</option></select></td>`;
-     return `<tr><td class="col-sticky-roll">${esc(roll)}</td><td class="col-sticky-name" style="min-width:160px">${esc(st.name)}</td>${selects.slice(0,2)}${theoryDetailsCell}${selects.slice(2,4)}${practicalDetailsCell}${selects.slice(4)}${disciplineCell}${plantationCell}<td><input class="weekly-remark" data-roll="${esc(roll)}" value="${esc(v.remark||'')}" placeholder="टिप्पणी लिखें" style="min-width:150px"></td></tr>`;
+     return `<tr><td class="col-sticky-roll">${esc(roll)}</td><td class="col-sticky-name">${esc(st.name)}</td>${statusCell('diary')}${statusCell('theoryRegister')}${theoryDetailsCell}${statusCell('practicalRegister')}${statusCell('practicalWork')}${practicalDetailsCell}${statusCell('otherWork')}${disciplineCell}${plantationCell}<td><input class="weekly-remark" data-roll="${esc(roll)}" value="${esc(v.remark||'')}" placeholder="टिप्पणी लिखें" style="min-width:150px"></td></tr>`;
    }).join(''):'<tr><td colspan="12">इस ट्रेड में विद्यार्थी उपलब्ध नहीं हैं।</td></tr>';
    $('weeklyCheckStatus').textContent=saved._savedAt?`पिछली सेविंग: ${new Date(saved._savedAt).toLocaleString('hi-IN')}`:'इस सप्ताह की चेकिंग अभी सुरक्षित नहीं हुई है।';
  }
