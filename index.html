@@ -1415,7 +1415,7 @@ a{overflow-wrap:anywhere}
 <section class="hidden" id="studentSection">
 <div id="studentMobileHome" class="student-mobile-home">
   <div class="student-mobile-top">
-    <div class="student-mobile-topline"><span>Student Dashboard</span><button type="button" aria-label="सूचनाएँ" onclick="document.getElementById('studentNoticePanel')?.scrollIntoView({behavior:'smooth'})"><i class="fa-solid fa-bell"></i></button></div>
+    <div class="student-mobile-topline"><span>Student Dashboard</span><button type="button" aria-label="सूचनाएँ" onclick="studentMobileShowNotices()"><i class="fa-solid fa-bell"></i></button></div>
     <div class="student-profile-card">
       <div class="student-profile-copy"><small>नमस्कार, विद्यार्थी!</small><h2 id="studentMobileName">विद्यार्थी</h2><p id="studentMobileMeta">कॉलेज · ट्रेड · रोल नंबर</p></div>
       <div class="student-avatar"><i class="fa-solid fa-user-graduate"></i></div>
@@ -1430,46 +1430,46 @@ a{overflow-wrap:anywhere}
     <section class="student-home-section">
       <h3>Recent</h3>
       <div class="student-service-grid">
-        <button onclick="studentMobileOpen('records')"><span class="student-service-icon c-yellow"><i class="fa-solid fa-images"></i></span><b>Gallery</b></button>
-        <button onclick="studentMobileOpen('records')"><span class="student-service-icon c-green"><i class="fa-solid fa-user-check"></i></span><b>Attender</b></button>
-        <button onclick="studentMobileOpen('records')"><span class="student-service-icon c-blue"><i class="fa-solid fa-school"></i></span><b>School<br>Communication</b></button>
-        <button onclick="studentMobileOpen('records')"><span class="student-service-icon c-pink"><i class="fa-solid fa-people-group"></i></span><b>Co-Curricular<br>Activities</b></button>
-        <button onclick="studentMobileOpen('marks')"><span class="student-service-icon c-purple"><i class="fa-solid fa-clipboard-list"></i></span><b>Result</b></button>
-        <button onclick="studentMobileOpen('attendance')"><span class="student-service-icon c-pink"><i class="fa-solid fa-calendar-check"></i></span><b>Attendance</b></button>
+        <button onclick="studentMobileAction('gallery',this)"><span class="student-service-icon c-yellow"><i class="fa-solid fa-images"></i></span><b>Gallery</b></button>
+        <button onclick="studentMobileAction('attender',this)"><span class="student-service-icon c-green"><i class="fa-solid fa-user-check"></i></span><b>Attender</b></button>
+        <button onclick="studentMobileAction('communication',this)"><span class="student-service-icon c-blue"><i class="fa-solid fa-school"></i></span><b>School<br>Communication</b></button>
+        <button onclick="studentMobileAction('activities',this)"><span class="student-service-icon c-pink"><i class="fa-solid fa-people-group"></i></span><b>Co-Curricular<br>Activities</b></button>
+        <button onclick="studentMobileAction('result',this)"><span class="student-service-icon c-purple"><i class="fa-solid fa-clipboard-list"></i></span><b>Result</b></button>
+        <button onclick="studentMobileAction('attendance',this)"><span class="student-service-icon c-pink"><i class="fa-solid fa-calendar-check"></i></span><b>Attendance</b></button>
       </div>
     </section>
     <section class="student-home-section">
       <h3>Academic Overview</h3>
       <div class="student-service-grid">
-        <button onclick="studentMobileOpen('annual_card')"><span class="student-service-icon c-pink"><i class="fa-solid fa-graduation-cap"></i></span><b>Achievements</b></button>
-        <button onclick="studentMobileOpen('records')"><span class="student-service-icon c-yellow"><i class="fa-solid fa-book-open"></i></span><b>Syllabus</b></button>
-        <button onclick="studentMobileOpen('attendance')"><span class="student-service-icon c-pink"><i class="fa-solid fa-user-check"></i></span><b>Attendance</b></button>
-        <button onclick="studentMobileOpen('records')"><span class="student-service-icon c-blue"><i class="fa-solid fa-book"></i></span><b>Diary</b></button>
-        <button onclick="studentMobileOpen('records')"><span class="student-service-icon c-green"><i class="fa-solid fa-comment-dots"></i></span><b>Feedback</b></button>
-        <button onclick="studentMobileOpen('marks')"><span class="student-service-icon c-pink"><i class="fa-solid fa-file-circle-check"></i></span><b>Result</b></button>
+        <button onclick="studentMobileAction('achievements',this)"><span class="student-service-icon c-pink"><i class="fa-solid fa-graduation-cap"></i></span><b>Achievements</b></button>
+        <button onclick="studentMobileAction('syllabus',this)"><span class="student-service-icon c-yellow"><i class="fa-solid fa-book-open"></i></span><b>Syllabus</b></button>
+        <button onclick="studentMobileAction('attendance',this)"><span class="student-service-icon c-pink"><i class="fa-solid fa-user-check"></i></span><b>Attendance</b></button>
+        <button onclick="studentMobileAction('diary',this)"><span class="student-service-icon c-blue"><i class="fa-solid fa-book"></i></span><b>Diary</b></button>
+        <button onclick="studentMobileAction('feedback',this)"><span class="student-service-icon c-green"><i class="fa-solid fa-comment-dots"></i></span><b>Feedback</b></button>
+        <button onclick="studentMobileAction('result',this)"><span class="student-service-icon c-pink"><i class="fa-solid fa-file-circle-check"></i></span><b>Result</b></button>
       </div>
     </section>
     <section class="student-home-section">
       <h3>Student Services</h3>
       <div class="student-service-grid">
-        <button onclick="studentMobileOpen('records')"><span class="student-service-icon c-pink"><i class="fa-solid fa-calendar-plus"></i></span><b>Apply Leave</b></button>
-        <button onclick="studentMobileOpen('records')"><span class="student-service-icon c-yellow"><i class="fa-solid fa-bullhorn"></i></span><b>Circular /<br>Announcement</b></button>
-        <button onclick="studentMobileOpen('records')"><span class="student-service-icon c-blue"><i class="fa-solid fa-hands-helping"></i></span><b>Student Support<br>Material</b></button>
-        <button onclick="studentMobileOpen('records')"><span class="student-service-icon c-green"><i class="fa-solid fa-people-group"></i></span><b>Co-Curricular<br>Activities</b></button>
+        <button onclick="studentMobileAction('leave',this)"><span class="student-service-icon c-pink"><i class="fa-solid fa-calendar-plus"></i></span><b>Apply Leave</b></button>
+        <button onclick="studentMobileAction('notices',this)"><span class="student-service-icon c-yellow"><i class="fa-solid fa-bullhorn"></i></span><b>Circular /<br>Announcement</b></button>
+        <button onclick="studentMobileAction('support',this)"><span class="student-service-icon c-blue"><i class="fa-solid fa-hands-helping"></i></span><b>Student Support<br>Material</b></button>
+        <button onclick="studentMobileAction('activities',this)"><span class="student-service-icon c-green"><i class="fa-solid fa-people-group"></i></span><b>Co-Curricular<br>Activities</b></button>
       </div>
     </section>
     <section class="student-home-section">
       <h3>Parent Services</h3>
       <div class="student-service-grid student-parent-grid">
-        <button onclick="studentMobileOpen('records')"><span class="student-service-icon c-yellow"><i class="fa-solid fa-message"></i></span><b>Request</b></button>
-        <button onclick="studentMobileOpen('records')"><span class="student-service-icon c-blue"><i class="fa-solid fa-school"></i></span><b>School<br>Communication</b></button>
-        <button onclick="studentMobileOpen('attendance')"><span class="student-service-icon c-green"><i class="fa-solid fa-user-check"></i></span><b>Attender</b></button>
+        <button onclick="studentMobileAction('request',this)"><span class="student-service-icon c-yellow"><i class="fa-solid fa-message"></i></span><b>Request</b></button>
+        <button onclick="studentMobileAction('communication',this)"><span class="student-service-icon c-blue"><i class="fa-solid fa-school"></i></span><b>School<br>Communication</b></button>
+        <button onclick="studentMobileAction('attender',this)"><span class="student-service-icon c-green"><i class="fa-solid fa-user-check"></i></span><b>Attender</b></button>
       </div>
     </section>
     <section class="student-home-section">
       <h3>Other Services</h3>
       <div class="student-service-grid student-other-grid">
-        <button onclick="studentMobileOpen('records')"><span class="student-service-icon c-yellow"><i class="fa-solid fa-images"></i></span><b>Gallery</b></button>
+        <button onclick="studentMobileAction('gallery',this)"><span class="student-service-icon c-yellow"><i class="fa-solid fa-images"></i></span><b>Gallery</b></button>
       </div>
     </section>
   </div>
@@ -1510,7 +1510,7 @@ a{overflow-wrap:anywhere}
 <i class="fa-solid fa-chevron-right" style="font-size:0.85rem;"></i>
 </button>
 </div>
-<div class="glass-card" id="studentNoticePanel" style="margin:12px 0;padding:14px;"><h3 style="color:var(--primary);"><i class="fa-solid fa-bullhorn"></i> संस्थान की सूचनाएँ</h3><div id="studentNoticeList">अभी कोई सूचना उपलब्ध नहीं है।</div></div>
+<div class="glass-card hidden" id="studentNoticePanel" style="margin:12px 0;padding:14px;"><h3 style="color:var(--primary);"><i class="fa-solid fa-bullhorn"></i> संस्थान की सूचनाएँ</h3><div id="studentNoticeList">अभी कोई सूचना उपलब्ध नहीं है।</div></div>
 <!-- 1. उपस्थिति सेक्शन -->
 <div id="studSecAttendance">
 <div class="section-bar-title"><i class="fa-solid fa-clock-rotate-left"></i> पूर्व संचित विवरण (Past Record)</div>
@@ -5661,14 +5661,19 @@ function renderAnnualAttendanceColorChart() {
             }
         }
 
-        function studentMobileShowHome(btn){
-  const home=document.getElementById('studentMobileHome');
-  const sections=['studSecAttendance','studSecMarks','studSecRecords','studSecAnnualCard'];
-  sections.forEach(id=>document.getElementById(id)?.classList.add('hidden'));
-  if(home)home.style.display='block';
-  document.getElementById('studentNoticePanel')?.classList.remove('hidden');
+        function studentMobileSetActive(btn){
   document.querySelectorAll('#studentMobileBottomNav button').forEach(b=>b.classList.remove('active'));
-  (btn||document.querySelector('#studentMobileBottomNav button'))?.classList.add('active');
+  if(btn)btn.classList.add('active');
+}
+function studentMobileHideContent(){
+  ['studSecAttendance','studSecMarks','studSecRecords','studSecAnnualCard'].forEach(id=>document.getElementById(id)?.classList.add('hidden'));
+}
+function studentMobileShowHome(btn){
+  studentMobileHideContent();
+  const home=document.getElementById('studentMobileHome');
+  if(home)home.style.display='block';
+  document.getElementById('studentNoticePanel')?.classList.add('hidden');
+  studentMobileSetActive(btn||document.querySelector('#studentMobileBottomNav button'));
   document.querySelectorAll('.stud-nav-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('btnNavStudAtt')?.classList.add('active');
   window.scrollTo({top:0,behavior:'smooth'});
@@ -5677,14 +5682,43 @@ function studentMobileOpen(sec,btn){
   const home=document.getElementById('studentMobileHome');
   if(home)home.style.display='none';
   document.getElementById('studentNoticePanel')?.classList.add('hidden');
+  studentMobileHideContent();
   switchStudentSection(sec);
-  document.querySelectorAll('#studentMobileBottomNav button').forEach(b=>b.classList.remove('active'));
-  if(btn)btn.classList.add('active');
-  else {
-    const idx={attendance:1,marks:2,records:1,annual_card:3}[sec];
-    document.querySelectorAll('#studentMobileBottomNav button')[idx]?.classList.add('active');
-  }
+  const idx={attendance:1,marks:2,records:1,annual_card:3}[sec];
+  studentMobileSetActive(btn||document.querySelectorAll('#studentMobileBottomNav button')[idx||0]);
   window.scrollTo({top:0,behavior:'smooth'});
+}
+function studentMobileShowNotices(btn){
+  const home=document.getElementById('studentMobileHome');
+  if(home)home.style.display='none';
+  studentMobileHideContent();
+  const panel=document.getElementById('studentNoticePanel');
+  if(panel){panel.classList.remove('hidden');panel.scrollIntoView({behavior:'smooth',block:'start'});}
+  studentMobileSetActive(btn);
+}
+function studentMobileAction(action,btn){
+  const routes={
+    attendance:()=>studentMobileOpen('attendance',btn),
+    attender:()=>studentMobileOpen('attendance',btn),
+    result:()=>studentMobileOpen('marks',btn),
+    achievements:()=>studentMobileOpen('annual_card',btn),
+    records:()=>studentMobileOpen('records',btn),
+    syllabus:()=>studentMobileOpen('records',btn),
+    diary:()=>studentMobileOpen('records',btn),
+    feedback:()=>studentMobileOpen('records',btn),
+    activities:()=>studentMobileOpen('records',btn),
+    support:()=>studentMobileOpen('records',btn),
+    notices:()=>studentMobileShowNotices(btn),
+    communication:()=>studentMobileShowNotices(btn),
+    request:()=>studentMobileShowNotices(btn)
+  };
+  if(routes[action]){routes[action]();return;}
+  const messages={
+    gallery:'इस पोर्टल में विद्यार्थी गैलरी मॉड्यूल अभी उपलब्ध नहीं है।',
+    leave:'अवकाश आवेदन मॉड्यूल अभी इस पोर्टल में उपलब्ध नहीं है।'
+  };
+  const msg=messages[action]||'यह सुविधा अभी उपलब्ध नहीं है।';
+  if(typeof showToast==='function')showToast(msg);else alert(msg);
 }
 
 function switchStudentSection(sec) {
