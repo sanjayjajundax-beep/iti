@@ -933,46 +933,52 @@ a{overflow-wrap:anywhere}
 </style>
 
 
-<style id="student-mobile-dashboard-style">
-.student-mobile-home{display:none}
-.student-mobile-top{background:linear-gradient(145deg,#05b5c5,#079eae);margin:-24px -24px 0;padding:18px 16px 22px;border-radius:0 0 26px 26px;color:#fff}
-.student-mobile-topline{display:flex;align-items:center;justify-content:space-between;font-size:1.15rem;font-weight:700;margin-bottom:18px}
-.student-mobile-topline button{border:0;border-radius:50%;width:38px;height:38px;background:#fff;color:#079eae}
-.student-profile-card{display:flex;align-items:center;justify-content:space-between;background:#fff;color:#172033;border-radius:15px;padding:14px 15px;box-shadow:0 4px 14px #073b4b18}
-.student-profile-copy{min-width:0}.student-profile-copy small{color:#079eae}.student-profile-copy h2{font-size:1.08rem;margin:2px 0;font-weight:800;overflow-wrap:anywhere}.student-profile-copy p{font-size:.74rem;color:#64748b;line-height:1.4}
-.student-avatar{width:54px;height:54px;flex:0 0 54px;border-radius:50%;background:#e0f7fa;color:#079eae;display:grid;place-items:center;font-size:1.5rem}
-.student-attendance-highlight{margin-top:13px;background:#fff;color:#172033;border-radius:15px;padding:13px;display:flex;align-items:center;justify-content:space-between;gap:10px;box-shadow:0 4px 14px #073b4b18}
-.student-attendance-highlight strong{font-size:1rem;color:#06a9b9}.student-attendance-highlight p{font-size:.75rem;color:#64748b;margin:4px 0 8px;max-width:190px}
-.student-attendance-highlight button{border:0;border-radius:8px;background:#06b6c4;color:white;padding:8px 11px;font-size:.78rem;font-weight:700}
-.student-ring-wrap{display:flex;flex-direction:column;align-items:center;gap:4px}.student-ring{width:68px;height:68px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(#08b8c6 0deg,#08b8c6 0deg,#e5f3f5 0deg);position:relative}
-.student-ring:before{content:"";position:absolute;inset:6px;background:#fff;border-radius:50%}.student-ring span{position:relative;font-size:.8rem;font-weight:800;color:#079eae}.student-ring-wrap small{font-size:.62rem;color:#64748b}
-.student-home-content{padding:8px 0 88px}.student-home-section{margin:17px 0}.student-home-section h3{font-size:1rem;font-weight:800;margin:0 0 10px;color:#111827}
-.student-service-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:10px 5px;box-shadow:0 2px 8px #0f172a08}
-.student-service-grid button{border:0;background:transparent;min-width:0;min-height:88px;padding:7px 3px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:6px;color:#111827}
-.student-service-grid button b{font-size:.68rem;line-height:1.25;text-align:center;font-weight:700}
-.student-service-icon{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-size:1.05rem}
-.c-yellow{background:#fff5cf;color:#d69b00}.c-green{background:#e1f9e8;color:#16a34a}.c-blue{background:#dff5fc;color:#0891b2}.c-pink{background:#ffe8ed;color:#e34b78}.c-purple{background:#eee8ff;color:#805ad5}
-.student-parent-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.student-other-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
-.student-mobile-bottom-nav{display:none}
-.student-mobile-detail-back{display:none}
+<style id="student-mobile-native-navigation">
+.student-mobile-home,.student-mobile-bottom-nav{display:none}
 @media(max-width:700px){
- #studentSection{padding:0!important}
- #studentSection>.scorecard-box{padding:14px!important;border:0!important;box-shadow:none!important;background:transparent!important;border-radius:0!important}
- #studentSection .student-mobile-home{display:block}
- #studentSection .scorecard-header,#studentSection .student-side-nav{display:none!important}
- #studentSection .student-mobile-top{margin:-14px -14px 0}
- #studentSection .glass-card#studentNoticePanel{margin:12px 0!important}
- #studentSection .stats-tri-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
- #studentSection .metric-card{padding:10px!important;min-width:0}
- #studentSection .metric-card .value{font-size:1.35rem!important}
- #studentSection .section-bar-title{font-size:.95rem;margin:16px 0 9px}
- #studentSection .student-mobile-bottom-nav{position:fixed;z-index:900;left:10px;right:10px;bottom:10px;display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:7px;background:#ffffffed;border:1px solid #dce7eb;border-radius:16px;box-shadow:0 5px 22px #0f172a25;backdrop-filter:blur(10px)}
- #studentSection .student-mobile-bottom-nav button{border:0;background:transparent;color:#64748b;border-radius:10px;min-height:48px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font-size:.65rem;font-weight:700}
- #studentSection .student-mobile-bottom-nav button i{font-size:1.05rem}
- #studentSection .student-mobile-bottom-nav button.active{background:#06b6c4;color:#fff}
- #studentSection .table-shell{max-width:100%}
- #studentSection .printableProgressCard{max-width:100%!important;min-width:0!important;width:100%!important;overflow-x:auto}
- body:has(#studentSection:not(.hidden)){padding-bottom:72px}
+  #studentSection{padding:0!important}
+  #studentSection>.scorecard-box{padding:12px!important;margin:0!important;border:0!important;border-radius:0!important;box-shadow:none!important;background:transparent!important;max-width:none!important}
+  #studentSection .scorecard-header{background:#fff;border:1px solid #e5e7eb;border-radius:15px;padding:13px;margin:0 0 12px;box-shadow:0 2px 9px #0f172a0c}
+  #studentSection #scStudentName{font-size:1.08rem!important}
+  #studentSection #scRoll{font-size:.72rem!important;line-height:1.45}
+  #studentSection #studentMonthSelectorContainer{margin-top:7px}
+  #studentSection .student-side-nav{display:none!important}
+  #studentSection .student-mobile-home{display:block;margin:0 0 14px}
+  #studentSection .student-mobile-welcome{display:flex;align-items:center;justify-content:space-between;background:#fff;border:1px solid #e5e7eb;border-radius:15px;padding:13px 14px;gap:10px}
+  #studentSection .student-mobile-welcome div:first-child{display:flex;flex-direction:column;gap:3px;min-width:0}
+  #studentSection .student-mobile-welcome small{color:#079eae;font-size:.72rem}
+  #studentSection .student-mobile-welcome strong{font-size:1rem;color:#172033;overflow-wrap:anywhere}
+  #studentSection .student-mobile-welcome span{font-size:.7rem;color:#64748b}
+  #studentSection .student-mobile-avatar{width:48px;height:48px;flex:0 0 48px;border-radius:50%;display:grid;place-items:center;background:#dff7fa;color:#079eae;font-size:1.3rem}
+  #studentSection .student-mobile-summary{margin-top:11px;border-radius:15px;padding:14px;background:linear-gradient(120deg,#e8fbfc,#fff);border:1px solid #bceef1;display:flex;align-items:center;justify-content:space-between;gap:8px}
+  #studentSection .student-mobile-summary strong{font-size:.92rem;color:#079eae}
+  #studentSection .student-mobile-summary p{font-size:.72rem;color:#64748b;margin:4px 0 9px}
+  #studentSection .student-mobile-summary button{border:0;border-radius:8px;padding:8px 11px;background:#08aebc;color:#fff;font-weight:700;font-size:.75rem}
+  #studentSection .student-mobile-summary-icon{width:62px;height:62px;flex:0 0 62px;border-radius:50%;background:#fff;color:#08aebc;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:4px solid #b9edf0}
+  #studentSection .student-mobile-summary-icon i{font-size:1.2rem}
+  #studentSection .student-mobile-summary-icon small{font-size:.55rem}
+  #studentSection .student-mobile-section-title{font-size:.98rem;font-weight:800;margin:17px 0 9px;color:#111827}
+  #studentSection .student-mobile-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+  #studentSection .student-mobile-grid button{min-height:112px;border:1px solid #e5e7eb;border-radius:14px;background:#fff;box-shadow:0 2px 8px #0f172a09;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:10px 6px;color:#172033}
+  #studentSection .student-mobile-grid button:active{transform:scale(.98);background:#f0fdff}
+  #studentSection .student-mobile-grid b{font-size:.76rem;text-align:center}
+  #studentSection .student-mobile-grid small{font-size:.63rem;color:#64748b;text-align:center}
+  #studentSection .student-mobile-icon{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-size:1.1rem}
+  #studentSection .smi-green{background:#e2f8e9;color:#16a34a}
+  #studentSection .smi-yellow{background:#fff5d6;color:#d69b00}
+  #studentSection .smi-blue{background:#e0f5fc;color:#0891b2}
+  #studentSection .smi-pink{background:#ffe8ef;color:#db4775}
+  #studentSection .student-mobile-hint{margin-top:10px;color:#64748b;font-size:.67rem;padding:8px 3px}
+  #studentSection #studentNoticePanel{margin:10px 0!important;padding:13px!important}
+  #studentSection .student-mobile-bottom-nav{position:fixed;z-index:999;left:8px;right:8px;bottom:9px;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:2px;padding:6px;background:#ffffffed;border:1px solid #dce7eb;border-radius:15px;box-shadow:0 5px 22px #0f172a25;backdrop-filter:blur(10px)}
+  #studentSection .student-mobile-bottom-nav button{border:0;background:transparent;color:#64748b;border-radius:9px;min-width:0;min-height:47px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:.58rem;font-weight:700;padding:3px 1px}
+  #studentSection .student-mobile-bottom-nav button i{font-size:1rem}
+  #studentSection .student-mobile-bottom-nav button.active{background:#08afbd;color:#fff}
+  body:has(#studentSection:not(.hidden)){padding-bottom:75px}
+  #studentSection .stats-tri-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  #studentSection .metric-card{padding:10px!important;min-width:0}
+  #studentSection .metric-card .value{font-size:1.35rem!important}
+  #studentSection .table-shell{max-width:100%;overflow-x:auto}
 }
 @media(min-width:701px){#studentSection .student-mobile-home,#studentSection .student-mobile-bottom-nav{display:none!important}}
 </style>
@@ -1413,75 +1419,7 @@ a{overflow-wrap:anywhere}
 </section>
 <!-- 4. STUDENT SCORECARD -->
 <section class="hidden" id="studentSection">
-<div id="studentMobileHome" class="student-mobile-home">
-  <div class="student-mobile-top">
-    <div class="student-mobile-topline"><span>Student Dashboard</span><button type="button" aria-label="सूचनाएँ" onclick="studentMobileShowNotices()"><i class="fa-solid fa-bell"></i></button></div>
-    <div class="student-profile-card">
-      <div class="student-profile-copy"><small>नमस्कार, विद्यार्थी!</small><h2 id="studentMobileName">विद्यार्थी</h2><p id="studentMobileMeta">कॉलेज · ट्रेड · रोल नंबर</p></div>
-      <div class="student-avatar"><i class="fa-solid fa-user-graduate"></i></div>
-    </div>
-    <div class="student-attendance-highlight">
-      <div><strong>Congratulations!</strong><p id="studentAttendanceMessage">आपकी उपस्थिति का सारांश</p><button type="button" onclick="studentMobileOpen('attendance')">उपस्थिति देखें <i class="fa-solid fa-chevron-right"></i></button></div>
-      <div class="student-ring-wrap"><div class="student-ring" id="studentAttendanceRing"><span id="studentMobilePct">0%</span></div><small>कुल उपस्थिति</small></div>
-    </div>
-  </div>
-
-  <div class="student-home-content">
-    <section class="student-home-section">
-      <h3>Recent</h3>
-      <div class="student-service-grid">
-        <button onclick="studentMobileAction('gallery',this)"><span class="student-service-icon c-yellow"><i class="fa-solid fa-images"></i></span><b>Gallery</b></button>
-        <button onclick="studentMobileAction('attender',this)"><span class="student-service-icon c-green"><i class="fa-solid fa-user-check"></i></span><b>Attender</b></button>
-        <button onclick="studentMobileAction('communication',this)"><span class="student-service-icon c-blue"><i class="fa-solid fa-school"></i></span><b>School<br>Communication</b></button>
-        <button onclick="studentMobileAction('activities',this)"><span class="student-service-icon c-pink"><i class="fa-solid fa-people-group"></i></span><b>Co-Curricular<br>Activities</b></button>
-        <button onclick="studentMobileAction('result',this)"><span class="student-service-icon c-purple"><i class="fa-solid fa-clipboard-list"></i></span><b>Result</b></button>
-        <button onclick="studentMobileAction('attendance',this)"><span class="student-service-icon c-pink"><i class="fa-solid fa-calendar-check"></i></span><b>Attendance</b></button>
-      </div>
-    </section>
-    <section class="student-home-section">
-      <h3>Academic Overview</h3>
-      <div class="student-service-grid">
-        <button onclick="studentMobileAction('achievements',this)"><span class="student-service-icon c-pink"><i class="fa-solid fa-graduation-cap"></i></span><b>Achievements</b></button>
-        <button onclick="studentMobileAction('syllabus',this)"><span class="student-service-icon c-yellow"><i class="fa-solid fa-book-open"></i></span><b>Syllabus</b></button>
-        <button onclick="studentMobileAction('attendance',this)"><span class="student-service-icon c-pink"><i class="fa-solid fa-user-check"></i></span><b>Attendance</b></button>
-        <button onclick="studentMobileAction('diary',this)"><span class="student-service-icon c-blue"><i class="fa-solid fa-book"></i></span><b>Diary</b></button>
-        <button onclick="studentMobileAction('feedback',this)"><span class="student-service-icon c-green"><i class="fa-solid fa-comment-dots"></i></span><b>Feedback</b></button>
-        <button onclick="studentMobileAction('result',this)"><span class="student-service-icon c-pink"><i class="fa-solid fa-file-circle-check"></i></span><b>Result</b></button>
-      </div>
-    </section>
-    <section class="student-home-section">
-      <h3>Student Services</h3>
-      <div class="student-service-grid">
-        <button onclick="studentMobileAction('leave',this)"><span class="student-service-icon c-pink"><i class="fa-solid fa-calendar-plus"></i></span><b>Apply Leave</b></button>
-        <button onclick="studentMobileAction('notices',this)"><span class="student-service-icon c-yellow"><i class="fa-solid fa-bullhorn"></i></span><b>Circular /<br>Announcement</b></button>
-        <button onclick="studentMobileAction('support',this)"><span class="student-service-icon c-blue"><i class="fa-solid fa-hands-helping"></i></span><b>Student Support<br>Material</b></button>
-        <button onclick="studentMobileAction('activities',this)"><span class="student-service-icon c-green"><i class="fa-solid fa-people-group"></i></span><b>Co-Curricular<br>Activities</b></button>
-      </div>
-    </section>
-    <section class="student-home-section">
-      <h3>Parent Services</h3>
-      <div class="student-service-grid student-parent-grid">
-        <button onclick="studentMobileAction('request',this)"><span class="student-service-icon c-yellow"><i class="fa-solid fa-message"></i></span><b>Request</b></button>
-        <button onclick="studentMobileAction('communication',this)"><span class="student-service-icon c-blue"><i class="fa-solid fa-school"></i></span><b>School<br>Communication</b></button>
-        <button onclick="studentMobileAction('attender',this)"><span class="student-service-icon c-green"><i class="fa-solid fa-user-check"></i></span><b>Attender</b></button>
-      </div>
-    </section>
-    <section class="student-home-section">
-      <h3>Other Services</h3>
-      <div class="student-service-grid student-other-grid">
-        <button onclick="studentMobileAction('gallery',this)"><span class="student-service-icon c-yellow"><i class="fa-solid fa-images"></i></span><b>Gallery</b></button>
-      </div>
-    </section>
-  </div>
-</div>
-<div class="student-mobile-bottom-nav" id="studentMobileBottomNav">
-  <button class="active" onclick="studentMobileShowHome(this)"><i class="fa-solid fa-house"></i><span>Home</span></button>
-  <button onclick="studentMobileOpen('attendance',this)"><i class="fa-solid fa-calendar-check"></i><span>Attendance</span></button>
-  <button onclick="studentMobileOpen('marks',this)"><i class="fa-solid fa-file-lines"></i><span>Result</span></button>
-  <button onclick="studentMobileOpen('annual_card',this)"><i class="fa-solid fa-user"></i><span>Profile</span></button>
-</div>
 <div class="scorecard-box">
-<div class="scorecard-header">
 <div class="scorecard-header">
 <div>
 <h2 id="scStudentName" style="color: var(--primary); font-size: 1.35rem;">छात्र का नाम</h2>
@@ -1510,7 +1448,27 @@ a{overflow-wrap:anywhere}
 <i class="fa-solid fa-chevron-right" style="font-size:0.85rem;"></i>
 </button>
 </div>
-<div class="glass-card hidden" id="studentNoticePanel" style="margin:12px 0;padding:14px;"><h3 style="color:var(--primary);"><i class="fa-solid fa-bullhorn"></i> संस्थान की सूचनाएँ</h3><div id="studentNoticeList">अभी कोई सूचना उपलब्ध नहीं है।</div></div>
+<div class="student-mobile-home" id="studentMobileHome">
+  <div class="student-mobile-welcome">
+    <div><small>नमस्कार, विद्यार्थी!</small><strong id="studentMobileWelcomeName">विद्यार्थी</strong><span id="studentMobileWelcomeMeta">आपका विद्यार्थी पोर्टल</span></div>
+    <div class="student-mobile-avatar"><i class="fa-solid fa-user-graduate"></i></div>
+  </div>
+  <div class="student-mobile-summary">
+    <div><strong>आपकी पढ़ाई का सारांश</strong><p>उपस्थिति, टेस्ट अंक और रिकॉर्ड एक ही जगह देखें।</p>
+      <button type="button" onclick="studentMobileOpen('attendance')">उपस्थिति देखें <i class="fa-solid fa-arrow-right"></i></button>
+    </div>
+    <div class="student-mobile-summary-icon"><i class="fa-solid fa-calendar-check"></i><small>Attendance</small></div>
+  </div>
+  <h3 class="student-mobile-section-title">Student Services</h3>
+  <div class="student-mobile-grid">
+    <button type="button" onclick="studentMobileOpen('attendance')"><span class="student-mobile-icon smi-green"><i class="fa-solid fa-calendar-check"></i></span><b>उपस्थिति रिपोर्ट</b><small>Attendance Report</small></button>
+    <button type="button" onclick="studentMobileOpen('marks')"><span class="student-mobile-icon smi-yellow"><i class="fa-solid fa-file-signature"></i></span><b>मासिक टेस्ट अंक</b><small>Monthly Test Marks</small></button>
+    <button type="button" onclick="studentMobileOpen('records')"><span class="student-mobile-icon smi-blue"><i class="fa-solid fa-book-bookmark"></i></span><b>रिकॉर्ड व दैनिक डायरी</b><small>Records & Diary</small></button>
+    <button type="button" onclick="studentMobileOpen('annual_card')"><span class="student-mobile-icon smi-pink"><i class="fa-solid fa-id-card-clip"></i></span><b>वार्षिक प्रोग्रेस कार्ड</b><small>Annual Progress Card</small></button>
+  </div>
+  <div class="student-mobile-hint"><i class="fa-solid fa-circle-info"></i> नीचे दिए गए बटन भी इन्हीं वास्तविक पोर्टल सेक्शनों को खोलते हैं।</div>
+</div>
+<div class="glass-card" id="studentNoticePanel" style="margin:12px 0;padding:14px;"><h3 style="color:var(--primary);"><i class="fa-solid fa-bullhorn"></i> संस्थान की सूचनाएँ</h3><div id="studentNoticeList">अभी कोई सूचना उपलब्ध नहीं है।</div></div>
 <!-- 1. उपस्थिति सेक्शन -->
 <div id="studSecAttendance">
 <div class="section-bar-title"><i class="fa-solid fa-clock-rotate-left"></i> पूर्व संचित विवरण (Past Record)</div>
@@ -1616,6 +1574,13 @@ a{overflow-wrap:anywhere}
 <div class="hidden" id="studSecAnnualCard">
 <div class="printableProgressCard" id="studentOwnReportCardContainer"></div>
 </div>
+</div>
+<div class="student-mobile-bottom-nav" id="studentMobileBottomNav">
+  <button type="button" class="active" onclick="studentMobileShowHome(this)"><i class="fa-solid fa-house"></i><span>होम</span></button>
+  <button type="button" onclick="studentMobileOpen('attendance',this)"><i class="fa-solid fa-calendar-check"></i><span>उपस्थिति</span></button>
+  <button type="button" onclick="studentMobileOpen('marks',this)"><i class="fa-solid fa-file-signature"></i><span>टेस्ट अंक</span></button>
+  <button type="button" onclick="studentMobileOpen('records',this)"><i class="fa-solid fa-book-bookmark"></i><span>रिकॉर्ड</span></button>
+  <button type="button" onclick="studentMobileOpen('annual_card',this)"><i class="fa-solid fa-id-card"></i><span>रिपोर्ट कार्ड</span></button>
 </div>
 </section>
 </main>
@@ -3508,7 +3473,7 @@ D) लखनऊ
                 document.getElementById('studentSection').classList.remove('hidden');
                 document.getElementById('roleLabel').innerHTML = `<i class="fa-solid fa-user-graduate"></i> छात्र: ${loggedInStudent.name}`;
                 switchStudentSection('attendance');
-                setTimeout(() => { renderStudentDashboard(); }, 50);
+                setTimeout(() => { renderStudentDashboard(); studentMobileShowHome(); }, 50);
             }
         }
 
@@ -5426,11 +5391,6 @@ function renderAnnualAttendanceColorChart() {
 
         function renderStudentDashboard() {
             if (!loggedInStudent || !currentCollegeId || !currentTrade) return;
-            if (!document.getElementById('studentMobileHome')?.dataset.initialized) {
-                const mobileHome=document.getElementById('studentMobileHome');
-                if(mobileHome)mobileHome.dataset.initialized='1';
-                studentMobileShowHome();
-            }
 
             const isEngg = isEnggTrade(currentTrade);
             const tradeTypeTag = isEngg ? 'इंजीनियरिंग ट्रेड' : 'नॉन-इंजीनियरिंग ट्रेड';
@@ -5441,12 +5401,12 @@ function renderAnnualAttendanceColorChart() {
             const elName = document.getElementById('scStudentName');
             const elRoll = document.getElementById('scRoll');
             if (elName) elName.innerText = loggedInStudent.name;
-            if (elRoll) elRoll.innerText = `कॉलेज: ${colName} | रोल: ${loggedInStudent.roll} | प्रवेश तिथि: ${admDate} | ट्रेड: ${currentTrade} (${tradeTypeTag})`;
-            const mobileName=document.getElementById('studentMobileName');
-            const mobileMeta=document.getElementById('studentMobileMeta');
-            if(mobileName)mobileName.textContent=loggedInStudent.name||'विद्यार्थी';
-            if(mobileMeta)mobileMeta.textContent=`${currentTrade} · रोल नं. ${loggedInStudent.roll} · ${colName}`;
+            const mobileWelcomeName=document.getElementById('studentMobileWelcomeName');
+            const mobileWelcomeMeta=document.getElementById('studentMobileWelcomeMeta');
+            if(mobileWelcomeName)mobileWelcomeName.textContent=loggedInStudent.name||'विद्यार्थी';
+            if(mobileWelcomeMeta)mobileWelcomeMeta.textContent=`${currentTrade} · रोल नं. ${loggedInStudent.roll} · ${colName}`;
 
+            if (elRoll) elRoll.innerText = `कॉलेज: ${colName} | रोल: ${loggedInStudent.roll} | प्रवेश तिथि: ${admDate} | ट्रेड: ${currentTrade} (${tradeTypeTag})`;
             renderStudentNotices();
 
             let monthVal = document.getElementById('studentMonthSelector')?.value;
@@ -5575,13 +5535,6 @@ function renderAnnualAttendanceColorChart() {
             document.getElementById('scTotalA').innerText = totalA;
             document.getElementById('scTotalPct').innerText = `${totalPct}%`;
             document.getElementById('scTotalBar').style.width = `${Math.min(totalPct, 100)}%`;
-            const mobilePct=document.getElementById('studentMobilePct');
-            const mobileRing=document.getElementById('studentAttendanceRing');
-            const mobileMsg=document.getElementById('studentAttendanceMessage');
-            if(mobilePct)mobilePct.textContent=`${totalPct}%`;
-            if(mobileRing)mobileRing.style.background=`conic-gradient(#08b8c6 ${Math.min(Number(totalPct)||0,100)*3.6}deg,#e5f3f5 0deg)`;
-            if(mobileMsg)mobileMsg.textContent=Number(totalPct)>=75?'बहुत अच्छा! आपकी उपस्थिति 75% से अधिक है।':'परीक्षा पात्रता के लिए 75% उपस्थिति बनाए रखें।';
-
 
             const remarkEl = document.getElementById('scStatusRemarks');
             if (totalPct >= 75) {
@@ -5661,67 +5614,27 @@ function renderAnnualAttendanceColorChart() {
             }
         }
 
-        function studentMobileSetActive(btn){
+        
+function studentMobileSetActive(btn){
   document.querySelectorAll('#studentMobileBottomNav button').forEach(b=>b.classList.remove('active'));
   if(btn)btn.classList.add('active');
 }
-function studentMobileHideContent(){
-  ['studSecAttendance','studSecMarks','studSecRecords','studSecAnnualCard'].forEach(id=>document.getElementById(id)?.classList.add('hidden'));
-}
 function studentMobileShowHome(btn){
-  studentMobileHideContent();
-  const home=document.getElementById('studentMobileHome');
-  if(home)home.style.display='block';
-  document.getElementById('studentNoticePanel')?.classList.add('hidden');
+  ['studSecAttendance','studSecMarks','studSecRecords','studSecAnnualCard'].forEach(id=>document.getElementById(id)?.classList.add('hidden'));
+  const home=document.getElementById('studentMobileHome');if(home)home.style.display='block';
   studentMobileSetActive(btn||document.querySelector('#studentMobileBottomNav button'));
-  document.querySelectorAll('.stud-nav-btn').forEach(b=>b.classList.remove('active'));
-  document.getElementById('btnNavStudAtt')?.classList.add('active');
   window.scrollTo({top:0,behavior:'smooth'});
 }
-function studentMobileOpen(sec,btn){
-  const home=document.getElementById('studentMobileHome');
-  if(home)home.style.display='none';
-  document.getElementById('studentNoticePanel')?.classList.add('hidden');
-  studentMobileHideContent();
-  switchStudentSection(sec);
-  const idx={attendance:1,marks:2,records:1,annual_card:3}[sec];
-  studentMobileSetActive(btn||document.querySelectorAll('#studentMobileBottomNav button')[idx||0]);
+function studentMobileOpen(section,btn){
+  const home=document.getElementById('studentMobileHome');if(home)home.style.display='none';
+  switchStudentSection(section); // मूल वेबसाइट का मौजूदा navigation और उसके सभी functions
+  const index={attendance:1,marks:2,records:3,annual_card:4}[section];
+  studentMobileSetActive(btn||document.querySelectorAll('#studentMobileBottomNav button')[index]);
   window.scrollTo({top:0,behavior:'smooth'});
-}
-function studentMobileShowNotices(btn){
-  const home=document.getElementById('studentMobileHome');
-  if(home)home.style.display='none';
-  studentMobileHideContent();
-  const panel=document.getElementById('studentNoticePanel');
-  if(panel){panel.classList.remove('hidden');panel.scrollIntoView({behavior:'smooth',block:'start'});}
-  studentMobileSetActive(btn);
-}
-function studentMobileAction(action,btn){
-  const routes={
-    attendance:()=>studentMobileOpen('attendance',btn),
-    attender:()=>studentMobileOpen('attendance',btn),
-    result:()=>studentMobileOpen('marks',btn),
-    achievements:()=>studentMobileOpen('annual_card',btn),
-    records:()=>studentMobileOpen('records',btn),
-    syllabus:()=>studentMobileOpen('records',btn),
-    diary:()=>studentMobileOpen('records',btn),
-    feedback:()=>studentMobileOpen('records',btn),
-    activities:()=>studentMobileOpen('records',btn),
-    support:()=>studentMobileOpen('records',btn),
-    notices:()=>studentMobileShowNotices(btn),
-    communication:()=>studentMobileShowNotices(btn),
-    request:()=>studentMobileShowNotices(btn)
-  };
-  if(routes[action]){routes[action]();return;}
-  const messages={
-    gallery:'इस पोर्टल में विद्यार्थी गैलरी मॉड्यूल अभी उपलब्ध नहीं है।',
-    leave:'अवकाश आवेदन मॉड्यूल अभी इस पोर्टल में उपलब्ध नहीं है।'
-  };
-  const msg=messages[action]||'यह सुविधा अभी उपलब्ध नहीं है।';
-  if(typeof showToast==='function')showToast(msg);else alert(msg);
 }
 
 function switchStudentSection(sec) {
+            const mobileHome=document.getElementById('studentMobileHome'); if(mobileHome) mobileHome.style.display='none';
             const btnAtt = document.getElementById('btnNavStudAtt');
             const btnMarks = document.getElementById('btnNavStudMarks');
             const btnRec = document.getElementById('btnNavStudRecords');
