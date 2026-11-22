@@ -1514,9 +1514,26 @@ a{overflow-wrap:anywhere}
 <h3 style="color:var(--primary);margin-bottom:12px;"><i class="fa-solid fa-inbox"></i> मेरे अनुरोध और प्राप्त जवाब</h3>
 <div id="instructorRequestHistory"><span class="sup-help">अभी कोई अनुरोध नहीं है।</span></div>
 </div>
+<div class="glass-card" id="instDailyTeachingDiary" style="padding:18px;margin-bottom:14px;border-left:5px solid #0f766e;">
+<h3 style="color:#0f766e;margin-bottom:8px;"><i class="fa-solid fa-book-open"></i> दैनिक शिक्षण डायरी</h3>
+<p class="sup-help">प्रतिदिन ली गई क्लास का विवरण यहाँ अलग से दर्ज करें। यह विद्यार्थीवार साप्ताहिक नोटबुक चेकिंग से अलग रहेगा।</p>
+<div class="sup-form-grid">
+ <div class="input-group"><label for="instDiaryDate">दिनांक *</label><input id="instDiaryDate" type="date"></div>
+ <div class="input-group"><label for="instDiarySubject">विषय / क्लास *</label><select id="instDiarySubject"><option>थ्योरी</option><option>प्रैक्टिकल</option><option>वर्कशॉप कैलकुलेशन एंड साइंस (WCS)</option><option>इंजीनियरिंग ड्राइंग (ED)</option><option>एम्प्लॉयबिलिटी स्किल (ES)</option><option>अन्य</option></select></div>
+ <div class="input-group"><label for="instDiaryHours">क्लास के घंटे</label><input id="instDiaryHours" type="number" min="0" max="8" step="0.5" placeholder="जैसे 2"></div>
+ <div class="input-group"><label for="instDiaryTotal">कुल विद्यार्थी</label><input id="instDiaryTotal" type="number" min="0" placeholder="कुल संख्या"></div>
+ <div class="input-group"><label for="instDiaryPresent">उपस्थित विद्यार्थी</label><input id="instDiaryPresent" type="number" min="0" placeholder="उपस्थित संख्या"></div>
+ <div class="input-group"><label for="instDiaryTopic">आज पढ़ाया गया टॉपिक / कराया गया कार्य *</label><textarea id="instDiaryTopic" rows="2" maxlength="1200" placeholder="अध्याय, टॉपिक, जॉब नंबर या प्रैक्टिकल का नाम"></textarea></div>
+ <div class="input-group"><label for="instDiaryHomework">गृहकार्य / अगली क्लास का कार्य</label><textarea id="instDiaryHomework" rows="2" maxlength="800" placeholder="विद्यार्थियों को दिया गया कार्य"></textarea></div>
+ <div class="input-group"><label for="instDiaryNote">विशेष टिप्पणी</label><textarea id="instDiaryNote" rows="2" maxlength="800" placeholder="क्लास में आई समस्या या विशेष उपलब्धि"></textarea></div>
+</div>
+<button class="app-btn app-btn-success" type="button" onclick="saveInstructorDailyDiary()"><i class="fa-solid fa-floppy-disk"></i> दैनिक डायरी सुरक्षित करें</button>
+<div id="instDailyDiaryHistory" style="margin-top:14px"></div>
+</div>
 <div class="glass-card" style="padding:18px;">
-<h3 style="color:var(--primary);margin-bottom:12px;"><i class="fa-solid fa-file-circle-plus"></i> दैनिक / साप्ताहिक / मासिक गतिविधि रिपोर्ट जमा करें</h3>
-<div class="sup-form-grid"><div class="input-group"><label>रिपोर्ट की अवधि</label><select id="instActivityPeriod" onchange="toggleActivityPeriodFields()"><option value="दैनिक">दैनिक</option><option value="साप्ताहिक">साप्ताहिक</option><option value="मासिक">मासिक</option></select></div><div class="input-group"><label>तारीख / अवधि प्रारंभ</label><input id="instActivityDate" type="date"/></div><div class="input-group" id="instActivityEndWrap" style="display:none"><label>अवधि समाप्त</label><input id="instActivityEndDate" type="date"/></div><div class="input-group"><label>गतिविधि का प्रकार</label><select id="instActivityType"><option>थ्योरी क्लास</option><option>प्रैक्टिकल</option><option>लैब / मशीन रखरखाव</option><option>टेस्ट / मूल्यांकन</option><option>विद्यार्थी मार्गदर्शन</option><option>अन्य</option></select></div><div class="input-group"><label>कितने विद्यार्थी शामिल हुए</label><input id="instActivityStudents" min="0" placeholder="संख्या" type="number"/></div><div class="input-group"><label>कार्य का विवरण</label><textarea id="instActivityDetails" placeholder="आज क्या कार्य किया, कौन-सा विषय / प्रैक्टिकल कराया?" rows="2"></textarea></div></div>
+<h3 style="color:var(--primary);margin-bottom:8px;"><i class="fa-solid fa-file-circle-plus"></i> साप्ताहिक / मासिक गतिविधि रिपोर्ट</h3>
+<p class="sup-help">दैनिक शिक्षण डायरी अलग फॉर्म में दर्ज करें। यहाँ केवल अवधि-आधारित गतिविधि रिपोर्ट जमा करें।</p>
+<div class="sup-form-grid"><div class="input-group"><label>रिपोर्ट की अवधि</label><select id="instActivityPeriod" onchange="toggleActivityPeriodFields()"><option value="साप्ताहिक">साप्ताहिक</option><option value="मासिक">मासिक</option></select></div><div class="input-group"><label>तारीख / अवधि प्रारंभ</label><input id="instActivityDate" type="date"/></div><div class="input-group" id="instActivityEndWrap" style="display:none"><label>अवधि समाप्त</label><input id="instActivityEndDate" type="date"/></div><div class="input-group"><label>गतिविधि का प्रकार</label><select id="instActivityType"><option>थ्योरी क्लास</option><option>प्रैक्टिकल</option><option>लैब / मशीन रखरखाव</option><option>टेस्ट / मूल्यांकन</option><option>विद्यार्थी मार्गदर्शन</option><option>अन्य</option></select></div><div class="input-group"><label>कितने विद्यार्थी शामिल हुए</label><input id="instActivityStudents" min="0" placeholder="संख्या" type="number"/></div><div class="input-group"><label>कार्य का विवरण</label><textarea id="instActivityDetails" placeholder="आज क्या कार्य किया, कौन-सा विषय / प्रैक्टिकल कराया?" rows="2"></textarea></div></div>
 <button class="app-btn app-btn-success" onclick="saveInstructorActivity()"><i class="fa-solid fa-paper-plane"></i> रिपोर्ट अधीक्षक को भेजें</button>
 <div id="instActivityHistory" style="margin-top:14px;"></div>
 </div>
@@ -3726,18 +3743,42 @@ D) लखनऊ
             if(!['superintendent','groupInstructor'].includes(currentRole)||!currentCollegeId)return;const r=ensureSupData().requests.find(x=>x.id===id&&x.collegeId===currentCollegeId);if(!r)return;const status=document.getElementById('reqStatus_'+id)?.value,comment=document.getElementById('reqComment_'+id)?.value.trim()||'';if(!comment){alert('जवाब या की गई कार्रवाई का विवरण लिखें।');return;}const by=loggedInSuperintendent?.name||'अधिकारी',role=currentRole==='groupInstructor'?'ग्रुप इंस्ट्रक्टर':'अधीक्षक',now=new Date().toISOString();r.status=status;r.responseComment=comment;r.respondedBy=by;r.respondedByRole=role;r.updatedAt=now;if(!Array.isArray(r.history))r.history=[];r.history.push({status,by,role,at:now,comment});addSupAudit('अनुदेशक अनुरोध पर कार्यवाही',`${r.instructorName}: ${r.type} — ${status}`);syncWithFirebase();renderSupervisorRequests();showToast('अनुदेशक अनुरोध पर जवाब सेव हो गया।');
         }
 
-        function toggleActivityPeriodFields(){const period=document.getElementById('instActivityPeriod')?.value||'दैनिक';const wrap=document.getElementById('instActivityEndWrap');if(wrap)wrap.style.display=period==='दैनिक'?'none':'block';}
+
+        function saveInstructorDailyDiary(){
+            if(currentRole!=='instructor'||!loggedInInstructor)return;
+            const date=document.getElementById('instDiaryDate')?.value||new Date().toISOString().slice(0,10);
+            const subject=document.getElementById('instDiarySubject')?.value||'थ्योरी';
+            const topic=document.getElementById('instDiaryTopic')?.value.trim()||'';
+            const homework=document.getElementById('instDiaryHomework')?.value.trim()||'';
+            const note=document.getElementById('instDiaryNote')?.value.trim()||'';
+            const hours=Number(document.getElementById('instDiaryHours')?.value)||0;
+            const total=Number(document.getElementById('instDiaryTotal')?.value)||0;
+            const present=Number(document.getElementById('instDiaryPresent')?.value)||0;
+            if(!topic){alert('आज पढ़ाया गया टॉपिक / कराया गया कार्य लिखें।');return;}
+            if(present>total&&total>0){alert('उपस्थित विद्यार्थियों की संख्या कुल विद्यार्थियों से अधिक नहीं हो सकती।');return;}
+            const details=`टॉपिक / कार्य: ${topic}${homework?' | गृहकार्य: '+homework:''}${note?' | टिप्पणी: '+note:''}`;
+            const d=ensureSupData(),now=new Date().toISOString();
+            d.reports.push({id:'DIA'+Date.now(),collegeId:currentCollegeId,instructorId:loggedInInstructor.id,instructorName:loggedInInstructor.name,trade:currentTrade,period:'दैनिक शिक्षण डायरी',date,endDate:'',type:subject,students:present||total,details,hours,totalStudents:total,presentStudents:present,homework,note,status:'जमा',createdAt:now,submissionHistory:[{status:'जमा',at:now}]});
+            syncWithFirebase();document.getElementById('instDiaryTopic').value='';document.getElementById('instDiaryHomework').value='';document.getElementById('instDiaryNote').value='';renderInstructorWorkPanel();showToast('दैनिक शिक्षण डायरी सुरक्षित हो गई और समीक्षा हेतु भेज दी गई।');
+        }
+        function renderInstructorDailyDiaryHistory(){
+            const host=document.getElementById('instDailyDiaryHistory');if(!host||currentRole!=='instructor'||!loggedInInstructor)return;
+            const list=ensureSupData().reports.filter(r=>r.collegeId===currentCollegeId&&r.instructorId===loggedInInstructor.id&&r.period==='दैनिक शिक्षण डायरी').slice().sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt))).slice(0,7);
+            host.innerHTML=list.length?'<strong>हाल की दैनिक डायरी</strong>'+list.map(r=>`<div style="padding:9px 0;border-bottom:1px solid #e2e8f0"><b>${supEscape(r.date)} · ${supEscape(r.type)}</b><div>${supEscape(r.details)}</div><small>घंटे: ${Number(r.hours)||0} · उपस्थित: ${Number(r.presentStudents)||0}/${Number(r.totalStudents)||0} · स्थिति: ${supEscape(r.status||'जमा')}${r.reviewComment?' · टिप्पणी: '+supEscape(r.reviewComment):''}</small></div>`).join(''):'<span class="sup-help">अभी दैनिक डायरी दर्ज नहीं की गई है।</span>';
+        }
+
+        function toggleActivityPeriodFields(){const period=document.getElementById('instActivityPeriod')?.value||'साप्ताहिक';const wrap=document.getElementById('instActivityEndWrap');if(wrap)wrap.style.display='block';}
         function renderInstructorWorkPanel(){
             if(currentRole!=='instructor'||!loggedInInstructor)return;const d=ensureSupData();renderInstructorStaffNotices();const tasks=d.tasks.filter(t=>t.collegeId===currentCollegeId&&t.instructorId===loggedInInstructor.id);const body=document.getElementById('instAssignedTasksBody');if(body)body.innerHTML=tasks.length?tasks.map(t=>`<tr><td>${supEscape(t.title)}<br><small>${supEscape(t.description||'')}</small></td><td>${supEscape(t.due||'-')}</td><td>${supEscape(t.priority)}</td><td>${supEscape(t.status)}</td><td>${t.status==='पूर्ण'?'—':`<button class="app-btn app-btn-success" onclick="completeInstructorTask('${t.id}')">पूर्ण करें</button>`}</td></tr>`).join(''):'<tr><td colspan="5">अधीक्षक ने अभी कोई कार्य नहीं दिया है।</td></tr>';
-            renderInstructorRequestHistory();const reports=d.reports.filter(r=>r.collegeId===currentCollegeId&&r.instructorId===loggedInInstructor.id).slice().reverse();const hist=document.getElementById('instActivityHistory');if(hist)hist.innerHTML=reports.length?'<strong>मेरी हाल की रिपोर्ट</strong><ul style="padding-left:20px;margin-top:7px;">'+reports.slice(0,12).map(r=>`<li>${supEscape(r.period||'दैनिक')} · ${supEscape(r.date)}${r.endDate?' से '+supEscape(r.endDate):''} — ${supEscape(r.type)} (${supEscape(r.status||'जमा')})${r.reviewComment?`<br><small>अधीक्षक टिप्पणी: ${supEscape(r.reviewComment)}</small>`:''}${r.status==='सुधार हेतु वापस'?` <button class="app-btn app-btn-warning" onclick="resubmitReturnedReport('${r.id}')">सुधार करके दोबारा भेजें</button>`:''}</li>`).join('')+'</ul>':'<span style="color:#64748b;font-size:.84rem;">अभी कोई रिपोर्ट जमा नहीं की गई है।</span>';
+            renderInstructorRequestHistory();renderInstructorDailyDiaryHistory();const reports=d.reports.filter(r=>r.collegeId===currentCollegeId&&r.instructorId===loggedInInstructor.id&&r.period!=='दैनिक शिक्षण डायरी').slice().reverse();const hist=document.getElementById('instActivityHistory');if(hist)hist.innerHTML=reports.length?'<strong>मेरी हाल की रिपोर्ट</strong><ul style="padding-left:20px;margin-top:7px;">'+reports.slice(0,12).map(r=>`<li>${supEscape(r.period||'दैनिक')} · ${supEscape(r.date)}${r.endDate?' से '+supEscape(r.endDate):''} — ${supEscape(r.type)} (${supEscape(r.status||'जमा')})${r.reviewComment?`<br><small>अधीक्षक टिप्पणी: ${supEscape(r.reviewComment)}</small>`:''}${r.status==='सुधार हेतु वापस'?` <button class="app-btn app-btn-warning" onclick="resubmitReturnedReport('${r.id}')">सुधार करके दोबारा भेजें</button>`:''}</li>`).join('')+'</ul>':'<span style="color:#64748b;font-size:.84rem;">अभी कोई रिपोर्ट जमा नहीं की गई है।</span>';
         }
         function completeInstructorTask(id){if(currentRole!=='instructor'||!loggedInInstructor)return;const t=ensureSupData().tasks.find(x=>x.id===id&&x.collegeId===currentCollegeId&&x.instructorId===loggedInInstructor.id);if(!t)return;t.status='पूर्ण';t.completedAt=new Date().toISOString();t.completedBy=loggedInInstructor.name;syncWithFirebase();renderInstructorWorkPanel();showToast('कार्य पूर्ण चिह्नित हो गया।');}
-        function saveInstructorActivity(){if(currentRole!=='instructor'||!loggedInInstructor)return;const details=document.getElementById('instActivityDetails').value.trim();if(!details){alert('कार्य का विवरण लिखें।');return;}const period=document.getElementById('instActivityPeriod')?.value||'दैनिक';const date=document.getElementById('instActivityDate').value||new Date().toISOString().slice(0,10);const endDate=document.getElementById('instActivityEndDate')?.value||'';if(period!=='दैनिक'&&(!endDate||endDate<date)){alert('साप्ताहिक / मासिक रिपोर्ट के लिए सही अवधि प्रारंभ और समाप्ति तारीख भरें।');return;}const d=ensureSupData();d.reports.push({id:'REP'+Date.now(),collegeId:currentCollegeId,instructorId:loggedInInstructor.id,instructorName:loggedInInstructor.name,trade:currentTrade,period,date,endDate,type:document.getElementById('instActivityType').value,students:Number(document.getElementById('instActivityStudents').value)||0,details,status:'जमा',createdAt:new Date().toISOString(),submissionHistory:[{status:'जमा',at:new Date().toISOString()}]});syncWithFirebase();document.getElementById('instActivityDetails').value='';document.getElementById('instActivityStudents').value='';renderInstructorWorkPanel();showToast(period+' गतिविधि रिपोर्ट अधीक्षक को भेज दी गई।');}
+        function saveInstructorActivity(){if(currentRole!=='instructor'||!loggedInInstructor)return;const details=document.getElementById('instActivityDetails').value.trim();if(!details){alert('कार्य का विवरण लिखें।');return;}const period=document.getElementById('instActivityPeriod')?.value||'साप्ताहिक';const date=document.getElementById('instActivityDate').value||new Date().toISOString().slice(0,10);const endDate=document.getElementById('instActivityEndDate')?.value||'';if(!endDate||endDate<date){alert('साप्ताहिक / मासिक रिपोर्ट के लिए सही अवधि प्रारंभ और समाप्ति तारीख भरें।');return;}const d=ensureSupData();d.reports.push({id:'REP'+Date.now(),collegeId:currentCollegeId,instructorId:loggedInInstructor.id,instructorName:loggedInInstructor.name,trade:currentTrade,period,date,endDate,type:document.getElementById('instActivityType').value,students:Number(document.getElementById('instActivityStudents').value)||0,details,status:'जमा',createdAt:new Date().toISOString(),submissionHistory:[{status:'जमा',at:new Date().toISOString()}]});syncWithFirebase();document.getElementById('instActivityDetails').value='';document.getElementById('instActivityStudents').value='';renderInstructorWorkPanel();showToast(period+' गतिविधि रिपोर्ट अधीक्षक को भेज दी गई।');}
 
         function switchInstructorTab(tab) {
             const map={attendance:'instTabAttendance',evaluation:'instTabEvaluation',work:'instTabWork'};
             Object.entries(map).forEach(([key,id])=>{const panel=document.getElementById(id);if(panel)panel.classList.toggle('hidden',key!==tab);const btn=document.getElementById(key==='attendance'?'tabBtnAtt':key==='evaluation'?'tabBtnEval':'tabBtnWork');if(btn)btn.classList.toggle('active',key===tab);});
-            if(tab==='attendance')renderRegister();else if(tab==='evaluation')renderEvaluationTable();else if(tab==='work'){const date=document.getElementById('instActivityDate');if(date&&!date.value)date.value=new Date().toISOString().slice(0,10);toggleActivityPeriodFields();renderInstructorWorkPanel();}
+            if(tab==='attendance')renderRegister();else if(tab==='evaluation')renderEvaluationTable();else if(tab==='work'){const date=document.getElementById('instActivityDate');if(date&&!date.value)date.value=new Date().toISOString().slice(0,10);const diaryDate=document.getElementById('instDiaryDate');if(diaryDate&&!diaryDate.value)diaryDate.value=new Date().toISOString().slice(0,10);toggleActivityPeriodFields();renderInstructorWorkPanel();}
         }
 
         // ==================== SUPER ADMIN CONTROL & INSTRUCTOR MANAGEMENT ====================
@@ -8178,6 +8219,49 @@ document.addEventListener('click',ev=>{const b=ev.target.closest('.saved-result-
    $('weeklyCheckLoad').addEventListener('click',renderWeekly);
    $('weeklyCheckSave').addEventListener('click',saveWeekly);
    $('weeklyCheckAnchor').addEventListener('change',renderWeekly);
+   ensureMonthlyPanel();
+ }
+ function ensureMonthlyPanel(){
+   const host=$('instTabEvaluation');if(!host||$('monthlyRecordSummaryPanel'))return;
+   const panel=document.createElement('section');panel.id='monthlyRecordSummaryPanel';panel.className='glass-card';
+   panel.style.cssText='margin:0 0 14px;padding:16px;border-left:5px solid #2563eb';
+   panel.innerHTML=`<h3 style="color:#1e40af;margin:0 0 6px"><i class="fa-solid fa-calendar-days"></i> मासिक रिकॉर्ड सारांश एवं विद्यार्थीवार रिपोर्ट</h3>
+    <p style="color:#64748b;font-size:.88rem;margin:0 0 12px">चुने गए महीने में आने वाली साप्ताहिक चेकिंग से प्रतिशत और विद्यार्थीवार विस्तृत रिपोर्ट अपने आप बनेगी। यहाँ दोबारा एंट्री करने की जरूरत नहीं है।</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:end;margin-bottom:12px">
+      <label style="min-width:180px;flex:1">माह चुनें <input id="monthlyRecordMonth" type="month" style="width:100%;margin-top:4px"></label>
+      <button type="button" class="app-btn app-btn-primary" id="monthlyRecordRefresh">रिपोर्ट दिखाएं</button>
+      <button type="button" class="app-btn app-btn-excel" id="monthlyRecordExcel">Excel डाउनलोड</button>
+    </div>
+    <div id="monthlyRecordSummaryCards" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:9px;margin-bottom:12px"></div>
+    <div class="table-shell"><table style="min-width:900px"><thead id="monthlyRecordCategoryHead"></thead><tbody id="monthlyRecordCategoryBody"></tbody></table></div>
+    <h4 style="margin:16px 0 8px;color:#1e3a8a">विद्यार्थीवार विस्तृत मासिक रिकॉर्ड</h4>
+    <div class="table-shell"><table style="min-width:1050px"><thead id="monthlyRecordStudentHead"></thead><tbody id="monthlyRecordStudentBody"></tbody></table></div>
+    <div id="monthlyRecordStatus" role="status" style="font-weight:700;margin-top:9px;color:#475569"></div>`;
+   const weekly=$('weeklyRecordCheckPanel');if(weekly)weekly.insertAdjacentElement('afterend',panel);else host.insertBefore(panel,host.querySelector('.max-marks-banner')||host.firstChild);
+   const month=$('monthlyRecordMonth');if(month)month.value=todayISO().slice(0,7);
+   $('monthlyRecordRefresh').addEventListener('click',renderMonthlySummary);
+   $('monthlyRecordMonth').addEventListener('change',renderMonthlySummary);
+   $('monthlyRecordExcel').addEventListener('click',exportMonthlyRecordSummary);
+ }
+ const monthlyFields=[['diary','दैनिक डायरी'],['theoryRegister','थ्योरी रजिस्टर'],['practicalRegister','प्रैक्टिकल रजिस्टर'],['practicalWork','प्रैक्टिकल वर्क'],['otherWork','अन्य कार्य']];
+ function monthWeeks(weeks,month){const first=month+'-01',last=new Date(Number(month.slice(0,4)),Number(month.slice(5,7)),0);const lastStr=`${last.getFullYear()}-${String(last.getMonth()+1).padStart(2,'0')}-${String(last.getDate()).padStart(2,'0')}`;return Object.entries(weeks||{}).filter(([start])=>{const end=dateForDay(start,6);return start<=lastStr&&end>=first;}).sort((a,b)=>a[0].localeCompare(b[0]));}
+ function statusStats(entries,key){let regular=0,irregular=0,pending=0,na=0;entries.forEach(([,rec])=>Object.values(rec||{}).forEach(v=>{const x=v&&typeof v==='object'?v[key]:'';if(x==='नियमित चेक')regular++;else if(x==='अनियमित')irregular++;else if(x==='जांच लंबित')pending++;else if(x==='लागू नहीं')na++;}));const total=regular+irregular+pending;return {regular,irregular,pending,na,total,pct:total?Math.round(regular/total*100):0};}
+ function renderMonthlySummary(){
+   if(currentRole!=='instructor'||!currentCollegeId||!currentTrade)return;ensureMonthlyPanel();
+   const month=$('monthlyRecordMonth')?.value||todayISO().slice(0,7),{weeks}=ensureData(),entries=monthWeeks(weeks,month),students=getStudentList(currentCollegeId,currentTrade)||[];
+   const totalCells=entries.length*students.length;const savedCount=entries.filter(([,r])=>r&&r._savedAt).length;
+   $('monthlyRecordSummaryCards').innerHTML=[['सप्ताह उपलब्ध',entries.length],['चेकिंग सेव',savedCount],['कुल विद्यार्थी',students.length],['माह की प्रगति',totalCells?Math.round((savedCount/Math.max(entries.length,1))*100)+'%':'0%']].map(([a,b])=>`<div style="background:#f1f5f9;border:1px solid #dbe3ed;border-radius:10px;padding:12px"><div style="font-size:1.35rem;font-weight:800;color:#1e3a8a">${b}</div><div style="font-size:.82rem;color:#475569">${a}</div></div>`).join('');
+   $('monthlyRecordCategoryHead').innerHTML='<tr><th>रिकॉर्ड का प्रकार</th><th>नियमित चेक</th><th>अनियमित</th><th>जाँच लंबित</th><th>लागू नहीं</th><th>पूर्णता (%)</th></tr>';
+   $('monthlyRecordCategoryBody').innerHTML=monthlyFields.map(([key,label])=>{let regular=0,irregular=0,pending=0,na=0;entries.forEach(([,rec])=>Object.values(rec||{}).forEach(v=>{const x=v&&typeof v==='object'?v[key]:'';if(x==='नियमित चेक')regular++;else if(x==='अनियमित')irregular++;else if(x==='जांच लंबित')pending++;else if(x==='लागू नहीं')na++;}));const total=regular+irregular+pending;return `<tr><td><b>${label}</b></td><td>${regular}</td><td>${irregular}</td><td>${pending}</td><td>${na}</td><td><b>${total?Math.round(regular/total*100):0}%</b></td></tr>`;}).join('');
+   $('monthlyRecordStudentHead').innerHTML='<tr><th>रोल नंबर</th><th>विद्यार्थी का नाम</th>'+monthlyFields.map(x=>`<th>${x[1]}</th>`).join('')+'<th>कुल पूर्णता (%)</th><th>थ्योरी विवरण</th><th>प्रैक्टिकल विवरण</th><th>टिप्पणी</th></tr>';
+   $('monthlyRecordStudentBody').innerHTML=students.length?students.map(st=>{const roll=String(st.roll).trim();let vals=[],allReg=0,allApplicable=0,remarks=[],theoryTopics=[],practicalTopics=[];monthlyFields.forEach(([key])=>{let reg=0,app=0;entries.forEach(([wk,rec])=>{const v=rec?.[roll]||{},status=v[key]||((key==='theoryRegister'||key==='practicalRegister')?v.status:'');if(status==='नियमित चेक')reg++,app++;else if(['अनियमित','जांच लंबित'].includes(status))app++;if(v.remark&& !remarks.includes(v.remark))remarks.push(v.remark);if(v.theoryDetails&&!theoryTopics.includes(v.theoryDetails))theoryTopics.push(v.theoryDetails);if(v.practicalDetails&&!practicalTopics.includes(v.practicalDetails))practicalTopics.push(v.practicalDetails);});allReg+=reg;allApplicable+=app;vals.push(app?Math.round(reg/app*100)+'%':'—');});const pct=allApplicable?Math.round(allReg/allApplicable*100):0;return `<tr><td>${esc(roll)}</td><td style="font-weight:700">${esc(st.name)}</td>${vals.map(v=>`<td>${v}</td>`).join('')}<td><b>${allApplicable?pct+'%':'—'}</b></td><td>${esc(theoryTopics.join(' | ')||'—')}</td><td>${esc(practicalTopics.join(' | ')||'—')}</td><td>${esc(remarks.join(' | ')||'—')}</td></tr>`;}).join(''):'<tr><td colspan="11">इस ट्रेड में विद्यार्थी उपलब्ध नहीं हैं।</td></tr>';
+   $('monthlyRecordStatus').textContent=entries.length?`${month} के लिए ${entries.length} सप्ताह की चेकिंग मिली। साप्ताहिक रिकॉर्ड में बदलाव होने पर रिपोर्ट रिफ्रेश करें।`:`${month} में अभी कोई साप्ताहिक रिकॉर्ड सेव नहीं है।`;
+ }
+ function exportMonthlyRecordSummary(){
+   if(typeof XLSX==='undefined'){alert('Excel लाइब्रेरी उपलब्ध नहीं है।');return;}const month=$('monthlyRecordMonth')?.value||todayISO().slice(0,7),{weeks}=ensureData(),entries=monthWeeks(weeks,month),students=getStudentList(currentCollegeId,currentTrade)||[];
+   const rows=[['माह',month],['कॉलेज',getCollegeName(currentCollegeId)],['ट्रेड',currentTrade],[],['रोल नंबर','विद्यार्थी का नाम',...monthlyFields.map(x=>x[1]),'कुल पूर्णता (%)','थ्योरी विवरण','प्रैक्टिकल विवरण','टिप्पणी']];
+   students.forEach(st=>{const roll=String(st.roll).trim();let vals=[],regAll=0,appAll=0,remarks=[],theoryTopics=[],practicalTopics=[];monthlyFields.forEach(([key])=>{let reg=0,app=0;entries.forEach(([wk,rec])=>{const v=rec?.[roll]||{},status=v[key]||((key==='theoryRegister'||key==='practicalRegister')?v.status:'');if(status==='नियमित चेक')reg++,app++;else if(['अनियमित','जांच लंबित'].includes(status))app++;if(v.remark&&!remarks.includes(v.remark))remarks.push(v.remark);if(v.theoryDetails&&!theoryTopics.includes(v.theoryDetails))theoryTopics.push(v.theoryDetails);if(v.practicalDetails&&!practicalTopics.includes(v.practicalDetails))practicalTopics.push(v.practicalDetails);});regAll+=reg;appAll+=app;vals.push(app?Math.round(reg/app*100)+'%':'—');});rows.push([roll,st.name,...vals,appAll?Math.round(regAll/appAll*100)+'%':'—',theoryTopics.join(' | '),practicalTopics.join(' | '),remarks.join(' | ')]);});
+   const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(rows),'मासिक रिकॉर्ड');XLSX.writeFile(wb,`Monthly_Record_${currentTrade}_${month}.xlsx`);
  }
  function renderWeekly(){
    if(currentRole!=='instructor'||!currentCollegeId||!currentTrade)return;
@@ -8244,10 +8328,11 @@ document.addEventListener('click',ev=>{const b=ev.target.closest('.saved-result-
    syncWithFirebase();
    $('weeklyCheckStatus').textContent=`${days[settings.day??6]} (${checkDate}) की चेकिंग सुरक्षित हो गई।`;
    if(typeof window.renderEvaluationTable==='function') window.renderEvaluationTable();
-   showToast('साप्ताहिक रिकॉर्ड चेकिंग सुरक्षित हो गई। मासिक सारांश अपने आप अपडेट हो गया।');
+   renderMonthlySummary();
+   showToast('साप्ताहिक रिकॉर्ड चेकिंग सुरक्षित हो गई। मासिक सारांश अपडेट हो गया।');
  }
  const oldRender=window.renderEvaluationTable;
- if(typeof oldRender==='function')window.renderEvaluationTable=function(){oldRender.apply(this,arguments);setTimeout(renderWeekly,0);};
+ if(typeof oldRender==='function')window.renderEvaluationTable=function(){oldRender.apply(this,arguments);setTimeout(()=>{renderWeekly();renderMonthlySummary();},0);};
  window.exportSelectedExamResults=function(){
    const rows=window.__selectedExamResultRows||[],meta=window.__selectedExamResultMeta||{};
    if(!rows.length){alert('इस परीक्षा के परिणाम उपलब्ध नहीं हैं।');return;}
@@ -8268,9 +8353,9 @@ document.addEventListener('click',ev=>{const b=ev.target.closest('.saved-result-
    const safe=(v)=>String(v||'Exam').replace(/[\\/:*?"<>|]/g,'_').slice(0,45);
    XLSX.writeFile(wb,`${safe(meta.title)}_${safe(meta.trade)}_सभी_परिणाम.xlsx`);
  };
- document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{ensurePanel();renderWeekly();},800));
+ document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{ensurePanel();renderWeekly();ensureMonthlyPanel();renderMonthlySummary();const dd=$('instDiaryDate');if(dd&&!dd.value)dd.value=todayISO();},800));
  const oldRoute=window.setupUIRoute;
- if(typeof oldRoute==='function')window.setupUIRoute=function(){oldRoute.apply(this,arguments);setTimeout(()=>{ensurePanel();renderWeekly();},150);};
+ if(typeof oldRoute==='function')window.setupUIRoute=function(){oldRoute.apply(this,arguments);setTimeout(()=>{ensurePanel();renderWeekly();ensureMonthlyPanel();renderMonthlySummary();const dd=$('instDiaryDate');if(dd&&!dd.value)dd.value=todayISO();},150);};
 })();
 </script>
 </body>
