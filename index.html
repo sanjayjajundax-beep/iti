@@ -1358,24 +1358,23 @@ a{overflow-wrap:anywhere}
                 </button><button class="role-side-btn inst-tab-btn" id="tabBtnEval" onclick="switchInstructorTab('evaluation')">
 <i class="fa-solid fa-pen-ruler"></i> 2. मासिक टेस्ट अंक, डायरी व रिकॉर्ड चेकिंग
                 </button><button class="role-side-btn inst-tab-btn" id="tabBtnWork" onclick="switchInstructorTab('work')"><i class="fa-solid fa-list-check"></i> 3. अधीक्षक कार्य / दैनिक गतिविधि रिपोर्ट</button><button class="role-side-btn inst-tab-btn" id="tabBtnProgress" onclick="switchInstructorTab('progress')"><i class="fa-solid fa-chart-line"></i> 4. विद्यार्थी प्रगति एवं कॉलेज विकास</button></aside><div class="role-main"><div id="instTabAttendance">
-<div class="controls-card">
-<div class="controls-left">
+<div class="controls-card instructor-attendance-tools">
+<div class="inst-tools-heading"><i class="fa-solid fa-users-gear"></i><span>कक्षा एवं विद्यार्थी प्रबंधन</span><small>सभी जरूरी कार्य एक ही जगह</small></div>
+<div class="controls-left inst-context-row">
 <span class="badge-college" id="activeCollegeBadge">कॉलेज: -</span>
 <span class="badge-trade" id="activeTradeBadge">ट्रेड: -</span>
 <span class="badge-type" id="activeTradeTypeBadge">इंजीनियरिंग</span>
-<div>
-<input id="selectedMonth" onchange="renderRegister()" style="padding: 6px 10px; border-radius: 8px; border: 1px solid var(--border-color); font-weight: 600;" type="month"/>
-</div>
+<label class="inst-month-picker">माह <input id="selectedMonth" onchange="renderRegister()" type="month"/></label>
 <span class="lock-indicator lock-open" id="attLockStatusBadge"><i class="fa-solid fa-lock-open"></i> संपादन सक्रिय</span>
-<button class="app-btn app-btn-primary" onclick="openModal('addStudentModal')"><i class="fa-solid fa-user-plus"></i> नया छात्र जोड़ें</button>
-<button class="app-btn app-btn-secondary" onclick="openStudentCredentialsModal()"><i class="fa-solid fa-id-card"></i> छात्र प्रबंधन / पासवर्ड</button>
-<button class="app-btn app-btn-warning" onclick="openHolidayPrompt()"><i class="fa-solid fa-umbrella-beach"></i> अवकाश जोड़ें</button>
 </div>
-<div class="controls-right">
-<button class="app-btn app-btn-pdf" onclick="openInstructorAnnualReportModal()"><i class="fa-solid fa-id-card"></i> वार्षिक प्रोग्रेस कार्ड</button>
-<button class="app-btn app-btn-success" id="btnRollCall" onclick="openTodayRollCallModal()"><i class="fa-solid fa-clipboard-user"></i> आज की हाजिरी (Roll Call)</button>
-<button class="app-btn app-btn-excel" onclick="exportAttendanceToExcel()"><i class="fa-solid fa-file-excel"></i> अटेंडेंस एक्सेल (.xlsx)</button>
-<button class="app-btn app-btn-dark" onclick="syncWithFirebase()"><i class="fa-solid fa-cloud-arrow-up"></i> सेव करें</button>
+<div class="controls-right inst-action-grid">
+<button class="app-btn app-btn-success" id="btnRollCall" onclick="openTodayRollCallModal()"><i class="fa-solid fa-clipboard-user"></i><span>आज की हाजिरी</span></button>
+<button class="app-btn app-btn-primary" onclick="openModal('addStudentModal')"><i class="fa-solid fa-user-plus"></i><span>नया छात्र जोड़ें</span></button>
+<button class="app-btn app-btn-secondary" onclick="openStudentCredentialsModal()"><i class="fa-solid fa-id-card"></i><span>छात्र प्रबंधन / पासवर्ड</span></button>
+<button class="app-btn app-btn-warning" onclick="openHolidayPrompt()"><i class="fa-solid fa-umbrella-beach"></i><span>अवकाश जोड़ें</span></button>
+<button class="app-btn app-btn-pdf" onclick="openInstructorAnnualReportModal()"><i class="fa-solid fa-id-card"></i><span>वार्षिक प्रोग्रेस कार्ड</span></button>
+<button class="app-btn app-btn-excel" onclick="exportAttendanceToExcel()"><i class="fa-solid fa-file-excel"></i><span>अटेंडेंस एक्सेल</span></button>
+<button class="app-btn app-btn-dark" onclick="syncWithFirebase()"><i class="fa-solid fa-cloud-arrow-up"></i><span>Firebase सेव करें</span></button>
 </div>
 </div>
 <div style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; font-size: 0.85rem; background: #ffffff; padding: 10px 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
@@ -4667,6 +4666,57 @@ function renderAnnualAttendanceColorChart() {
               
 
 
+
+<style id="ITI_INSTRUCTOR_DETAILS_ON_DEMAND_V1_STYLE">
+/* Keep instructor detail panels closed until the user chooses a menu tile. */
+#instructorSection .instructor-role-layout .role-main{display:none!important}
+#instructorSection .instructor-role-layout.details-open .role-main{display:block!important}
+#instructorSection .instructor-role-layout.details-open .role-main>.hidden{display:none!important}
+#instructorSection .instructor-role-layout .role-sidebar{width:100%;max-width:none}
+#instructorSection .instructor-role-layout:not(.details-open) .role-sidebar{margin-bottom:0}
+#instructorSection .instructor-role-layout.details-open .role-sidebar{margin-bottom:12px}
+#instructorSection .instructor-role-layout .role-sidebar .role-side-heading:after{content:' · सुविधा खोलने के लिए बटन चुनें';font-size:.72em;font-weight:500;color:#64748b}
+</style>
+<script id="ITI_INSTRUCTOR_DETAILS_ON_DEMAND_V1_SCRIPT">
+(function(){
+  function setupInstructorDetails(){
+    const section=document.getElementById('instructorSection');
+    const layout=section?.querySelector('.instructor-role-layout');
+    if(!section||!layout)return;
+    // Start with menu tiles only; no attendance table, forms or detail panels.
+    layout.classList.remove('details-open');
+    const main=layout.querySelector('.role-main');
+    if(main)main.setAttribute('aria-hidden','true');
+    layout.querySelectorAll('.inst-tab-btn').forEach(btn=>{
+      if(!btn.dataset.detailsClickBound){
+        btn.addEventListener('click',()=>{
+          layout.classList.add('details-open');
+          if(main)main.setAttribute('aria-hidden','false');
+          const home=layout.querySelector('.instructor-details-home');
+          if(home)home.remove();
+        });
+        btn.dataset.detailsClickBound='1';
+      }
+    });
+  }
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(setupInstructorDetails,300));
+  const oldRoute=window.setupUIRoute;
+  if(typeof oldRoute==='function'&&!oldRoute.__detailsOnDemandWrapped){
+    const wrapped=function(){const out=oldRoute.apply(this,arguments);setTimeout(setupInstructorDetails,100);return out};
+    wrapped.__detailsOnDemandWrapped=true;window.setupUIRoute=wrapped;
+  }
+  // Expose a simple return-to-menu action for any future dashboard home control.
+  window.closeInstructorDetails=function(){
+    const layout=document.querySelector('#instructorSection .instructor-role-layout');
+    const main=layout?.querySelector('.role-main');
+    if(layout)layout.classList.remove('details-open');
+    if(main)main.setAttribute('aria-hidden','true');
+    layout?.scrollIntoView({behavior:'smooth',block:'start'});
+  };
+  window.openInstructorDetailsHome=setupInstructorDetails;
+})();
+</script>
+
 </body>
               </html>`);
             printWindow.document.close();
@@ -7141,6 +7191,57 @@ function switchStudentSection(sec) {
     w.document.write(`<!doctype html><html lang="hi"><head><meta charset="utf-8"><title>साप्ताहिक पाठ्यक्रम — ${esc(getCollegeName(currentCollegeId))}</title><style>body{font-family:Arial,sans-serif;color:#111;padding:18px}h1{text-align:center;font-size:21px;margin:0 0 5px}h2{text-align:center;font-size:17px;margin:0 0 18px}.week{page-break-inside:avoid;border:1px solid #777;padding:12px;margin:0 0 16px;border-radius:6px}.week h3{margin:0 0 8px;color:#173d79}p{margin:7px 0;font-size:12px}table{width:100%;border-collapse:collapse;margin:8px 0}th,td{border:1px solid #777;padding:7px;text-align:left;vertical-align:top;font-size:12px}th{background:#eef2f7}@page{size:A4;margin:12mm}@media print{.week{break-inside:avoid}}</style></head><body><h1>${esc(getCollegeName(currentCollegeId))}</h1><h2>सभी ट्रेड के साप्ताहिक पाठ्यक्रम एवं शिक्षण रिकॉर्ड</h2><p><b>प्रिंट दिनांक:</b> ${new Date().toLocaleDateString('hi-IN')}</p>${rows}<script>window.onload=()=>window.print()<\/script>
 
 
+
+<style id="ITI_INSTRUCTOR_DETAILS_ON_DEMAND_V1_STYLE">
+/* Keep instructor detail panels closed until the user chooses a menu tile. */
+#instructorSection .instructor-role-layout .role-main{display:none!important}
+#instructorSection .instructor-role-layout.details-open .role-main{display:block!important}
+#instructorSection .instructor-role-layout.details-open .role-main>.hidden{display:none!important}
+#instructorSection .instructor-role-layout .role-sidebar{width:100%;max-width:none}
+#instructorSection .instructor-role-layout:not(.details-open) .role-sidebar{margin-bottom:0}
+#instructorSection .instructor-role-layout.details-open .role-sidebar{margin-bottom:12px}
+#instructorSection .instructor-role-layout .role-sidebar .role-side-heading:after{content:' · सुविधा खोलने के लिए बटन चुनें';font-size:.72em;font-weight:500;color:#64748b}
+</style>
+<script id="ITI_INSTRUCTOR_DETAILS_ON_DEMAND_V1_SCRIPT">
+(function(){
+  function setupInstructorDetails(){
+    const section=document.getElementById('instructorSection');
+    const layout=section?.querySelector('.instructor-role-layout');
+    if(!section||!layout)return;
+    // Start with menu tiles only; no attendance table, forms or detail panels.
+    layout.classList.remove('details-open');
+    const main=layout.querySelector('.role-main');
+    if(main)main.setAttribute('aria-hidden','true');
+    layout.querySelectorAll('.inst-tab-btn').forEach(btn=>{
+      if(!btn.dataset.detailsClickBound){
+        btn.addEventListener('click',()=>{
+          layout.classList.add('details-open');
+          if(main)main.setAttribute('aria-hidden','false');
+          const home=layout.querySelector('.instructor-details-home');
+          if(home)home.remove();
+        });
+        btn.dataset.detailsClickBound='1';
+      }
+    });
+  }
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(setupInstructorDetails,300));
+  const oldRoute=window.setupUIRoute;
+  if(typeof oldRoute==='function'&&!oldRoute.__detailsOnDemandWrapped){
+    const wrapped=function(){const out=oldRoute.apply(this,arguments);setTimeout(setupInstructorDetails,100);return out};
+    wrapped.__detailsOnDemandWrapped=true;window.setupUIRoute=wrapped;
+  }
+  // Expose a simple return-to-menu action for any future dashboard home control.
+  window.closeInstructorDetails=function(){
+    const layout=document.querySelector('#instructorSection .instructor-role-layout');
+    const main=layout?.querySelector('.role-main');
+    if(layout)layout.classList.remove('details-open');
+    if(main)main.setAttribute('aria-hidden','true');
+    layout?.scrollIntoView({behavior:'smooth',block:'start'});
+  };
+  window.openInstructorDetailsHome=setupInstructorDetails;
+})();
+</script>
+
 </body></html>`);
     w.document.close();
   };
@@ -7496,7 +7597,58 @@ function switchStudentSection(sec) {
      win.document.open();
      win.document.write(`<!doctype html><html lang="hi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${safeTitle} - ${escExam(record.roll)}</title>
       <style>*{box-sizing:border-box}html,body{margin:0;padding:0;width:100%;font-family:Arial,"Noto Sans Devanagari",sans-serif}#printRoot{width:100%;max-width:194mm;margin:0 auto;padding:0}@media screen{body{padding:8mm;background:#eee}#printRoot{padding:8mm;background:white;box-shadow:0 0 4mm #aaa}}@media print{#printRoot{width:100%;max-width:100%;padding:0}}</style></head><body><main id="printRoot">${html}</main>
-      <script>window.onload=()=>setTimeout(()=>window.print(),400);<\/script></body></html>`);
+      <script>window.onload=()=>setTimeout(()=>window.print(),400);<\/script>
+<style id="ITI_INSTRUCTOR_DETAILS_ON_DEMAND_V1_STYLE">
+/* Keep instructor detail panels closed until the user chooses a menu tile. */
+#instructorSection .instructor-role-layout .role-main{display:none!important}
+#instructorSection .instructor-role-layout.details-open .role-main{display:block!important}
+#instructorSection .instructor-role-layout.details-open .role-main>.hidden{display:none!important}
+#instructorSection .instructor-role-layout .role-sidebar{width:100%;max-width:none}
+#instructorSection .instructor-role-layout:not(.details-open) .role-sidebar{margin-bottom:0}
+#instructorSection .instructor-role-layout.details-open .role-sidebar{margin-bottom:12px}
+#instructorSection .instructor-role-layout .role-sidebar .role-side-heading:after{content:' · सुविधा खोलने के लिए बटन चुनें';font-size:.72em;font-weight:500;color:#64748b}
+</style>
+<script id="ITI_INSTRUCTOR_DETAILS_ON_DEMAND_V1_SCRIPT">
+(function(){
+  function setupInstructorDetails(){
+    const section=document.getElementById('instructorSection');
+    const layout=section?.querySelector('.instructor-role-layout');
+    if(!section||!layout)return;
+    // Start with menu tiles only; no attendance table, forms or detail panels.
+    layout.classList.remove('details-open');
+    const main=layout.querySelector('.role-main');
+    if(main)main.setAttribute('aria-hidden','true');
+    layout.querySelectorAll('.inst-tab-btn').forEach(btn=>{
+      if(!btn.dataset.detailsClickBound){
+        btn.addEventListener('click',()=>{
+          layout.classList.add('details-open');
+          if(main)main.setAttribute('aria-hidden','false');
+          const home=layout.querySelector('.instructor-details-home');
+          if(home)home.remove();
+        });
+        btn.dataset.detailsClickBound='1';
+      }
+    });
+  }
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(setupInstructorDetails,300));
+  const oldRoute=window.setupUIRoute;
+  if(typeof oldRoute==='function'&&!oldRoute.__detailsOnDemandWrapped){
+    const wrapped=function(){const out=oldRoute.apply(this,arguments);setTimeout(setupInstructorDetails,100);return out};
+    wrapped.__detailsOnDemandWrapped=true;window.setupUIRoute=wrapped;
+  }
+  // Expose a simple return-to-menu action for any future dashboard home control.
+  window.closeInstructorDetails=function(){
+    const layout=document.querySelector('#instructorSection .instructor-role-layout');
+    const main=layout?.querySelector('.role-main');
+    if(layout)layout.classList.remove('details-open');
+    if(main)main.setAttribute('aria-hidden','true');
+    layout?.scrollIntoView({behavior:'smooth',block:'start'});
+  };
+  window.openInstructorDetailsHome=setupInstructorDetails;
+})();
+</script>
+
+</body></html>`);
      win.document.close();
    }catch(e){if(win&&!win.closed)win.close();alert('PDF तैयार नहीं हुई: '+(e.message||e));}
  };
@@ -8424,6 +8576,22 @@ document.addEventListener('click',ev=>{const b=ev.target.closest('.saved-result-
  .role-sidebar>.role-side-btn,.sup-sidebar>.sup-nav-btn{min-height:94px!important;padding:9px 4px!important;font-size:.70rem!important}
  .role-sidebar>.role-side-btn i,.sup-sidebar>.sup-nav-btn i{width:39px!important;height:39px!important;flex-basis:39px!important;font-size:1rem!important}
 }
+
+/* Compact action panel for instructor attendance/student management controls. */
+.instructor-attendance-tools{display:block!important;padding:14px!important;border-radius:18px!important;margin-bottom:14px!important;background:#fff!important}
+.inst-tools-heading{display:flex;align-items:center;gap:9px;flex-wrap:wrap;color:#173b75;font-weight:850;font-size:1.02rem;padding:2px 2px 11px;margin-bottom:11px;border-bottom:1px solid #e8edf4}
+.inst-tools-heading>i{width:34px;height:34px;border-radius:11px;background:#e1f7fb;color:#0797a8;display:inline-flex;align-items:center;justify-content:center}
+.inst-tools-heading small{margin-left:auto;color:#718096;font-size:.72rem;font-weight:600}
+.inst-context-row{display:flex!important;width:100%;align-items:center!important;gap:8px!important;margin-bottom:12px;padding:10px;background:#f7fafc;border:1px solid #e7edf3;border-radius:12px}
+.inst-month-picker{display:flex;align-items:center;gap:7px;font-size:.8rem;font-weight:750;color:#334155;background:#fff;border:1px solid #dce5ed;border-radius:9px;padding:5px 8px}
+.inst-month-picker input{max-width:155px;min-width:0;border:0!important;background:transparent!important;padding:5px!important;font-size:.82rem!important;font-weight:700!important}
+.inst-action-grid{display:grid!important;width:100%;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px!important}
+.inst-action-grid>.app-btn{width:100%;min-width:0;min-height:84px;padding:10px 7px!important;margin:0!important;display:flex!important;flex-direction:column!important;justify-content:center!important;align-items:center!important;gap:7px!important;text-align:center!important;white-space:normal!important;line-height:1.2!important;border-radius:13px!important;box-shadow:0 2px 7px rgba(15,23,42,.08);font-size:.76rem!important}
+.inst-action-grid>.app-btn i{font-size:1.25rem!important}
+.inst-action-grid>.app-btn span{display:block;max-width:100%;overflow-wrap:anywhere}
+@media(max-width:520px){.instructor-attendance-tools{padding:11px!important}.inst-context-row{gap:6px!important}.inst-context-row .badge-college,.inst-context-row .badge-trade,.inst-context-row .badge-type{font-size:.68rem!important;padding:5px 7px!important}.inst-month-picker{font-size:.72rem}.inst-month-picker input{max-width:125px;font-size:.75rem!important}.inst-action-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}.inst-action-grid>.app-btn{min-height:78px!important;font-size:.73rem!important}}
+@media(min-width:900px){.inst-action-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important}}
+
 </style>
 
 
@@ -8458,6 +8626,57 @@ document.addEventListener('click',ev=>{const b=ev.target.closest('.saved-result-
     wrappedSup.__tileWrapped=true;window.renderSuperintendentDashboard=wrappedSup;
   }
   window.applyRoleTileMenus=applyRoleTileMenus;
+})();
+</script>
+
+
+<style id="ITI_INSTRUCTOR_DETAILS_ON_DEMAND_V1_STYLE">
+/* Keep instructor detail panels closed until the user chooses a menu tile. */
+#instructorSection .instructor-role-layout .role-main{display:none!important}
+#instructorSection .instructor-role-layout.details-open .role-main{display:block!important}
+#instructorSection .instructor-role-layout.details-open .role-main>.hidden{display:none!important}
+#instructorSection .instructor-role-layout .role-sidebar{width:100%;max-width:none}
+#instructorSection .instructor-role-layout:not(.details-open) .role-sidebar{margin-bottom:0}
+#instructorSection .instructor-role-layout.details-open .role-sidebar{margin-bottom:12px}
+#instructorSection .instructor-role-layout .role-sidebar .role-side-heading:after{content:' · सुविधा खोलने के लिए बटन चुनें';font-size:.72em;font-weight:500;color:#64748b}
+</style>
+<script id="ITI_INSTRUCTOR_DETAILS_ON_DEMAND_V1_SCRIPT">
+(function(){
+  function setupInstructorDetails(){
+    const section=document.getElementById('instructorSection');
+    const layout=section?.querySelector('.instructor-role-layout');
+    if(!section||!layout)return;
+    // Start with menu tiles only; no attendance table, forms or detail panels.
+    layout.classList.remove('details-open');
+    const main=layout.querySelector('.role-main');
+    if(main)main.setAttribute('aria-hidden','true');
+    layout.querySelectorAll('.inst-tab-btn').forEach(btn=>{
+      if(!btn.dataset.detailsClickBound){
+        btn.addEventListener('click',()=>{
+          layout.classList.add('details-open');
+          if(main)main.setAttribute('aria-hidden','false');
+          const home=layout.querySelector('.instructor-details-home');
+          if(home)home.remove();
+        });
+        btn.dataset.detailsClickBound='1';
+      }
+    });
+  }
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(setupInstructorDetails,300));
+  const oldRoute=window.setupUIRoute;
+  if(typeof oldRoute==='function'&&!oldRoute.__detailsOnDemandWrapped){
+    const wrapped=function(){const out=oldRoute.apply(this,arguments);setTimeout(setupInstructorDetails,100);return out};
+    wrapped.__detailsOnDemandWrapped=true;window.setupUIRoute=wrapped;
+  }
+  // Expose a simple return-to-menu action for any future dashboard home control.
+  window.closeInstructorDetails=function(){
+    const layout=document.querySelector('#instructorSection .instructor-role-layout');
+    const main=layout?.querySelector('.role-main');
+    if(layout)layout.classList.remove('details-open');
+    if(main)main.setAttribute('aria-hidden','true');
+    layout?.scrollIntoView({behavior:'smooth',block:'start'});
+  };
+  window.openInstructorDetailsHome=setupInstructorDetails;
 })();
 </script>
 
