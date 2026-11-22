@@ -4667,55 +4667,7 @@ function renderAnnualAttendanceColorChart() {
 
 
 
-<style id="ITI_INSTRUCTOR_DETAILS_ON_DEMAND_V1_STYLE">
-/* Keep instructor detail panels closed until the user chooses a menu tile. */
-#instructorSection .instructor-role-layout .role-main{display:none!important}
-#instructorSection .instructor-role-layout.details-open .role-main{display:block!important}
-#instructorSection .instructor-role-layout.details-open .role-main>.hidden{display:none!important}
-#instructorSection .instructor-role-layout .role-sidebar{width:100%;max-width:none}
-#instructorSection .instructor-role-layout:not(.details-open) .role-sidebar{margin-bottom:0}
-#instructorSection .instructor-role-layout.details-open .role-sidebar{margin-bottom:12px}
-#instructorSection .instructor-role-layout .role-sidebar .role-side-heading:after{content:' · सुविधा खोलने के लिए बटन चुनें';font-size:.72em;font-weight:500;color:#64748b}
-</style>
-<script id="ITI_INSTRUCTOR_DETAILS_ON_DEMAND_V1_SCRIPT">
-(function(){
-  function setupInstructorDetails(){
-    const section=document.getElementById('instructorSection');
-    const layout=section?.querySelector('.instructor-role-layout');
-    if(!section||!layout)return;
-    // Start with menu tiles only; no attendance table, forms or detail panels.
-    layout.classList.remove('details-open');
-    const main=layout.querySelector('.role-main');
-    if(main)main.setAttribute('aria-hidden','true');
-    layout.querySelectorAll('.inst-tab-btn').forEach(btn=>{
-      if(!btn.dataset.detailsClickBound){
-        btn.addEventListener('click',()=>{
-          layout.classList.add('details-open');
-          if(main)main.setAttribute('aria-hidden','false');
-          const home=layout.querySelector('.instructor-details-home');
-          if(home)home.remove();
-        });
-        btn.dataset.detailsClickBound='1';
-      }
-    });
-  }
-  document.addEventListener('DOMContentLoaded',()=>setTimeout(setupInstructorDetails,300));
-  const oldRoute=window.setupUIRoute;
-  if(typeof oldRoute==='function'&&!oldRoute.__detailsOnDemandWrapped){
-    const wrapped=function(){const out=oldRoute.apply(this,arguments);setTimeout(setupInstructorDetails,100);return out};
-    wrapped.__detailsOnDemandWrapped=true;window.setupUIRoute=wrapped;
-  }
-  // Expose a simple return-to-menu action for any future dashboard home control.
-  window.closeInstructorDetails=function(){
-    const layout=document.querySelector('#instructorSection .instructor-role-layout');
-    const main=layout?.querySelector('.role-main');
-    if(layout)layout.classList.remove('details-open');
-    if(main)main.setAttribute('aria-hidden','true');
-    layout?.scrollIntoView({behavior:'smooth',block:'start'});
-  };
-  window.openInstructorDetailsHome=setupInstructorDetails;
-})();
-</script>
+
 
 </body>
               </html>`);
@@ -7192,55 +7144,7 @@ function switchStudentSection(sec) {
 
 
 
-<style id="ITI_INSTRUCTOR_DETAILS_ON_DEMAND_V1_STYLE">
-/* Keep instructor detail panels closed until the user chooses a menu tile. */
-#instructorSection .instructor-role-layout .role-main{display:none!important}
-#instructorSection .instructor-role-layout.details-open .role-main{display:block!important}
-#instructorSection .instructor-role-layout.details-open .role-main>.hidden{display:none!important}
-#instructorSection .instructor-role-layout .role-sidebar{width:100%;max-width:none}
-#instructorSection .instructor-role-layout:not(.details-open) .role-sidebar{margin-bottom:0}
-#instructorSection .instructor-role-layout.details-open .role-sidebar{margin-bottom:12px}
-#instructorSection .instructor-role-layout .role-sidebar .role-side-heading:after{content:' · सुविधा खोलने के लिए बटन चुनें';font-size:.72em;font-weight:500;color:#64748b}
-</style>
-<script id="ITI_INSTRUCTOR_DETAILS_ON_DEMAND_V1_SCRIPT">
-(function(){
-  function setupInstructorDetails(){
-    const section=document.getElementById('instructorSection');
-    const layout=section?.querySelector('.instructor-role-layout');
-    if(!section||!layout)return;
-    // Start with menu tiles only; no attendance table, forms or detail panels.
-    layout.classList.remove('details-open');
-    const main=layout.querySelector('.role-main');
-    if(main)main.setAttribute('aria-hidden','true');
-    layout.querySelectorAll('.inst-tab-btn').forEach(btn=>{
-      if(!btn.dataset.detailsClickBound){
-        btn.addEventListener('click',()=>{
-          layout.classList.add('details-open');
-          if(main)main.setAttribute('aria-hidden','false');
-          const home=layout.querySelector('.instructor-details-home');
-          if(home)home.remove();
-        });
-        btn.dataset.detailsClickBound='1';
-      }
-    });
-  }
-  document.addEventListener('DOMContentLoaded',()=>setTimeout(setupInstructorDetails,300));
-  const oldRoute=window.setupUIRoute;
-  if(typeof oldRoute==='function'&&!oldRoute.__detailsOnDemandWrapped){
-    const wrapped=function(){const out=oldRoute.apply(this,arguments);setTimeout(setupInstructorDetails,100);return out};
-    wrapped.__detailsOnDemandWrapped=true;window.setupUIRoute=wrapped;
-  }
-  // Expose a simple return-to-menu action for any future dashboard home control.
-  window.closeInstructorDetails=function(){
-    const layout=document.querySelector('#instructorSection .instructor-role-layout');
-    const main=layout?.querySelector('.role-main');
-    if(layout)layout.classList.remove('details-open');
-    if(main)main.setAttribute('aria-hidden','true');
-    layout?.scrollIntoView({behavior:'smooth',block:'start'});
-  };
-  window.openInstructorDetailsHome=setupInstructorDetails;
-})();
-</script>
+
 
 </body></html>`);
     w.document.close();
@@ -7598,55 +7502,7 @@ function switchStudentSection(sec) {
      win.document.write(`<!doctype html><html lang="hi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${safeTitle} - ${escExam(record.roll)}</title>
       <style>*{box-sizing:border-box}html,body{margin:0;padding:0;width:100%;font-family:Arial,"Noto Sans Devanagari",sans-serif}#printRoot{width:100%;max-width:194mm;margin:0 auto;padding:0}@media screen{body{padding:8mm;background:#eee}#printRoot{padding:8mm;background:white;box-shadow:0 0 4mm #aaa}}@media print{#printRoot{width:100%;max-width:100%;padding:0}}</style></head><body><main id="printRoot">${html}</main>
       <script>window.onload=()=>setTimeout(()=>window.print(),400);<\/script>
-<style id="ITI_INSTRUCTOR_DETAILS_ON_DEMAND_V1_STYLE">
-/* Keep instructor detail panels closed until the user chooses a menu tile. */
-#instructorSection .instructor-role-layout .role-main{display:none!important}
-#instructorSection .instructor-role-layout.details-open .role-main{display:block!important}
-#instructorSection .instructor-role-layout.details-open .role-main>.hidden{display:none!important}
-#instructorSection .instructor-role-layout .role-sidebar{width:100%;max-width:none}
-#instructorSection .instructor-role-layout:not(.details-open) .role-sidebar{margin-bottom:0}
-#instructorSection .instructor-role-layout.details-open .role-sidebar{margin-bottom:12px}
-#instructorSection .instructor-role-layout .role-sidebar .role-side-heading:after{content:' · सुविधा खोलने के लिए बटन चुनें';font-size:.72em;font-weight:500;color:#64748b}
-</style>
-<script id="ITI_INSTRUCTOR_DETAILS_ON_DEMAND_V1_SCRIPT">
-(function(){
-  function setupInstructorDetails(){
-    const section=document.getElementById('instructorSection');
-    const layout=section?.querySelector('.instructor-role-layout');
-    if(!section||!layout)return;
-    // Start with menu tiles only; no attendance table, forms or detail panels.
-    layout.classList.remove('details-open');
-    const main=layout.querySelector('.role-main');
-    if(main)main.setAttribute('aria-hidden','true');
-    layout.querySelectorAll('.inst-tab-btn').forEach(btn=>{
-      if(!btn.dataset.detailsClickBound){
-        btn.addEventListener('click',()=>{
-          layout.classList.add('details-open');
-          if(main)main.setAttribute('aria-hidden','false');
-          const home=layout.querySelector('.instructor-details-home');
-          if(home)home.remove();
-        });
-        btn.dataset.detailsClickBound='1';
-      }
-    });
-  }
-  document.addEventListener('DOMContentLoaded',()=>setTimeout(setupInstructorDetails,300));
-  const oldRoute=window.setupUIRoute;
-  if(typeof oldRoute==='function'&&!oldRoute.__detailsOnDemandWrapped){
-    const wrapped=function(){const out=oldRoute.apply(this,arguments);setTimeout(setupInstructorDetails,100);return out};
-    wrapped.__detailsOnDemandWrapped=true;window.setupUIRoute=wrapped;
-  }
-  // Expose a simple return-to-menu action for any future dashboard home control.
-  window.closeInstructorDetails=function(){
-    const layout=document.querySelector('#instructorSection .instructor-role-layout');
-    const main=layout?.querySelector('.role-main');
-    if(layout)layout.classList.remove('details-open');
-    if(main)main.setAttribute('aria-hidden','true');
-    layout?.scrollIntoView({behavior:'smooth',block:'start'});
-  };
-  window.openInstructorDetailsHome=setupInstructorDetails;
-})();
-</script>
+
 
 </body></html>`);
      win.document.close();
@@ -8630,8 +8486,10 @@ document.addEventListener('click',ev=>{const b=ev.target.closest('.saved-result-
 </script>
 
 
+
+
+
 <style id="ITI_INSTRUCTOR_DETAILS_ON_DEMAND_V1_STYLE">
-/* Keep instructor detail panels closed until the user chooses a menu tile. */
 #instructorSection .instructor-role-layout .role-main{display:none!important}
 #instructorSection .instructor-role-layout.details-open .role-main{display:block!important}
 #instructorSection .instructor-role-layout.details-open .role-main>.hidden{display:none!important}
@@ -8642,43 +8500,16 @@ document.addEventListener('click',ev=>{const b=ev.target.closest('.saved-result-
 </style>
 <script id="ITI_INSTRUCTOR_DETAILS_ON_DEMAND_V1_SCRIPT">
 (function(){
-  function setupInstructorDetails(){
-    const section=document.getElementById('instructorSection');
-    const layout=section?.querySelector('.instructor-role-layout');
-    if(!section||!layout)return;
-    // Start with menu tiles only; no attendance table, forms or detail panels.
-    layout.classList.remove('details-open');
-    const main=layout.querySelector('.role-main');
-    if(main)main.setAttribute('aria-hidden','true');
-    layout.querySelectorAll('.inst-tab-btn').forEach(btn=>{
-      if(!btn.dataset.detailsClickBound){
-        btn.addEventListener('click',()=>{
-          layout.classList.add('details-open');
-          if(main)main.setAttribute('aria-hidden','false');
-          const home=layout.querySelector('.instructor-details-home');
-          if(home)home.remove();
-        });
-        btn.dataset.detailsClickBound='1';
-      }
-    });
-  }
-  document.addEventListener('DOMContentLoaded',()=>setTimeout(setupInstructorDetails,300));
-  const oldRoute=window.setupUIRoute;
-  if(typeof oldRoute==='function'&&!oldRoute.__detailsOnDemandWrapped){
-    const wrapped=function(){const out=oldRoute.apply(this,arguments);setTimeout(setupInstructorDetails,100);return out};
-    wrapped.__detailsOnDemandWrapped=true;window.setupUIRoute=wrapped;
-  }
-  // Expose a simple return-to-menu action for any future dashboard home control.
-  window.closeInstructorDetails=function(){
-    const layout=document.querySelector('#instructorSection .instructor-role-layout');
-    const main=layout?.querySelector('.role-main');
-    if(layout)layout.classList.remove('details-open');
-    if(main)main.setAttribute('aria-hidden','true');
-    layout?.scrollIntoView({behavior:'smooth',block:'start'});
-  };
-  window.openInstructorDetailsHome=setupInstructorDetails;
+ function setupInstructorDetails(){
+  const section=document.getElementById('instructorSection');const layout=section?.querySelector('.instructor-role-layout');if(!section||!layout)return;
+  layout.classList.remove('details-open');const main=layout.querySelector('.role-main');if(main)main.setAttribute('aria-hidden','true');
+  layout.querySelectorAll('.inst-tab-btn').forEach(btn=>{if(!btn.dataset.detailsClickBound){btn.addEventListener('click',()=>{layout.classList.add('details-open');if(main)main.setAttribute('aria-hidden','false');const home=layout.querySelector('.instructor-details-home');if(home)home.remove();});btn.dataset.detailsClickBound='1';}});
+ }
+ document.addEventListener('DOMContentLoaded',()=>setTimeout(setupInstructorDetails,300));
+ const oldRoute=window.setupUIRoute;if(typeof oldRoute==='function'&&!oldRoute.__detailsOnDemandWrapped){const wrapped=function(){const out=oldRoute.apply(this,arguments);setTimeout(setupInstructorDetails,100);return out};wrapped.__detailsOnDemandWrapped=true;window.setupUIRoute=wrapped;}
+ window.closeInstructorDetails=function(){const layout=document.querySelector('#instructorSection .instructor-role-layout');const main=layout?.querySelector('.role-main');if(layout)layout.classList.remove('details-open');if(main)main.setAttribute('aria-hidden','true');layout?.scrollIntoView({behavior:'smooth',block:'start'});};
+ window.openInstructorDetailsHome=setupInstructorDetails;
 })();
 </script>
-
 </body>
 </html>
