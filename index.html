@@ -1348,6 +1348,7 @@ a{overflow-wrap:anywhere}
 </section>
 <!-- 4. INSTRUCTOR DASHBOARD -->
 <section class="hidden" id="instructorSection">
+<div id="instructorProfileCard" class="instructor-profile-card" aria-label="अनुदेशक की जानकारी"></div>
 <!-- Tab 1: Attendance -->
 
 <!-- Tab 2: Evaluations -->
@@ -8711,6 +8712,54 @@ document.addEventListener('click',ev=>{const b=ev.target.closest('.saved-result-
  document.addEventListener('DOMContentLoaded',()=>setTimeout(addPanel,500));
  const oldRoute=window.setupUIRoute;
  if(typeof oldRoute==='function'&&!oldRoute.__excelCentreWrapped){const wrapped=function(){const out=oldRoute.apply(this,arguments);setTimeout(addPanel,150);return out;};wrapped.__excelCentreWrapped=true;window.setupUIRoute=wrapped;}
+})();
+</script>
+
+
+<style id="instructor-profile-card-style">
+#instructorProfileCard{display:none;margin:0 0 16px;padding:16px 18px;border:1px solid #cbd5e1;border-left:5px solid #0d9488;border-radius:15px;background:linear-gradient(120deg,#f0fdfa,#ffffff 65%);box-shadow:0 5px 18px rgba(15,23,42,.06)}
+#instructorProfileCard .ip-head{display:flex;align-items:center;gap:13px;margin-bottom:13px}
+#instructorProfileCard .ip-avatar{width:52px;height:52px;flex:0 0 52px;border-radius:50%;display:grid;place-items:center;background:#ccfbf1;color:#0f766e;font-size:23px;font-weight:800}
+#instructorProfileCard .ip-name{font-size:1.12rem;font-weight:800;color:#0f172a;line-height:1.4}
+#instructorProfileCard .ip-sub{font-size:.82rem;color:#64748b;margin-top:2px}
+#instructorProfileCard .ip-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:9px}
+#instructorProfileCard .ip-item{background:rgba(255,255,255,.88);border:1px solid #e2e8f0;border-radius:9px;padding:9px 11px;min-width:0}
+#instructorProfileCard .ip-label{font-size:.72rem;color:#64748b;margin-bottom:3px}
+#instructorProfileCard .ip-value{font-size:.9rem;font-weight:700;color:#1e293b;overflow-wrap:anywhere}
+@media(max-width:600px){#instructorProfileCard{padding:12px}#instructorProfileCard .ip-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+</style>
+<script id="instructor-profile-card-script">
+(function(){
+ 'use strict';
+ const byId=id=>document.getElementById(id);
+ const escProfile=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ function renderInstructorProfile(){
+  const card=byId('instructorProfileCard');
+  if(!card)return;
+  if(typeof currentRole==='undefined'||currentRole!=='instructor'||!loggedInInstructor){card.style.display='none';card.innerHTML='';return;}
+  const inst=loggedInInstructor;
+  const name=inst.name||inst.instructorName||inst.fullName||'अनुदेशक का नाम उपलब्ध नहीं';
+  const trade=(inst.instructorType==='common'||String(inst.trade||'').toUpperCase()==='COMMON')?(inst.commonSubject||'कॉमन विषय'):(currentTrade||inst.trade||'—');
+  const college=typeof getCollegeName==='function'?getCollegeName(currentCollegeId):(currentCollegeId||'—');
+  const optional=[
+   ['अनुदेशक ID',inst.id||inst.uid],
+   ['मोबाइल नंबर',inst.mobile||inst.mobileNumber||inst.phone],
+   ['ई-मेल',inst.email],
+   ['योग्यता',inst.qualification],
+   ['ग्रुप इंस्ट्रक्टर',inst.groupInstructorName||inst.groupName]
+  ].filter(x=>x[1]!==undefined&&x[1]!==null&&String(x[1]).trim()!=='');
+  const items=[['पद','अनुदेशक'],['ट्रेड / विषय',trade],['संस्थान',college],...optional];
+  const initial=String(name).trim().charAt(0)||'अ';
+  card.innerHTML=`<div class="ip-head"><div class="ip-avatar">${escProfile(initial)}</div><div><div class="ip-name">${escProfile(name)}</div><div class="ip-sub">लॉगिन किए हुए अनुदेशक की प्रोफाइल</div></div></div><div class="ip-grid">${items.map(([label,value])=>`<div class="ip-item"><div class="ip-label">${escProfile(label)}</div><div class="ip-value">${escProfile(value)}</div></div>`).join('')}</div>`;
+  card.style.display='block';
+ }
+ const oldRoute=window.setupUIRoute;
+ if(typeof oldRoute==='function'&&!oldRoute.__instructorProfileWrapped){
+  const wrapped=function(){const result=oldRoute.apply(this,arguments);setTimeout(renderInstructorProfile,0);return result;};
+  wrapped.__instructorProfileWrapped=true;window.setupUIRoute=wrapped;
+ }
+ document.addEventListener('DOMContentLoaded',()=>setTimeout(renderInstructorProfile,250));
+ window.renderInstructorProfile=renderInstructorProfile;
 })();
 </script>
 
