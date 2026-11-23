@@ -4669,6 +4669,205 @@ function renderAnnualAttendanceColorChart() {
 
 
 
+
+<!-- Instructor Excel Import / Export Centre -->
+<style id="instructor-excel-centre-style">
+#instructorExcelCentre{margin:0 0 14px;padding:16px;border:1px solid #b7d4c8;border-left:5px solid #15803d;border-radius:14px;background:#fff}
+#instructorExcelCentre .iex-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:11px;margin:12px 0}
+#instructorExcelCentre label{display:flex;flex-direction:column;gap:5px;font-weight:700;font-size:.9rem}
+#instructorExcelCentre select,#instructorExcelCentre input{width:100%;min-width:0;padding:10px;border:1px solid #cbd5e1;border-radius:9px;background:#fff}
+#instructorExcelCentre .iex-note{padding:10px 12px;border-radius:9px;background:#f0fdf4;color:#166534;font-size:.84rem;line-height:1.55}
+#instructorExcelCentre .iex-status{margin-top:10px;padding:10px;border-radius:8px;background:#f8fafc;color:#334155;font-size:.88rem;white-space:pre-wrap}
+#instructorExcelCentre .iex-actions{display:flex;gap:8px;flex-wrap:wrap}
+</style>
+<script id="instructor-excel-centre">
+(function(){
+ 'use strict';
+ const $=id=>document.getElementById(id);
+ let pendingImport=null;
+ const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const safe=v=>String(v??'').trim().toLowerCase().replace(/[\s_\-().:/]+/g,'');
+ const normDate=v=>{
+   if(v instanceof Date && !isNaN(v))return `${v.getFullYear()}-${String(v.getMonth()+1).padStart(2,'0')}-${String(v.getDate()).padStart(2,'0')}`;
+   if(typeof v==='number' && window.XLSX?.SSF){const p=XLSX.SSF.parse_date_code(v);if(p)return `${p.y}-${String(p.m).padStart(2,'0')}-${String(p.d).padStart(2,'0')}`;}
+   const x=String(v??'').trim();
+   if(/^\d{4}-\d{2}-\d{2}$/.test(x))return x;
+   let m=x.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})$/);
+   if(m)return `${m[3]}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`;
+   return '';
+ };
+ const students=()=>typeof getStudentList==='function'?(getStudentList(currentCollegeId,currentTrade)||[]):[];
+ const getRollMap=()=>new Map(students().map(st=>[String(st.roll).trim(),st]));
+ const baseRows=()=>[['रोल नंबर','विद्यार्थी का नाम']];
+ const makeBook=(rows,name,file)=>{const wb=XLSX.utils.book_new();const ws=XLSX.utils.aoa_to_sheet(rows);ws['!cols']=(rows[0]||[]).map(()=>({wch:20}));XLSX.utils.book_append_sheet(wb,ws,name);XLSX.writeFile(wb,file);};
+ const requireContext=()=>{if(currentRole!=='instructor'||!currentCollegeId||!currentTrade){alert('कृपया अनुदेशक के रूप में लॉगिन करें।');return false;}if(typeof XLSX==='undefined'){alert('Excel लाइब्रेरी लोड नहीं हुई। इंटरनेट चालू करके पुनः प्रयास करें।');return false;}return true;};
+ function getKind(){return $('iexType')?.value||'attendance';}
+ function addPanel(){
+   const section=$('instructorSection'),side=section?.querySelector('.role-sidebar'),host=$('instTabAttendance');
+   if(!section||!side||!host)return;
+   if(!$('btnInstructorExcelCentre')){
+     const b=document.createElement('button');b.type='button';b.id='btnInstructorExcelCentre';b.className='role-side-btn inst-tab-btn';b.innerHTML='<i class="fa-solid fa-file-excel"></i> 5. Excel Import / Export';b.addEventListener('click',()=>{if(typeof window.switchInstructorTab==='function')window.switchInstructorTab('attendance');window.openInstructorExcelCentre();});side.appendChild(b);
+   }
+   if($('instructorExcelCentre'))return;
+   const panel=document.createElement('section');panel.id='instructorExcelCentre';panel.className='hidden';
+   panel.innerHTML=`
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:space-between">
+      <div><h3 style="color:#166534;margin:0"><i class="fa-solid fa-file-excel"></i> Excel Import / Export Centre</h3>
+      <p style="color:#64748b;font-size:.86rem;margin-top:3px">पूरी कक्षा का डेटा एक साथ Excel से अपलोड करें या पोर्टल का रिकॉर्ड डाउनलोड करें।</p></div>
+      <button type="button" class="app-btn app-btn-secondary" id="iexClose">बंद करें</button>
+    </div>
+    <div class="iex-note"><b>कैसे काम करेगा:</b> पहले पोर्टल से टेम्पलेट डाउनलोड करें, Excel में रोल नंबर के अनुसार डेटा भरें और उसी फाइल को अपलोड करें। नाम केवल पहचान की जाँच के लिए है; रिकॉर्ड रोल नंबर से मिलाया जाएगा। खाली सेल पुराने रिकॉर्ड को नहीं मिटाएँगे।</div>
+    <div class="iex-grid">
+      <label>डेटा का प्रकार
+       <select id="iexType"><option value="attendance">दैनिक उपस्थिति (सुबह / शाम)</option><option value="weekly">साप्ताहिक नोटबुक / रिकॉर्ड चेकिंग</option><option value="monthly">मासिक टेस्ट अंक</option></select>
+      </label>
+      <label id="iexMonthWrap">माह चुनें
+       <input type="month" id="iexMonth">
+      </label>
+      <label id="iexWeekWrap" class="hidden">सप्ताह की कोई तारीख चुनें
+       <input type="date" id="iexWeek" value="${new Date().toISOString().slice(0,10)}">
+      </label>
+      <label>Excel फाइल अपलोड करें (.xlsx / .xls / .csv)
+       <input type="file" id="iexFile" accept=".xlsx,.xls,.csv">
+      </label>
+    </div>
+    <div class="iex-actions">
+      <button type="button" class="app-btn app-btn-primary" id="iexTemplate"><i class="fa-solid fa-download"></i> खाली Excel टेम्पलेट डाउनलोड</button>
+      <button type="button" class="app-btn app-btn-excel" id="iexExport"><i class="fa-solid fa-file-export"></i> पोर्टल डेटा Excel में डाउनलोड</button>
+      <button type="button" class="app-btn app-btn-success" id="iexPreview"><i class="fa-solid fa-magnifying-glass"></i> अपलोड फाइल जाँचें</button>
+      <button type="button" class="app-btn app-btn-warning" id="iexApply" disabled><i class="fa-solid fa-cloud-arrow-up"></i> जाँचा हुआ डेटा इम्पोर्ट करें</button>
+    </div>
+    <div id="iexStatus" class="iex-status" role="status">डेटा का प्रकार चुनें। इम्पोर्ट से पहले फाइल की जाँच और पूर्वावलोकन किया जाएगा।</div>`;
+   const controls=host.querySelector('.instructor-attendance-tools');
+   if(controls)controls.insertAdjacentElement('afterend',panel);else host.insertBefore(panel,host.firstChild);
+   $('iexMonth').value=$('selectedMonth')?.value||new Date().toISOString().slice(0,7);
+   $('iexType').addEventListener('change',()=>{pendingImport=null;$('iexApply').disabled=true;$('iexStatus').textContent='डेटा प्रकार बदल गया। संबंधित टेम्पलेट डाउनलोड करें।';$('iexMonthWrap').classList.toggle('hidden',getKind()==='weekly');$('iexWeekWrap').classList.toggle('hidden',getKind()!=='weekly');});
+   $('iexClose').addEventListener('click',()=>{$('instructorExcelCentre').classList.add('hidden');});
+   $('iexTemplate').addEventListener('click',downloadTemplate);
+   $('iexExport').addEventListener('click',exportData);
+   $('iexPreview').addEventListener('click',previewFile);
+   $('iexApply').addEventListener('click',applyImport);
+ }
+ window.openInstructorExcelCentre=function(){
+   if(!requireContext())return;addPanel();
+   $('instructorExcelCentre').classList.remove('hidden');
+   $('iexMonth').value=$('selectedMonth')?.value||new Date().toISOString().slice(0,7);
+   $('instructorExcelCentre').scrollIntoView({behavior:'smooth',block:'start'});
+ };
+ function attendanceRows(month){
+   const [yy,mm]=month.split('-').map(Number),last=new Date(yy,mm,0).getDate(),rows=[['रोल नंबर','विद्यार्थी का नाम','दिनांक','सुबह सत्र (P/A/L)','शाम सत्र (P/A/L)']];
+   const data=appData.records?.[currentCollegeId]?.[currentTrade]?.[month]||{};
+   students().forEach(st=>{const roll=String(st.roll).trim();for(let d=1;d<=last;d++){const date=`${month}-${String(d).padStart(2,'0')}`,v=data[roll]||{};rows.push([roll,st.name,date,v[`${d}_m`]||'',v[`${d}_e`]||'']);}});
+   return rows;
+ }
+ const weeklyHeaders=['रोल नंबर','विद्यार्थी का नाम','दैनिक डायरी','थ्योरी रजिस्टर','थ्योरी विवरण','प्रैक्टिकल रजिस्टर','प्रैक्टिकल वर्क','प्रैक्टिकल विवरण','अन्य कार्य','अनुशासन / वर्कशॉप आचरण','प्लांटेशन वर्क','टिप्पणी'];
+ const weeklyKeys=['diary','theoryRegister','theoryDetails','practicalRegister','practicalWork','practicalDetails','otherWork','discipline','plantation','remark'];
+ function weekStart(date){const d=new Date(date+'T12:00:00');d.setDate(d.getDate()-((d.getDay()+6)%7));return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
+ function weeklyRows(anchor){
+   const wk=weekStart(anchor),record=appData.weeklyRecordChecks?.[currentCollegeId]?.[currentTrade]?.[wk]||{};
+   const rows=[weeklyHeaders];students().forEach(st=>{const v=record[String(st.roll).trim()]||{};rows.push([st.roll,st.name,...weeklyKeys.map(k=>v[k]??'')]);});return rows;
+ }
+ const markKeys=()=>typeof isEnggTrade==='function'&&isEnggTrade(currentTrade)?['tt','tp','wcs','ed','es']:['tt','tp','es'];
+ function monthlyRows(month){
+   const keys=markKeys(),labels={tt:'TT अंक',tp:'TP अंक',wcs:'WCS अंक',ed:'ED अंक',es:'ES अंक'};
+   const data=appData.evaluations?.[currentCollegeId]?.[currentTrade]?.[month]||{};
+   return [['रोल नंबर','विद्यार्थी का नाम',...keys.map(k=>labels[k])],...students().map(st=>{const v=data[String(st.roll).trim()]||{};return [st.roll,st.name,...keys.map(k=>v[k]??'')];})];
+ }
+ function downloadTemplate(){
+   if(!requireContext())return;const kind=getKind(),period=kind==='weekly'?$('iexWeek').value:$('iexMonth').value;
+   if(kind==='attendance')makeBook(attendanceRows(period),'उपस्थिति',`Attendance_Template_${currentTrade}_${period}.xlsx`);
+   else if(kind==='weekly')makeBook(weeklyRows(period),'साप्ताहिक रिकॉर्ड',`Weekly_Record_Template_${currentTrade}_${weekStart(period)}.xlsx`);
+   else makeBook(monthlyRows(period),'मासिक अंक',`Monthly_Marks_Template_${currentTrade}_${period}.xlsx`);
+   $('iexStatus').textContent='टेम्पलेट डाउनलोड हो गया। इसी फाइल में डेटा भरकर अपलोड करें।';
+ }
+ function exportData(){
+   if(!requireContext())return;const kind=getKind(),period=kind==='weekly'?$('iexWeek').value:$('iexMonth').value;
+   if(kind==='attendance')makeBook(attendanceRows(period),'उपस्थिति',`Attendance_${currentTrade}_${period}.xlsx`);
+   else if(kind==='weekly')makeBook(weeklyRows(period),'साप्ताहिक रिकॉर्ड',`Weekly_Record_${currentTrade}_${weekStart(period)}.xlsx`);
+   else makeBook(monthlyRows(period),'मासिक अंक',`Monthly_Marks_${currentTrade}_${period}.xlsx`);
+   $('iexStatus').textContent='पोर्टल में सुरक्षित रिकॉर्ड की Excel फाइल तैयार हो गई।';
+ }
+ function headerIndex(headers,aliases){for(let i=0;i<headers.length;i++){const h=safe(headers[i]);if(aliases.some(a=>h===safe(a)))return i;}return -1;}
+ function val(row,index){return index<0?'':row[index]??'';}
+ function attendanceStatus(v){const x=safe(v);if(!x)return '';if(['p','present','presented','उपस्थित','हाजिर'].includes(x))return 'P';if(['a','absent','अनुपस्थित','गैरहाजिर'].includes(x))return 'A';if(['l','leave','छुट्टी','अवकाश'].includes(x))return 'L';return null;}
+ function weeklyStatus(v){const x=String(v??'').trim();if(!x)return '';const k=safe(x);if(['regular','regularcheck','नियमितचेक','नियमित'].includes(k))return 'नियमित चेक';if(['irregular','अनियमित'].includes(k))return 'अनियमित';if(['pending','जांचलंबित','जाँचलंबित','लंबित'].includes(k))return 'जांच लंबित';if(['na','notapplicable','लागूनहीं'].includes(k))return 'लागू नहीं';return null;}
+ async function previewFile(){
+   if(!requireContext())return;const file=$('iexFile').files?.[0];if(!file){alert('पहले Excel फाइल चुनें।');return;}
+   if(!window.XLSX){alert('Excel लाइब्रेरी उपलब्ध नहीं है।');return;}
+   try{
+    const buf=await file.arrayBuffer(),wb=XLSX.read(buf,{type:'array',cellDates:true}),ws=wb.Sheets[wb.SheetNames[0]],matrix=XLSX.utils.sheet_to_json(ws,{header:1,defval:'',raw:false});
+    if(matrix.length<2)throw new Error('शीट में हेडर के बाद कोई डेटा नहीं मिला।');
+    const headers=matrix[0],data=matrix.slice(1).filter(r=>r.some(c=>String(c??'').trim()!=='')),rollI=headerIndex(headers,['रोल नंबर','रोल','roll','roll no','roll number','क्रम संख्या']),nameI=headerIndex(headers,['विद्यार्थी का नाम','छात्र का नाम','नाम','student name','name']);
+    if(rollI<0)throw new Error('रोल नंबर वाला कॉलम नहीं मिला। कृपया पोर्टल का टेम्पलेट इस्तेमाल करें।');
+    const rollMap=getRollMap(),errors=[],valid=[],kind=getKind();
+    if(kind==='attendance'){
+      const dateI=headerIndex(headers,['दिनांक','तारीख','date']),morningI=headerIndex(headers,['सुबह सत्र','सुबह','morning','morning session','m']),eveningI=headerIndex(headers,['शाम सत्र','शाम','evening','evening session','e']),singleStatusI=headerIndex(headers,['स्थिति','हाजिरी','attendance','status']),sessionI=headerIndex(headers,['सत्र','session']);
+      if(dateI<0)throw new Error('उपस्थिति शीट में दिनांक कॉलम अनिवार्य है।');
+      if(morningI<0&&eveningI<0&&singleStatusI<0)throw new Error('सुबह सत्र या शाम सत्र का कॉलम नहीं मिला।');
+      data.forEach((r,n)=>{const roll=String(val(r,rollI)).trim(),st=rollMap.get(roll),date=normDate(val(r,dateI));if(!st){errors.push(`पंक्ति ${n+2}: रोल नंबर ${roll||'(खाली)'} इस ट्रेड में नहीं मिला।`);return;}if(!date){errors.push(`पंक्ति ${n+2}: दिनांक गलत है।`);return;}
+        const mRaw=morningI>=0?val(r,morningI):(safe(val(r,sessionI)).startsWith('सुबह')||safe(val(r,sessionI))==='morning'?val(r,singleStatusI):''),eRaw=eveningI>=0?val(r,eveningI):(safe(val(r,sessionI)).startsWith('शाम')||safe(val(r,sessionI))==='evening'?val(r,singleStatusI):'');
+        const m=attendanceStatus(mRaw),e=attendanceStatus(eRaw);if(m===null||e===null){errors.push(`पंक्ति ${n+2}: हाजिरी केवल P/A/L या उपस्थित/अनुपस्थित/अवकाश होनी चाहिए।`);return;}if(!m&&!e)return;
+        valid.push({kind,roll,date,m,e});
+      });
+    } else if(kind==='weekly'){
+      const cols={
+       diary:headerIndex(headers,['दैनिक डायरी','diary']),theoryRegister:headerIndex(headers,['थ्योरी रजिस्टर','theory register']),theoryDetails:headerIndex(headers,['थ्योरी विवरण','theory details']),practicalRegister:headerIndex(headers,['प्रैक्टिकल रजिस्टर','practical register']),practicalWork:headerIndex(headers,['प्रैक्टिकल वर्क','practical work']),practicalDetails:headerIndex(headers,['प्रैक्टिकल विवरण','practical details']),otherWork:headerIndex(headers,['अन्य कार्य','other work']),discipline:headerIndex(headers,['अनुशासन / वर्कशॉप आचरण','अनुशासन','discipline']),plantation:headerIndex(headers,['प्लांटेशन वर्क','प्लांटेशन','plantation']),remark:headerIndex(headers,['टिप्पणी','remark','remarks'])
+      };
+      if(!Object.values(cols).some(i=>i>=0))throw new Error('साप्ताहिक रिकॉर्ड के कॉलम नहीं मिले। पोर्टल का साप्ताहिक टेम्पलेट डाउनलोड करें।');
+      data.forEach((r,n)=>{const roll=String(val(r,rollI)).trim();if(!rollMap.has(roll)){errors.push(`पंक्ति ${n+2}: रोल नंबर ${roll||'(खाली)'} नहीं मिला।`);return;}const obj={kind,roll,values:{}};let has=false,invalid=false;
+        Object.entries(cols).forEach(([k,i])=>{if(i<0)return;const raw=val(r,i);if(raw===''||raw===null)return;has=true;if(['diary','theoryRegister','practicalRegister','practicalWork','otherWork'].includes(k)){const v=weeklyStatus(raw);if(v===null){errors.push(`पंक्ति ${n+2}: ${headers[i]} में अमान्य स्थिति "${raw}" है।`);invalid=true;}else obj.values[k]=v;}else obj.values[k]=String(raw).trim();});
+        if(!has)errors.push(`पंक्ति ${n+2}: कोई रिकॉर्ड नहीं भरा गया।`);else if(!invalid)valid.push(obj);
+      });
+    } else {
+      const keys=markKeys(),idx={};keys.forEach(k=>idx[k]=headerIndex(headers,({tt:['TT अंक','Trade Theory','TT'],tp:['TP अंक','Trade Practical','TP'],wcs:['WCS अंक','Workshop Calculation','WCS'],ed:['ED अंक','Engineering Drawing','ED'],es:['ES अंक','Employability Skills','ES']}[k])));
+      if(!keys.some(k=>idx[k]>=0))throw new Error('मासिक टेस्ट अंक के कॉलम नहीं मिले।');
+      data.forEach((r,n)=>{const roll=String(val(r,rollI)).trim();if(!rollMap.has(roll)){errors.push(`पंक्ति ${n+2}: रोल नंबर ${roll||'(खाली)'} नहीं मिला।`);return;}const values={};let has=false,bad=false;keys.forEach(k=>{if(idx[k]<0)return;const raw=val(r,idx[k]);if(raw==='')return;has=true;const num=Number(raw);if(!Number.isFinite(num)||num<0){errors.push(`पंक्ति ${n+2}: ${k.toUpperCase()} अंक गलत हैं।`);bad=true;}else values[k]=String(num);});if(has&&!bad)valid.push({kind,roll,values});else if(!has)errors.push(`पंक्ति ${n+2}: कोई अंक नहीं भरा गया।`);});
+    }
+    pendingImport={kind,period:kind==='weekly'?weekStart($('iexWeek').value):$('iexMonth').value,valid,errors};
+    $('iexApply').disabled=!valid.length;
+    $('iexStatus').textContent=`फाइल: ${file.name}\nकुल डेटा पंक्तियाँ: ${data.length}\nसही पंक्तियाँ: ${valid.length}\nजाँच में त्रुटियाँ: ${errors.length}${errors.length?'\n\nपहली 12 त्रुटियाँ:\n'+errors.slice(0,12).join('\n'):''}\n\n${valid.length?'अब “जाँचा हुआ डेटा इम्पोर्ट करें” दबाएँ।':'इम्पोर्ट के लिए कोई सही पंक्ति उपलब्ध नहीं है।'}`;
+   }catch(e){pendingImport=null;$('iexApply').disabled=true;$('iexStatus').textContent='फाइल जाँच नहीं हो सकी: '+(e.message||e);alert(e.message||e);}
+ }
+ async function applyImport(){
+   if(!pendingImport||!pendingImport.valid.length)return;if(!requireContext())return;
+   const {kind,period,valid,errors}=pendingImport;
+   if(kind==='attendance'&&isMonthLocked(currentCollegeId,currentTrade,period)){alert('यह माह लॉक है। इस माह की उपस्थिति इम्पोर्ट नहीं की जा सकती।');return;}
+   if(kind==='monthly'&&isMonthLocked(currentCollegeId,currentTrade,period)){alert('यह माह लॉक है। इस माह के अंक इम्पोर्ट नहीं किए जा सकते।');return;}
+   const msg=`${valid.length} सही पंक्तियाँ इम्पोर्ट होंगी।${errors.length?`\n${errors.length} गलत पंक्तियाँ छोड़ दी जाएँगी।`:''}\nक्या आगे बढ़ें?`;
+   if(!confirm(msg))return;
+   const rollMap=getRollMap(),today=new Date();today.setHours(0,0,0,0);let changed=0,skipped=0;
+   if(kind==='attendance'){
+     appData.records||={};appData.records[currentCollegeId]||={};appData.records[currentCollegeId][currentTrade]||={};appData.records[currentCollegeId][currentTrade][period]||={};
+     const target=appData.records[currentCollegeId][currentTrade][period];
+     valid.forEach(x=>{const st=rollMap.get(x.roll),dt=new Date(x.date+'T00:00:00'),d=dt.getDate(),hols=appData.holidays?.[currentCollegeId]?.[currentTrade]?.[period]||[];if(x.date.slice(0,7)!==period||dt>today||(st?.admissionDate&&x.date<st.admissionDate)||dt.getDay()===0||hols.map(Number).includes(d)){skipped++;return;}
+       target[x.roll]||={};if(x.m)target[x.roll][`${d}_m`]=x.m;if(x.e)target[x.roll][`${d}_e`]=x.e;changed++;
+     });
+     if(typeof renderRegister==='function')renderRegister();
+   } else if(kind==='weekly'){
+     appData.weeklyRecordChecks||={};appData.weeklyRecordChecks[currentCollegeId]||={};appData.weeklyRecordChecks[currentCollegeId][currentTrade]||={};
+     const rec=appData.weeklyRecordChecks[currentCollegeId][currentTrade][period]||{_savedAt:new Date().toISOString(),_checkDate:period};
+     valid.forEach(x=>{rec[x.roll]||={};Object.assign(rec[x.roll],x.values);changed++;});
+     rec._savedAt=new Date().toISOString();appData.weeklyRecordChecks[currentCollegeId][currentTrade][period]=rec;
+     const anchor=$('iexWeek').value;if($('weeklyCheckAnchor'))$('weeklyCheckAnchor').value=anchor;
+     if($('weeklyCheckLoad'))$('weeklyCheckLoad').click();
+     if(typeof window.renderEvaluationTable==='function')window.renderEvaluationTable();
+   } else {
+     appData.evaluations||={};appData.evaluations[currentCollegeId]||={};appData.evaluations[currentCollegeId][currentTrade]||={};appData.evaluations[currentCollegeId][currentTrade][period]||={};
+     valid.forEach(x=>{const old=appData.evaluations[currentCollegeId][currentTrade][period][x.roll]||{};appData.evaluations[currentCollegeId][currentTrade][period][x.roll]={...old,...x.values};changed++;});
+     if($('evalSelectedMonth'))$('evalSelectedMonth').value=period;
+     if(typeof renderEvaluationTable==='function')renderEvaluationTable();
+   }
+   await syncWithFirebase();
+   pendingImport=null;$('iexApply').disabled=true;$('iexFile').value='';
+   $('iexStatus').textContent=`इम्पोर्ट पूरा हुआ।\nसफल विद्यार्थी / पंक्तियाँ: ${changed}\nछोड़ी गई पंक्तियाँ: ${skipped}\nजाँच में पहले से मिली त्रुटियाँ: ${errors.length}\nडेटा लोकल और Firebase में सुरक्षित करने का प्रयास किया गया।`;
+   showToast(`Excel से ${changed} रिकॉर्ड इम्पोर्ट हुए।`);
+ }
+ document.addEventListener('DOMContentLoaded',()=>setTimeout(addPanel,500));
+ const oldRoute=window.setupUIRoute;
+ if(typeof oldRoute==='function'&&!oldRoute.__excelCentreWrapped){const wrapped=function(){const out=oldRoute.apply(this,arguments);setTimeout(addPanel,150);return out;};wrapped.__excelCentreWrapped=true;window.setupUIRoute=wrapped;}
+})();
+</script>
+
 </body>
               </html>`);
             printWindow.document.close();
